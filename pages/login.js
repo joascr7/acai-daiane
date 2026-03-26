@@ -1,88 +1,80 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 
-import { auth, db } from '../services/firebase';
+import { auth, db } from "../services/firebase";
+
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   sendPasswordResetEmail
-} from 'firebase/auth';
+} from "firebase/auth";
 
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 export default function Login() {
+
   const router = useRouter();
 
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [senha, setSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [modoCadastro, setModoCadastro] = useState(false);
-
-  const [dark, setDark] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const [nome, setNome] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+
+  const [dark, setDark] = useState(false);
+
+  // 🔥 CARREGAR TEMA
   useEffect(() => {
     const temaSalvo = localStorage.getItem("tema");
-    if (temaSalvo !== null) {
-      setDark(temaSalvo === "dark");
-    }
+    if (temaSalvo === "dark") setDark(true);
   }, []);
 
+  // 🔥 TOGGLE TEMA
   function toggleTheme() {
-    const novo = !dark;
-    setDark(novo);
-    localStorage.setItem("tema", novo ? "dark" : "light");
+    setDark(prev => {
+      const novo = !prev;
+      localStorage.setItem("tema", novo ? "dark" : "light");
+      return novo;
+    });
   }
+
+  const formValido = email && senha && (!modoCadastro || (nome && cpf));
 
   function formatarCPF(valor) {
-    valor = valor.replace(/\D/g, '').slice(0, 11);
     return valor
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+      .slice(0, 14);
   }
-
-  function validarCPF(cpf) {
-    cpf = cpf.replace(/\D/g, '');
-    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-
-    let soma = 0, resto;
-    for (let i = 1; i <= 9; i++)
-      soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-
-    resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.substring(9, 10))) return false;
-
-    soma = 0;
-    for (let i = 1; i <= 10; i++)
-      soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-
-    resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-
-    return resto === parseInt(cpf.substring(10, 11));
-  }
-
-  const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  const formValido = modoCadastro
-    ? nome && emailValido.test(email) && validarCPF(cpf) && senha.length >= 6 && senha === confirmarSenha
-    : emailValido.test(email) && senha;
 
   async function entrar() {
 
-    if (!formValido) return alert("Preencha corretamente");
+    if (!formValido) {
+      alert("Preencha corretamente");
+      return;
+    }
 
     try {
       setLoading(true);
 
       if (modoCadastro) {
 
+        if (senha.length < 6) {
+          alert("Senha deve ter pelo menos 6 caracteres");
+          return;
+        }
+
+        if (senha !== confirmarSenha) {
+          alert("As senhas não coincidem");
+          return;
+        }
+
         try {
-          // 🆕 criar conta
           const res = await createUserWithEmailAndPassword(auth, email, senha);
           const user = res.user;
 
@@ -96,7 +88,6 @@ export default function Login() {
 
         } catch (e) {
 
-          // 🔥 email já existe → login automático
           if (e.code === "auth/email-already-in-use") {
 
             const res = await signInWithEmailAndPassword(auth, email, senha);
@@ -114,7 +105,7 @@ export default function Login() {
         }
 
       } else {
-        // 🔑 login normal
+
         const res = await signInWithEmailAndPassword(auth, email, senha);
         const user = res.user;
 
@@ -125,7 +116,7 @@ export default function Login() {
         }
       }
 
-      router.push('/acai');
+      router.push("/acai");
 
     } catch (e) {
 
@@ -143,88 +134,201 @@ export default function Login() {
   }
 
   async function recuperarSenha() {
-    if (!email) return alert("Digite o email");
+
+    if (!email) {
+      alert("Digite seu email");
+      return;
+    }
 
     try {
       await sendPasswordResetEmail(auth, email);
-      alert("Email enviado!");
-    } catch {
-      alert("Erro ao enviar");
+      alert("📩 Email enviado! Verifique sua caixa de entrada.");
+
+    } catch (error) {
+
+      if (error.code === "auth/user-not-found") {
+        alert("Usuário não encontrado");
+      } else if (error.code === "auth/invalid-email") {
+        alert("Email inválido");
+      } else {
+        alert("Erro ao enviar email");
+      }
+
     }
   }
 
   return (
-    <div className="container">
-      <div className="content">
+    <div
+  className="container"
+  style={{
+    background: dark
+      ? "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('/bg.png')"
+      : "linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.9)), url('/bg.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 15
+  }}
+>
 
-        <h1>🍧 Açaí da Daiane</h1>
+  <div
+    className="content"
+    style={{
+      backdropFilter: "blur(12px)",
+      background: dark ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.75)",
+      padding: 25,
+      borderRadius: 20,
+      width: "100%",
+      maxWidth: 420,
+      color: dark ? "#fff" : "#111",
+      boxShadow: "0 0 30px rgba(122,0,255,0.25)"
+    }}
+  >
 
-        {/* BOTÃO TEMA */}
-        <button className="themeBtn" onClick={toggleTheme}>
-          {dark ? "☀️ Modo Claro" : "🌙 Modo Dark"}
+    <h1 style={{ textAlign: "center" }}>🍧 Açaí da Daiane</h1>
+
+    <button
+      className="themeBtn"
+      onClick={toggleTheme}
+      style={{
+        marginTop: 10,
+        width: "100%",
+        background: dark ? "#1a1a1a" : "#fff",
+        color: dark ? "#fff" : "#111",
+        border: "2px solid #8a00ff"
+      }}
+    >
+      {dark ? "☀️ Modo Claro" : "🌙 Modo Dark"}
+    </button>
+
+    <div
+      className="form"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 15,
+        marginTop: 20
+      }}
+    >
+
+      {modoCadastro && (
+        <>
+          <input
+            placeholder="Nome"
+            value={nome}
+            onChange={e => {
+              const valor = e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
+              setNome(valor.charAt(0).toUpperCase() + valor.slice(1));
+            }}
+            style={{
+              padding: 14,
+              borderRadius: 12,
+              border: "none",
+              background: dark ? "#111" : "#fff",
+              color: dark ? "#fff" : "#111"
+            }}
+          />
+
+          <input
+            placeholder="CPF"
+            value={cpf}
+            onChange={e => setCpf(formatarCPF(e.target.value))}
+            style={{
+              padding: 14,
+              borderRadius: 12,
+              border: "none",
+              background: dark ? "#111" : "#fff",
+              color: dark ? "#fff" : "#111"
+            }}
+          />
+        </>
+      )}
+
+      <input
+        placeholder="Email"
+        value={email}
+        onChange={e => setEmail(e.target.value.toLowerCase())}
+        style={{
+          padding: 14,
+          borderRadius: 12,
+          border: "none",
+          background: dark ? "#111" : "#fff",
+          color: dark ? "#fff" : "#111"
+        }}
+      />
+
+      <input
+        type="password"
+        placeholder="Senha"
+        value={senha}
+        onChange={e => setSenha(e.target.value)}
+        style={{
+          padding: 14,
+          borderRadius: 12,
+          border: "none",
+          background: dark ? "#111" : "#fff",
+          color: dark ? "#fff" : "#111"
+        }}
+      />
+
+      {modoCadastro && (
+        <input
+          type="password"
+          placeholder="Confirmar senha"
+          value={confirmarSenha}
+          onChange={e => setConfirmarSenha(e.target.value)}
+          style={{
+            padding: 14,
+            borderRadius: 12,
+            border: "none",
+            background: dark ? "#111" : "#fff",
+            color: dark ? "#fff" : "#111"
+          }}
+        />
+      )}
+
+      <button
+        className="btn"
+        onClick={entrar}
+        style={{
+          background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+          color: "#fff",
+          fontWeight: "bold"
+        }}
+      >
+        {loading ? "Carregando..." : modoCadastro ? "Cadastrar" : "Entrar"}
+      </button>
+
+      {!modoCadastro && (
+        <button
+          className="link"
+          onClick={recuperarSenha}
+          style={{
+            background: "transparent",
+            color: dark ? "#bbb" : "#333"
+          }}
+        >
+          🔑 Esqueci minha senha
         </button>
+      )}
 
-        <div className="form">
+      <button
+        className="link strong"
+        onClick={() => setModoCadastro(!modoCadastro)}
+        style={{
+          background: "transparent",
+          color: dark ? "#fff" : "#000"
+        }}
+      >
+        {modoCadastro ? "Já tenho conta" : "Criar conta"}
+      </button>
 
-          {modoCadastro && (
-            <>
-              <input
-                placeholder="Nome"
-                value={nome}
-                onChange={e => setNome(e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, ''))}
-              />
-
-              <input
-                placeholder="CPF"
-                value={cpf}
-                onChange={e => setCpf(formatarCPF(e.target.value))}
-              />
-            </>
-          )}
-
-          <input
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-
-          <input
-            type="password"
-            placeholder="Senha"
-            value={senha}
-            onChange={e => setSenha(e.target.value)}
-          />
-
-          {modoCadastro && (
-            <input
-              type="password"
-              placeholder="Confirmar senha"
-              value={confirmarSenha}
-              onChange={e => setConfirmarSenha(e.target.value)}
-            />
-          )}
-
-          <button className="btn" onClick={entrar}>
-            {loading ? "Carregando..." : modoCadastro ? "Cadastrar" : "Entrar"}
-          </button>
-
-          {!modoCadastro && (
-            <button className="link" onClick={recuperarSenha}>
-              Esqueci minha senha
-            </button>
-          )}
-
-          <button
-            className="link strong"
-            onClick={() => setModoCadastro(!modoCadastro)}
-          >
-            {modoCadastro ? "Já tenho conta" : "Criar conta"}
-          </button>
-
-        </div>
-
+    </div>
       </div>
-
+ 
       <style jsx>{`
         .container {
   min-height: 100vh;

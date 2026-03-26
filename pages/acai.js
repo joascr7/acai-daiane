@@ -50,6 +50,7 @@ const [clienteTelefone, setClienteTelefone] = useState("");
 const [clienteEmail, setClienteEmail] = useState("");
 const [clienteEndereco, setClienteEndereco] = useState("");
 const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
+const [clienteCep, setClienteCep] = useState("");
 
 // 🔥 MÁSCARA CPF
 function formatarCPF(valor) {
@@ -68,6 +69,37 @@ function formatarTelefone(valor) {
     .replace(/(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2")
     .slice(0, 15);
+}
+
+async function buscarCEP(cep) {
+
+  const cepLimpo = cep.replace(/\D/g, "");
+
+  if (cepLimpo.length !== 8) return;
+
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+    const data = await res.json();
+
+    if (data.erro) {
+      alert("CEP não encontrado");
+      return;
+    }
+
+    // 🔥 preenche automático
+    setClienteEndereco(`${data.logradouro}, ${data.bairro}`);
+    
+  } catch (e) {
+    console.log(e);
+    alert("Erro ao buscar CEP");
+  }
+}
+
+function formatarCEP(valor) {
+  return valor
+    .replace(/\D/g, "")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .slice(0, 9);
 }
 
 // 🔥 ESTILO INPUT
@@ -95,13 +127,14 @@ useEffect(() => {
         setClienteNome(dados.clienteNome || "");
         setClienteCpf(dados.clienteCpf || "");
         setClienteTelefone(dados.clienteTelefone || "");
-        setClienteEmail(dados.clienteEmail || "");
+        setClienteEmail(dados.clienteEmail || user.email || "");
         setClienteEndereco(dados.clienteEndereco || "");
         setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+        setClienteCep(dados.clienteCep || "");
+      } else {
+        // 🔥 SE NÃO EXISTIR NO FIRESTORE
+        setClienteEmail(user.email || "");
       }
-
-      // 🔥 AGORA LIBERA SALVAR
-      setCarregouCliente(true);
 
     } catch (e) {
       console.log("Erro ao carregar cliente", e);
@@ -232,10 +265,10 @@ function gerarMensagemPedido(carrinho) {
   mensagem += ` Nome: ${clienteNome}\n`;
   mensagem += ` Telefone: ${clienteTelefone}\n`;
   mensagem += ` Endereço: ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+  mensagem += `CEP: ${clienteCep}\n`;
 
   return mensagem;
 }
-// salvar dados do client 
 async function salvarDadosCliente() {
 
   const user = auth.currentUser;
@@ -251,14 +284,19 @@ async function salvarDadosCliente() {
   }
 
   try {
-    await setDoc(doc(db, "usuarios", user.uid), {
-      clienteNome,
-      clienteCpf,
-      clienteTelefone,
-      clienteEmail,
-      clienteEndereco,
-      clienteNumeroCasa
-    });
+    await setDoc(
+      doc(db, "usuarios", user.uid),
+      {
+        clienteNome,
+        clienteCpf,
+        clienteTelefone,
+        clienteEmail: clienteEmail || user.email, // 🔥 garante email
+        clienteEndereco,
+        clienteCep,
+        clienteNumeroCasa
+      },
+      { merge: true } // 🔥 NÃO sobrescreve tudo
+    );
 
     alert("✅ Dados salvos com sucesso");
 
@@ -340,11 +378,11 @@ async function salvarPedidoFirebase(pedido) {
 function enviarWhatsApp(carrinho) {
   const numero = "5581973119512";
 
-  if (!clienteNome || !clienteEndereco) {
-    alert("Preencha seus dados pessoais!");
-    setStep(4); // 🔥 joga pro step de dados
-    return;
-  }
+  if (!clienteNome || !clienteEndereco || !clienteCep) {
+  alert("Preencha nome, endereço e CEP!");
+  setStep(4);
+  return;
+}
 
   const carrinhoSeguro = JSON.parse(JSON.stringify(carrinho));
 
@@ -1303,6 +1341,21 @@ return (
           value={clienteEmail}
           onChange={(e) => setClienteEmail(e.target.value)}
         />
+        
+        <input
+  style={inputStyle}
+  placeholder="CEP"
+  value={clienteCep}
+  onChange={(e) => {
+    const valor = formatarCEP(e.target.value);
+    setClienteCep(valor);
+
+    if (valor.replace(/\D/g, "").length === 8) {
+      buscarCEP(valor);
+    }
+  }}
+/>
+
 
         <input
           style={inputStyle}
@@ -1312,6 +1365,9 @@ return (
             setClienteEndereco(
               e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "")
             )
+            
+
+            
           }
         />
 
@@ -1410,7 +1466,7 @@ return (
           marginLeft: 6,
           color:
             p.status === "preparando" ? "orange" :
-            p.status === "saiu" ? "#00b0ff" :
+            p.status === "saiu para entrega" ? "#00b0ff" :
             p.status === "entregue" ? "#00c853" :
             "#888"
         }}>
