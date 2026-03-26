@@ -1,0 +1,280 @@
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+
+  background: url('/bg.png') no-repeat center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* escurece */
+  z-index: -1;
+}
+
+.loginBox {
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 30px;
+}
+
+
+/* ============================= */
+/* 🔥 VARIÁVEIS (TEMA) */
+/* ============================= */
+
+:root {
+  --bg: #0a0014;
+  --card: #111;
+  --text: #ffffff;
+  --subtext: #aaaaaa;
+  --input: #1a1a1a;
+  --primary: #6a00ff;
+  --primary2: #ff2aff;
+}
+
+/* 🌞 LIGHT MODE */
+.light {
+  --bg: #f5f5f5;
+  --card: #ffffff;
+  --text: #000000;
+  --subtext: #555;
+  --input: #eeeeee;
+}
+
+/* ============================= */
+/* 🔥 BASE */
+/* ============================= */
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ============================= */
+/* 🔥 SCROLL */
+/* ============================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--primary), var(--primary2));
+  border-radius: 10px;
+}
+
+/* ============================= */
+/* 🔥 INPUTS / BUTTONS */
+/* ============================= */
+
+input {
+  background: var(--box);
+  color: var(--text);
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  outline: none;
+  
+}
+
+button {
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(90deg, var(--primary), #9d00ff);
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* ============================= */
+/* 🔥 LAYOUT */
+/* ============================= */
+
+.wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.content {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 900px;
+  margin: 0 auto 20px auto;
+}
+
+/* ============================= */
+/* 🔥 CARDS */
+/* ============================= */
+
+.card {
+  margin-top: 15px;
+  padding: 0; /* 🔥 REMOVE BORDA INTERNA */
+  background: var(--card);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  border-radius: 0; /* 🔥 evita borda interna */
+}
+
+/* ============================= */
+/* 🔥 PEDIDOS */
+/* ============================= */
+
+.listaPedidos {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.gridPedidos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.coluna {
+  width: 100%;
+}
+
+.pedido {
+  background: var(--card);
+  color: var(--text);
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+
+.pedido:hover {
+  transform: scale(1.02);
+}
+
+.pedido.novo {
+  animation: piscar 1s infinite;
+  border-left: 5px solid #00ff88;
+}
+
+.entregue {
+  opacity: 0.6;
+}
+
+@keyframes piscar {
+  0% { background: rgba(0,255,136,0.1); }
+  50% { background: rgba(0,255,136,0.3); }
+  100% { background: rgba(0,255,136,0.1); }
+}
+
+/* ============================= */
+/* 🔥 GRÁFICO */
+/* ============================= */
+
+.graficoBox {
+  width: 100%;
+  max-width: 600px;
+}
+
+.graficoItem {
+  color: var(--subtext);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.barra {
+  height: 10px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--primary), var(--primary2));
+  margin: 6px 0;
+}
+
+/* ============================= */
+/* 🔥 CUPOM */
+/* ============================= */
+
+.cupomForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cupomForm button {
+  grid-column: span 2;
+}
+
+.cupomItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.cupomBtns {
+  display: flex;
+  gap: 10px;
+}
+
+/* ============================= */
+/* 🔥 EXTRAS / TAG */
+/* ============================= */
+
+.extra {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.tag {
+  background: var(--input);
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ============================= */
+/* 🔥 RESPONSIVO */
+/* ============================= */
+
+@media (max-width: 768px) {
+  .gridPedidos {
+    grid-template-columns: 1fr;
+  }
+}
+
