@@ -417,43 +417,79 @@ const text = dark ? '#fff' : '#000';
 return (
   <div style={{ minHeight: '100vh', background: bg, display: 'flex', justifyContent: 'center' }}>
 
-    {/* 🔥 MODAL CORRETO */}
-    {pedidoConfirmado && (
-      <div style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "rgba(0,0,0,0.6)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999
-      }}>
-        <div style={{
-          background: "#fff",
-          padding: 25,
-          borderRadius: 16,
-          width: 300,
-          textAlign: "center"
-        }}>
-          <h2>✅ Pedido realizado!</h2>
-          <p>Seu açaí já está sendo preparado 🍧</p>
+{pedidoConfirmado && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(6px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: dark ? "#111" : "#fff",
+      color: dark ? "#fff" : "#000", // 🔥 CORRIGE TEXTO
+      padding: 25,
+      borderRadius: 20,
+      width: 320,
+      textAlign: "center",
+      boxShadow: "0 0 25px rgba(122,0,255,0.3)",
+      animation: "fadeIn 0.3s ease"
+    }}>
 
-          <button onClick={() => {
+      {/* 🔥 ÍCONE */}
+      <div style={{ fontSize: 40, marginBottom: 10 }}>
+        ✅
+      </div>
+
+      {/* 🔥 TÍTULO */}
+      <h2 style={{ marginBottom: 5 }}>
+        Pedido realizado!
+      </h2>
+
+      {/* 🔥 TEXTO */}
+      <p style={{
+        opacity: 0.8,
+        fontSize: 14
+      }}>
+        Seu açaí já está sendo preparado 🍧
+      </p>
+
+      {/* 🔥 BOTÕES */}
+      <div style={{
+        display: "flex",
+        gap: 10,
+        marginTop: 20
+      }}>
+
+        <button
+          style={{ flex: 1 }}
+          onClick={() => {
             setPedidoConfirmado(false);
             setStep(5);
-          }}>
-            📦 Acompanhar pedido
-          </button>
+          }}
+        >
+          📦 Acompanhar
+        </button>
 
-          <button onClick={() => setPedidoConfirmado(false)}>
-            Fechar
-          </button>
-        </div>
+        <button
+          style={{
+            flex: 1,
+            background: dark ? "#222" : "#ddd",
+            color: dark ? "#fff" : "#000"
+          }}
+          onClick={() => setPedidoConfirmado(false)}
+        >
+          Fechar
+        </button>
+
       </div>
-    )}
+
+    </div>
+  </div>
+)}
 
     <div style={{ width: 420, padding: 20, color: text }}>
 
