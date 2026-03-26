@@ -9,10 +9,11 @@ import {
   onSnapshot,
   query,
   where,
-  doc
+  doc,
+  setDoc,   // 🔥 ADICIONA
+  getDoc    // 🔥 ADICIONA
 } from 'firebase/firestore';
 
-// 🔥 FALTAVA ISSO AQUI
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Acai() {
@@ -38,6 +39,7 @@ export default function Acai() {
   const [enderecoCliente, setEnderecoCliente] = useState("");
   const [carrinho, setCarrinho] = useState([]);
   const [pedidos, setPedidos] = useState([]);
+  const [carregouCliente, setCarregouCliente] = useState(false);
   
 
   // dados do client
@@ -98,6 +100,9 @@ useEffect(() => {
         setClienteNumeroCasa(dados.clienteNumeroCasa || "");
       }
 
+      // 🔥 AGORA LIBERA SALVAR
+      setCarregouCliente(true);
+
     } catch (e) {
       console.log("Erro ao carregar cliente", e);
     }
@@ -108,42 +113,7 @@ useEffect(() => {
 
 }, []);
 
-  // 🔥 2. SALVAR AUTOMÁTICO (COLOCA AQUI)
-useEffect(() => {
-
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const salvar = async () => {
-    try {
-      await setDoc(doc(db, "usuarios", user.uid), {
-        clienteNome,
-        clienteCpf,
-        clienteTelefone,
-        clienteEmail,
-        clienteEndereco,
-        clienteNumeroCasa
-      });
-    } catch (e) {
-      console.log("Erro ao salvar cliente", e);
-    }
-  };
-
-  // 🔥 evita salvar vazio
-  if (clienteNome || clienteTelefone || clienteEndereco) {
-    salvar();
-  }
-
-}, [
-  clienteNome,
-  clienteCpf,
-  clienteTelefone,
-  clienteEmail,
-  clienteEndereco,
-  clienteNumeroCasa
-]);
-
+  
   useEffect(() => {
 
   const user = auth.currentUser;
@@ -264,6 +234,38 @@ function gerarMensagemPedido(carrinho) {
   mensagem += ` Endereço: ${clienteEndereco}, ${clienteNumeroCasa}\n`;
 
   return mensagem;
+}
+// salvar dados do client 
+async function salvarDadosCliente() {
+
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Faça login novamente");
+    return;
+  }
+
+  if (!clienteNome || !clienteEndereco) {
+    alert("Preencha os dados obrigatórios");
+    return;
+  }
+
+  try {
+    await setDoc(doc(db, "usuarios", user.uid), {
+      clienteNome,
+      clienteCpf,
+      clienteTelefone,
+      clienteEmail,
+      clienteEndereco,
+      clienteNumeroCasa
+    });
+
+    alert("✅ Dados salvos com sucesso");
+
+  } catch (e) {
+    console.log(e);
+    alert("Erro ao salvar");
+  }
 }
 
 async function salvarPedidoFirebase(pedido) {
@@ -1254,7 +1256,7 @@ return (
     </div>
   </div>
 )}
-
+{/* STEP 4 */}
 {step === 4 && (
   <>
     <h3>👤 Dados do Cliente</h3>
@@ -1323,6 +1325,23 @@ return (
         />
 
       </div>
+
+      <button
+  onClick={salvarDadosCliente}
+  style={{
+    marginTop: 15,
+    padding: 12,
+    borderRadius: 12,
+    border: "none",
+    background: "linear-gradient(90deg,550094,#550092)",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer",
+    width: "100%"
+  }}
+>
+  💾 Salvar dados
+</button>
 
       <button
         style={{ marginTop: 15 }}
