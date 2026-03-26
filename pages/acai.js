@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 import { db, auth } from '../services/firebase';
+
 import {
   collection,
   addDoc,
@@ -10,6 +11,9 @@ import {
   where,
   doc
 } from 'firebase/firestore';
+
+// 🔥 FALTAVA ISSO AQUI
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Acai() {
 
@@ -76,21 +80,26 @@ const inputStyle = {
 // 🔥 1. CARREGAR DADOS (COLOCA AQUI)
 useEffect(() => {
 
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
 
     if (!user) return;
 
-    const dados = JSON.parse(
-      localStorage.getItem(`cliente_${user.uid}`)
-    );
+    try {
+      const snap = await getDoc(doc(db, "usuarios", user.uid));
 
-    if (dados) {
-      setClienteNome(dados.clienteNome || "");
-      setClienteCpf(dados.clienteCpf || "");
-      setClienteTelefone(dados.clienteTelefone || "");
-      setClienteEmail(dados.clienteEmail || "");
-      setClienteEndereco(dados.clienteEndereco || "");
-      setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+      if (snap.exists()) {
+        const dados = snap.data();
+
+        setClienteNome(dados.clienteNome || "");
+        setClienteCpf(dados.clienteCpf || "");
+        setClienteTelefone(dados.clienteTelefone || "");
+        setClienteEmail(dados.clienteEmail || "");
+        setClienteEndereco(dados.clienteEndereco || "");
+        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+      }
+
+    } catch (e) {
+      console.log("Erro ao carregar cliente", e);
     }
 
   });
@@ -106,19 +115,25 @@ useEffect(() => {
 
   if (!user) return;
 
-  const dados = {
-    clienteNome,
-    clienteCpf,
-    clienteTelefone,
-    clienteEmail,
-    clienteEndereco,
-    clienteNumeroCasa
+  const salvar = async () => {
+    try {
+      await setDoc(doc(db, "usuarios", user.uid), {
+        clienteNome,
+        clienteCpf,
+        clienteTelefone,
+        clienteEmail,
+        clienteEndereco,
+        clienteNumeroCasa
+      });
+    } catch (e) {
+      console.log("Erro ao salvar cliente", e);
+    }
   };
 
-  localStorage.setItem(
-    `cliente_${user.uid}`,
-    JSON.stringify(dados)
-  );
+  // 🔥 evita salvar vazio
+  if (clienteNome || clienteTelefone || clienteEndereco) {
+    salvar();
+  }
 
 }, [
   clienteNome,
