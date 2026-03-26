@@ -21,23 +21,337 @@ export default function Acai() {
   const [extras, setExtras] = useState([]);
   const [pagamento, setPagamento] = useState("");
   const [cliente, setCliente] = useState('');
-  const [historico, setHistorico] = useState([]);
   const [dark, setDark] = useState(false);
   const [cupom, setCupom] = useState("");
   const [descontoCupom, setDescontoCupom] = useState(0);
   const [cupomAtivo, setCupomAtivo] = useState(null);
-  const [carrinho, setCarrinho] = useState([]);
   const [quantidade, setQuantidade] = useState(1);
   const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
   const [loadingPedido, setLoadingPedido] = useState(false);
   const [lojaAberta, setLojaAberta] = useState(null);
+  const [mostrarPix, setMostrarPix] = useState(false);
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [enderecoCliente, setEnderecoCliente] = useState("");
+  const [carrinho, setCarrinho] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  
+
+  // dados do client
+
+const [clienteNome, setClienteNome] = useState("");
+const [clienteCpf, setClienteCpf] = useState("");
+const [clienteTelefone, setClienteTelefone] = useState("");
+const [clienteEmail, setClienteEmail] = useState("");
+const [clienteEndereco, setClienteEndereco] = useState("");
+const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
+
+// 🔥 MÁSCARA CPF
+function formatarCPF(valor) {
+  return valor
+    .replace(/\D/g, "")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
+    .slice(0, 14);
+}
+
+// 🔥 MÁSCARA TELEFONE
+function formatarTelefone(valor) {
+  return valor
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .slice(0, 15);
+}
+
+// 🔥 ESTILO INPUT
+const inputStyle = {
+  padding: 10,
+  borderRadius: 10,
+  border: "none",
+  background: dark ? "#222" : "#f1f1f1",
+  color: dark ? "#fff" : "#000"
+};
+
+// 🔥 1. CARREGAR DADOS (COLOCA AQUI)
+  useEffect(() => {
+    try {
+      const dados = JSON.parse(localStorage.getItem("cliente"));
+
+      if (dados) {
+        setClienteNome(dados.clienteNome || "");
+        setClienteCpf(dados.clienteCpf || "");
+        setClienteTelefone(dados.clienteTelefone || "");
+        setClienteEmail(dados.clienteEmail || "");
+        setClienteEndereco(dados.clienteEndereco || "");
+        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+      }
+    } catch (e) {
+      console.log("Erro ao carregar cliente");
+    }
+  }, []);
+
+  // 🔥 2. SALVAR AUTOMÁTICO (COLOCA AQUI)
+  useEffect(() => {
+    const dados = {
+      clienteNome,
+      clienteCpf,
+      clienteTelefone,
+      clienteEmail,
+      clienteEndereco,
+      clienteNumeroCasa
+    };
+
+    if (
+      !clienteNome &&
+      !clienteCpf &&
+      !clienteTelefone &&
+      !clienteEmail &&
+      !clienteEndereco &&
+      !clienteNumeroCasa
+    ) {
+      return;
+    }
+
+    localStorage.setItem("cliente", JSON.stringify(dados));
+
+  }, [
+    clienteNome,
+    clienteCpf,
+    clienteTelefone,
+    clienteEmail,
+    clienteEndereco,
+    clienteNumeroCasa
+  ]);
+
+  useEffect(() => {
+
+  const user = auth.currentUser;
+
+  if (!user) return;
+
+  const unsub = onSnapshot(collection(db, "pedidos"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // 🔥 FILTRA SÓ OS PEDIDOS DO USUÁRIO
+    const meusPedidos = lista.filter(p => p.userId === user.uid);
+
+    // 🔥 ORDENA DO MAIS NOVO
+    meusPedidos.sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+
+    setPedidos(meusPedidos);
+
+  });
+
+  return () => unsub();
+
+}, []);
+
+   // 🔥 CARREGAR PEDIDOS)
+ function carregarPedidos() {
+  if (typeof window === "undefined") return;
+
+  const dados = JSON.parse(localStorage.getItem("pedidos") || "[]");
+
+  console.log("📦 PEDIDOS CARREGADOS:", dados);
+
+  setPedidos(dados);
+}
+
+  // 🔥 SALVAR PEDIDO (LOCAL STORAGE)
+function salvarPedido(carrinho, nomeCliente, enderecoCliente) {
+  console.log("🔥 SALVANDO DIRETO AGORA");
+
+  if (!carrinho || carrinho.length === 0) return;
+
+  const itensCorrigidos = carrinho.map(item => {
+    const preco = Number(item.produto?.preco || 0);
+
+    const extras = (item.extras || []).reduce((acc, e) => {
+      return acc + Number(e.preco || 0);
+    }, 0);
+
+    const qtd = Number(item.quantidade || 1);
+
+    const totalCorreto = (preco + extras) * qtd;
+
+    return {
+      produto: item.produto,
+      extras: item.extras,
+      quantidade: qtd,
+      total: totalCorreto
+    };
+  });
+
+  const totalFinal = itensCorrigidos.reduce((acc, item) => acc + item.total, 0);
+
+  const novoPedido = {
+    id: Date.now(),
+    codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    itens: itensCorrigidos,
+    nome: nomeCliente,
+    endereco: enderecoCliente,
+    total: totalFinal,
+    status: "preparando",
+    data: new Date().toISOString()
+  };
+
+  let pedidos = [];
+
+  try {
+    pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+  } catch {
+    pedidos = [];
+  }
+
+  pedidos.push(novoPedido);
+
+  localStorage.setItem("pedidos", JSON.stringify(pedidos));
+
+  console.log("✅ SALVO CORRIGIDO:", novoPedido);
+}
+
+// 🔥 GERAR MENSAGEM DO PEDIDO
+function gerarMensagemPedido(carrinho) {
+  if (!carrinho || carrinho.length === 0) return "";
+
+  let mensagem = "*Novo Pedido de Açaí*\n\n";
+
+  carrinho.forEach((item, i) => {
+    mensagem += `${i + 1}. ${item.produto.nome}\n`;
+
+    item.extras?.forEach(extra => {
+      mensagem += `+ ${extra.nome}\n`;
+    });
+
+    mensagem += `Subtotal: R$ ${Number(item.total).toFixed(2)}\n\n`;
+  });
+
+  const totalFinal = carrinho.reduce(
+    (acc, item) => acc + Number(item.total || 0),
+    0
+  );
+
+  mensagem += ` Total: R$ ${totalFinal.toFixed(2)}\n\n`;
+
+  // 🔥 DADOS VINDO DO STEP 4
+  mensagem += ` Nome: ${clienteNome}\n`;
+  mensagem += ` Telefone: ${clienteTelefone}\n`;
+  mensagem += ` Endereço: ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+
+  return mensagem;
+}
+
+async function salvarPedidoFirebase(pedido) {
+  try {
+    await addDoc(collection(db, "pedidos"), {
+      userId: auth.currentUser?.uid || null,
+
+      // 🔥 DADOS DO CLIENTE (STEP 4)
+      cliente: pedido.cliente || "Cliente",
+      endereco: pedido.endereco || "",
+      numeroCasa: pedido.numeroCasa || "",
+      telefone: pedido.telefone || "",
+      cpf: pedido.cpf || "",
+      email: pedido.email || "",
+
+      // 🔥 CÓDIGO
+      codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+
+      // 🔥 ITENS
+      itens: (pedido.carrinho || []).map(item => {
+
+        const preco = Number(item.produto?.preco || 0);
+
+        const extras = (item.extras || []).reduce((acc, e) => {
+          return acc + Number(e.preco || 0);
+        }, 0);
+
+        const qtd = Number(item.quantidade || 1);
+
+        const totalCorreto = (preco + extras) * qtd;
+
+        return {
+          produto: item.produto,
+          extras: item.extras,
+          quantidade: qtd,
+          total: totalCorreto
+        };
+      }),
+
+      // 🔥 TOTAL GERAL
+      total: (pedido.carrinho || []).reduce((acc, item) => {
+
+        const preco = Number(item.produto?.preco || 0);
+
+        const extras = (item.extras || []).reduce((s, e) => {
+          return s + Number(e.preco || 0);
+        }, 0);
+
+        const qtd = Number(item.quantidade || 1);
+
+        return acc + (preco + extras) * qtd;
+
+      }, 0),
+
+      pagamento: pedido.pagamento || "",
+      cupom: pedido.cupom || "",
+      descontoCupom: Number(pedido.descontoCupom || 0),
+
+      status: "preparando",
+      data: new Date().toISOString()
+    });
+
+    console.log("🔥 FIREBASE 100% COMPLETO");
+
+  } catch (error) {
+    console.error("🔥 ERRO FIREBASE:", error);
+    throw error;
+  }
+}
+
+// 🔥 GERAR MENSAGEM DO PEDIDO (FINAL)
+function enviarWhatsApp(carrinho) {
+  const numero = "5581973119512";
+
+  if (!clienteNome || !clienteEndereco) {
+    alert("Preencha seus dados pessoais!");
+    setStep(4); // 🔥 joga pro step de dados
+    return;
+  }
+
+  const carrinhoSeguro = JSON.parse(JSON.stringify(carrinho));
+
+  salvarPedidoFirebase({
+    carrinho: carrinhoSeguro,
+    cliente: clienteNome,
+    endereco: clienteEndereco,
+    numeroCasa: clienteNumeroCasa,
+    telefone: clienteTelefone,
+    cpf: clienteCpf,
+    email: clienteEmail
+  });
+
+  const mensagem = gerarMensagemPedido(carrinhoSeguro);
+
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+  window.open(url, "_blank");
+
+  setCarrinho([]);
+  setStep(1);
+}
 
   useEffect(() => {
     const clienteLocal = localStorage.getItem("cliente") || "Cliente";
     const pedidosLocal = JSON.parse(localStorage.getItem("pedidos")) || [];
 
     setCliente(clienteLocal);
-    setHistorico(pedidosLocal);
+    setPedidos(pedidosLocal);
 
     if (auth.currentUser) {
       const q = query(
@@ -48,8 +362,10 @@ export default function Acai() {
       const unsub = onSnapshot(q, (snapshot) => {
         const firebasePedidos = snapshot.docs.map(doc => doc.data());
         const combinado = [...firebasePedidos, ...pedidosLocal];
-        setHistorico(combinado);
+        setPedidos(combinado);
       });
+
+
 
       return () => unsub();
     }
@@ -161,44 +477,40 @@ let total = ((produto?.preco || 0) + totalExtras) * quantidade;
   alert("✅ Cupom aplicado");
 }
 
-  async function salvarPedido(pedido) {
+ async function salvarPedidoFirebase(pedido) {
   try {
     await addDoc(collection(db, "pedidos"), {
       userId: auth.currentUser?.uid || null,
+
       cliente: pedido.cliente || "Cliente",
 
-      // 🔥 CÓDIGO DO PEDIDO
-      codigo: pedido.codigo || null,
+      codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
 
-      // 🔥 PRODUTO LIMPO
-      produto: {
-        nome: pedido.produto?.nome || "",
-        preco: Number(pedido.produto?.preco || 0)
-      },
-
-      // 🔥 EXTRAS LIMPOS
-      extras: (pedido.extras || []).map(e => ({
-        nome: e.nome,
-        preco: Number(e.preco)
+      // 🔥 AQUI É A CHAVE DO PROBLEMA (ARRAY DE ITENS)
+      itens: pedido.carrinho.map(item => ({
+        produto: item.produto,
+        extras: item.extras,
+        quantidade: item.quantidade,
+        total: item.total
       })),
 
-      quantidade: Number(pedido.quantidade || 1),
-      total: Number(pedido.total || 0),
+      total: pedido.carrinho.reduce(
+        (acc, item) => acc + Number(item.total || 0),
+        0
+      ),
 
       pagamento: pedido.pagamento || "",
       cupom: pedido.cupom || "",
       descontoCupom: Number(pedido.descontoCupom || 0),
 
-      // 🔥 STATUS PADRÃO
-      status: pedido.status || "preparando",
-
-      // 🔥 DATA PADRÃO (ESSENCIAL PRO ADMIN)
-      data: pedido.data || new Date().toISOString()
+      status: "preparando",
+      data: new Date().toISOString()
     });
+
+    console.log("🔥 PEDIDO SALVO ÚNICO (SEM DUPLICAR)");
 
   } catch (error) {
     console.error("🔥 ERRO FIREBASE:", error);
-    throw error;
   }
 }
 
@@ -222,7 +534,6 @@ function gerarCodigoPedido() {
 
 async function finalizarPedido() {
 
-  // 🔥 BLOQUEIO LOJA
   if (lojaAberta === false) {
     alert("🚫 Loja fechada no momento");
     return;
@@ -243,49 +554,49 @@ async function finalizarPedido() {
   setLoadingPedido(true);
 
   try {
-    const pedidos = carrinho.map(item => ({
-      id: Date.now() + Math.random(),
+  // 🔥 CRIA UM ÚNICO PEDIDO (CORRETO)
+  const pedidoUnico = {
+    cliente,
+    carrinho,
+    pagamento,
+    cupom,
+    descontoCupom
+  };
 
-      // 🔥 NOVO CÓDIGO DO PEDIDO
-      codigo: gerarCodigoPedido(),
+  // 🔥 SALVA NO FIREBASE (1 DOCUMENTO)
+  await salvarPedidoFirebase(pedidoUnico);
 
-      cliente,
-      produto: item.produto,
-      extras: item.extras,
-      quantidade: item.quantidade,
-      total: item.total,
-      pagamento,
-      cupom,
-      descontoCupom,
-      status: "preparando",
+  // 🔥 SALVA NO LOCAL (OPCIONAL)
+  const pedidosLocal = JSON.parse(localStorage.getItem("pedidos") || "[]");
 
-      // 🔥 DATA PADRÃO
-      data: new Date().toISOString()
-    }));
+  const novoLocal = {
+    id: Date.now(),
+    codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    itens: carrinho,
+    total: carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0),
+    status: "preparando",
+    data: new Date().toISOString()
+  };
 
-    await Promise.all(pedidos.map(p => salvarPedido(p)));
+  const novos = [...pedidosLocal, novoLocal];
 
-    const novos = [...pedidos, ...historico];
+  localStorage.setItem("pedidos", JSON.stringify(novos));
 
-    localStorage.setItem("pedidos", JSON.stringify(novos));
-    setHistorico(novos);
+  // 🔥 ATUALIZA TELA
+  setPedidos(novos);
 
-    setCarrinho([]);
+  setCarrinho([]);
+  setPedidoConfirmado(true);
 
-    setPedidoConfirmado(true);
+  resetar();
 
-    resetar();
-
-  } catch (err) {
-    console.error("ERRO FINALIZAR:", err);
-
-    alert("Erro ao salvar pedido.");
-
-    setPedidoConfirmado(false);
-
-  } finally {
-    setLoadingPedido(false);
-  }
+} catch (err) {
+  console.error("ERRO FINALIZAR:", err);
+  alert("Erro ao salvar pedido.");
+  setPedidoConfirmado(false);
+} finally {
+  setLoadingPedido(false);
+}
 }
 
 function resetar() {
@@ -320,49 +631,40 @@ function removerExtraDoItem(indexItem, nomeExtra) {
 function adicionarCarrinhoAtual() {
   if (!produto) return;
 
-{lojaAberta === false && (
-  <div style={{
-    background: '#2a0000',
-    color: '#ff4d4d',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10
-  }}>
-    🚫 Loja fechada no momento
-  </div>
-)}
+  if (lojaAberta === false) {
+    alert("🚫 Loja fechada no momento");
+    return;
+  }
 
-  // 🔥 CLONA EXTRAS CORRETAMENTE
-  const extrasClonados = extras.map(e => ({
-    nome: e.nome,
-    preco: Number(e.preco)
-  }));
+  const qtd = Number(quantidade || 1);
 
-  // 🔥 SOMA EXTRAS
+  const extrasClonados = Array.isArray(extras)
+    ? extras.map(e => ({
+        nome: e.nome,
+        preco: Number(e.preco || 0)
+      }))
+    : [];
+
+  const precoBase = Number(produto.preco || 0);
+
   const totalExtras = extrasClonados.reduce((acc, e) => acc + e.preco, 0);
 
-  // 🔥 CALCULO REAL DO ITEM
-  let totalItem = ((produto.preco || 0) + totalExtras) * quantidade;
+  // 🔥 CRIA ITENS SEPARADOS
+  const novosItens = [];
 
-  // 🔥 DESCONTO
-  totalItem -= descontoCupom;
-  if (totalItem < 0) totalItem = 0;
+  for (let i = 0; i < qtd; i++) {
+    novosItens.push({
+      produto: { ...produto },
+      extras: extrasClonados.map(e => ({ ...e })), // 🔥 clone profundo
+      quantidade: 1,
+      total: precoBase + totalExtras
+    });
+  }
 
-  const item = {
-    produto: { ...produto },
-    extras: extrasClonados,
-    quantidade,
-    total: totalItem
-  };
+  setCarrinho(prev => [...prev, ...novosItens]);
 
-  setCarrinho(prev => [...prev, item]);
-
-  // 🔥 RESET LIMPO
   setExtras([]);
   setQuantidade(1);
-  setCupom("");
-  setCupomAtivo(null);
-  setDescontoCupom(0);
 
   alert("Item adicionado ao carrinho!");
 }
@@ -505,15 +807,38 @@ return (
         </div>
       </div>
 
-      <p>Olá, {cliente}</p>
+      <h2>
+  👋 Olá, <span style={{ color: "#a855f7" }}>
+    {clienteNome || "Cliente"}
+  </span>
+</h2>
 
       <button onClick={sair}>Sair</button>
 
       <div style={{ display: 'flex', gap: 10 }}>
+        <button onClick={() => setStep(1)}>🏠 Início</button>
         <button onClick={() => setStep(5)}>Pedidos</button>
         <button onClick={() => setStep(99)}>Informações</button>
         <button onClick={() => setDark(!dark)}>Claro/Escuro</button>
       </div>
+
+
+<button
+  onClick={() => setStep(4)}
+  style={{
+    padding: 12,
+    borderRadius: 12,
+    border: "none",
+    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    color: "white",
+    fontWeight: "bold",
+    marginBottom: 15,
+    cursor: "pointer"
+  }}
+>
+  👤 Dados Pessoais
+</button>
+
 
      {/* STEP 99 */}
 {step === 99 && (
@@ -706,7 +1031,7 @@ return (
   </>
 )}
 
- {/* STEP 3 */}
+{/* STEP 3 */}
 {step === 3 && (
   <>
     <h3>🛒 Carrinho</h3>
@@ -715,9 +1040,7 @@ return (
       <div key={i} className="history">
 
         <p>
-          <strong>
-            {item.produto.nome} (x{item.quantidade})
-          </strong>
+          <strong>{item.produto.nome}</strong>
         </p>
 
         {/* 🔥 EXTRAS */}
@@ -742,10 +1065,19 @@ return (
           ))
         }
 
+        {/* 🔥 TOTAL CORRETO */}
         <p>
-          Total: <strong>R$ {Number(item.total).toFixed(2)}</strong>
+          Total: <strong>
+            R$ {
+              (
+                Number(item.produto?.preco || 0) +
+                (item.extras || []).reduce((acc, e) => acc + Number(e.preco || 0), 0)
+              ).toFixed(2)
+            }
+          </strong>
         </p>
 
+        {/* 🔥 AÇÕES */}
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => editarItem(item, i)}>✏️</button>
           <button onClick={() => removerItem(i)}>🗑️</button>
@@ -754,26 +1086,67 @@ return (
       </div>
     ))}
 
+    {/* 🔥 FINALIZAR PEDIDO */}
+<div style={{ marginTop: 20 }}>
+
+  <h3>Finalizar Pedido</h3>
+
+  <button
+    disabled={!lojaAberta}
+    onClick={() => {
+
+      // 🔒 LOJA FECHADA
+      if (!lojaAberta) {
+        alert("🚫 Loja fechada no momento");
+        return;
+      }
+
+      // 🔒 CARRINHO VAZIO
+      if (!carrinho || carrinho.length === 0) {
+        alert("🛒 Adicione um açaí primeiro");
+        return;
+      }
+
+
+      enviarWhatsApp(carrinho);
+    }}
+    style={{
+      padding: 14,
+      borderRadius: 14,
+      border: "none",
+      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      color: "white",
+      fontWeight: "bold",
+      marginTop: 10,
+      width: "100%",
+
+      // 🔥 VISUAL BLOQUEADO
+      opacity: lojaAberta ? 1 : 0.5,
+      cursor: lojaAberta ? "pointer" : "not-allowed"
+    }}
+  >
+    📲 Pedir pelo WhatsApp
+  </button>
+
+</div>
+
     {/* 🔥 CUPOM */}
-    <h4>Cupom</h4>
+    <h4 style={{ marginTop: 20 }}>Cupom</h4>
 
     <input
-  placeholder="Digite seu cupom"
-  value={cupom}
-  onChange={e => setCupom(e.target.value)}
-  style={{
-    padding: 12,
-    borderRadius: 14,
-    border: "1px solid rgba(122,0,255,0.2)",
-    width: "100%",
-    marginBottom: 10,
-
-    
-    color: "var(---subtext)",
-
-    outline: "none"
-  }}
-/>
+      placeholder="Digite seu cupom"
+      value={cupom}
+      onChange={e => setCupom(e.target.value)}
+      style={{
+        padding: 12,
+        borderRadius: 14,
+        border: "1px solid rgba(122,0,255,0.2)",
+        width: "100%",
+        marginBottom: 10,
+        color: "var(---subtext)",
+        outline: "none"
+      }}
+    />
 
     <div style={{ display: 'flex', gap: 10 }}>
       <button onClick={aplicarCupom}>
@@ -791,7 +1164,6 @@ return (
       )}
     </div>
 
-    {/* 🔥 MOSTRAR CUPOM ATIVO */}
     {cupomAtivo && (
       <p style={{ color: "#00ff88", marginTop: 10 }}>
         🎟️ Cupom aplicado: {cupomAtivo} (-R$ {descontoCupom})
@@ -803,41 +1175,146 @@ return (
       Total: R$ {Number(totalCarrinho - descontoCupom).toFixed(2)}
     </h4>
 
-    {/* 💳 PAGAMENTO */}
-    <h4>Pagamento</h4>
-
-    {["Pix", "Cartão", "Dinheiro"].map(p => (
-      <div
-        key={p}
-        onClick={() => setPagamento(p)}
-        className={`extra ${pagamento === p ? 'selected' : ''}`}
-      >
-        {pagamento === p ? "✅ " : ""}{p}
-      </div>
-    ))}
-
     <button onClick={duplicarAtual}>
       🔁 Duplicar pedido
     </button>
 
-    <button 
-      onClick={finalizarPedido}
-      disabled={!lojaAberta || loadingPedido}
-      style={{
-        opacity: !lojaAberta ? 0.5 : 1,
-        cursor: !lojaAberta ? "not-allowed" : "pointer"
-      }}
-    >
-      {!lojaAberta
-        ? "🚫 Loja fechada"
-        : loadingPedido
-          ? "Processando..."
-          : "Finalizar"}
+    <button onClick={() => setStep(2)}>
+      ← Voltar
     </button>
 
-    <button onClick={() => setStep(2)}>← Voltar</button>
   </>
 )}
+
+{/* 🔥 MODAL PIX */}
+{mostrarPix && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 20,
+      textAlign: "center",
+      width: 300
+    }}>
+      
+      <h2>Pagamento via Pix</h2>
+
+      <p>Valor:</p>
+      <strong>
+        R$ {carrinho.reduce((acc, item) => acc + item.total, 0).toFixed(2)}
+      </strong>
+
+      <p style={{ marginTop: 10 }}>🔑 Chave Pix:</p>
+      <strong>seuemail@pix.com</strong>
+
+      <button
+        style={{ marginTop: 10 }}
+        onClick={() => {
+          navigator.clipboard.writeText("seuemail@pix.com");
+          alert("Chave Pix copiada!");
+        }}
+      >
+        📋 Copiar chave
+      </button>
+
+      <br /><br />
+
+      <button onClick={() => setMostrarPix(false)}>
+        Fechar
+      </button>
+
+    </div>
+  </div>
+)}
+
+{step === 4 && (
+  <>
+    <h3>👤 Dados do Cliente</h3>
+
+    <div style={{
+      background: dark ? "#111" : "#fff",
+      color: dark ? "#fff" : "#000",
+      padding: 20,
+      borderRadius: 16
+    }}>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10
+      }}>
+
+        <input
+          style={inputStyle}
+          placeholder="Nome"
+          value={clienteNome}
+          onChange={(e) => setClienteNome(e.target.value)}
+        />
+
+        <input
+          style={inputStyle}
+          placeholder="CPF"
+          value={clienteCpf}
+          disabled={clienteCpf.length >= 14}
+          onChange={(e) => setClienteCpf(formatarCPF(e.target.value))}
+        />
+
+        <input
+          style={inputStyle}
+          placeholder="Telefone"
+          value={clienteTelefone}
+          onChange={(e) => setClienteTelefone(formatarTelefone(e.target.value))}
+        />
+
+        <input
+          style={inputStyle}
+          type="email"
+          placeholder="Email"
+          value={clienteEmail}
+          onChange={(e) => setClienteEmail(e.target.value)}
+        />
+
+        <input
+          style={inputStyle}
+          placeholder="Endereço"
+          value={clienteEndereco}
+          onChange={(e) =>
+            setClienteEndereco(
+              e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "")
+            )
+          }
+        />
+
+        <input
+          style={inputStyle}
+          placeholder="Número da casa"
+          value={clienteNumeroCasa}
+          onChange={(e) =>
+            setClienteNumeroCasa(e.target.value.replace(/\D/g, ""))
+          }
+        />
+
+      </div>
+
+      <button
+        style={{ marginTop: 15 }}
+        onClick={() => setStep(1)}
+      >
+        ← Voltar
+      </button>
+
+    </div>
+  </>
+)}
+
 {/* STEP 5 */}
 {step === 5 && (
   <>
@@ -852,49 +1329,64 @@ return (
       marginTop: 10
     }}>
 
-      {historico
-        // 🔥 ORDENA MAIS NOVOS PRIMEIRO
-        .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
+      {pedidos
+  .sort((a, b) => {
+    const dataA = new Date(a.data || 0).getTime();
+    const dataB = new Date(b.data || 0).getTime();
+    return dataB - dataA;
+  })
 
-        .map((p, i) => (
-          <div key={i} className="history">
+  .map((p, i) => (
+    <div key={i} className="history">
 
-            <p><strong>
-              {p.produto?.nome} (x{p.quantidade || 1})
-            </strong></p>
+      {/* 🔥 ITENS */}
+      {p.itens?.length > 0 ? (
+        p.itens.map((item, idx) => (
+          <p key={idx}>
+            <strong>
+              {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
+            </strong>
+          </p>
+        ))
+      ) : (
+        <p><strong>Açaí (x1)</strong></p>
+      )}
 
-            {/* 🔥 CÓDIGO DO PEDIDO */}
-            <p>
-              Código: <strong>{p.codigo || "—"}</strong>
-            </p>
+      {/* 🔥 CÓDIGO */}
+      <p>
+        Código: <strong>{p.codigo || "—"}</strong>
+      </p>
 
-            {/* 🔥 DATA */}
-            <p style={{ fontSize: 12, opacity: 0.7 }}>
-              {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
-            </p>
+      {/* 🔥 DATA CORRIGIDA */}
+      <p style={{ fontSize: 12, opacity: 0.7 }}>
+        {p.data
+          ? new Date(p.data).toLocaleString("pt-BR")
+          : ""}
+      </p>
 
-            {/* 🔥 STATUS */}
-            <p>
-              Status:
-              <strong style={{
-                marginLeft: 6,
-                color:
-                  p.status === "preparando" ? "orange" :
-                  p.status === "saiu" ? "#00b0ff" :
-                  p.status === "entregue" ? "#00c853" :
-                  "#888"
-              }}>
-                {p.status}
-              </strong>
-            </p>
+      {/* 🔥 STATUS */}
+      <p>
+        Status:
+        <strong style={{
+          marginLeft: 6,
+          color:
+            p.status === "preparando" ? "orange" :
+            p.status === "saiu" ? "#00b0ff" :
+            p.status === "entregue" ? "#00c853" :
+            "#888"
+        }}>
+          {p.status || "preparando"}
+        </strong>
+      </p>
 
-            <p>
-              Total: R$ {Number(p.total || 0).toFixed(2)}
-            </p>
+      {/* 🔥 TOTAL */}
+      <p>
+        Total: R$ {Number(p.total || 0).toFixed(2)}
+      </p>
 
-            <button onClick={() => comprarNovamente(p)}>
-              🔁 Repetir pedido
-            </button>
+      <button onClick={() => comprarNovamente(p)}>
+        🔁 Repetir pedido
+      </button>
 
           </div>
         ))}
@@ -920,6 +1412,7 @@ return (
     background: ${dark 
       ? 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)'
       : 'linear-gradient(to top, rgba(255,255,255,0.9), rgba(255,255,255,0.4), transparent)'};
+      
   }
 
   /* 💎 PREÇO PREMIUM CLEAN */
@@ -1097,6 +1590,10 @@ return (
   button:active {
     transform: scale(0.95);
   }
+
+  boxShadow: nomeCliente
+  ? "0 0 0 2px rgba(122,0,255,0.2)"
+  : "none",
 `}</style>
 
       </div>

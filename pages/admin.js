@@ -3,14 +3,17 @@ import { useRouter } from 'next/router';
 
 import { db, auth } from '../services/firebase';
 import {
-  collection,
-  onSnapshot,
+  collection, 
   doc,
-  getDoc,
-  updateDoc
+  getDoc, 
+  getDocs,      // ✅ ADICIONA ISSO
+  deleteDoc,    // ✅ E ISSO
+  updateDoc,
+  onSnapshot
 } from 'firebase/firestore';
 
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+
 
 export default function Admin() {
 
@@ -19,95 +22,69 @@ export default function Admin() {
   const [pedidos, setPedidos] = useState([]);
   const [novosPedidos, setNovosPedidos] = useState([]);
   const [primeiraCarga, setPrimeiraCarga] = useState(true);
-
-  // 🔔 SOM
-  function tocarSom() {
-    console.log("🔔 novo pedido");
-  }
-
-  // 🔥 LIMPAR EFEITO DE PISCAR (TEM QUE FICAR FORA)
-  useEffect(() => {
-    if (novosPedidos.length > 0) {
-      const timer = setTimeout(() => {
-        setNovosPedidos([]);
-      }, 5000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [novosPedidos]);
-
-  // 🔥 FIREBASE
-  useEffect(() => {
-
-    const unsub = onSnapshot(collection(db, "pedidos"), (snapshot) => {
-
-      const lista = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      setPedidos(prev => {
-        const idsAntigos = prev.map(p => p.id);
-
-        const novos = lista.filter(p => !idsAntigos.includes(p.id));
-
-        if (!primeiraCarga && novos.length > 0) {
-          setNovosPedidos(novos.map(p => p.id));
-          tocarSom();
-        }
-
-        return lista;
-      });
-
-      setPrimeiraCarga(false);
-    });
-
-    return () => unsub();
-
-  }, []);
-  const [cupons, setCupons] = useState([]);
   const [loadingAuth, setLoadingAuth] = useState(true);
-
-  const [buscaCodigo, setBuscaCodigo] = useState("");
-  const [codigo, setCodigo] = useState("");
-  const [valor, setValor] = useState("");
-  const [validade, setValidade] = useState("");
-  const [limite, setLimite] = useState("");
-
-  // 🔥 NOVO: CONTROLE LOJA
   const [lojaAberta, setLojaAberta] = useState(null);
   const [loadingLoja, setLoadingLoja] = useState(false);
   
+  // 🎟️ CUPONS
+  const [valor, setValor] = useState("");
+  const [validade, setValidade] = useState("");
+  const [limite, setLimite] = useState("");
+  const [cupons, setCupons] = useState([]);
+  const [codigo, setCodigo] = useState("");
 
-  // 🔒 AUTH
-  useEffect(() => {
+  // 🔍 BUSCA
+  const [buscaCodigo, setBuscaCodigo] = useState("");
 
-    if (typeof window === "undefined") return;
+  // 🔔 SOM
+function tocarSom() {
+  console.log("🔔 novo pedido");
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+  // 🔥 se quiser som real depois:
+  // const audio = new Audio("/notificacao.mp3");
+  // audio.play();
+}
 
-      if (!user) return router.push('/login-admin');
+// 🔥 LIMPAR EFEITO DE PISCAR
+useEffect(() => {
+  if (novosPedidos.length > 0) {
+    const timer = setTimeout(() => {
+      setNovosPedidos([]);
+    }, 5000);
 
-      try {
-        const snap = await getDoc(doc(db, "admins", user.uid));
+    return () => clearTimeout(timer);
+  }
+}, [novosPedidos]);
 
-        if (!snap.exists()) return router.push('/login-admin');
+// 🔒 AUTH
+useEffect(() => {
 
-        setLoadingAuth(false);
+  if (typeof window === "undefined") return;
 
-      } catch {
-        router.push('/login-admin');
-      }
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
 
-    });
+    if (!user) return router.push('/login-admin');
 
-    return () => unsubscribe();
+    try {
+      const snap = await getDoc(doc(db, "admins", user.uid));
 
-  }, []);
+      if (!snap.exists()) return router.push('/login-admin');
 
- 
-  // 🔥 PEDIDOS + CUPONS
-  useEffect(() => {
+      setLoadingAuth(false);
+
+    } catch {
+      router.push('/login-admin');
+    }
+
+  });
+
+  return () => unsubscribe();
+
+}, []);
+
+
+// 🔥 PEDIDOS + CUPONS (ÚNICO — CORRIGIDO)
+useEffect(() => {
 
   if (loadingAuth) return;
 
@@ -118,7 +95,6 @@ export default function Admin() {
       ...doc.data()
     }));
 
-    // 🔥 DETECTAR NOVOS PEDIDOS
     setPedidos(prev => {
       const idsAntigos = prev.map(p => p.id);
 
@@ -126,7 +102,6 @@ export default function Admin() {
 
       if (novos.length > 0) {
         setNovosPedidos(novos.map(p => p.id));
-
         tocarSom(); // 🔔 som
       }
 
@@ -141,65 +116,97 @@ export default function Admin() {
 
 }, [loadingAuth]);
 
-  // 🔥 NOVO: LOJA REALTIME
-  useEffect(() => {
 
-    const ref = doc(db, "config", "loja");
+// 🔥 NOVO: LOJA REALTIME
+useEffect(() => {
 
-    const unsub = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        setLojaAberta(snap.data().aberta);
-      } else {
-        setLojaAberta(false);
-      }
+  const ref = doc(db, "config", "loja");
+
+  const unsub = onSnapshot(ref, (snap) => {
+    if (snap.exists()) {
+      setLojaAberta(snap.data().aberta);
+    } else {
+      setLojaAberta(false);
+    }
+  });
+
+  return () => unsub();
+
+}, []);
+
+
+// 🔓 LOGOUT
+function logout() {
+  signOut(auth);
+  router.push('/login-admin');
+}
+
+
+// 🔥 STATUS PEDIDO
+async function atualizarStatus(id, status) {
+  try {
+    await updateDoc(doc(db, "pedidos", id), { status });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+
+// 🔥 STATUS LOJA
+async function toggleLoja(status) {
+  setLoadingLoja(true);
+
+  try {
+    await updateDoc(doc(db, "config", "loja"), {
+      aberta: status,
+      atualizadoEm: new Date().toISOString()
     });
-
-    return () => unsub();
-
-  }, []);
-
-  function logout() {
-    signOut(auth);
-    router.push('/login-admin');
+  } catch (e) {
+    console.error(e);
   }
 
-  // 🔥 STATUS PEDIDO
-  async function atualizarStatus(id, status) {
-    try {
-      await updateDoc(doc(db, "pedidos", id), { status });
-    } catch (e) {
-      console.error(e);
-    }
+  setLoadingLoja(false);
+}
+
+async function limparPedidos() {
+
+  const confirmar = confirm("⚠️ Deseja apagar TODOS os pedidos?");
+
+  if (!confirmar) return;
+
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+
+    const promises = snapshot.docs.map(docSnap =>
+      deleteDoc(doc(db, "pedidos", docSnap.id))
+    );
+
+    await Promise.all(promises);
+
+    alert("🗑️ Todos os pedidos apagados!");
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao apagar pedidos");
   }
+}
 
-  // 🔥 NOVO: STATUS LOJA
-  async function toggleLoja(status) {
-    setLoadingLoja(true);
-
-    try {
-      await updateDoc(doc(db, "config", "loja"), {
-        aberta: status,
-        atualizadoEm: new Date().toISOString()
-      });
-    } catch (e) {
-      console.error(e);
-    }
-
-    setLoadingLoja(false);
-  }
-
-  // 🎟️ CUPONS
-  function carregarCupons() {
-    const lista = JSON.parse(localStorage.getItem("cupons")) || [];
+ // 🎟️ CUPONS
+function carregarCupons() {
+  try {
+    const lista = JSON.parse(localStorage.getItem("cupons") || "[]");
     setCupons(lista);
+  } catch {
+    setCupons([]);
   }
+}
 
-  function salvarCupons(lista) {
-    localStorage.setItem("cupons", JSON.stringify(lista));
-    setCupons(lista);
-  }
+function salvarCupons(lista) {
+  localStorage.setItem("cupons", JSON.stringify(lista));
+  setCupons(lista);
+}
 
-  function criarCupom() {
+function criarCupom() {
 
   if (!codigo || !valor || !validade || !limite) {
     alert("⚠️ Preencha todos os campos");
@@ -283,10 +290,15 @@ function deletarCupom(index) {
   alert("🗑️ Removido");
 }
 
-  // 💰 FATURAMENTO
-  const totalFaturado = pedidos.reduce((acc, p) => acc + (Number(p.total) || 0), 0);
 
-  // 📊 GRÁFICO CORRIGIDO
+// 💰 FATURAMENTO
+const totalFaturado = pedidos.reduce(
+  (acc, p) => acc + (Number(p.total) || 0),
+  0
+);
+
+
+// 📊 GRÁFICO CORRIGIDO (compatível com novo sistema)
 const vendasPorDia = {};
 
 pedidos.forEach(p => {
@@ -305,27 +317,49 @@ pedidos.forEach(p => {
 
   if (!dia) return;
 
-  if (!vendasPorDia[dia]) vendasPorDia[dia] = 0;
-
-  vendasPorDia[dia] += Number(p.total) || 0;
-});
-
-const maxVenda = Math.max(...Object.values(vendasPorDia));
-
-  if (loadingAuth) {
-    return <div style={{ color: 'white' }}>Carregando...</div>;
+  if (!vendasPorDia[dia]) {
+    vendasPorDia[dia] = 0;
   }
 
-  return (
-    <div className="container">
+  vendasPorDia[dia] += Number(p.total) || 0;
+
+});
+
+const valores = Object.values(vendasPorDia);
+
+const maxVenda = valores.length > 0 ? Math.max(...valores) : 0;
+
+
+// 🔥 LOADING
+if (loadingAuth) {
+  return <div style={{ color: 'white' }}>Carregando...</div>;
+}
+
+
+// 🔥 RENDER
+return (
+  <div className="container">
     <div className="wrapper">
-    
-        <div className="header">
+
+      <div className="header">
         <h1>Painel Admin</h1>
         <button onClick={logout}>Sair</button>
       </div>
 
-      {/* 🔥 CONTROLE LOJA */}
+      <button 
+  onClick={limparPedidos}
+  style={{
+    background: "red",
+    color: "white",
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10
+  }}
+>
+  🗑️ Limpar pedidos
+</button>
+
+      {/* 🔥 STATUS LOJA */}
       <div className="card">
         <h2>Status da Loja</h2>
 
@@ -356,12 +390,16 @@ const maxVenda = Math.max(...Object.values(vendasPorDia));
         </div>
       </div>
 
-      {/* FATURAMENTO */}
+      {/* 💰 FATURAMENTO */}
       <div className="card">
         <h2>Total faturado</h2>
-        <h1 style={{ color: "#fff", fontSize: 32 }}>
-  R$ {Number(totalFaturado).toFixed(2)}
-</h1>
+
+        <h1 style={{
+          color: "#fff",
+          fontSize: 32
+        }}>
+          R$ {Number(totalFaturado).toFixed(2)}
+        </h1>
       </div>
 
       {/* GRÁFICO */}
@@ -468,159 +506,193 @@ const maxVenda = Math.max(...Object.values(vendasPorDia));
     }}
   />
 
-<div className="gridPedidos">
+  <div className="gridPedidos">
 
-  {/* 🟢 COLUNA 1 */}
-  <div className="coluna">
+   {/* 🟢 COLUNA 1 */}
+<div className="coluna">
 
-    <h3>🟢 Em andamento</h3>
+  <h3>⚪ Em andamento</h3>
 
-    {pedidos
-      .filter(p => {
-        if (!buscaCodigo) return true;
-        return (p.codigo || "").toLowerCase().includes(buscaCodigo.toLowerCase());
-      })
-      .filter(p => p.status !== "entregue")
-      .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
-      .slice(0, 10)
-      .map((p) => {
+  {pedidos
+    .filter(p => {
+      if (!buscaCodigo) return true;
+      return (p.codigo || "")
+        .toLowerCase()
+        .includes(buscaCodigo.toLowerCase());
+    })
+    .filter(p => p.status !== "entregue")
+    .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
+    .slice(0, 10)
+    .map((p) => {
 
-        const status = p.status || "novo";
+      const status = p.status || "novo";
 
-        const cores = {
-          novo: "#888",
-          preparando: "orange",
-          saiu: "#00b0ff",
-          entregue: "#00c853"
-        };
+      const cores = {
+        novo: "#888",
+        preparando: "orange",
+        saiu: "#00b0ff",
+        entregue: "#00c853"
+      };
 
-        return (
-          <div key={p.id} className="pedido" style={{
+      return (
+        <div
+          key={p.id}
+          className="pedido"
+          style={{
             borderLeft: `5px solid ${cores[status]}`,
             marginBottom: 15,
             background: "rgba(255,255,255,0.03)",
             borderRadius: 12,
             padding: 12
-          }}>
+          }}
+        >
 
-            <p><strong>{p.cliente}</strong></p>
-            <p>Código: <strong>{p.codigo || "—"}</strong></p>
-            <p>{p.produto?.nome || "Produto"}</p>
+          {/* CLIENTE */}
+          <p><strong>{p.cliente || "Cliente"}</strong></p>
 
+          {/* CODIGO */}
+          <p>
+            Código: <strong>{p.codigo || "—"}</strong>
+          </p>
+
+          {/* 🔥 ITENS CORRIGIDO (SEM BUG) */}
+          {Array.isArray(p.itens) && p.itens.length > 0 ? (
+            p.itens.map((item, idx) => (
+              <div key={idx} style={{ marginBottom: 6 }}>
+
+                <p>
+                  <strong>
+                    {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
+                  </strong>
+                </p>
+
+                {/* EXTRAS */}
+                {Array.isArray(item.extras) && item.extras.map((e, i) => (
+                  <p key={i} style={{ fontSize: 12, opacity: 0.7 }}>
+                    + {e.nome}
+                  </p>
+                ))}
+
+              </div>
+            ))
+          ) : (
             <p>
-              Status:
-              <strong style={{ marginLeft: 6, color: cores[status] }}>
-                {status}
+              <strong>
+                {p.produto?.nome || "Açaí"} (x{p.quantidade || 1})
               </strong>
             </p>
+          )}
+
+          {/* STATUS */}
+          <p>
+            Status:
+            <strong style={{ marginLeft: 6, color: cores[status] }}>
+              {status}
+            </strong>
+          </p>
+
+          {/* TOTAL */}
+          <p>
+            Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
+          </p>
+
+          {/* DATA */}
+          <small>
+            {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
+          </small>
+
+          {/* BOTÕES */}
+          <div style={{
+            display: 'flex',
+            gap: 10,
+            flexWrap: "wrap",
+            marginTop: 10
+          }}>
+
+            {status === "novo" && (
+              <button onClick={() => atualizarStatus(p.id, "preparando")}>
+                🔥 Preparar
+              </button>
+            )}
+
+            {status === "preparando" && (
+              <button onClick={() => atualizarStatus(p.id, "saiu")}>
+                🚚 Saiu p/ entrega
+              </button>
+            )}
+
+            {status === "saiu" && (
+              <button onClick={() => atualizarStatus(p.id, "entregue")}>
+                ✅ Entregue
+              </button>
+            )}
+
+          </div>
+
+        </div>
+      );
+    })}
+
+    </div>
+
+
+    {/* ⚪ COLUNA 2 */}
+    <div className="coluna">
+
+      <h3>🟢 Entregues</h3>
+
+      {pedidos
+        .filter(p => {
+          if (!buscaCodigo) return true;
+          return (p.codigo || "").toLowerCase().includes(buscaCodigo.toLowerCase());
+        })
+        .filter(p => p.status === "entregue")
+        .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
+        .slice(0, 10)
+        .map((p) => (
+
+          <div key={p.id} className="pedido" style={{
+            opacity: 0.6,
+            borderLeft: "5px solid #00c853",
+            marginBottom: 15,
+            background: "rgba(255,255,255,0.02)",
+            borderRadius: 12,
+            padding: 12
+          }}>
+
+            <p><strong>{p.cliente || "Cliente"}</strong></p>
+
+            <p>
+              Código: <strong>{p.codigo || "—"}</strong>
+            </p>
+
+            {/* 🔥 NOVO: ITENS */}
+            {p.itens?.length > 0 ? (
+              p.itens.map((item, idx) => (
+                <p key={idx}>
+                  <strong>
+                    {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
+                  </strong>
+                </p>
+              ))
+            ) : (
+              <p>{p.produto?.nome || "Produto"}</p>
+            )}
 
             <p>
               Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
             </p>
 
-            <div style={{ display: 'flex', gap: 10, flexWrap: "wrap" }}>
-
-              {status === "novo" && (
-                <button onClick={() => atualizarStatus(p.id, "preparando")}>
-                  🔥 Preparar
-                </button>
-              )}
-
-              {status === "preparando" && (
-                <button onClick={() => atualizarStatus(p.id, "saiu")}>
-                  🚚 Saiu p/ entrega
-                </button>
-              )}
-
-              {status === "saiu" && (
-                <button onClick={() => atualizarStatus(p.id, "entregue")}>
-                  ✅ Entregue
-                </button>
-              )}
-
-            </div>
+            <small>
+              {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
+            </small>
 
           </div>
-        );
-      })}
-
-  </div>
-
-  {/* ⚪ COLUNA 2 */}
-  <div className="coluna">
-
-    <h3>⚪ Entregues</h3>
-
-    {pedidos
-      .filter(p => {
-        if (!buscaCodigo) return true;
-        return (p.codigo || "").toLowerCase().includes(buscaCodigo.toLowerCase());
-      })
-      .filter(p => p.status === "entregue")
-      .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
-      .slice(0, 10)
-      .map((p) => (
-
-        <div key={p.id} className="pedido" style={{
-          opacity: 0.6,
-          borderLeft: "5px solid #00c853",
-          marginBottom: 15,
-          background: "rgba(255,255,255,0.02)",
-          borderRadius: 12,
-          padding: 12
-        }}>
-
-          <p><strong>{p.cliente}</strong></p>
-          <p>Código: <strong>{p.codigo || "—"}</strong></p>
-          <p>{p.produto?.nome || "Produto"}</p>
-
-          <p>
-            Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
-          </p>
-
-        </div>
-      ))}
+        ))}
 
   </div>
 
 
-
-    {/* 🔥 FINALIZADOS */}
-    <h3 style={{ marginTop: 20 }}>⚪ Finalizados</h3>
-
-    {pedidos
-      .filter(p => {
-        if (!buscaCodigo) return true;
-        return (p.codigo || "").toLowerCase().includes(buscaCodigo.toLowerCase());
-      })
-      .filter(p => p.status === "entregue")
-      .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
-      .slice(0, 10)
-      .map((p) => (
-
-        <div key={p.id} className="pedido" style={{
-          opacity: 0.6,
-          borderLeft: "5px solid #00c853",
-          marginBottom: 15,
-          background: "rgba(255,255,255,0.02)",
-          borderRadius: 12,
-          padding: 12
-        }}>
-
-          <p><strong>{p.cliente}</strong></p>
-          <p>Código: <strong>{p.codigo || "—"}</strong></p>
-          <p>{p.produto?.nome || "Produto"}</p>
-
-          <p>
-            Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
-          </p>
-
-          <small>
-            {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
-          </small>
-
-        </div>
-      ))}
 
   </div>
 </div>
