@@ -74,55 +74,60 @@ const inputStyle = {
 };
 
 // 🔥 1. CARREGAR DADOS (COLOCA AQUI)
-  useEffect(() => {
-    try {
-      const dados = JSON.parse(localStorage.getItem("cliente"));
+useEffect(() => {
 
-      if (dados) {
-        setClienteNome(dados.clienteNome || "");
-        setClienteCpf(dados.clienteCpf || "");
-        setClienteTelefone(dados.clienteTelefone || "");
-        setClienteEmail(dados.clienteEmail || "");
-        setClienteEndereco(dados.clienteEndereco || "");
-        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
-      }
-    } catch (e) {
-      console.log("Erro ao carregar cliente");
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+
+    if (!user) return;
+
+    const dados = JSON.parse(
+      localStorage.getItem(`cliente_${user.uid}`)
+    );
+
+    if (dados) {
+      setClienteNome(dados.clienteNome || "");
+      setClienteCpf(dados.clienteCpf || "");
+      setClienteTelefone(dados.clienteTelefone || "");
+      setClienteEmail(dados.clienteEmail || "");
+      setClienteEndereco(dados.clienteEndereco || "");
+      setClienteNumeroCasa(dados.clienteNumeroCasa || "");
     }
-  }, []);
+
+  });
+
+  return () => unsubscribe();
+
+}, []);
 
   // 🔥 2. SALVAR AUTOMÁTICO (COLOCA AQUI)
-  useEffect(() => {
-    const dados = {
-      clienteNome,
-      clienteCpf,
-      clienteTelefone,
-      clienteEmail,
-      clienteEndereco,
-      clienteNumeroCasa
-    };
+useEffect(() => {
 
-    if (
-      !clienteNome &&
-      !clienteCpf &&
-      !clienteTelefone &&
-      !clienteEmail &&
-      !clienteEndereco &&
-      !clienteNumeroCasa
-    ) {
-      return;
-    }
+  const user = auth.currentUser;
 
-    localStorage.setItem("cliente", JSON.stringify(dados));
+  if (!user) return;
 
-  }, [
+  const dados = {
     clienteNome,
     clienteCpf,
     clienteTelefone,
     clienteEmail,
     clienteEndereco,
     clienteNumeroCasa
-  ]);
+  };
+
+  localStorage.setItem(
+    `cliente_${user.uid}`,
+    JSON.stringify(dados)
+  );
+
+}, [
+  clienteNome,
+  clienteCpf,
+  clienteTelefone,
+  clienteEmail,
+  clienteEndereco,
+  clienteNumeroCasa
+]);
 
   useEffect(() => {
 
