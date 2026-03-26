@@ -8,6 +8,6 @@ export default function Index() {
     router.replace("/login");
   }, []);
 
-  if (user) router.replace("/admin");
+  
   return null;
 }
