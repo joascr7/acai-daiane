@@ -1,35 +1,13 @@
-import Link from 'next/link';
-import Header from '../components/Header';
+import { useEffect } from "react";
+import { useRouter } from "next/router";
 
-export default function Home() {
-  return (
-    <div style={{ background: '#000', minHeight: '100vh', color: '#fff' }}>
-      <Header />
+export default function Index() {
+  const router = useRouter();
 
-      <div style={{
-        padding: 30,
-        textAlign: 'center'
-      }}>
-        <h1 style={{ fontSize: 32 }}>🍧 O melhor açaí da região</h1>
+  useEffect(() => {
+    router.replace("/login");
+  }, []);
 
-        <p style={{ color: '#aaa' }}>
-          Monte seu açaí do jeito que quiser
-        </p>
-
-        <Link href="/acai">
-          <button style={{
-            marginTop: 20,
-            padding: 15,
-            borderRadius: 12,
-            border: 'none',
-            background: 'red',
-            color: '#fff',
-            fontSize: 16
-          }}>
-            🚀 Pedir agora
-          </button>
-        </Link>
-      </div>
-    </div>
-  );
+  if (user) router.replace("/admin");
+  return null;
 }
