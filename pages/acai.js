@@ -14,7 +14,7 @@ import {
   getDoc    // 🔥 ADICIONA
 } from 'firebase/firestore';
 import { updateDoc } from "firebase/firestore";
-import { getDocs } from "firebase/firestore";
+import { getDocs, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Acai() {
@@ -41,6 +41,7 @@ export default function Acai() {
   const [carrinho, setCarrinho] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [carregouCliente, setCarregouCliente] = useState(false);
+  
 
   
 
@@ -487,45 +488,51 @@ let total = ((produto?.preco || 0) + totalExtras) * quantidade;
 
   try {
 
-    const snap = await getDocs(collection(db, "cupons"));
+    // 🔥 LIMPA E PADRONIZA (ESSENCIAL MOBILE)
+    const cupomDigitado = cupom.trim().toUpperCase();
 
-    const docs = snap.docs;
-
-    const encontradoDoc = docs.find(d =>
-      d.data().codigo.toUpperCase() === cupom.toUpperCase()
+    // 🔥 BUSCA DIRETO NO FIREBASE (MUITO MELHOR)
+    const q = query(
+      collection(db, "cupons"),
+      where("codigo", "==", cupomDigitado)
     );
 
-    if (!encontradoDoc) {
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
       alert("❌ Cupom inválido");
       return;
     }
 
-    const encontrado = encontradoDoc.data();
+    const docEncontrado = snap.docs[0];
+    const dados = docEncontrado.data();
 
-    if (encontrado.ativo === false) {
+    // 🔒 VALIDAÇÕES
+    if (dados.ativo === false) {
       alert("❌ Cupom desativado");
       return;
     }
 
-    if (new Date(encontrado.validade) < new Date()) {
+    if (new Date(dados.validade) < new Date()) {
       alert("❌ Cupom expirado");
       return;
     }
 
-    if (encontrado.usos >= encontrado.limite) {
+    if (dados.usos >= dados.limite) {
       alert("❌ Cupom esgotado");
       return;
     }
 
-    setDescontoCupom(Number(encontrado.valor));
-    setCupomAtivo(encontrado.codigo);
+    // 🔥 APLICA
+    setDescontoCupom(Number(dados.valor));
+    setCupomAtivo(dados.codigo);
 
     // 🔥 ATUALIZA USO
-    await updateDoc(doc(db, "cupons", encontradoDoc.id), {
-      usos: encontrado.usos + 1
+    await updateDoc(doc(db, "cupons", docEncontrado.id), {
+      usos: dados.usos + 1
     });
 
-    alert("✅ Cupom aplicado");
+    alert("✅ Cupom aplicado com sucesso!");
 
   } catch (e) {
     console.error(e);
@@ -1197,39 +1204,39 @@ return (
 
 </div>
 
-    {/* 🔥 CUPOM */}
-    <h4 style={{ marginTop: 20 }}>Cupom</h4>
+  {/* 🎟️ CUPOM */}
+<div style={{ marginTop: 15 }}>
 
-    <input
-      placeholder="Digite seu cupom"
-      value={cupom}
-      onChange={e => setCupom(e.target.value)}
-      style={{
-        padding: 12,
-        borderRadius: 14,
-        border: "1px solid rgba(122,0,255,0.2)",
-        width: "100%",
-        marginBottom: 10,
-        color: "var(---subtext)",
-        outline: "none"
-      }}
-    />
+  <input
+    placeholder="Digite seu cupom"
+    value={cupom}
+    onChange={e => setCupom(e.target.value)}
+    autoCapitalize="characters"
+    autoCorrect="off"
+    style={{
+      padding: 12,
+      borderRadius: 14,
+      border: "1px solid rgba(122,0,255,0.2)",
+      width: "100%",
+      marginBottom: 10
+    }}
+  />
 
-    <div style={{ display: 'flex', gap: 10 }}>
-      <button onClick={aplicarCupom}>
-        🎟️ Aplicar cupom
-      </button>
+  <button
+    onClick={aplicarCupom}
+    style={{
+      width: "100%",
+      padding: 12,
+      borderRadius: 14,
+      border: "none",
+      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      color: "#fff"
+    }}
+  >
+    Aplicar Cupom
+  </button>
 
-      {cupomAtivo && (
-        <button onClick={() => {
-          setDescontoCupom(0);
-          setCupom("");
-          setCupomAtivo(null);
-        }}>
-          ❌ Remover
-        </button>
-      )}
-    </div>
+</div>
 
     {cupomAtivo && (
       <p style={{ color: "#00ff88", marginTop: 10 }}>
