@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function Login() {
 
@@ -52,110 +53,119 @@ export default function Login() {
       .slice(0, 14);
   }
 
-  async function entrar() {
-
-    if (!formValido) {
-      alert("Preencha corretamente");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      if (modoCadastro) {
-
-        if (senha.length < 6) {
-          alert("Senha deve ter pelo menos 6 caracteres");
-          return;
-        }
-
-        if (senha !== confirmarSenha) {
-          alert("As senhas não coincidem");
-          return;
-        }
-
-        try {
-          const res = await createUserWithEmailAndPassword(auth, email, senha);
-          const user = res.user;
-
-          await setDoc(doc(db, "clientes", user.uid), {
-            nome,
-            email,
-            cpf
-          });
-
-          localStorage.setItem("cliente", nome);
-
-        } catch (e) {
-
-          if (e.code === "auth/email-already-in-use") {
-
-            const res = await signInWithEmailAndPassword(auth, email, senha);
-            const user = res.user;
-
-            const snap = await getDoc(doc(db, "clientes", user.uid));
-
-            if (snap.exists()) {
-              localStorage.setItem("cliente", snap.data().nome);
-            }
-
-          } else {
-            throw e;
-          }
-        }
-
-      } else {
-
-        const res = await signInWithEmailAndPassword(auth, email, senha);
-        const user = res.user;
-
-        const snap = await getDoc(doc(db, "clientes", user.uid));
-
-        if (snap.exists()) {
-          localStorage.setItem("cliente", snap.data().nome);
-        }
-      }
-
-      router.push("/acai");
-
-    } catch (e) {
-
-      if (e.code === "auth/wrong-password") {
-        alert("Senha incorreta");
-      } else if (e.code === "auth/user-not-found") {
-        alert("Usuário não encontrado");
-      } else {
-        alert("Erro: " + e.message);
-      }
-
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function recuperarSenha() {
 
-    if (!email) {
-      alert("Digite seu email");
-      return;
+  if (!email) {
+    alert("Digite seu email");
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("📩 Email enviado! Verifique sua caixa de entrada.");
+
+  } catch (error) {
+
+    if (error.code === "auth/user-not-found") {
+      alert("Usuário não encontrado");
+    } else if (error.code === "auth/invalid-email") {
+      alert("Email inválido");
+    } else {
+      alert("Erro ao enviar email");
     }
 
-    try {
-      await sendPasswordResetEmail(auth, email);
-      alert("📩 Email enviado! Verifique sua caixa de entrada.");
+  }
+}
 
-    } catch (error) {
+  async function entrar() {
 
-      if (error.code === "auth/user-not-found") {
-        alert("Usuário não encontrado");
-      } else if (error.code === "auth/invalid-email") {
-        alert("Email inválido");
-      } else {
-        alert("Erro ao enviar email");
+  if (!formValido) {
+    alert("Preencha corretamente");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    if (modoCadastro) {
+
+      if (senha.length < 6) {
+        alert("Senha deve ter pelo menos 6 caracteres");
+        return;
       }
 
-    }
+      if (senha !== confirmarSenha) {
+        alert("As senhas não coincidem");
+        return;
+      }
+
+      // 🔒 VERIFICAR CPF DUPLICADO
+      const q = query(
+        collection(db, "clientes"),
+        where("cpf", "==", cpf)
+      );
+
+      const snapCpf = await getDocs(q);
+
+      if (!snapCpf.empty) {
+        alert("CPF já cadastrado!");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await createUserWithEmailAndPassword(auth, email, senha);
+        const user = res.user;
+
+        // 🔥 SALVA LOGIN
+        await setDoc(doc(db, "clientes", user.uid), {
+          nome,
+          email,
+          cpf
+        });
+
+        // 🔥 SALVA DADOS PESSOAIS (STEP 4)
+        await setDoc(doc(db, "usuarios", user.uid), {
+          clienteNome: nome,
+          clienteEmail: email,
+          clienteCpf: cpf,
+          clienteTelefone: "",
+          clienteEndereco: "",
+          clienteNumeroCasa: "",
+          clienteCep: ""
+        });
+
+        localStorage.setItem("cliente", nome);
+
+     } catch (e) {
+
+  if (e.code === "auth/email-already-in-use") {
+    alert("Email já cadastrado!");
+    setLoading(false);
+    return;
   }
+
+  throw e;
+}
+  
+    }
+
+    router.push("/acai");
+
+  } catch (e) {
+
+    if (e.code === "auth/wrong-password") {
+      alert("Senha incorreta");
+    } else if (e.code === "auth/user-not-found") {
+      alert("Usuário não encontrado");
+    } else {
+      alert("Erro: " + e.message);
+    }
+
+  } finally {
+    setLoading(false);
+  }
+}
 
   return (
     <div
