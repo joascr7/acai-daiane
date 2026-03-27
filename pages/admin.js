@@ -324,21 +324,25 @@ async function limparPedidos() {
 }
 
  // 🎟️ CUPONS
-function carregarCupons() {
+async function carregarCupons() {
+
   try {
-    const lista = JSON.parse(localStorage.getItem("cupons") || "[]");
+
+    const snap = await getDocs(collection(db, "cupons"));
+
+    const lista = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
     setCupons(lista);
-  } catch {
-    setCupons([]);
+
+  } catch (e) {
+    console.error(e);
   }
 }
 
-function salvarCupons(lista) {
-  localStorage.setItem("cupons", JSON.stringify(lista));
-  setCupons(lista);
-}
-
-function criarCupom() {
+async function criarCupom() {
 
   if (!codigo || !valor || !validade || !limite) {
     alert("⚠️ Preencha todos os campos");
@@ -355,69 +359,38 @@ function criarCupom() {
     return;
   }
 
-  const codigoFormatado = codigo.toUpperCase();
+  try {
 
-  const existe = cupons.find(c => c.codigo === codigoFormatado);
+    await addDoc(collection(db, "cupons"), {
+      codigo: codigo.toUpperCase(),
+      valor: Number(valor),
+      validade,
+      limite: Number(limite),
+      usos: 0,
+      ativo: true,
+      criadoEm: new Date().toISOString()
+    });
 
-  if (existe) {
-    alert("❌ Cupom já existe");
-    return;
+    alert("✅ Cupom criado");
+
+    setCodigo("");
+    setValor("");
+    setValidade("");
+    setLimite("");
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao criar cupom");
   }
-
-  const lista = [...cupons];
-
-  lista.push({
-    codigo: codigoFormatado,
-    valor: Number(valor),
-    validade,
-    limite: Number(limite),
-    usos: 0,
-    criadoEm: new Date().toISOString()
-  });
-
-  salvarCupons(lista);
-
-  alert("✅ Cupom criado");
-
-  setCodigo("");
-  setValor("");
-  setValidade("");
-  setLimite("");
 }
 
 
-function editarCupom(index) {
-
-  const novoValor = prompt("Novo valor:");
-
-  if (!novoValor) return;
-
-  if (Number(novoValor) <= 0) {
-    alert("Valor inválido");
-    return;
-  }
-
-  const lista = [...cupons];
-
-  lista[index].valor = Number(novoValor);
-
-  salvarCupons(lista);
-
-  alert("✏️ Atualizado");
-}
-
-
-function deletarCupom(index) {
+async function deletarCupom(id) {
 
   const confirmar = confirm("Excluir cupom?");
-
   if (!confirmar) return;
 
-  const lista = [...cupons];
-
-  lista.splice(index, 1);
-
-  salvarCupons(lista);
+  await deleteDoc(doc(db, "cupons", id));
 
   alert("🗑️ Removido");
 }
@@ -603,23 +576,22 @@ return (
 
   <h3 style={{ marginTop: 20 }}>Cupons criados</h3>
 
-  {cupons.map((c, i) => (
-    <div key={i} className="cupomItem">
+  {cupons.map((c) => (
+  <div key={c.id} className="cupomItem">
 
-      <div>
-        <strong>{c.codigo}</strong>
-        <p>R$ {c.valor}</p>
-        <p>Uso: {c.usos}/{c.limite}</p>
-        <small>Validade: {c.validade}</small>
-      </div>
-
-      <div className="cupomBtns">
-        <button onClick={() => editarCupom(i)}>✏️</button>
-        <button onClick={() => deletarCupom(i)}>🗑️</button>
-      </div>
-
+    <div>
+      <strong>{c.codigo}</strong>
+      <p>R$ {c.valor}</p>
+      <p>Uso: {c.usos}/{c.limite}</p>
+      <small>Validade: {c.validade}</small>
     </div>
-  ))}
+
+    <div className="cupomBtns">
+      <button onClick={() => deletarCupom(c.id)}>🗑️</button>
+    </div>
+
+  </div>
+))}
 </div>
 
 {/* 💰 MODAL PRODUTO */}

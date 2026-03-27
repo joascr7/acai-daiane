@@ -13,7 +13,8 @@ import {
   setDoc,   // 🔥 ADICIONA
   getDoc    // 🔥 ADICIONA
 } from 'firebase/firestore';
-
+import { updateDoc } from "firebase/firestore";
+import { getDocs } from "firebase/firestore";
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Acai() {
@@ -40,6 +41,8 @@ export default function Acai() {
   const [carrinho, setCarrinho] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [carregouCliente, setCarregouCliente] = useState(false);
+
+  
 
   const [produtos, setProdutos] = useState([]);
   
@@ -475,46 +478,59 @@ let total = ((produto?.preco || 0) + totalExtras) * quantidade;
   total -= descontoCupom;
   if (total < 0) total = 0;
 
-  function aplicarCupom() {
+  async function aplicarCupom() {
 
   if (!cupom) {
     alert("Digite um cupom");
     return;
   }
 
-  const lista = JSON.parse(localStorage.getItem("cupons")) || [];
+  try {
 
-  const encontrado = lista.find(c =>
-    c.codigo === cupom.toUpperCase()
-  );
+    const snap = await getDocs(collection(db, "cupons"));
 
-  if (!encontrado) {
-    alert("❌ Cupom inválido");
-    return;
+    const docs = snap.docs;
+
+    const encontradoDoc = docs.find(d =>
+      d.data().codigo.toUpperCase() === cupom.toUpperCase()
+    );
+
+    if (!encontradoDoc) {
+      alert("❌ Cupom inválido");
+      return;
+    }
+
+    const encontrado = encontradoDoc.data();
+
+    if (encontrado.ativo === false) {
+      alert("❌ Cupom desativado");
+      return;
+    }
+
+    if (new Date(encontrado.validade) < new Date()) {
+      alert("❌ Cupom expirado");
+      return;
+    }
+
+    if (encontrado.usos >= encontrado.limite) {
+      alert("❌ Cupom esgotado");
+      return;
+    }
+
+    setDescontoCupom(Number(encontrado.valor));
+    setCupomAtivo(encontrado.codigo);
+
+    // 🔥 ATUALIZA USO
+    await updateDoc(doc(db, "cupons", encontradoDoc.id), {
+      usos: encontrado.usos + 1
+    });
+
+    alert("✅ Cupom aplicado");
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao validar cupom");
   }
-
-  // 🔥 VALIDADE
-  if (new Date(encontrado.validade) < new Date()) {
-    alert("❌ Cupom expirado");
-    return;
-  }
-
-  // 🔥 LIMITE
-  if (encontrado.usos >= encontrado.limite) {
-    alert("❌ Cupom esgotado");
-    return;
-  }
-
-  // 🔥 EVITA DUPLICAR
-  if (cupomAtivo === encontrado.codigo) {
-    alert("Cupom já aplicado");
-    return;
-  }
-
-  setDescontoCupom(Number(encontrado.valor));
-  setCupomAtivo(encontrado.codigo);
-
-  alert("✅ Cupom aplicado");
 }
 
  async function salvarPedidoFirebase(pedido) {
