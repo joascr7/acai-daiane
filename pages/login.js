@@ -311,13 +311,13 @@ export default function Login() {
 
 {/* 🔥 SENHA */}
 <div style={{ width: "100%" }}>
-
   <div style={{
     display: "flex",
     alignItems: "center",
     background: dark ? "#111" : "#fff",
     borderRadius: 12,
-    padding: "0 10px"
+    padding: "0 10px",
+    height: "40%",
   }}>
 
     <input
@@ -327,7 +327,7 @@ export default function Login() {
       onChange={e => setSenha(e.target.value)}
       style={{
         flex: 1,
-        height: 14,
+        height: "40%",
         border: "none",
         outline: "none",
         background: "transparent",
@@ -343,7 +343,7 @@ export default function Login() {
         background: "transparent",
         border: "none",
         cursor: "pointer",
-        fontSize: 20
+        fontSize: 18
       }}
     >
       {mostrarSenha ? "🙈" : "👁️"}
@@ -354,54 +354,35 @@ export default function Login() {
 
 {/* 🔥 CONFIRMAR SENHA */}
 {modoCadastro && (
-<div style={{ width: "100%" }}>
-  
-  <div style={{
-    display: "flex",
-    alignItems: "center",
-    background: dark ? "#111" : "#fff",
-    borderRadius: 12,
-    padding: "0 10px",
-    height: 50,
-    gap: 8
-  }}>
+  <div style={{ width: "100%" }}>
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      background: dark ? "#111" : "#fff",
+      borderRadius: 12,
+      padding: "0 10px",
+      height: 50,
+      gap: 8
+    }}>
 
-    <input
-      type={mostrarSenha ? "text" : "password"}
-      placeholder="Senha"
-      value={senha}
-      onChange={e => setSenha(e.target.value)}
-      style={{
-        flex: 1,
-        height: "100%",
-        border: "none",
-        outline: "none",
-        background: "transparent",
-        color: dark ? "#fff" : "#111",
-        fontSize: 16
-      }}
-    />
+      <input
+        type={mostrarSenha ? "text" : "password"}
+        placeholder="Confirmar senha" // 🔥 corrigido
+        value={confirmarSenha}        // 🔥 corrigido
+        onChange={e => setConfirmarSenha(e.target.value)} // 🔥 corrigido
+        style={{
+          flex: 1,
+          height: "40%",
+          border: "none",
+          outline: "none",
+          background: "transparent",
+          color: dark ? "#fff" : "#111",
+          fontSize: 16
+        }}
+      />
 
-    <button
-      type="button"
-      onClick={() => setMostrarSenha(!mostrarSenha)}
-      style={{
-        width: 35,
-        height: 35,
-        borderRadius: 8,
-        background: "rgba(122,0,255,0.2)",
-        border: "none",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 16
-      }}
-    >
-      {mostrarSenha ? "🙈" : "👁️"}
-    </button>
 
-  </div>
+    </div>
   </div>
       )}
 
