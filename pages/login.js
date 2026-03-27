@@ -24,6 +24,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [dark, setDark] = useState(false);
 
@@ -263,79 +264,145 @@ export default function Login() {
     >
 
       {modoCadastro && (
-        <>
-          <input
-            placeholder="Nome"
-            value={nome}
-            onChange={e => {
-              const valor = e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
-              setNome(valor.charAt(0).toUpperCase() + valor.slice(1));
-            }}
-            style={{
-              padding: 14,
-              borderRadius: 12,
-              border: "none",
-              background: dark ? "#111" : "#fff",
-              color: dark ? "#fff" : "#111"
-            }}
-          />
+  <>
+    <input
+      placeholder="Nome"
+      value={nome}
+      onChange={e => {
+        const valor = e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
+        setNome(valor.charAt(0).toUpperCase() + valor.slice(1));
+      }}
+      style={{
+        padding: 14,
+        borderRadius: 12,
+        border: "none",
+        background: dark ? "#111" : "#fff",
+        color: dark ? "#fff" : "#111"
+      }}
+    />
 
-          <input
-            placeholder="CPF"
-            value={cpf}
-            onChange={e => setCpf(formatarCPF(e.target.value))}
-            style={{
-              padding: 14,
-              borderRadius: 12,
-              border: "none",
-              background: dark ? "#111" : "#fff",
-              color: dark ? "#fff" : "#111"
-            }}
-          />
-        </>
-      )}
+    <input
+      placeholder="CPF"
+      value={cpf}
+      onChange={e => setCpf(formatarCPF(e.target.value))}
+      style={{
+        padding: 14,
+        borderRadius: 12,
+        border: "none",
+        background: dark ? "#111" : "#fff",
+        color: dark ? "#fff" : "#111"
+      }}
+    />
+  </>
+)}
 
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={e => setEmail(e.target.value.toLowerCase())}
-        style={{
-          padding: 14,
-          borderRadius: 12,
-          border: "none",
-          background: dark ? "#111" : "#fff",
-          color: dark ? "#fff" : "#111"
-        }}
-      />
+<input
+  placeholder="Email"
+  value={email}
+  onChange={e => setEmail(e.target.value.toLowerCase())}
+  style={{
+    padding: 14,
+    borderRadius: 12,
+    border: "none",
+    background: dark ? "#111" : "#fff",
+    color: dark ? "#fff" : "#111"
+  }}
+/>
 
-      <input
-        type="password"
-        placeholder="Senha"
-        value={senha}
-        onChange={e => setSenha(e.target.value)}
-        style={{
-          padding: 14,
-          borderRadius: 12,
-          border: "none",
-          background: dark ? "#111" : "#fff",
-          color: dark ? "#fff" : "#111"
-        }}
-      />
+{/* 🔥 SENHA */}
+<div style={{ width: "100%" }}>
 
-      {modoCadastro && (
-        <input
-          type="password"
-          placeholder="Confirmar senha"
-          value={confirmarSenha}
-          onChange={e => setConfirmarSenha(e.target.value)}
-          style={{
-            padding: 14,
-            borderRadius: 12,
-            border: "none",
-            background: dark ? "#111" : "#fff",
-            color: dark ? "#fff" : "#111"
-          }}
-        />
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    background: dark ? "#111" : "#fff",
+    borderRadius: 12,
+    padding: "0 10px"
+  }}>
+
+    <input
+      type={mostrarSenha ? "text" : "password"}
+      placeholder="Senha"
+      value={senha}
+      onChange={e => setSenha(e.target.value)}
+      style={{
+        flex: 1,
+        height: 14,
+        border: "none",
+        outline: "none",
+        background: "transparent",
+        color: dark ? "#fff" : "#111",
+        fontSize: 16
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => setMostrarSenha(!mostrarSenha)}
+      style={{
+        background: "transparent",
+        border: "none",
+        cursor: "pointer",
+        fontSize: 20
+      }}
+    >
+      {mostrarSenha ? "🙈" : "👁️"}
+    </button>
+
+  </div>
+</div>
+
+{/* 🔥 CONFIRMAR SENHA */}
+{modoCadastro && (
+<div style={{ width: "100%" }}>
+  
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    background: dark ? "#111" : "#fff",
+    borderRadius: 12,
+    padding: "0 10px",
+    height: 50,
+    gap: 8
+  }}>
+
+    <input
+      type={mostrarSenha ? "text" : "password"}
+      placeholder="Senha"
+      value={senha}
+      onChange={e => setSenha(e.target.value)}
+      style={{
+        flex: 1,
+        height: "100%",
+        border: "none",
+        outline: "none",
+        background: "transparent",
+        color: dark ? "#fff" : "#111",
+        fontSize: 16
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => setMostrarSenha(!mostrarSenha)}
+      style={{
+        width: 35,
+        height: 35,
+        borderRadius: 8,
+        background: "rgba(122,0,255,0.2)",
+        border: "none",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 16
+      }}
+    >
+      {mostrarSenha ? "🙈" : "👁️"}
+    </button>
+
+  </div>
+  </div>
       )}
 
       <button

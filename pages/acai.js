@@ -14,7 +14,7 @@ import {
   getDoc    // 🔥 ADICIONA
 } from 'firebase/firestore';
 import { updateDoc } from "firebase/firestore";
-import { getDocs, query, where } from "firebase/firestore";
+
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Acai() {
