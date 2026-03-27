@@ -2,17 +2,28 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import { db, auth } from '../services/firebase';
+
 import {
-  collection, 
+  collection,
   doc,
-  getDoc, 
-  getDocs,      // ✅ ADICIONA ISSO
-  deleteDoc,    // ✅ E ISSO
+  getDoc,
+  getDocs,
+  addDoc,
+  deleteDoc,
   updateDoc,
   onSnapshot
 } from 'firebase/firestore';
 
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
+
+
 
 
 export default function Admin() {
@@ -25,6 +36,7 @@ export default function Admin() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [lojaAberta, setLojaAberta] = useState(null);
   const [loadingLoja, setLoadingLoja] = useState(false);
+  const [imagem, setImagem] = useState(null);
   
   // 🎟️ CUPONS
   const [valor, setValor] = useState("");
@@ -32,6 +44,14 @@ export default function Admin() {
   const [limite, setLimite] = useState("");
   const [cupons, setCupons] = useState([]);
   const [codigo, setCodigo] = useState("");
+// 🎟️ editar produtos
+  const [produtos, setProdutos] = useState([]);
+
+  const [mostrarModalProduto, setMostrarModalProduto] = useState(false);
+
+  const [novoNome, setNovoNome] = useState("");
+  const [novoPreco, setNovoPreco] = useState("");
+  
 
   // 🔍 BUSCA
   const [buscaCodigo, setBuscaCodigo] = useState("");
@@ -43,6 +63,92 @@ function tocarSom() {
   // 🔥 se quiser som real depois:
   // const audio = new Audio("/notificacao.mp3");
   // audio.play();
+}
+
+
+
+// 🔥 excluir produtos
+async function excluirProduto(produto) {
+
+  const confirmar = confirm(`Excluir ${produto.nome}?`);
+
+  if (!confirmar) return;
+
+  await deleteDoc(doc(db, "produtos", produto.id));
+}
+
+// 🔥 editar produtos
+useEffect(() => {
+
+  const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // 🔥 COLOCA AQUI (ORDENAÇÃO)
+    lista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+    setProdutos(lista);
+
+  });
+
+  return () => unsub();
+
+}, []);
+
+
+
+// 🔥 MOVER PRODUTOS
+async function moverProduto(produto, direcao) {
+
+  const index = produtos.findIndex(p => p.id === produto.id);
+
+  const novoIndex = index + direcao;
+
+  if (novoIndex < 0 || novoIndex >= produtos.length) return;
+
+  const produtoTroca = produtos[novoIndex];
+
+  await updateDoc(doc(db, "produtos", produto.id), {
+    ordem: produtoTroca.ordem
+  });
+
+  await updateDoc(doc(db, "produtos", produtoTroca.id), {
+    ordem: produto.ordem
+  });
+}
+
+
+// 🔥 salvarproduto
+async function salvarProduto() {
+
+  if (!novoNome || !novoPreco) {
+    alert("Preencha tudo");
+    return;
+  }
+
+  try {
+
+    await addDoc(collection(db, "produtos"), {
+      nome: novoNome,
+      preco: Number(novoPreco),
+      ativo: true,
+      imagem: imagem, // 🔥 base64 direto
+      ordem: Date.now()
+    });
+
+    setNovoNome("");
+    setNovoPreco("");
+    setImagem("");
+
+    setMostrarModalProduto(false);
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao salvar produto");
+  }
 }
 
 // 🔥 LIMPAR EFEITO DE PISCAR
@@ -149,6 +255,32 @@ async function atualizarStatus(id, status) {
   } catch (e) {
     console.error(e);
   }
+}
+// 🔥 EDITAR PRODUTOS
+async function editarProduto(produto) {
+
+  const novoNome = prompt("Nome:", produto.nome);
+  const novoPreco = prompt("Preço:", produto.preco);
+
+  if (!novoNome || !novoPreco) return;
+
+  if (Number(novoPreco) <= 0) {
+    alert("Preço inválido");
+    return;
+  }
+
+  await updateDoc(doc(db, "produtos", produto.id), {
+    nome: novoNome,
+    preco: Number(novoPreco)
+  });
+
+  alert("✅ Atualizado");
+}
+
+async function toggleProduto(produto) {
+  await updateDoc(doc(db, "produtos", produto.id), {
+    ativo: !produto.ativo
+  });
 }
 
 
@@ -402,6 +534,7 @@ return (
         </h1>
       </div>
 
+
       {/* GRÁFICO */}
 <div className="card">
   <h2>Vendas por dia</h2>
@@ -487,6 +620,227 @@ return (
 
     </div>
   ))}
+</div>
+
+{/* 💰 MODAL PRODUTO */}
+{mostrarModalProduto && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(6px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "#111",
+      padding: 25,
+      borderRadius: 20,
+      width: 320,
+      boxShadow: "0 0 25px rgba(122,0,255,0.4)"
+    }}>
+
+      <h3 style={{ marginBottom: 15 }}>🍧 Novo Produto</h3>
+
+      {/* 🔥 NOME */}
+      <input
+        placeholder="Nome"
+        value={novoNome}
+        onChange={(e) => setNovoNome(e.target.value)}
+        style={{
+          width: "100%",
+          padding: 12,
+          borderRadius: 10,
+          border: "none",
+          marginBottom: 10,
+          background: "#222",
+          color: "#fff"
+        }}
+      />
+
+      {/* 🔥 PREÇO */}
+      <input
+        placeholder="Preço"
+        value={novoPreco}
+        onChange={(e) => setNovoPreco(e.target.value.replace(/\D/g, ""))}
+        style={{
+          width: "100%",
+          padding: 12,
+          borderRadius: 10,
+          border: "none",
+          marginBottom: 10,
+          background: "#222",
+          color: "#fff"
+        }}
+      />
+
+      {/* 🔥 INPUT DE IMAGEM (FALTAVA ISSO) */}
+      <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      console.log("BASE64 OK");
+      setImagem(reader.result); // 🔥 AGORA É STRING
+    };
+
+    reader.readAsDataURL(file);
+  }}
+/>
+
+      {/* 🔥 BOTÕES */}
+      <div style={{ display: "flex", gap: 10 }}>
+
+        <button
+          onClick={salvarProduto}
+          style={{
+            flex: 1,
+            padding: 12,
+            borderRadius: 10,
+            border: "none",
+            background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+            color: "#fff",
+            cursor: "pointer"
+          }}
+        >
+          Salvar
+        </button>
+
+        <button
+          onClick={() => setMostrarModalProduto(false)}
+          style={{
+            flex: 1,
+            padding: 12,
+            borderRadius: 10,
+            border: "none",
+            background: "#333",
+            color: "#fff",
+            cursor: "pointer"
+          }}
+        >
+          Cancelar
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+{/* 🍧 CARD PRODUTOS */}
+<div className="card">
+  <h2>🍧 Produtos</h2>
+
+  {/* 🔥 BOTÃO NOVO PRODUTO */}
+  <button
+    onClick={() => setMostrarModalProduto(true)}
+    style={{
+      marginBottom: 10,
+      padding: 12,
+      borderRadius: 12,
+      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      color: "#fff",
+      border: "none",
+      cursor: "pointer",
+      width: "100%"
+    }}
+  >
+    ➕ Novo Produto
+  </button>
+
+  {/* 🔥 LISTA */}
+  {produtos.length === 0 ? (
+    <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
+  ) : (
+    produtos.map(p => (
+      <div
+        key={p.id}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: 10,
+          borderRadius: 10,
+          background: "rgba(255,255,255,0.05)",
+          marginBottom: 10,
+          gap: 10
+        }}
+      >
+
+        {/* 🔥 ESQUERDA */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+          {/* 🔥 ORDEM */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <button onClick={() => moverProduto(p, -1)}>⬆️</button>
+            <button onClick={() => moverProduto(p, 1)}>⬇️</button>
+          </div>
+
+          {/* 🔥 IMAGEM */}
+          {p.imagem ? (
+            <img
+              src={p.imagem}
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 10,
+                objectFit: "cover"
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 10,
+                background: "#222",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12
+              }}
+            >
+              🍧
+            </div>
+          )}
+
+          {/* 🔥 INFO */}
+          <div>
+            <strong>{p.nome}</strong>
+            <p>R$ {Number(p.preco).toFixed(2)}</p>
+            <small>
+              {p.ativo ? "🟢 Ativo" : "🔴 Inativo"}
+            </small>
+          </div>
+
+        </div>
+
+        {/* 🔥 DIREITA (AÇÕES) */}
+        <div style={{ display: "flex", gap: 8 }}>
+
+          <button onClick={() => editarProduto(p)}>✏️</button>
+
+          <button onClick={() => toggleProduto(p)}>
+            {p.ativo ? "🚫" : "✅"}
+          </button>
+
+          <button onClick={() => excluirProduto(p)}>🗑️</button>
+
+        </div>
+
+      </div>
+    ))
+  )}
+
 </div>
 
 {/* PEDIDOS */}

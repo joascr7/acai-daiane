@@ -40,6 +40,8 @@ export default function Acai() {
   const [carrinho, setCarrinho] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [carregouCliente, setCarregouCliente] = useState(false);
+
+  const [produtos, setProdutos] = useState([]);
   
 
   // dados do client
@@ -147,26 +149,22 @@ useEffect(() => {
 }, []);
 
   
-  useEffect(() => {
+ useEffect(() => {
 
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const unsub = onSnapshot(collection(db, "pedidos"), (snapshot) => {
+  const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
 
     const lista = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
-    // 🔥 FILTRA SÓ OS PEDIDOS DO USUÁRIO
-    const meusPedidos = lista.filter(p => p.userId === user.uid);
+    const ativos = lista.filter(p => p.ativo);
 
-    // 🔥 ORDENA DO MAIS NOVO
-    meusPedidos.sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+    ativos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
-    setPedidos(meusPedidos);
+    console.log("PRODUTOS ATUALIZADOS:", ativos); // 🔥 DEBUG
+
+    setProdutos(ativos);
 
   });
 
@@ -432,6 +430,7 @@ function enviarWhatsApp(carrinho) {
     
   }, []);
 
+
   // 🔥 COLE ESSE AQUI LOGO ABAIXO
 useEffect(() => {
   const ref = doc(db, "config", "loja");
@@ -455,31 +454,12 @@ useEffect(() => {
     router.push('/login');
   }
 
-  const produtos = [
-  {
-    id: 1,
-    nome: "Açaí 300ml",
-    preco: 10,
-    img: "/acai1.png"
-  },
-  {
-    id: 2,
-    nome: "Açaí 500ml",
-    preco: 15,
-    img: "/acai2.png"
-  },
-  {
-    id: 3,
-    nome: "Açaí 700ml",
-    preco: 20,
-    img: "/acai3.png"
-  }
-];
+  
 
   const adicionais = [
-    { nome: "Granola", preco: 2 },
-    { nome: "Banana", preco: 3 },
-    { nome: "Morango", preco: 3 }
+    { nome: "Granola", preco: 1 },
+    { nome: "Banana", preco: 1 },
+    { nome: "Morango", preco: 1 }
   ];
 
   function toggleExtra(item) {
@@ -1005,37 +985,48 @@ return (
 )}
 
       {/* STEP 1 */}
-      {step === 1 && (
-        <>
-          {produtos.map(p => {
-            const ativo = selectedId === p.id;
+{step === 1 && (
+  <>
+    {produtos.map(p => {
+  const ativo = selectedId === p.id;
 
-            return (
-              <div key={p.id}
-                onClick={() => {
-                  setProduto(p);
-                  setSelectedId(p.id);
-                }}
-                className={`card ${ativo ? 'active' : ''}`}>
+  return (
+    <div
+      key={p.id + p.ordem} // 🔥 IMPORTANTE
+      onClick={() => {
+        setProduto(p);
+        setSelectedId(p.id);
+      }}
+      className={`card ${ativo ? 'active' : ''}`}
+    >
 
-                <img src={p.img} />
+      <img
+        src={p.imagem || "/acai.png"}
+        style={{
+          width: "100%",
+          borderRadius: 12
+        }}
+      />
 
-                <div className="overlay">
-                  <strong className="price">R$ {Number(p.preco).toFixed(2)}</strong>
-                  <span className="nome">{p.nome}</span>
-                </div>
-              </div>
-            );
-          })}
+      <div className="overlay">
+        <strong className="price">
+          R$ {Number(p.preco).toFixed(2)}
+        </strong>
+        <span className="nome">{p.nome}</span>
+      </div>
 
-          <button onClick={() => {
-            if (!produto) return alert("Escolha um açaí!");
-            setStep(2);
-          }}>
-            Próximo
-          </button>
-        </>
-      )}
+        </div>
+      );
+    })}
+
+    <button onClick={() => {
+      if (!produto) return alert("Escolha um açaí!");
+      setStep(2);
+    }}>
+      Próximo
+    </button>
+  </>
+)}
 
      {/* STEP 2 */}
 {step === 2 && (
