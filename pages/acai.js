@@ -4,6 +4,7 @@ import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
 import { updateDoc } from "firebase/firestore";
 import { query, where } from "firebase/firestore";
+import { runTransaction } from "firebase/firestore";
 
 
 
@@ -447,12 +448,9 @@ function formatarTelefone(valor) {
   setStep(2);
 }
 
-
-  function aplicarCupom() {
-
+async function aplicarCupom() {
   const codigoDigitado = cupomInput.trim().toLowerCase();
 
-  // 🔥 PRIMEIRO encontra o cupom
   const cupom = cupons.find(
     c =>
       c.codigo?.toLowerCase() === codigoDigitado &&
@@ -464,20 +462,29 @@ function formatarTelefone(valor) {
     return;
   }
 
-  // 🔥 AGORA sim pode usar o cupom
   const cpfLimpo = clienteCpf.replace(/\D/g, "");
 
-  if (cupom.usos && cupom.usos[cpfLimpo]) {
+  // 🔥 VALIDA DIRETO NO FIREBASE (ANTI-BUG)
+  const snap = await getDoc(doc(db, "cupons", cupom.id));
+
+  if (!snap.exists()) {
+    alert("Cupom não encontrado ❌");
+    return;
+  }
+
+  const dados = snap.data();
+
+  if (dados.usos && dados.usos[cpfLimpo]) {
     alert("Você já usou esse cupom ❌");
     return;
   }
 
-  setCupomAplicado(cupom);
+  setCupomAplicado({ id: cupom.id, ...dados });
 
   alert("Cupom aplicado ✅");
 }
 
-  async function finalizarPedido() {
+async function finalizarPedido() {
 
   if (!carrinho.length) {
     alert("Carrinho vazio!");
@@ -490,94 +497,102 @@ function formatarTelefone(valor) {
     return;
   }
 
-try {
+  try {
 
-  const codigo = Math.floor(100000 + Math.random() * 900000);
+    const codigo = Math.floor(100000 + Math.random() * 900000);
 
-  const totalFinalPedido = Number(totalFinal.toFixed(2));
+    const totalFinalPedido = Number(totalFinal.toFixed(2));
 
-  const pedido = {
-    codigo,
-    cliente: {
-      nome: clienteNome,
-      telefone: clienteTelefone,
-      endereco: clienteEndereco,
-      numero: clienteNumeroCasa,
-      uid: user.uid
-    },
-    itens: carrinho,
-    total: totalFinalPedido,
-    status: "preparando",
-    data: new Date().toISOString()
-  };
+    const pedido = {
+      codigo,
+      cliente: {
+        nome: clienteNome,
+        telefone: clienteTelefone,
+        endereco: clienteEndereco,
+        numero: clienteNumeroCasa,
+        uid: user.uid
+      },
+      itens: carrinho,
+      total: totalFinalPedido,
+      status: "preparando",
+      data: new Date().toISOString()
+    };
 
-  // 🔥 AGORA SIM salva
-  await addDoc(collection(db, "pedidos"), pedido);
+    // 🔒 TRAVA CUPOM ANTES (ANTI-FRAUDE REAL)
+    if (cupomAplicado?.id) {
 
-  // 🔥 depois registra cupom
-  if (cupomAplicado?.id) {
+      const cpfLimpo = clienteCpf.replace(/\D/g, "");
 
-    const cpfLimpo = clienteCpf.replace(/\D/g, "");
+      await runTransaction(db, async (transaction) => {
 
-    try {
-      await updateDoc(
-        doc(db, "cupons", cupomAplicado.id),
-        {
-          [`usos.${cpfLimpo}`]: true
+        const ref = doc(db, "cupons", cupomAplicado.id);
+        const snap = await transaction.get(ref);
+
+        if (!snap.exists()) {
+          throw "Cupom inválido ❌";
         }
-      );
 
-      console.log("Cupom registrado:", cpfLimpo);
+        const dados = snap.data();
 
-    } catch (e) {
-      console.log("Erro ao salvar uso do cupom:", e);
-    }
-  }
+        // 🔥 BLOQUEIO REAL
+        if (dados.usos && dados.usos[cpfLimpo]) {
+          throw "Cupom já utilizado ❌";
+        }
 
-  // 🔥 WHATSAPP
-  let mensagem = ` *Pedido #${codigo}*\n\n`;
-
-  carrinho.forEach((item, i) => {
-    mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
-    mensagem += `Qtd: ${item.quantidade}\n`;
-
-    if (item.extras?.length) {
-      mensagem += "Extras:\n";
-      item.extras.forEach(e => {
-        mensagem += `+ ${e.nome}\n`;
+        // 🔥 MARCA COMO USADO
+        transaction.update(ref, {
+          [`usos.${cpfLimpo}`]: true
+        });
       });
     }
 
-    mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
-  });
+    // 💾 AGORA SIM salva pedido
+    await addDoc(collection(db, "pedidos"), pedido);
 
-  mensagem += ` Total: R$ ${totalFinalPedido}\n\n`;
-  mensagem += ` ${clienteNome}\n`;
-  mensagem += ` ${clienteTelefone}\n`;
+    // 📲 WHATSAPP (corrigido mobile)
+    let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
 
-  if (clienteEndereco) {
-    mensagem += `📍 ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+    carrinho.forEach((item, i) => {
+      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+      mensagem += `Qtd: ${item.quantidade}\n`;
+
+      if (item.extras?.length) {
+        mensagem += "Extras:\n";
+        item.extras.forEach(e => {
+          mensagem += `+ ${e.nome}\n`;
+        });
+      }
+
+      mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
+    });
+
+    mensagem += `💰 Total: R$ ${totalFinalPedido}\n\n`;
+    mensagem += `👤 ${clienteNome}\n`;
+    mensagem += `📞 ${clienteTelefone}\n`;
+
+    if (clienteEndereco) {
+      mensagem += `📍 ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+    }
+
+    const numero = "5581973119512";
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+    if (/Android|iPhone/i.test(navigator.userAgent)) {
+      window.location.href = url;
+    } else {
+      window.open(url, "_blank");
+    }
+
+    // 🔥 limpa carrinho
+    setCarrinho([]);
+    setCupomAplicado(null);
+
+    alert("Pedido realizado com sucesso! 🚀");
+
+  } catch (e) {
+    alert(e);
+    console.log("ERRO FINAL:", e);
   }
-
-  const numero = "5581973119512";
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-
-  window.open(url, "_blank");
-
-  // 🔥 LIMPA
-  setCarrinho([]);
-  setCupomAplicado(null);
-  setCupomInput("");
-
-  // 🔥 IR PRA PEDIDOS
-  setStep(5);
-
-  alert("Pedido enviado 🚀");
-
-} catch (e) {
-  console.log("ERRO REAL:", e);
-  alert("Erro ao enviar pedido ❌");
-}
 }
   // 🔥  2 grades
   function ripple(e) {
