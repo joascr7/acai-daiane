@@ -413,3 +413,34 @@ button:active {
 .dadosGrid input {
   width: 100%;
 }
+
+
+/* 🔥 BOTAO INSTALAR */
+.btnInstall {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: linear-gradient(90deg, #6a00ff, #ff2aff);
+  color: white;
+
+  border: none;
+  border-radius: 30px;
+
+  padding: 14px 20px;
+  font-weight: bold;
+
+  box-shadow: 0 0 20px rgba(122,0,255,0.4);
+
+  cursor: pointer;
+  z-index: 9999;
+
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.05); }
+  100% { transform: translateX(-50%) scale(1); }
+}

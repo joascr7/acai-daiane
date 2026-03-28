@@ -6,6 +6,7 @@ import { updateDoc } from "firebase/firestore";
 import { query, where } from "firebase/firestore";
 
 
+
 import {
   signOut,
   setPersistence,
@@ -31,6 +32,8 @@ export default function Acai() {
    const [user, setUser] = useState(null);
    const [authReady, setAuthReady] = useState(false);
    const [logo, setLogo] = useState(null);
+
+   const [promptInstall, setPromptInstall] = useState(null);
    
 
   // 🔥 THEME
@@ -99,6 +102,18 @@ if (cupomAplicado) {
 }
 
 const totalFinal = Math.max(0, totalCarrinho - (valorDesconto || 0));
+// 🔥 APP instalar
+useEffect(() => {
+  const handler = (e) => {
+    e.preventDefault();
+    setPromptInstall(e);
+  };
+
+  window.addEventListener("beforeinstallprompt", handler);
+
+  return () => window.removeEventListener("beforeinstallprompt", handler);
+}, []);
+
 // 🔥 APP
 useEffect(() => {
   if ("serviceWorker" in navigator) {
@@ -244,6 +259,16 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, []);
+
+ // 🔥 instalar app
+async function instalarApp() {
+  if (!promptInstall) return;
+
+  promptInstall.prompt();
+  await promptInstall.userChoice;
+
+  setPromptInstall(null);
+}
 
   // 🔥 FUNÇÕES
   function toggleExtra(e) {
@@ -688,6 +713,8 @@ return (
         </button>
 
       </div>
+
+      
 {/* STEP 1 */}
 {step === 1 && (
   <>
@@ -1410,6 +1437,18 @@ return (
     </button>
   </>
 )}
+
+
+    {/* 🔥 BOTÃO INSTALAR */}
+    {promptInstall && (
+      <button
+        onClick={instalarApp}
+        className="btnInstall"
+      >
+        📲 Instalar App
+      </button>
+    )}
+
 
 {/* 🔥 STYLES */}
   <style jsx>{`

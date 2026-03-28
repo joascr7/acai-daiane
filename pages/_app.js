@@ -4,7 +4,8 @@ import Head from "next/head";
 
 export default function App({ Component, pageProps }) {
 
-  const [dark, setDark] = useState(true); // padrão dark
+  // 🔥 DARK MODE
+  const [dark, setDark] = useState(true);
 
   useEffect(() => {
     if (!dark) {
@@ -14,16 +15,28 @@ export default function App({ Component, pageProps }) {
     }
   }, [dark]);
 
-  return <Component {...pageProps} />;
+  // 🔥 PWA INSTALL
+  useEffect(() => {
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      console.log("🔥 Pode instalar o app!");
+      window.deferredPrompt = e;
+    });
+  }, []);
+
+  return (
+    <>
+      <Head>
+        <title>Açaí da Daiane</title>
+
+        <link rel="icon" href="/favicon.ico?v=2" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon.png" />
+
+        <meta name="theme-color" content="#7a00ff" />
+      </Head>
+
+      <Component {...pageProps} />
+    </>
+  );
 }
-
-<Head>
-  <title>Açaí da Daiane</title>
-
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/icon.png" />
-
-  <meta name="theme-color" content="#7a00ff" />
-</Head>
-

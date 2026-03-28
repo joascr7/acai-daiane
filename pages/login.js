@@ -33,8 +33,8 @@ export default function Login() {
 
   const [dark, setDark] = useState(false);
 
-
-
+// 🔥 BOTAO INSTALAR
+   const [promptInstall, setPromptInstall] = useState(null);
 
 // 🔥 CARREGAR logi
   useEffect(() => {
@@ -52,6 +52,35 @@ export default function Login() {
     const temaSalvo = localStorage.getItem("tema");
     if (temaSalvo === "dark") setDark(true);
   }, []);
+
+  // 🔥 BOTAO INSTALAR
+  useEffect(() => {
+
+  const handler = (e) => {
+    e.preventDefault();
+    setPromptInstall(e);
+  };
+
+  window.addEventListener("beforeinstallprompt", handler);
+
+  return () => window.removeEventListener("beforeinstallprompt", handler);
+
+}, []);
+
+// 🔥 instalar app
+async function instalarApp() {
+  if (!promptInstall) return;
+
+  promptInstall.prompt();
+
+  const choice = await promptInstall.userChoice;
+
+  if (choice.outcome === "accepted") {
+    console.log("App instalado ✅");
+  }
+
+  setPromptInstall(null);
+}
 
   // 🔥 TOGGLE TEMA
   function toggleTheme() {
@@ -449,6 +478,17 @@ export default function Login() {
 
     </div>
       </div>
+
+      {/* 🔥 BOTÃO INSTALAR (COLOCA AQUI 👇) */}
+    {promptInstall && (
+      <button
+        onClick={instalarApp}
+        className="btnInstall"
+      >
+        📲 Instalar App
+      </button>
+    )}
+
  
       <style jsx>{`
         .container {
