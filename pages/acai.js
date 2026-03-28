@@ -490,108 +490,95 @@ function formatarTelefone(valor) {
     return;
   }
 
-  try {
+try {
 
-    if (cupomAplicado) {
-  
-  const cpfLimpo = clienteCpf.replace(/\D/g, "");
+  const codigo = Math.floor(100000 + Math.random() * 900000);
 
-  console.log("SALVANDO USO:", cpfLimpo);
+  const totalFinalPedido = Number(totalFinal.toFixed(2));
 
-  await updateDoc(
-    doc(db, "cupons", cupomAplicado.id),
-    {
-      [`usos.${cpfLimpo}`]: true
+  const pedido = {
+    codigo,
+    cliente: {
+      nome: clienteNome,
+      telefone: clienteTelefone,
+      endereco: clienteEndereco,
+      numero: clienteNumeroCasa,
+      uid: user.uid
+    },
+    itens: carrinho,
+    total: totalFinalPedido,
+    status: "preparando",
+    data: new Date().toISOString()
+  };
+
+  // 🔥 AGORA SIM salva
+  await addDoc(collection(db, "pedidos"), pedido);
+
+  // 🔥 depois registra cupom
+  if (cupomAplicado?.id) {
+
+    const cpfLimpo = clienteCpf.replace(/\D/g, "");
+
+    try {
+      await updateDoc(
+        doc(db, "cupons", cupomAplicado.id),
+        {
+          [`usos.${cpfLimpo}`]: true
+        }
+      );
+
+      console.log("Cupom registrado:", cpfLimpo);
+
+    } catch (e) {
+      console.log("Erro ao salvar uso do cupom:", e);
     }
-  );
-}
-    const codigo = Math.floor(100000 + Math.random() * 900000);
-
-    const totalFinalPedido = Number(totalFinal.toFixed(2));
-
-    const pedido = {
-  codigo,
-  cliente: {
-    nome: clienteNome,
-    telefone: clienteTelefone,
-    endereco: clienteEndereco,
-    numero: clienteNumeroCasa,
-    uid: user.uid // 🔥 ESSENCIAL
-  },
-  itens: carrinho,
-  total: totalFinal,
-  status: "preparando",
-  data: new Date().toISOString()
-};
-
-    // 🔥 SALVA NO FIREBASE
-    // 🔥 SALVAR USO DO CUPOM (SEM QUEBRAR)
-if (cupomAplicado?.id) {
-
-  const cpfLimpo = clienteCpf.replace(/\D/g, "");
-
-  try {
-    await updateDoc(
-      doc(db, "cupons", cupomAplicado.id),
-      {
-        [`usos.${cpfLimpo}`]: true
-      }
-    );
-
-    console.log("Cupom registrado:", cpfLimpo);
-
-  } catch (e) {
-    console.log("Erro ao salvar uso do cupom:", e);
   }
-}
 
-    // 🔥 WHATSAPP
-    let mensagem = ` *Pedido #${codigo}*\n\n`;
+  // 🔥 WHATSAPP
+  let mensagem = ` *Pedido #${codigo}*\n\n`;
 
-    carrinho.forEach((item, i) => {
-      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
-      mensagem += `Qtd: ${item.quantidade}\n`;
+  carrinho.forEach((item, i) => {
+    mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+    mensagem += `Qtd: ${item.quantidade}\n`;
 
-      if (item.extras?.length) {
-        mensagem += "Extras:\n";
-        item.extras.forEach(e => {
-          mensagem += `+ ${e.nome}\n`;
-        });
-      }
-
-      mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
-    });
-
-    mensagem += ` Total: R$ ${totalFinal}\n\n`;
-    mensagem += ` ${clienteNome}\n`;
-    mensagem += ` ${clienteTelefone}\n`;
-
-    if (clienteEndereco) {
-      mensagem += `📍 ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+    if (item.extras?.length) {
+      mensagem += "Extras:\n";
+      item.extras.forEach(e => {
+        mensagem += `+ ${e.nome}\n`;
+      });
     }
 
-    const numero = "5581973119512";
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
+  });
 
-    window.open(url, "_blank");
+  mensagem += ` Total: R$ ${totalFinalPedido}\n\n`;
+  mensagem += ` ${clienteNome}\n`;
+  mensagem += ` ${clienteTelefone}\n`;
 
-    // 🔥 LIMPA
-    setCarrinho([]);
-
-    setCupomAplicado(null);
-    setCupomInput("");
-
-    // 🔥 MUDA PRA ABA PEDIDOS
-    setStep(5);
-
-    alert("Pedido enviado 🚀");
-
-  } catch (e) {
-    console.log(e);
-    alert("Erro ao enviar pedido ❌");
+  if (clienteEndereco) {
+    mensagem += `📍 ${clienteEndereco}, ${clienteNumeroCasa}\n`;
   }
-}
 
+  const numero = "5581973119512";
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+  window.open(url, "_blank");
+
+  // 🔥 LIMPA
+  setCarrinho([]);
+  setCupomAplicado(null);
+  setCupomInput("");
+
+  // 🔥 IR PRA PEDIDOS
+  setStep(5);
+
+  alert("Pedido enviado 🚀");
+
+} catch (e) {
+  console.log("ERRO REAL:", e);
+  alert("Erro ao enviar pedido ❌");
+}
+}
   // 🔥  2 grades
   function ripple(e) {
   const circle = document.createElement("span");
@@ -1423,7 +1410,7 @@ return (
           <span style={{
             color:
               p.status === "preparando" ? "#facc15" :
-              p.status === "saiu" ? "#60a5fa" :
+              p.status === "saiu para entrega" ? "#60a5fa" :
               "#4ade80"
           }}>
             {" " + p.status}
