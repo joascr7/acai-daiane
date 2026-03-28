@@ -291,7 +291,7 @@ async function instalarApp() {
   />
 )}
 
-    <h1 style={{ textAlign: "center" }}> Açaí da Daiane</h1>
+    <h1 style={{ textAlign: "center" }}> Bem Vindo(a)</h1>
 
     <button
       className="themeBtn"
