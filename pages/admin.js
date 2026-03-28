@@ -42,6 +42,10 @@ export default function Admin() {
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
+
+  const [novaCategoria, setNovaCategoria] = useState("");
+  const [categorias, setCategorias] = useState([]);
+  const [categoria, setCategoria] = useState("");
   
   // 🎟️ CUPONS
   const [valor, setValor] = useState("");
@@ -115,6 +119,21 @@ useEffect(() => {
 }, []);
 
 
+// 🔥 criar categoria
+async function criarCategoria() {
+  if (!novaCategoria) return;
+
+  const slug = novaCategoria.toLowerCase().trim();
+
+  await addDoc(collection(db, "categorias"), {
+    nome: novaCategoria,
+    slug,
+    ordem: Date.now()
+  });
+
+  setNovaCategoria("");
+  alert("Categoria criada 🚀");
+}
 
 // 🔥 MOVER PRODUTOS
 async function moverProduto(produto, direcao) {
@@ -148,6 +167,7 @@ async function salvarProduto() {
 
   await addDoc(collection(db, "produtos"), {
     nome: novoNome,
+    categoria: categoria,
     preco: Number(novoPreco),
     tamanho: novoTamanho,
     descricao: novaDescricao,
@@ -166,6 +186,20 @@ async function salvarProduto() {
 
   setMostrarModalProduto(false);
 }
+// 🔥 cadastro padrao primeiro
+useEffect(() => {
+  if (categorias.length > 0 && !categoria) {
+    setCategoria(categorias[0].slug);
+  }
+}, [categorias]);
+// 🔥 cadastro produto categoria
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "categorias"), (snap) => {
+    setCategorias(snap.docs.map(doc => doc.data()));
+  });
+
+  return () => unsub();
+}, []);
 
 // 🔥 LIMPAR EFEITO DE PISCAR
 useEffect(() => {
@@ -300,7 +334,8 @@ async function salvarProduto() {
     descricao: novaDescricao,
     imagem: novaImagem,
     ativo: true,
-    maisVendido: maisVendido
+    maisVendido: maisVendido,
+    categoria: categoria
   };
 
   if (editandoProduto) {
@@ -322,6 +357,7 @@ async function salvarProduto() {
   setNovaImagem("");
   setMaisVendido(false);
   setEditandoProduto(null);
+  
 
   setMostrarModalProduto(false);
 }
@@ -684,6 +720,28 @@ return (
           color: "#fff"
         }}
       />
+{/* 🔥 nova categoria */}
+      <select
+       value={categoria}
+       onChange={(e) => setCategoria(e.target.value)}
+       >
+      {categorias.map(c => (
+      <option key={c.slug} value={c.slug}>
+      {c.nome}
+      </option>
+       ))}
+      </select>
+
+      {/* 🔥 nova categoria */}
+      <input
+  placeholder="Nova categoria (ex: Açaí)"
+  value={novaCategoria}
+  onChange={(e) => setNovaCategoria(e.target.value)}
+/>
+
+<button onClick={criarCategoria}>
+  ➕ Criar Categoria
+</button>
 
       {/* 🔥 PREÇO */}
       <input

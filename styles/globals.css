@@ -444,3 +444,56 @@ button:active {
   50% { transform: translateX(-50%) scale(1.05); }
   100% { transform: translateX(-50%) scale(1); }
 }
+/* 🔥 BOTAO ACAI */
+.tabs button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: #111;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.tabs button.activeTab {
+  transform: scale(1.05);
+}
+
+.tabs button.activeTab {
+  background: linear-gradient(90deg, #6a00ff, #ff2aff);
+  box-shadow: 0 0 10px rgba(122,0,255,0.4);
+}
+
+
+
+.buscaBox input {
+  width: 93%;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #333;
+  font-size: 14px;
+}
+/* 🔥 BOTAO ACAI tabs 2 */
+.tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tabs button {
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: none;
+  background: #111;
+  color: #fff;
+  font-weight: 500;
+}
+
+.tabs button.activeTab {
+  background: linear-gradient(90deg, #6a00ff, #ff2aff);
+  box-shadow: 0 0 10px rgba(122,0,255,0.4);
+}
+
+.cardProduto:hover {
+  transform: scale(1.02);
+}

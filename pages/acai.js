@@ -34,6 +34,10 @@ export default function Acai() {
    const [logo, setLogo] = useState(null);
 
    const [promptInstall, setPromptInstall] = useState(null);
+
+// 🔥 CATEGORIA
+   const [categoria, setCategoria] = useState("acai");
+   const [busca, setBusca] = useState("");
    
 
   // 🔥 THEME
@@ -59,7 +63,11 @@ export default function Acai() {
   const adicionais = [
     { nome: "Leite Condensado", preco: 2 },
     { nome: "Granola", preco: 2 },
-    { nome: "Banana", preco: 2 }
+    { nome: "Morango", preco: 2 },
+    { nome: "Banana", preco: 2 },
+    { nome: "Uva", preco: 2 },
+    { nome: "Jujuba", preco: 2 },
+    { nome: "Amedoim", preco: 2 }
   ];
 
   // 🔥 CARRINHO
@@ -113,6 +121,19 @@ useEffect(() => {
 
   return () => window.removeEventListener("beforeinstallprompt", handler);
 }, []);
+
+// 🔥 MUDA ABA
+useEffect(() => {
+  if (!busca) return;
+
+  const encontrado = produtos.find(p =>
+    p.nome?.toLowerCase().includes(busca.toLowerCase())
+  );
+
+  if (encontrado) {
+    setCategoria(encontrado.categoria);
+  }
+}, [busca]);
 
 // 🔥 APP
 useEffect(() => {
@@ -698,7 +719,13 @@ return (
         marginBottom: 15
       }}>
 
-        <button onClick={() => setStep(1)}>Inicio</button>
+        <button onClick={() => {
+        setStep(1);
+        setCategoria("acai"); // 🔥 volta pra aba Açaí
+        setBusca(""); // 🔥 limpa busca
+        }}>
+        Início
+       </button>
 
         <button onClick={() => setStep(5)}>Pedidos</button>
 
@@ -709,10 +736,12 @@ return (
         <button onClick={() => setStep(99)}>Informações</button>
 
         <button onClick={() => setDark(!dark)}>
-          {dark ? "🌙" : "☀️"}
+          {dark ? "Escuro🌙" : "Claro☀️"}
         </button>
 
       </div>
+
+      
 
       
 {/* STEP 1 */}
@@ -734,6 +763,55 @@ return (
         🚫 Loja fechada no momento
       </div>
     )}
+
+{/* 🔥 buscar produtos */}
+<div className="buscaBox">
+  <input
+    placeholder="🔍 Buscar produto..."
+    value={busca}
+    onChange={(e) => setBusca(e.target.value)}
+  />
+</div>
+
+{/* 🔥 abas dos produtos */}
+   <div className="tabs">
+     
+  <button
+  onClick={() => setCategoria("acai")}
+  className={categoria === "acai" ? "activeTab" : ""}
+>
+   Açaí
+</button>
+
+<button
+  onClick={() => setCategoria("bebidas")}
+  className={categoria === "bebidas" ? "activeTab" : ""}
+>
+   Bebidas
+</button>
+
+<button
+  onClick={() => setCategoria("teste")}
+  className={categoria === "teste" ? "activeTab" : ""}
+>
+   Teste
+</button>
+
+<button
+  onClick={() => setCategoria("teste2")}
+  className={categoria === "teste2" ? "activeTab" : ""}
+>
+   Teste2
+</button>
+
+<button
+  onClick={() => setCategoria("teste3")}
+  className={categoria === "teste3" ? "activeTab" : ""}
+>
+   Teste3
+</button>
+
+</div>
 
     {produtos.length === 0 ? (
 
@@ -762,8 +840,30 @@ return (
         gridTemplateColumns: "1fr 1fr",
         gap: 10
       }}>
+      {/* 🔥 PRODUTOS MAP*/}
+              {produtos
+             .filter(p => {
 
-        {produtos.map(p => {
+            const nome = p.nome?.toLowerCase() || "";
+            const termo = busca.toLowerCase();
+
+            const categoriaProduto = String(p.categoria || "")
+            .trim()
+            .toLowerCase();
+
+            const categoriaAtual = String(categoria || "")
+            .trim()
+            .toLowerCase();
+
+    // 🔍 BUSCA
+    if (busca) {
+      return nome.includes(termo);
+    }
+
+    // 📂 CATEGORIA
+    return categoriaProduto === categoriaAtual;
+  })
+  .map(p => {
           const ativo = selectedId === p.id;
 
           return (
