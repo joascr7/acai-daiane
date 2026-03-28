@@ -41,6 +41,7 @@ export default function Admin() {
   const [loadingLoja, setLoadingLoja] = useState(false);
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
+  const [logoInput, setLogoInput] = useState("");
   
   // 🎟️ CUPONS
   const [valor, setValor] = useState("");
@@ -74,7 +75,13 @@ function tocarSom() {
   // audio.play();
 }
 
+async function salvarLogo() {
+  await setDoc(doc(db, "config", "loja"), {
+    logo: logoInput
+  }, { merge: true });
 
+  alert("Logo atualizada 🚀");
+}
 
 // 🔥 excluir produtos
 async function excluirProduto(produto) {
@@ -964,6 +971,16 @@ return (
 )}
 
 </div>
+
+<input
+  placeholder="URL da logo"
+  value={logoInput}
+  onChange={(e) => setLogoInput(e.target.value)}
+/>
+
+<button onClick={salvarLogo}>
+  Salvar Logo
+</button>
 
 {/* PEDIDOS */}
 <div className="card">

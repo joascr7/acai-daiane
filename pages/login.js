@@ -13,11 +13,13 @@ import {
 
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
 
 
 export default function Login() {
 
   const router = useRouter();
+  const [logo, setLogo] = useState(null);
 
   const [modoCadastro, setModoCadastro] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,6 +32,20 @@ export default function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [dark, setDark] = useState(false);
+
+
+
+
+// 🔥 CARREGAR logi
+  useEffect(() => {
+  const unsub = onSnapshot(doc(db, "config", "loja"), (docSnap) => {
+    if (docSnap.exists()) {
+      setLogo(docSnap.data().logo);
+    }
+  });
+
+  return () => unsub();
+}, []);
 
   // 🔥 CARREGAR TEMA
   useEffect(() => {
@@ -232,8 +248,21 @@ export default function Login() {
       boxShadow: "0 0 30px rgba(122,0,255,0.25)"
     }}
   >
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}></div>
+    {logo && (
+  <img
+    src={logo}
+    style={{
+      width: 80,
+      height: 80,
+      borderRadius: "50%",
+      objectFit: "cover",
+      marginBottom: 10
+    }}
+  />
+)}
 
-    <h1 style={{ textAlign: "center" }}>🍧 Açaí da Daiane</h1>
+    <h1 style={{ textAlign: "center" }}> Açaí da Daiane</h1>
 
     <button
       className="themeBtn"

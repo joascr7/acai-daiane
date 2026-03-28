@@ -5,6 +5,7 @@ import { dbCliente as db } from "../services/firebaseDual";
 import { updateDoc } from "firebase/firestore";
 import { query, where } from "firebase/firestore";
 
+
 import {
   signOut,
   setPersistence,
@@ -29,7 +30,7 @@ export default function Acai() {
 
    const [user, setUser] = useState(null);
    const [authReady, setAuthReady] = useState(false);
-   
+   const [logo, setLogo] = useState(null);
    
 
   // 🔥 THEME
@@ -98,6 +99,31 @@ if (cupomAplicado) {
 }
 
 const totalFinal = Math.max(0, totalCarrinho - (valorDesconto || 0));
+// 🔥 APP
+useEffect(() => {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("SW registrado"))
+      .catch((err) => console.log("Erro SW:", err));
+  }
+}, []);
+// 🔥 LOGO
+useEffect(() => {
+
+  const unsub = onSnapshot(doc(db, "config", "loja"), (docSnap) => {
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      setLojaAberta(data.aberta);
+      setLogo(data.logo); // 🔥 AQUI
+    }
+
+  });
+
+  return () => unsub();
+
+}, []);
 
   // 🔥 PRODUTOS FIREBASE
   useEffect(() => {
@@ -565,7 +591,22 @@ return (
     WebkitBackgroundClip: "text",
     color: "transparent"
   }}>
-    🍧 Açaí da Daiane
+
+<div style={{ display: "flex", alignItems: "center", gap: 10 }}></div>
+    {logo && (
+  <img
+    src={logo}
+    style={{
+      width: 80,
+      height: 80,
+      borderRadius: "50%",
+      objectFit: "cover",
+      marginBottom: 10
+    }}
+  />
+)}
+    {/* TEXTO AQUI EM BAIXO*/}
+
   </h2>
 
   {/* 🔥 DIREITA */}
@@ -747,7 +788,7 @@ return (
                   position: "absolute",
                   top: 8,
                   left: 8,
-                  background: "linear-gradient(90deg,#ff2aff,#ff0080)",
+                  background: "linear-gradient(90deg,#ee737a,#ee737a)",
                   color: "#fff",
                   padding: "4px 8px",
                   borderRadius: 10,
@@ -1112,14 +1153,11 @@ return (
   <>
     <h3>👤 Dados do Cliente</h3>
 
-    <div style={{
-      background: themeAtual.card,
-      padding: 20,
-      borderRadius: 16,
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 10
-    }}>
+    <div className="dadosGrid" style={{
+     background: themeAtual.card,
+     padding: 20,
+     borderRadius: 16
+     }}>
 
       {/* NOME */}
       <div>
@@ -1536,6 +1574,58 @@ return (
     button:active {
       transform: scale(0.95);
     }
+
+    {
+  .dadosGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .dadosGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .dadosGrid div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dadosGrid small {
+    margin-bottom: 4px;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+
+  .dadosGrid input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #2a2a2a;
+    outline: none;
+    font-size: 14px;
+
+    background: #0f0f0f;
+    color: #fff;
+
+    transition: all 0.2s ease;
+  }
+
+  /* 🔥 FOCUS PREMIUM */
+  .dadosGrid input:focus {
+    border: 1px solid #7a00ff;
+    box-shadow: 0 0 0 2px rgba(122,0,255,0.25);
+  }
+
+  /* 🔥 DESABILITADO BONITO */
+  .dadosGrid input:disabled {
+    opacity: 0.5;
+    background: #1a1a1a;
+    cursor: not-allowed;
+  }
+
   `}</style>
     
     </div>
