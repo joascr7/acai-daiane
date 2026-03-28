@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-import { db, auth } from '../services/firebase';
+import { db } from '../services/firebase';
+import { setDoc } from "firebase/firestore";
+import { authAdmin as auth } from "../services/firebaseDual";
+
 
 import {
   collection,
@@ -37,6 +40,7 @@ export default function Admin() {
   const [lojaAberta, setLojaAberta] = useState(null);
   const [loadingLoja, setLoadingLoja] = useState(false);
   const [imagem, setImagem] = useState(null);
+  const [desconto, setDesconto] = useState("");
   
   // 🎟️ CUPONS
   const [valor, setValor] = useState("");
@@ -46,11 +50,16 @@ export default function Admin() {
   const [codigo, setCodigo] = useState("");
 // 🎟️ editar produtos
   const [produtos, setProdutos] = useState([]);
+  const [editandoProduto, setEditandoProduto] = useState(null);
 
   const [mostrarModalProduto, setMostrarModalProduto] = useState(false);
 
   const [novoNome, setNovoNome] = useState("");
   const [novoPreco, setNovoPreco] = useState("");
+  const [novaDescricao, setNovaDescricao] = useState("");
+  const [novoTamanho, setNovoTamanho] = useState("");
+  const [novaImagem, setNovaImagem] = useState(""); // 🔥 corrigido
+  const [maisVendido, setMaisVendido] = useState(false);
   
 
   // 🔍 BUSCA
@@ -109,13 +118,14 @@ async function moverProduto(produto, direcao) {
 
   if (novoIndex < 0 || novoIndex >= produtos.length) return;
 
-  const produtoTroca = produtos[novoIndex];
+  const produtoDestino = produtos[novoIndex];
 
+  // 🔥 TROCA ORDEM
   await updateDoc(doc(db, "produtos", produto.id), {
-    ordem: produtoTroca.ordem
+    ordem: produtoDestino.ordem
   });
 
-  await updateDoc(doc(db, "produtos", produtoTroca.id), {
+  await updateDoc(doc(db, "produtos", produtoDestino.id), {
     ordem: produto.ordem
   });
 }
@@ -125,30 +135,29 @@ async function moverProduto(produto, direcao) {
 async function salvarProduto() {
 
   if (!novoNome || !novoPreco) {
-    alert("Preencha tudo");
+    alert("Preencha nome e preço");
     return;
   }
 
-  try {
+  await addDoc(collection(db, "produtos"), {
+    nome: novoNome,
+    preco: Number(novoPreco),
+    tamanho: novoTamanho,
+    descricao: novaDescricao,
+    imagem: novaImagem, // 🔥 base64 salva direto
+    ativo: true,
+    maisVendido: maisVendido, // 🔥 AQUI
+    ordem: Date.now()
+  });
 
-    await addDoc(collection(db, "produtos"), {
-      nome: novoNome,
-      preco: Number(novoPreco),
-      ativo: true,
-      imagem: imagem, // 🔥 base64 direto
-      ordem: Date.now()
-    });
+  // limpar tudo
+  setNovoNome("");
+  setNovoPreco("");
+  setNovoTamanho("");
+  setNovaDescricao("");
+  setNovaImagem("");
 
-    setNovoNome("");
-    setNovoPreco("");
-    setImagem("");
-
-    setMostrarModalProduto(false);
-
-  } catch (e) {
-    console.error(e);
-    alert("Erro ao salvar produto");
-  }
+  setMostrarModalProduto(false);
 }
 
 // 🔥 LIMPAR EFEITO DE PISCAR
@@ -256,25 +265,58 @@ async function atualizarStatus(id, status) {
     console.error(e);
   }
 }
+// 🔥 EABRIR EDITACAO
+function abrirEdicao(p) {
+  setNovoNome(p.nome || "");
+  setNovoPreco(p.preco || "");
+  setNovoTamanho(p.tamanho || "");
+  setNovaDescricao(p.descricao || "");
+  setNovaImagem(p.imagem || "");
+  setMaisVendido(p.maisVendido || false);
+
+  setEditandoProduto(p); // 🔥 ativa modo edição
+  setMostrarModalProduto(true);
+}
+
 // 🔥 EDITAR PRODUTOS
-async function editarProduto(produto) {
+async function salvarProduto() {
 
-  const novoNome = prompt("Nome:", produto.nome);
-  const novoPreco = prompt("Preço:", produto.preco);
-
-  if (!novoNome || !novoPreco) return;
-
-  if (Number(novoPreco) <= 0) {
-    alert("Preço inválido");
+  if (!novoNome || !novoPreco) {
+    alert("Preencha nome e preço");
     return;
   }
 
-  await updateDoc(doc(db, "produtos", produto.id), {
+  const dados = {
     nome: novoNome,
-    preco: Number(novoPreco)
-  });
+    preco: Number(novoPreco),
+    tamanho: novoTamanho,
+    descricao: novaDescricao,
+    imagem: novaImagem,
+    ativo: true,
+    maisVendido: maisVendido
+  };
 
-  alert("✅ Atualizado");
+  if (editandoProduto) {
+    // 🔥 ATUALIZA
+    await updateDoc(doc(db, "produtos", editandoProduto.id), dados);
+  } else {
+    // 🔥 CRIA NOVO
+    await addDoc(collection(db, "produtos"), {
+      ...dados,
+      ordem: Date.now()
+    });
+  }
+
+  // 🔥 RESET
+  setNovoNome("");
+  setNovoPreco("");
+  setNovoTamanho("");
+  setNovaDescricao("");
+  setNovaImagem("");
+  setMaisVendido(false);
+  setEditandoProduto(null);
+
+  setMostrarModalProduto(false);
 }
 
 async function toggleProduto(produto) {
@@ -289,17 +331,18 @@ async function toggleLoja(status) {
   setLoadingLoja(true);
 
   try {
-    await updateDoc(doc(db, "config", "loja"), {
+    await setDoc(doc(db, "config", "loja"), {
       aberta: status,
       atualizadoEm: new Date().toISOString()
-    });
+    }, { merge: true });
+
   } catch (e) {
     console.error(e);
   }
 
   setLoadingLoja(false);
 }
-
+// 🔥 STATUS limpar pedidos
 async function limparPedidos() {
 
   const confirmar = confirm("⚠️ Deseja apagar TODOS os pedidos?");
@@ -344,43 +387,29 @@ async function carregarCupons() {
 
 async function criarCupom() {
 
-  if (!codigo || !valor || !validade || !limite) {
-    alert("⚠️ Preencha todos os campos");
-    return;
-  }
-
-  if (Number(valor) <= 0) {
-    alert("⚠️ Valor inválido");
-    return;
-  }
-
-  if (Number(limite) <= 0) {
-    alert("⚠️ Limite inválido");
-    return;
-  }
-
   try {
 
     await addDoc(collection(db, "cupons"), {
       codigo: codigo.toUpperCase(),
-      valor: Number(valor),
-      validade,
-      limite: Number(limite),
-      usos: 0,
+      desconto: Number(desconto), // 🔥 AGORA CORRETO
+      tipo: "porcentagem", // pode evoluir depois
+      limite: Number(limite) || null,
+      usos: {},
       ativo: true,
-      criadoEm: new Date().toISOString()
+      validade: validade
     });
 
-    alert("✅ Cupom criado");
+    alert("Cupom criado ✅");
 
+    // 🔥 limpar campos
     setCodigo("");
-    setValor("");
-    setValidade("");
+    setDesconto("");
     setLimite("");
+    setValidade("");
 
   } catch (e) {
-    console.error(e);
-    alert("Erro ao criar cupom");
+    console.log(e);
+    alert("Erro ao criar cupom ❌");
   }
 }
 
@@ -550,11 +579,11 @@ return (
     />
 
     <input
-      placeholder="Valor"
-      type="number"
-      value={valor}
-      onChange={e => setValor(e.target.value)}
-    />
+  placeholder="Desconto (%)"
+  type="number"
+  value={desconto}
+  onChange={e => setDesconto(e.target.value)}
+/>
 
     <input
       type="date"
@@ -580,11 +609,28 @@ return (
   <div key={c.id} className="cupomItem">
 
     <div>
-      <strong>{c.codigo}</strong>
-      <p>R$ {c.valor}</p>
-      <p>Uso: {c.usos}/{c.limite}</p>
-      <small>Validade: {c.validade}</small>
+  <strong>{c.codigo}</strong>
+
+  <p>{c.desconto}% OFF</p>
+
+  {/* 🔥 USO CORRETO */}
+  <p>
+    Uso: {c.usos ? Object.keys(c.usos).length : 0}/{c.limite || "∞"}
+  </p>
+
+  {/* 🔥 EXTRA (AQUI 👇) */}
+  {c.usos && (
+    <div style={{ marginTop: 5 }}>
+      {Object.keys(c.usos).map((cpf, i) => (
+        <small key={i} style={{ display: "block", opacity: 0.7 }}>
+          CPF: {cpf}
+        </small>
+      ))}
     </div>
+  )}
+
+  <small>Validade: {c.validade}</small>
+</div>
 
     <div className="cupomBtns">
       <button onClick={() => deletarCupom(c.id)}>🗑️</button>
@@ -648,25 +694,78 @@ return (
         }}
       />
 
-      {/* 🔥 INPUT DE IMAGEM (FALTAVA ISSO) */}
+      {/* 🔥 TAMANHO */}
       <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-    const file = e.target.files[0];
+        placeholder="Tamanho (ex: 500ml)"
+        value={novoTamanho}
+        onChange={(e) => setNovoTamanho(e.target.value)}
+        style={{
+          width: "100%",
+          padding: 12,
+          borderRadius: 10,
+          border: "none",
+          marginBottom: 10,
+          background: "#222",
+          color: "#fff"
+        }}
+      />
 
-    if (!file) return;
+      {/* 🔥 DESCRIÇÃO */}
+      <input
+        placeholder="Descrição (ex: banana + granola + leite condensado)"
+        value={novaDescricao}
+        onChange={(e) => setNovaDescricao(e.target.value)}
+        style={{
+          width: "100%",
+          padding: 12,
+          borderRadius: 10,
+          border: "none",
+          marginBottom: 10,
+          background: "#222",
+          color: "#fff"
+        }}
+      />
 
-    const reader = new FileReader();
+      {/* 🔥 IMAGEM BASE64 */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files[0];
 
-    reader.onloadend = () => {
-      console.log("BASE64 OK");
-      setImagem(reader.result); // 🔥 AGORA É STRING
-    };
+          if (!file) return;
 
-    reader.readAsDataURL(file);
-  }}
-/>
+          if (file.size > 500000) {
+            alert("Imagem muito grande (máx 500kb)");
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onloadend = () => {
+            setNovaImagem(reader.result); // ✅ CORRETO
+          };
+
+          reader.readAsDataURL(file);
+        }}
+        style={{ marginBottom: 10 }}
+      />
+
+      {/* 🔥 MAIS VENDIDO */}
+<label style={{
+  color: "#fff",
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  marginBottom: 12
+}}>
+  <input
+    type="checkbox"
+    checked={maisVendido}
+    onChange={(e) => setMaisVendido(e.target.checked)}
+  />
+  🔥 Marcar como mais vendido
+</label>
 
       {/* 🔥 BOTÕES */}
       <div style={{ display: "flex", gap: 10 }}>
@@ -683,7 +782,7 @@ return (
             cursor: "pointer"
           }}
         >
-          Salvar
+          💾 Salvar
         </button>
 
         <button
@@ -698,7 +797,7 @@ return (
             cursor: "pointer"
           }}
         >
-          Cancelar
+          ❌ Cancelar
         </button>
 
       </div>
@@ -730,88 +829,139 @@ return (
   </button>
 
   {/* 🔥 LISTA */}
-  {produtos.length === 0 ? (
-    <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
-  ) : (
-    produtos.map(p => (
-      <div
-        key={p.id}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: 10,
-          borderRadius: 10,
-          background: "rgba(255,255,255,0.05)",
-          marginBottom: 10,
-          gap: 10
-        }}
-      >
+{produtos.length === 0 ? (
+  <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
+) : (
+  produtos.map(p => (
+    <div
+      key={p.id}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: 12,
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.05)",
+        marginBottom: 10,
+        gap: 10,
+        border: p.maisVendido ? "1px solid #ff2aff" : "1px solid transparent"
+      }}
+    >
 
-        {/* 🔥 ESQUERDA */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      {/* 🔥 ESQUERDA */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 
-          {/* 🔥 ORDEM */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <button onClick={() => moverProduto(p, -1)}>⬆️</button>
-            <button onClick={() => moverProduto(p, 1)}>⬇️</button>
-          </div>
-
-          {/* 🔥 IMAGEM */}
-          {p.imagem ? (
-            <img
-              src={p.imagem}
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 10,
-                objectFit: "cover"
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 10,
-                background: "#222",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12
-              }}
-            >
-              🍧
-            </div>
-          )}
-
-          {/* 🔥 INFO */}
-          <div>
-            <strong>{p.nome}</strong>
-            <p>R$ {Number(p.preco).toFixed(2)}</p>
-            <small>
-              {p.ativo ? "🟢 Ativo" : "🔴 Inativo"}
-            </small>
-          </div>
-
+        {/* 🔥 ORDEM */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <button onClick={() => moverProduto(p, -1)}>⬆️</button>
+          <button onClick={() => moverProduto(p, 1)}>⬇️</button>
         </div>
 
-        {/* 🔥 DIREITA (AÇÕES) */}
-        <div style={{ display: "flex", gap: 8 }}>
+        {/* 🔥 IMAGEM */}
+        {p.imagem ? (
+          <img
+            src={p.imagem}
+            onError={(e) => (e.target.src = "/acai.png")}
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 10,
+              objectFit: "cover"
+            }}
+          />
+        ) : (
+          <div style={{
+            width: 50,
+            height: 50,
+            borderRadius: 10,
+            background: "#222",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            🍧
+          </div>
+        )}
 
-          <button onClick={() => editarProduto(p)}>✏️</button>
+        {/* 🔥 INFO */}
+        <div>
+          <strong>{p.nome}</strong>
 
-          <button onClick={() => toggleProduto(p)}>
-            {p.ativo ? "🚫" : "✅"}
-          </button>
+          <p style={{ fontSize: 13 }}>
+            R$ {Number(p.preco).toFixed(2)} • {p.tamanho || ""}
+          </p>
 
-          <button onClick={() => excluirProduto(p)}>🗑️</button>
+          <small style={{ opacity: 0.7 }}>
+            {p.ativo ? "🟢 Ativo" : "🔴 Inativo"}
+          </small>
 
+          {/* 🔥 BADGE */}
+          {p.maisVendido && (
+            <div style={{
+              fontSize: 10,
+              color: "#ff2aff",
+              marginTop: 2
+            }}>
+              🔥 Mais vendido
+            </div>
+          )}
         </div>
 
       </div>
-    ))
-  )}
+
+      {/* 🔥 DIREITA (AÇÕES) */}
+      <div style={{ display: "flex", gap: 6 }}>
+
+        {/* ✏️ EDITAR */}
+        <button
+          onClick={() => abrirEdicao(p)}
+          style={{
+            background: "#6a00ff",
+            border: "none",
+            color: "#fff",
+            padding: "6px 10px",
+            borderRadius: 8,
+            cursor: "pointer"
+          }}
+        >
+          ✏️
+        </button>
+
+        {/* ATIVAR/DESATIVAR */}
+        <button
+          onClick={() => toggleProduto(p)}
+          style={{
+            background: p.ativo ? "#444" : "#00c853",
+            border: "none",
+            color: "#fff",
+            padding: "6px 10px",
+            borderRadius: 8,
+            cursor: "pointer"
+          }}
+        >
+          {p.ativo ? "🚫" : "✅"}
+        </button>
+
+        {/* EXCLUIR */}
+        <button
+          onClick={() => excluirProduto(p)}
+          style={{
+            background: "#ff4444",
+            border: "none",
+            color: "#fff",
+            padding: "6px 10px",
+            borderRadius: 8,
+            cursor: "pointer"
+          }}
+        >
+          🗑️
+        </button>
+
+      </div>
+
+    </div>
+  ))
+)}
 
 </div>
 
@@ -834,135 +984,131 @@ return (
 
   <div className="gridPedidos">
 
-   {/* 🟢 COLUNA 1 */}
-<div className="coluna">
+    {/* 🟢 EM ANDAMENTO */}
+    <div className="coluna">
 
-  <h3>⚪ Em andamento</h3>
+      <h3>⚪ Em andamento</h3>
 
-  {pedidos
-    .filter(p => {
-      if (!buscaCodigo) return true;
-      return (p.codigo || "")
-        .toLowerCase()
-        .includes(buscaCodigo.toLowerCase());
-    })
-    .filter(p => p.status !== "entregue")
-    .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
-    .slice(0, 10)
-    .map((p) => {
+      {pedidos
+        .filter(p => {
+          if (!buscaCodigo) return true;
+          return (p.codigo || "")
+            .toLowerCase()
+            .includes(buscaCodigo.toLowerCase());
+        })
+        .filter(p => p.status !== "entregue")
+        .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
+        .slice(0, 10)
+        .map((p) => {
 
-      const status = p.status || "novo";
+          const status = p.status || "novo";
 
-      const cores = {
-        novo: "#888",
-        preparando: "orange",
-        saiu: "#00b0ff",
-        entregue: "#00c853"
-      };
+          const cores = {
+            novo: "#888",
+            preparando: "orange",
+            saiu: "#00b0ff",
+            entregue: "#00c853"
+          };
 
-      return (
-        <div
-          key={p.id}
-          className="pedido"
-          style={{
-            borderLeft: `5px solid ${cores[status]}`,
-            marginBottom: 15,
-            background: "rgba(255,255,255,0.03)",
-            borderRadius: 12,
-            padding: 12
-          }}
-        >
+          return (
+            <div
+              key={p.id}
+              style={{
+                borderLeft: `5px solid ${cores[status]}`,
+                marginBottom: 15,
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: 12,
+                padding: 12
+              }}
+            >
 
-          {/* CLIENTE */}
-          <p><strong>{p.cliente || "Cliente"}</strong></p>
+              {/* 🔥 CLIENTE CORRIGIDO */}
+              <div style={{ marginBottom: 8 }}>
+                <strong>{p.cliente?.nome || "Cliente"}</strong><br />
+                <small>📞 {p.cliente?.telefone}</small><br />
+                <small>
+                  📍 {p.cliente?.endereco}, {p.cliente?.numero}
+                </small>
+              </div>
 
-          {/* CODIGO */}
-          <p>
-            Código: <strong>{p.codigo || "—"}</strong>
-          </p>
+              <p>
+                Código: <strong>{p.codigo || "—"}</strong>
+              </p>
 
-          {/* 🔥 ITENS CORRIGIDO (SEM BUG) */}
-          {Array.isArray(p.itens) && p.itens.length > 0 ? (
-            p.itens.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: 6 }}>
+              {/* ITENS */}
+              {Array.isArray(p.itens) && p.itens.length > 0 ? (
+                p.itens.map((item, idx) => (
+                  <div key={idx} style={{ marginBottom: 6 }}>
+                    <p>
+                      <strong>
+                        {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
+                      </strong>
+                    </p>
 
+                    {Array.isArray(item.extras) && item.extras.map((e, i) => (
+                      <p key={i} style={{ fontSize: 12, opacity: 0.7 }}>
+                        + {e.nome}
+                      </p>
+                    ))}
+                  </div>
+                ))
+              ) : (
                 <p>
                   <strong>
-                    {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
+                    {p.produto?.nome || "Açaí"} (x{p.quantidade || 1})
                   </strong>
                 </p>
+              )}
 
-                {/* EXTRAS */}
-                {Array.isArray(item.extras) && item.extras.map((e, i) => (
-                  <p key={i} style={{ fontSize: 12, opacity: 0.7 }}>
-                    + {e.nome}
-                  </p>
-                ))}
+              <p>
+                Status:
+                <strong style={{ marginLeft: 6, color: cores[status] }}>
+                  {status}
+                </strong>
+              </p>
+
+              <p>
+                Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
+              </p>
+
+              <small>
+                {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
+              </small>
+
+              <div style={{
+                display: 'flex',
+                gap: 10,
+                flexWrap: "wrap",
+                marginTop: 10
+              }}>
+
+                {status === "novo" && (
+                  <button onClick={() => atualizarStatus(p.id, "preparando")}>
+                    🔥 Preparar
+                  </button>
+                )}
+
+                {status === "preparando" && (
+                  <button onClick={() => atualizarStatus(p.id, "saiu")}>
+                    🚚 Saiu
+                  </button>
+                )}
+
+                {status === "saiu" && (
+                  <button onClick={() => atualizarStatus(p.id, "entregue")}>
+                    ✅ Entregue
+                  </button>
+                )}
 
               </div>
-            ))
-          ) : (
-            <p>
-              <strong>
-                {p.produto?.nome || "Açaí"} (x{p.quantidade || 1})
-              </strong>
-            </p>
-          )}
 
-          {/* STATUS */}
-          <p>
-            Status:
-            <strong style={{ marginLeft: 6, color: cores[status] }}>
-              {status}
-            </strong>
-          </p>
-
-          {/* TOTAL */}
-          <p>
-            Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
-          </p>
-
-          {/* DATA */}
-          <small>
-            {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
-          </small>
-
-          {/* BOTÕES */}
-          <div style={{
-            display: 'flex',
-            gap: 10,
-            flexWrap: "wrap",
-            marginTop: 10
-          }}>
-
-            {status === "novo" && (
-              <button onClick={() => atualizarStatus(p.id, "preparando")}>
-                🔥 Preparar
-              </button>
-            )}
-
-            {status === "preparando" && (
-              <button onClick={() => atualizarStatus(p.id, "saiu")}>
-                🚚 Saiu p/ entrega
-              </button>
-            )}
-
-            {status === "saiu" && (
-              <button onClick={() => atualizarStatus(p.id, "entregue")}>
-                ✅ Entregue
-              </button>
-            )}
-
-          </div>
-
-        </div>
-      );
-    })}
+            </div>
+          );
+        })}
 
     </div>
 
-
-    {/* ⚪ COLUNA 2 */}
+    {/* 🟢 ENTREGUES */}
     <div className="coluna">
 
       <h3>🟢 Entregues</h3>
@@ -970,14 +1116,16 @@ return (
       {pedidos
         .filter(p => {
           if (!buscaCodigo) return true;
-          return (p.codigo || "").toLowerCase().includes(buscaCodigo.toLowerCase());
+          return (p.codigo || "")
+            .toLowerCase()
+            .includes(buscaCodigo.toLowerCase());
         })
         .filter(p => p.status === "entregue")
         .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
         .slice(0, 10)
         .map((p) => (
 
-          <div key={p.id} className="pedido" style={{
+          <div key={p.id} style={{
             opacity: 0.6,
             borderLeft: "5px solid #00c853",
             marginBottom: 15,
@@ -986,24 +1134,26 @@ return (
             padding: 12
           }}>
 
-            <p><strong>{p.cliente || "Cliente"}</strong></p>
+            {/* 🔥 CLIENTE CORRIGIDO */}
+            <div style={{ marginBottom: 8 }}>
+              <strong>{p.cliente?.nome || "Cliente"}</strong><br />
+              <small>📞 {p.cliente?.telefone}</small><br />
+              <small>
+                📍 {p.cliente?.endereco}, {p.cliente?.numero}
+              </small>
+            </div>
 
             <p>
               Código: <strong>{p.codigo || "—"}</strong>
             </p>
 
-            {/* 🔥 NOVO: ITENS */}
-            {p.itens?.length > 0 ? (
-              p.itens.map((item, idx) => (
-                <p key={idx}>
-                  <strong>
-                    {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
-                  </strong>
-                </p>
-              ))
-            ) : (
-              <p>{p.produto?.nome || "Produto"}</p>
-            )}
+            {p.itens?.map((item, idx) => (
+              <p key={idx}>
+                <strong>
+                  {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
+                </strong>
+              </p>
+            ))}
 
             <p>
               Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>

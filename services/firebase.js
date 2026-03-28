@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
+
 // 🔥 ADICIONAR ISSO
 import { getAuth } from "firebase/auth";
 

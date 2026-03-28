@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../services/firebase';
+import { authAdmin as auth } from "../services/firebaseDual";
+import { db } from '../services/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function LoginAdmin() {
@@ -18,10 +19,8 @@ export default function LoginAdmin() {
       setLoading(true);
 
       const userCred = await signInWithEmailAndPassword(auth, email, senha);
-
       const uid = userCred.user.uid;
 
-      // 🔒 VERIFICA SE É ADMIN
       const snap = await getDoc(doc(db, "admins", uid));
 
       if (!snap.exists()) {
@@ -32,7 +31,14 @@ export default function LoginAdmin() {
       router.push('/admin');
 
     } catch (e) {
-      alert("Erro no login");
+      console.log(e);
+
+      if (e.code === "auth/invalid-credential") {
+        alert("Email ou senha inválidos");
+      } else {
+        alert("Erro: " + e.message);
+      }
+
     } finally {
       setLoading(false);
     }
@@ -48,7 +54,7 @@ export default function LoginAdmin() {
         <input
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value.trim().toLowerCase())}
         />
 
         <input

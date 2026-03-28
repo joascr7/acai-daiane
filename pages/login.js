@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
-import { auth, db } from "../services/firebase";
+import { authCliente as auth } from "../services/firebaseDual";
+import { db } from "../services/firebase";
+
 
 import {
   createUserWithEmailAndPassword,
@@ -11,6 +13,7 @@ import {
 
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { collection, query, where, getDocs } from "firebase/firestore";
+
 
 export default function Login() {
 
@@ -53,6 +56,7 @@ export default function Login() {
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
       .slice(0, 14);
   }
+
 
   function validarCPF(cpf) {
   cpf = cpf.replace(/\D/g, "");
@@ -110,60 +114,57 @@ export default function Login() {
   }
 }
 
+ // 🔥 LOGIN / CADASTRO
   async function entrar() {
 
-  if (!formValido) {
-    alert("Preencha corretamente");
-    return;
-  }
+    if (!formValido) {
+      alert("Preencha corretamente");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    if (modoCadastro) {
+      if (modoCadastro) {
 
         if (!validarCPF(cpf)) {
-  alert("CPF inválido!");
-  setLoading(false);
-  return;
-}
+          alert("CPF inválido!");
+          return;
+        }
 
-      if (senha.length < 6) {
-        alert("Senha deve ter pelo menos 6 caracteres");
-        return;
-      }
+        if (senha.length < 6) {
+          alert("Senha muito curta");
+          return;
+        }
 
-      if (senha !== confirmarSenha) {
-        alert("As senhas não coincidem");
-        return;
-      }
+        if (senha !== confirmarSenha) {
+          alert("Senhas não coincidem");
+          return;
+        }
 
-      // 🔒 VERIFICAR CPF DUPLICADO
-      const q = query(
-        collection(db, "clientes"),
-        where("cpf", "==", cpf)
-      );
+        // 🔥 VERIFICAR CPF DUPLICADO
+        const q = query(
+          collection(db, "clientes"),
+          where("cpf", "==", cpf)
+        );
 
-      const snapCpf = await getDocs(q);
+        const snapCpf = await getDocs(q);
 
-      if (!snapCpf.empty) {
-        alert("CPF já cadastrado!");
-        setLoading(false);
-        return;
-      }
+        if (!snapCpf.empty) {
+          alert("CPF já cadastrado!");
+          return;
+        }
 
-      try {
         const res = await createUserWithEmailAndPassword(auth, email, senha);
         const user = res.user;
 
-        // 🔥 SALVA LOGIN
+        // 🔥 SALVA
         await setDoc(doc(db, "clientes", user.uid), {
           nome,
           email,
           cpf
         });
 
-        // 🔥 SALVA DADOS PESSOAIS (STEP 4)
         await setDoc(doc(db, "usuarios", user.uid), {
           clienteNome: nome,
           clienteEmail: email,
@@ -174,37 +175,32 @@ export default function Login() {
           clienteCep: ""
         });
 
-        localStorage.setItem("cliente", nome);
+      } else {
 
-     } catch (e) {
+        // 🔥 LOGIN (ERA ISSO QUE FALTAVA)
+        await signInWithEmailAndPassword(auth, email, senha);
 
-  if (e.code === "auth/email-already-in-use") {
-    alert("Email já cadastrado!");
-    setLoading(false);
-    return;
-  }
+      }
 
-  throw e;
-}
-  
+      // 🔥 REDIRECIONA
+      router.push("/acai");
+
+    } catch (e) {
+
+      if (e.code === "auth/wrong-password") {
+        alert("Senha incorreta");
+      } else if (e.code === "auth/user-not-found") {
+        alert("Usuário não encontrado");
+      } else if (e.code === "auth/email-already-in-use") {
+        alert("Email já cadastrado");
+      } else {
+        alert("Erro: " + e.message);
+      }
+
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/acai");
-
-  } catch (e) {
-
-    if (e.code === "auth/wrong-password") {
-      alert("Senha incorreta");
-    } else if (e.code === "auth/user-not-found") {
-      alert("Usuário não encontrado");
-    } else {
-      alert("Erro: " + e.message);
-    }
-
-  } finally {
-    setLoading(false);
   }
-}
 
   return (
     <div

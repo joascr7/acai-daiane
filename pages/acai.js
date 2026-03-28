@@ -1,56 +1,71 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect } from "react";
 
-import { db, auth } from '../services/firebase';
+import { authCliente as auth } from "../services/firebaseDual";
+import { dbCliente as db } from "../services/firebaseDual";
+import { updateDoc } from "firebase/firestore";
+import { query, where } from "firebase/firestore";
+
+import {
+  signOut,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged
+} from "firebase/auth";
 
 import {
   collection,
-  addDoc,
   onSnapshot,
-  query,
-  where,
   doc,
-  setDoc,   // 🔥 ADICIONA
-  getDoc    // 🔥 ADICIONA
-} from 'firebase/firestore';
-import { updateDoc } from "firebase/firestore";
+  getDoc,
+  addDoc,
+  setDoc
+} from "firebase/firestore";
 
-import { onAuthStateChanged } from 'firebase/auth';
+import { lightTheme, darkTheme } from "../styles/theme";
+
+
 
 export default function Acai() {
 
-  const router = useRouter();
+   const [user, setUser] = useState(null);
+   const [authReady, setAuthReady] = useState(false);
+   
+   
 
-  const [step, setStep] = useState(1);
-  const [produto, setProduto] = useState(null);
-  const [selectedId, setSelectedId] = useState(null);
-  const [extras, setExtras] = useState([]);
-  const [pagamento, setPagamento] = useState("");
-  const [cliente, setCliente] = useState('');
+  // 🔥 THEME
   const [dark, setDark] = useState(false);
-  const [cupom, setCupom] = useState("");
-  const [descontoCupom, setDescontoCupom] = useState(0);
-  const [cupomAtivo, setCupomAtivo] = useState(null);
-  const [quantidade, setQuantidade] = useState(1);
-  const [pedidoConfirmado, setPedidoConfirmado] = useState(false);
-  const [loadingPedido, setLoadingPedido] = useState(false);
-  const [lojaAberta, setLojaAberta] = useState(null);
-  const [mostrarPix, setMostrarPix] = useState(false);
-  const [nomeCliente, setNomeCliente] = useState("");
-  const [enderecoCliente, setEnderecoCliente] = useState("");
-  const [carrinho, setCarrinho] = useState([]);
+  const themeAtual = dark ? darkTheme : lightTheme;
+  // 🔥 cupom
+  const [cupons, setCupons] = useState([]);
+  const [cupomInput, setCupomInput] = useState("");
+  const [cupomAplicado, setCupomAplicado] = useState(null);
+
+  // 🔥 STEPS
+  const [step, setStep] = useState(1);
+  const [lojaAberta, setLojaAberta] = useState(true);
   const [pedidos, setPedidos] = useState([]);
-  const [carregouCliente, setCarregouCliente] = useState(false);
-  
+  const [selectedId, setSelectedId] = useState(null);
 
-  
-
+  // 🔥 PRODUTO
+  const [produto, setProduto] = useState(null);
   const [produtos, setProdutos] = useState([]);
-  
 
-  // dados do client
+  // 🔥 EXTRAS
+  const [extras, setExtras] = useState([]);
+  const adicionais = [
+    { nome: "Leite Condensado", preco: 2 },
+    { nome: "Granola", preco: 2 },
+    { nome: "Banana", preco: 2 }
+  ];
 
-const [clienteNome, setClienteNome] = useState("");
+  // 🔥 CARRINHO
+  const [quantidade, setQuantidade] = useState(1);
+  const [carrinho, setCarrinho] = useState([]);
+
+  // 🔥 CLIENTE
+  const [clienteNome, setClienteNome] = useState("");
+
+
 const [clienteCpf, setClienteCpf] = useState("");
 const [clienteTelefone, setClienteTelefone] = useState("");
 const [clienteEmail, setClienteEmail] = useState("");
@@ -58,103 +73,34 @@ const [clienteEndereco, setClienteEndereco] = useState("");
 const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
 const [clienteCep, setClienteCep] = useState("");
 
-// 🔥 MÁSCARA CPF
-function formatarCPF(valor) {
-  return valor
-    .replace(/\D/g, "")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-    .slice(0, 14);
-}
 
-// 🔥 MÁSCARA TELEFONE
-function formatarTelefone(valor) {
-  return valor
-    .replace(/\D/g, "")
-    .replace(/(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d)/, "$1-$2")
-    .slice(0, 15);
-}
+  // 🔥 CUPOM
+  const [cupom, setCupom] = useState("");
+  const [descontoCupom, setDescontoCupom] = useState(0);
+  const [cupomAtivo, setCupomAtivo] = useState(null);
 
-async function buscarCEP(cep) {
+  // 🔥 TOTAL
+  const totalExtras = (extras || []).reduce((acc, e) => acc + e.preco, 0);
 
-  const cepLimpo = cep.replace(/\D/g, "");
+  const totalCarrinho = carrinho.reduce(
+  (acc, item) => acc + Number(item.total),
+  0
+);
 
-  if (cepLimpo.length !== 8) return;
+let valorDesconto = 0;
 
-  try {
-    const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-    const data = await res.json();
-
-    if (data.erro) {
-      alert("CEP não encontrado");
-      return;
-    }
-
-    // 🔥 preenche automático
-    setClienteEndereco(`${data.logradouro}, ${data.bairro}`);
-    
-  } catch (e) {
-    console.log(e);
-    alert("Erro ao buscar CEP");
+if (cupomAplicado) {
+  if (cupomAplicado.tipo === "porcentagem") {
+    valorDesconto = (totalCarrinho * cupomAplicado.desconto) / 100;
+  } else {
+    valorDesconto = cupomAplicado.desconto;
   }
 }
 
-function formatarCEP(valor) {
-  return valor
-    .replace(/\D/g, "")
-    .replace(/(\d{5})(\d)/, "$1-$2")
-    .slice(0, 9);
-}
+const totalFinal = Math.max(0, totalCarrinho - (valorDesconto || 0));
 
-// 🔥 ESTILO INPUT
-const inputStyle = {
-  padding: 10,
-  borderRadius: 10,
-  border: "none",
-  background: dark ? "#222" : "#f1f1f1",
-  color: dark ? "#fff" : "#000"
-};
-
-// 🔥 1. CARREGAR DADOS (COLOCA AQUI)
-useEffect(() => {
-
-  const unsubscribe = onAuthStateChanged(auth, async (user) => {
-
-    if (!user) return;
-
-    try {
-      const snap = await getDoc(doc(db, "usuarios", user.uid));
-
-      if (snap.exists()) {
-        const dados = snap.data();
-
-        setClienteNome(dados.clienteNome || "");
-        setClienteCpf(dados.clienteCpf || "");
-        setClienteTelefone(dados.clienteTelefone || "");
-        setClienteEmail(dados.clienteEmail || user.email || "");
-        setClienteEndereco(dados.clienteEndereco || "");
-        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
-        setClienteCep(dados.clienteCep || "");
-      } else {
-        // 🔥 SE NÃO EXISTIR NO FIRESTORE
-        setClienteEmail(user.email || "");
-      }
-
-    } catch (e) {
-      console.log("Erro ao carregar cliente", e);
-    }
-
-  });
-
-  return () => unsubscribe();
-
-}, []);
-
-  
- useEffect(() => {
-
+  // 🔥 PRODUTOS FIREBASE
+  useEffect(() => {
   const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
 
     const lista = snapshot.docs.map(doc => ({
@@ -162,810 +108,1228 @@ useEffect(() => {
       ...doc.data()
     }));
 
-    const ativos = lista.filter(p => p.ativo);
+    // 🔥 ESSENCIAL
+    lista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
-    ativos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+    setProdutos(lista);
+  });
 
-    console.log("PRODUTOS ATUALIZADOS:", ativos); // 🔥 DEBUG
+  return () => unsub();
+}, []);
+// 🔥 salvar pedido na aba pedidos
+useEffect(() => {
 
-    setProdutos(ativos);
+  if (!user) return;
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("cliente.uid", "==", user.uid)
+  );
+
+  const unsub = onSnapshot(q, (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setPedidos(lista);
 
   });
 
   return () => unsub();
 
-}, []);
-
-   // 🔥 CARREGAR PEDIDOS)
- function carregarPedidos() {
-  if (typeof window === "undefined") return;
-
-  const dados = JSON.parse(localStorage.getItem("pedidos") || "[]");
-
-  console.log("📦 PEDIDOS CARREGADOS:", dados);
-
-  setPedidos(dados);
-}
-
-  // 🔥 SALVAR PEDIDO (LOCAL STORAGE)
-function salvarPedido(carrinho, nomeCliente, enderecoCliente) {
-  console.log("🔥 SALVANDO DIRETO AGORA");
-
-  if (!carrinho || carrinho.length === 0) return;
-
-  const itensCorrigidos = carrinho.map(item => {
-    const preco = Number(item.produto?.preco || 0);
-
-    const extras = (item.extras || []).reduce((acc, e) => {
-      return acc + Number(e.preco || 0);
-    }, 0);
-
-    const qtd = Number(item.quantidade || 1);
-
-    const totalCorreto = (preco + extras) * qtd;
-
-    return {
-      produto: item.produto,
-      extras: item.extras,
-      quantidade: qtd,
-      total: totalCorreto
-    };
-  });
-
-  const totalFinal = itensCorrigidos.reduce((acc, item) => acc + item.total, 0);
-
-  const novoPedido = {
-    id: Date.now(),
-    codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-    itens: itensCorrigidos,
-    nome: nomeCliente,
-    endereco: enderecoCliente,
-    total: totalFinal,
-    status: "preparando",
-    data: new Date().toISOString()
-  };
-
-  let pedidos = [];
-
-  try {
-    pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
-  } catch {
-    pedidos = [];
-  }
-
-  pedidos.push(novoPedido);
-
-  localStorage.setItem("pedidos", JSON.stringify(pedidos));
-
-  console.log("✅ SALVO CORRIGIDO:", novoPedido);
-}
-
-// 🔥 GERAR MENSAGEM DO PEDIDO
-function gerarMensagemPedido(carrinho) {
-  if (!carrinho || carrinho.length === 0) return "";
-
-  let mensagem = "*Novo Pedido de Açaí*\n\n";
-
-  carrinho.forEach((item, i) => {
-    mensagem += `${i + 1}. ${item.produto.nome}\n`;
-
-    item.extras?.forEach(extra => {
-      mensagem += `+ ${extra.nome}\n`;
-    });
-
-    mensagem += `Subtotal: R$ ${Number(item.total).toFixed(2)}\n\n`;
-  });
-
-  const totalFinal = carrinho.reduce(
-    (acc, item) => acc + Number(item.total || 0),
-    0
-  );
-
-  mensagem += ` Total: R$ ${totalFinal.toFixed(2)}\n\n`;
-
-  // 🔥 DADOS VINDO DO STEP 4
-  mensagem += ` Nome: ${clienteNome}\n`;
-  mensagem += ` Telefone: ${clienteTelefone}\n`;
-  mensagem += ` Endereço: ${clienteEndereco}, ${clienteNumeroCasa}\n`;
-  mensagem += `CEP: ${clienteCep}\n`;
-
-  return mensagem;
-}
-async function salvarDadosCliente() {
-
-  const user = auth.currentUser;
-
-  if (!user) {
-    alert("Faça login novamente");
-    return;
-  }
-
-  if (!clienteNome || !clienteEndereco) {
-    alert("Preencha os dados obrigatórios");
-    return;
-  }
-
-  try {
-    await setDoc(
-      doc(db, "usuarios", user.uid),
-      {
-        clienteNome,
-        clienteCpf,
-        clienteTelefone,
-        clienteEmail: clienteEmail || user.email, // 🔥 garante email
-        clienteEndereco,
-        clienteCep,
-        clienteNumeroCasa
-      },
-      { merge: true } // 🔥 NÃO sobrescreve tudo
-    );
-
-    alert("✅ Dados salvos com sucesso");
-
-  } catch (e) {
-    console.log(e);
-    alert("Erro ao salvar");
-  }
-}
-
-async function salvarPedidoFirebase(pedido) {
-  try {
-    await addDoc(collection(db, "pedidos"), {
-      userId: auth.currentUser?.uid || null,
-
-      // 🔥 DADOS DO CLIENTE (STEP 4)
-      cliente: pedido.cliente || "Cliente",
-      endereco: pedido.endereco || "",
-      numeroCasa: pedido.numeroCasa || "",
-      telefone: pedido.telefone || "",
-      cpf: pedido.cpf || "",
-      email: pedido.email || "",
-
-      // 🔥 CÓDIGO
-      codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-
-      // 🔥 ITENS
-      itens: (pedido.carrinho || []).map(item => {
-
-        const preco = Number(item.produto?.preco || 0);
-
-        const extras = (item.extras || []).reduce((acc, e) => {
-          return acc + Number(e.preco || 0);
-        }, 0);
-
-        const qtd = Number(item.quantidade || 1);
-
-        const totalCorreto = (preco + extras) * qtd;
-
-        return {
-          produto: item.produto,
-          extras: item.extras,
-          quantidade: qtd,
-          total: totalCorreto
-        };
-      }),
-
-      // 🔥 TOTAL GERAL
-      total: (pedido.carrinho || []).reduce((acc, item) => {
-
-        const preco = Number(item.produto?.preco || 0);
-
-        const extras = (item.extras || []).reduce((s, e) => {
-          return s + Number(e.preco || 0);
-        }, 0);
-
-        const qtd = Number(item.quantidade || 1);
-
-        return acc + (preco + extras) * qtd;
-
-      }, 0),
-
-      pagamento: pedido.pagamento || "",
-      cupom: pedido.cupom || "",
-      descontoCupom: Number(pedido.descontoCupom || 0),
-
-      status: "preparando",
-      data: new Date().toISOString()
-    });
-
-    console.log("🔥 FIREBASE 100% COMPLETO");
-
-  } catch (error) {
-    console.error("🔥 ERRO FIREBASE:", error);
-    throw error;
-  }
-}
-
-// 🔥 GERAR MENSAGEM DO PEDIDO (FINAL)
-function enviarWhatsApp(carrinho) {
-  const numero = "5581973119512";
-
-  if (!clienteNome || !clienteEndereco || !clienteCep) {
-  alert("Preencha nome, endereço e CEP!");
-  setStep(4);
-  return;
-}
-
-  const carrinhoSeguro = JSON.parse(JSON.stringify(carrinho));
-
-  salvarPedidoFirebase({
-    carrinho: carrinhoSeguro,
-    cliente: clienteNome,
-    endereco: clienteEndereco,
-    numeroCasa: clienteNumeroCasa,
-    telefone: clienteTelefone,
-    cpf: clienteCpf,
-    email: clienteEmail
-  });
-
-  const mensagem = gerarMensagemPedido(carrinhoSeguro);
-
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-
-  window.open(url, "_blank");
-
-  setCarrinho([]);
-  setStep(1);
-}
-
-  useEffect(() => {
-    const clienteLocal = localStorage.getItem("cliente") || "Cliente";
-    const pedidosLocal = JSON.parse(localStorage.getItem("pedidos")) || [];
-
-    setCliente(clienteLocal);
-    setPedidos(pedidosLocal);
-
-    if (auth.currentUser) {
-      const q = query(
-        collection(db, "pedidos"),
-        where("userId", "==", auth.currentUser.uid)
-      );
-
-      const unsub = onSnapshot(q, (snapshot) => {
-        const firebasePedidos = snapshot.docs.map(doc => doc.data());
-        const combinado = [...firebasePedidos, ...pedidosLocal];
-        setPedidos(combinado);
-      });
-
-
-
-      return () => unsub();
-    }
-    
-  }, []);
-
-
-  // 🔥 COLE ESSE AQUI LOGO ABAIXO
+}, [user]);
+// 🔥 LOGA ABERTA OU FECHADA
 useEffect(() => {
+
   const ref = doc(db, "config", "loja");
 
   const unsub = onSnapshot(ref, (snap) => {
-    console.log("🔥 SNAP EXISTS:", snap.exists());
-    console.log("🔥 SNAP DATA:", snap.data());
 
     if (snap.exists()) {
       setLojaAberta(snap.data().aberta);
     } else {
-      console.log("❌ DOCUMENTO NÃO EXISTE");
+      setLojaAberta(true); // padrão aberto
     }
+
+  });
+
+  return () => unsub();
+
+}, []);
+// 🔥 CUPOM
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "cupons"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setCupons(lista);
   });
 
   return () => unsub();
 }, []);
 
-  function sair() {
-    localStorage.removeItem("cliente");
-    router.push('/login');
+  // 🔥 CLIENTE
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (u) => {
+
+    console.log("🔥 AUTH USER:", u);
+
+    setUser(u);
+    setAuthReady(true);
+
+    if (!u) {
+      console.log("❌ usuário não logado");
+      return;
+    }
+
+    try {
+
+      const ref = doc(db, "usuarios", u.uid);
+
+      console.log("📂 PATH:", ref.path);
+
+      const snap = await getDoc(ref);
+
+      console.log("📦 EXISTS:", snap.exists());
+      console.log("📊 DADOS:", snap.data());
+
+      if (snap.exists()) {
+        const dados = snap.data();
+
+        setClienteNome(dados.clienteNome || "");
+        setClienteTelefone(dados.clienteTelefone || "");
+        setClienteCpf(dados.clienteCpf || "");
+        setClienteEmail(dados.clienteEmail || "");
+        setClienteEndereco(dados.clienteEndereco || "");
+        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+        setClienteCep(dados.clienteCep || "");
+      }
+
+    } catch (e) {
+      console.log("🔥 ERRO FIRESTORE:", e);
+    }
+
+  });
+
+  return () => unsubscribe();
+}, []);
+
+  // 🔥 FUNÇÕES
+  function toggleExtra(e) {
+    setExtras(prev => {
+      const existe = prev.find(x => x.nome === e.nome);
+      return existe
+        ? prev.filter(x => x.nome !== e.nome)
+        : [...prev, e];
+    });
+  }
+// SAIR
+async function sair() {
+
+  const confirmar = confirm("Deseja sair?");
+  if (!confirmar) return;
+
+  await signOut(auth);
+
+  window.location.href = "/login";
+}
+
+async function salvarDadosCliente() {
+
+  if (!authReady) {
+    alert("Aguarde... carregando usuário");
+    return;
   }
 
-  
-
-  const adicionais = [
-    { nome: "Granola", preco: 1 },
-    { nome: "Banana", preco: 1 },
-    { nome: "Morango", preco: 1 }
-  ];
-
-  function toggleExtra(item) {
-    const existe = extras.find(e => e.nome === item.nome);
-    if (existe) setExtras(extras.filter(e => e.nome !== item.nome));
-    else setExtras([...extras, item]);
-  }
-
-const totalExtras = extras.reduce((acc, e) => acc + e.preco, 0);
-
-// 🔥 AGORA MULTIPLICA CORRETAMENTE
-let total = ((produto?.preco || 0) + totalExtras) * quantidade;
-  total -= descontoCupom;
-  if (total < 0) total = 0;
-
-  async function aplicarCupom() {
-
-  if (!cupom) {
-    alert("Digite um cupom");
+  if (!user) {
+    alert("Você não está logado");
     return;
   }
 
   try {
 
-    // 🔥 LIMPA E PADRONIZA (ESSENCIAL MOBILE)
-    const cupomDigitado = cupom.trim().toUpperCase();
-
-    // 🔥 BUSCA DIRETO NO FIREBASE (MUITO MELHOR)
-    const q = query(
-      collection(db, "cupons"),
-      where("codigo", "==", cupomDigitado)
+    await setDoc(
+      doc(db, "usuarios", user.uid),
+      {
+        clienteNome,
+        clienteTelefone,
+        clienteEndereco,
+        clienteNumeroCasa,
+        clienteCep
+      },
+      { merge: true }
     );
 
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      alert("❌ Cupom inválido");
-      return;
-    }
-
-    const docEncontrado = snap.docs[0];
-    const dados = docEncontrado.data();
-
-    // 🔒 VALIDAÇÕES
-    if (dados.ativo === false) {
-      alert("❌ Cupom desativado");
-      return;
-    }
-
-    if (new Date(dados.validade) < new Date()) {
-      alert("❌ Cupom expirado");
-      return;
-    }
-
-    if (dados.usos >= dados.limite) {
-      alert("❌ Cupom esgotado");
-      return;
-    }
-
-    // 🔥 APLICA
-    setDescontoCupom(Number(dados.valor));
-    setCupomAtivo(dados.codigo);
-
-    // 🔥 ATUALIZA USO
-    await updateDoc(doc(db, "cupons", docEncontrado.id), {
-      usos: dados.usos + 1
-    });
-
-    alert("✅ Cupom aplicado com sucesso!");
+    alert("Dados salvos ✅");
 
   } catch (e) {
-    console.error(e);
-    alert("Erro ao validar cupom");
+    console.log("ERRO REAL:", e);
+    alert("Erro ao salvar ❌");
   }
 }
 
- async function salvarPedidoFirebase(pedido) {
+// 🔥 buscar cep
+async function buscarCEP(cep) {
+
+  const cepLimpo = cep.replace(/\D/g, "");
+
+  if (cepLimpo.length !== 8) return;
+
   try {
-    await addDoc(collection(db, "pedidos"), {
-      userId: auth.currentUser?.uid || null,
 
-      cliente: pedido.cliente || "Cliente",
+    const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+    const data = await res.json();
 
-      codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
+    if (!data.erro) {
+      setClienteEndereco(`${data.logradouro}, ${data.bairro}`);
+    } else {
+      alert("CEP não encontrado ❌");
+    }
 
-      // 🔥 AQUI É A CHAVE DO PROBLEMA (ARRAY DE ITENS)
-      itens: pedido.carrinho.map(item => ({
-        produto: item.produto,
-        extras: item.extras,
-        quantidade: item.quantidade,
-        total: item.total
-      })),
+  } catch (e) {
+    console.log(e);
+    alert("Erro ao buscar CEP");
+  }
+}
+ // FORMATAR cep PREENCHE CORRETO
+function formatarCEP(valor) {
 
-      total: pedido.carrinho.reduce(
-        (acc, item) => acc + Number(item.total || 0),
-        0
-      ),
+  valor = valor.replace(/\D/g, "");
+  valor = valor.slice(0, 8);
 
-      pagamento: pedido.pagamento || "",
-      cupom: pedido.cupom || "",
-      descontoCupom: Number(pedido.descontoCupom || 0),
+  if (valor.length > 5) {
+    return valor.replace(/^(\d{5})(\d{0,3})$/, "$1-$2");
+  }
 
-      status: "preparando",
-      data: new Date().toISOString()
-    });
+  return valor;
+}
 
-    console.log("🔥 PEDIDO SALVO ÚNICO (SEM DUPLICAR)");
+  // FORMATAR CELULAR PREENCHE CORRETO
+function formatarTelefone(valor) {
 
-  } catch (error) {
-    console.error("🔥 ERRO FIREBASE:", error);
+  // remove tudo que não é número
+  valor = valor.replace(/\D/g, "");
+
+  // limita a 11 números
+  valor = valor.slice(0, 11);
+
+  // aplica formatação
+  if (valor.length > 10) {
+    return valor.replace(
+      /^(\d{2})(\d{5})(\d{4})$/,
+      "($1) $2-$3"
+    );
+  } else if (valor.length > 6) {
+    return valor.replace(
+      /^(\d{2})(\d{4})(\d{0,4})$/,
+      "($1) $2-$3"
+    );
+  } else if (valor.length > 2) {
+    return valor.replace(
+      /^(\d{2})(\d{0,5})$/,
+      "($1) $2"
+    );
+  } else {
+    return valor;
   }
 }
 
-// 🔥 GERAR CÓDIGO DO PEDIDO
-function gerarCodigoPedido() {
-  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const numeros = "0123456789";
-
-  let codigo = "#";
-
-  for (let i = 0; i < 3; i++) {
-    codigo += letras[Math.floor(Math.random() * letras.length)];
-  }
-
-  for (let i = 0; i < 3; i++) {
-    codigo += numeros[Math.floor(Math.random() * numeros.length)];
-  }
-
-  return codigo;
+   // 🔥 FUNÇÕES rempover item carrinho
+  function removerItem(index) {
+  setCarrinho(prev => prev.filter((_, i) => i !== index));
 }
 
-async function finalizarPedido() {
+  function adicionarCarrinho() {
+    if (!produto) return;
 
-  if (lojaAberta === false) {
-    alert("🚫 Loja fechada no momento");
+    const total = (produto.preco + totalExtras) * quantidade;
+
+    setCarrinho(prev => [
+      ...prev,
+      { produto, quantidade, extras, total }
+    ]);
+
+    setExtras([]);
+    setQuantidade(1);
+    setStep(3);
+  }
+// 🔥 EDITAR PEDIDO
+  function editarItem(index) {
+
+  const item = carrinho[index];
+
+  // 🔥 carrega dados do item
+  setProduto(item.produto);
+  setQuantidade(item.quantidade);
+  setExtras(item.extras || []);
+
+  // 🔥 remove do carrinho (pra não duplicar)
+  setCarrinho(prev => prev.filter((_, i) => i !== index));
+
+  // 🔥 volta pra tela de edição
+  setStep(2);
+}
+
+
+  function aplicarCupom() {
+
+  const codigoDigitado = cupomInput.trim().toLowerCase();
+
+  // 🔥 PRIMEIRO encontra o cupom
+  const cupom = cupons.find(
+    c =>
+      c.codigo?.toLowerCase() === codigoDigitado &&
+      c.ativo === true
+  );
+
+  if (!cupom) {
+    alert("Cupom inválido ❌");
     return;
   }
 
-  if (loadingPedido) return;
+  // 🔥 AGORA sim pode usar o cupom
+  const cpfLimpo = clienteCpf.replace(/\D/g, "");
 
-  if (carrinho.length === 0) {
+  if (cupom.usos && cupom.usos[cpfLimpo]) {
+    alert("Você já usou esse cupom ❌");
+    return;
+  }
+
+  setCupomAplicado(cupom);
+
+  alert("Cupom aplicado ✅");
+}
+
+  async function finalizarPedido() {
+
+  if (!carrinho.length) {
     alert("Carrinho vazio!");
     return;
   }
 
-  if (!pagamento) {
-    alert("Escolha pagamento");
+  if (!clienteNome || !clienteTelefone) {
+    alert("Preencha seus dados!");
+    setStep(4);
     return;
   }
-
-  setLoadingPedido(true);
 
   try {
-  // 🔥 CRIA UM ÚNICO PEDIDO (CORRETO)
-  const pedidoUnico = {
-    cliente,
-    carrinho,
-    pagamento,
-    cupom,
-    descontoCupom
-  };
 
-  // 🔥 SALVA NO FIREBASE (1 DOCUMENTO)
-  await salvarPedidoFirebase(pedidoUnico);
+    if (cupomAplicado) {
+  
+  const cpfLimpo = clienteCpf.replace(/\D/g, "");
 
-  // 🔥 SALVA NO LOCAL (OPCIONAL)
-  const pedidosLocal = JSON.parse(localStorage.getItem("pedidos") || "[]");
+  console.log("SALVANDO USO:", cpfLimpo);
 
-  const novoLocal = {
-    id: Date.now(),
-    codigo: "#" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-    itens: carrinho,
-    total: carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0),
-    status: "preparando",
-    data: new Date().toISOString()
-  };
-
-  const novos = [...pedidosLocal, novoLocal];
-
-  localStorage.setItem("pedidos", JSON.stringify(novos));
-
-  // 🔥 ATUALIZA TELA
-  setPedidos(novos);
-
-  setCarrinho([]);
-  setPedidoConfirmado(true);
-
-  resetar();
-
-} catch (err) {
-  console.error("ERRO FINALIZAR:", err);
-  alert("Erro ao salvar pedido.");
-  setPedidoConfirmado(false);
-} finally {
-  setLoadingPedido(false);
-}
-}
-
-function resetar() {
-  setStep(1);
-  setProduto(null);
-  setSelectedId(null);
-  setExtras([]);
-  setPagamento("");
-  setCupom("");
-  setCupomAtivo(null);
-  setDescontoCupom(0);
-  setQuantidade(1);
-}
-
-// 🔥 REMOVE DUPLICAÇÃO (deixa só UMA)
-function removerExtraDoItem(indexItem, nomeExtra) {
-  setCarrinho(prev =>
-    prev.map((item, i) => {
-      if (i !== indexItem) return item;
-
-      const extraRemovido = item.extras.find(e => e.nome === nomeExtra);
-
-      return {
-        ...item,
-        extras: item.extras.filter(e => e.nome !== nomeExtra),
-        total: item.total - (extraRemovido?.preco || 0)
-      };
-    })
+  await updateDoc(
+    doc(db, "cupons", cupomAplicado.id),
+    {
+      [`usos.${cpfLimpo}`]: true
+    }
   );
 }
+    const codigo = Math.floor(100000 + Math.random() * 900000);
 
-function adicionarCarrinhoAtual() {
-  if (!produto) return;
+    const totalFinalPedido = Number(totalFinal.toFixed(2));
 
-  if (lojaAberta === false) {
-    alert("🚫 Loja fechada no momento");
-    return;
+    const pedido = {
+  codigo,
+  cliente: {
+    nome: clienteNome,
+    telefone: clienteTelefone,
+    endereco: clienteEndereco,
+    numero: clienteNumeroCasa,
+    uid: user.uid // 🔥 ESSENCIAL
+  },
+  itens: carrinho,
+  total: totalFinal,
+  status: "preparando",
+  data: new Date().toISOString()
+};
+
+    // 🔥 SALVA NO FIREBASE
+    // 🔥 SALVAR USO DO CUPOM (SEM QUEBRAR)
+if (cupomAplicado?.id) {
+
+  const cpfLimpo = clienteCpf.replace(/\D/g, "");
+
+  try {
+    await updateDoc(
+      doc(db, "cupons", cupomAplicado.id),
+      {
+        [`usos.${cpfLimpo}`]: true
+      }
+    );
+
+    console.log("Cupom registrado:", cpfLimpo);
+
+  } catch (e) {
+    console.log("Erro ao salvar uso do cupom:", e);
   }
+}
 
-  const qtd = Number(quantidade || 1);
+    // 🔥 WHATSAPP
+    let mensagem = ` *Pedido #${codigo}*\n\n`;
 
-  const extrasClonados = Array.isArray(extras)
-    ? extras.map(e => ({
-        nome: e.nome,
-        preco: Number(e.preco || 0)
-      }))
-    : [];
+    carrinho.forEach((item, i) => {
+      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+      mensagem += `Qtd: ${item.quantidade}\n`;
 
-  const precoBase = Number(produto.preco || 0);
+      if (item.extras?.length) {
+        mensagem += "Extras:\n";
+        item.extras.forEach(e => {
+          mensagem += `+ ${e.nome}\n`;
+        });
+      }
 
-  const totalExtras = extrasClonados.reduce((acc, e) => acc + e.preco, 0);
-
-  // 🔥 CRIA ITENS SEPARADOS
-  const novosItens = [];
-
-  for (let i = 0; i < qtd; i++) {
-    novosItens.push({
-      produto: { ...produto },
-      extras: extrasClonados.map(e => ({ ...e })), // 🔥 clone profundo
-      quantidade: 1,
-      total: precoBase + totalExtras
+      mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
     });
+
+    mensagem += ` Total: R$ ${totalFinal}\n\n`;
+    mensagem += ` ${clienteNome}\n`;
+    mensagem += ` ${clienteTelefone}\n`;
+
+    if (clienteEndereco) {
+      mensagem += `📍 ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+    }
+
+    const numero = "5581973119512";
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+    window.open(url, "_blank");
+
+    // 🔥 LIMPA
+    setCarrinho([]);
+
+    setCupomAplicado(null);
+    setCupomInput("");
+
+    // 🔥 MUDA PRA ABA PEDIDOS
+    setStep(5);
+
+    alert("Pedido enviado 🚀");
+
+  } catch (e) {
+    console.log(e);
+    alert("Erro ao enviar pedido ❌");
   }
-
-  setCarrinho(prev => [...prev, ...novosItens]);
-
-  setExtras([]);
-  setQuantidade(1);
-
-  alert("Item adicionado ao carrinho!");
 }
 
-function removerItem(index) {
-  setCarrinho(prev => prev.filter((_, i) => i !== index));
+  // 🔥  2 grades
+  function ripple(e) {
+  const circle = document.createElement("span");
+  circle.style.position = "absolute";
+  circle.style.background = "rgba(255,255,255,0.4)";
+  circle.style.borderRadius = "50%";
+  circle.style.width = "100px";
+  circle.style.height = "100px";
+  circle.style.left = `${e.nativeEvent.offsetX - 50}px`;
+  circle.style.top = `${e.nativeEvent.offsetY - 50}px`;
+  circle.style.pointerEvents = "none";
+
+  e.currentTarget.appendChild(circle);
+
+  setTimeout(() => circle.remove(), 400);
 }
 
-function editarItem(item, index) {
-  setProduto(item.produto);
-  setExtras(item.extras);
-  setQuantidade(item.quantidade);
-
-  setCarrinho(prev => prev.filter((_, i) => i !== index));
-  setStep(2);
-}
-
-async function duplicarAtual() {
-  if (!produto) return;
-
-  const item = {
-    produto,
-    extras: extras.map(e => ({ ...e })),
-    quantidade,
-    total
-  };
-
-  setCarrinho(prev => [...prev, item]);
-  alert("Item duplicado!");
-  setStep(3);
-}
-
-function comprarNovamente(p) {
-  setProduto(p.produto);
-  setSelectedId(p.produto.id);
-  setExtras(p.extras || []);
-  setQuantidade(p.quantidade || 1);
-  setPagamento("");
-  setCupom(p.cupom || "");
-  setDescontoCupom(p.descontoCupom || 0);
-  setStep(2);
-}
-
-const totalCarrinho = (carrinho || []).reduce(
-  (acc, item) => acc + Number(item.total || 0),
-  0
-);
-
-const bg = dark ? '#0a0014' : '#f2f2f2';
-const text = dark ? '#fff' : '#000';
-
+  // 🔥 UI
 return (
-  <div style={{ minHeight: '100vh', background: bg, display: 'flex', justifyContent: 'center' }}>
-
-{pedidoConfirmado && (
   <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.6)",
-    backdropFilter: "blur(6px)",
+    minHeight: "100vh",
+    background: themeAtual.background,
+    color: themeAtual.text,
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999
+    justifyContent: "center"
   }}>
-    <div style={{
-      background: dark ? "#111" : "#fff",
-      color: dark ? "#fff" : "#000", // 🔥 CORRIGE TEXTO
-      padding: 25,
-      borderRadius: 20,
-      width: 320,
-      textAlign: "center",
-      boxShadow: "0 0 25px rgba(122,0,255,0.3)",
-      animation: "fadeIn 0.3s ease"
-    }}>
 
-      {/* 🔥 ÍCONE */}
-      <div style={{ fontSize: 40, marginBottom: 10 }}>
-        ✅
-      </div>
+    
+    <div style={{ width: 420, padding: 20 }}>
 
-      {/* 🔥 TÍTULO */}
-      <h2 style={{ marginBottom: 5 }}>
-        Pedido realizado!
-      </h2>
-
-      {/* 🔥 TEXTO */}
-      <p style={{
-        opacity: 0.8,
-        fontSize: 14
-      }}>
-        Seu açaí já está sendo preparado 🍧
-      </p>
-
-      {/* 🔥 BOTÕES */}
-      <div style={{
-        display: "flex",
-        gap: 10,
-        marginTop: 20
-      }}>
-
-        <button
-          style={{ flex: 1 }}
-          onClick={() => {
-            setPedidoConfirmado(false);
-            setStep(5);
-          }}
-        >
-          📦 Acompanhar
-        </button>
-
-        <button
-          style={{
-            flex: 1,
-            background: dark ? "#222" : "#ddd",
-            color: dark ? "#fff" : "#000"
-          }}
-          onClick={() => setPedidoConfirmado(false)}
-        >
-          Fechar
-        </button>
-
-      </div>
-
-    </div>
-  </div>
-)}
-
-    <div style={{ width: 420, padding: 20, color: text }}>
-
-      {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <h2>🍧 Açaí da Daiane</h2>
-
-        <div onClick={() => setStep(3)} style={{ position: 'relative', cursor: 'pointer' }}>
-          🛒
-          {carrinho.length > 0 && (
-            <span className="badge">{carrinho.length}</span>
-          )}
-        </div>
-      </div>
-
-      <h2>
-  👋 Olá, <span style={{ color: "#a855f7" }}>
-    {clienteNome || "Cliente"}
-  </span>
-</h2>
-
-      <button onClick={sair}>Sair</button>
-
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={() => setStep(1)}>🏠 Início</button>
-        <button onClick={() => setStep(5)}>Pedidos</button>
-        <button onClick={() => setStep(99)}>Informações</button>
-        <button onClick={() => setDark(!dark)}>Claro/Escuro</button>
-      </div>
-
-
-<button
-  onClick={() => setStep(4)}
-  style={{
-    padding: 12,
-    borderRadius: 12,
-    border: "none",
-    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-    color: "white",
-    fontWeight: "bold",
-    marginBottom: 15,
-    cursor: "pointer"
-  }}
->
-  👤 Dados Pessoais
-</button>
-
-
-     {/* STEP 99 */}
-{step === 99 && (
-  <>
-    <h3>📍 Informações</h3>
-
-    {/* 🔥 STATUS LOJA (FIREBASE) */}
-    <div style={{
-  background: lojaAberta === true
-    ? (dark ? '#002a00' : '#e6ffe6')
-    : (dark ? '#2a0000' : '#ffe6e6'),
-  padding: 10,
-  borderRadius: 10,
-  color: lojaAberta === true
-    ? (dark ? '#00ff88' : '#008000')
-    : (dark ? '#ff4d4d' : '#b30000'),
-  marginBottom: 15,
-  fontWeight: 'bold'
+      {/* 🔥 HEADER */}
+<div style={{
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 15
 }}>
 
-  {lojaAberta === null && "⏳ Carregando status..."}
+  {/* NOME LOJA */}
+  <h2 style={{
+    fontWeight: "bold",
+    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    WebkitBackgroundClip: "text",
+    color: "transparent"
+  }}>
+    🍧 Açaí da Daiane
+  </h2>
 
-  {lojaAberta === true && "🟢 Loja aberta agora"}
+  {/* 🔥 DIREITA */}
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 
-  {lojaAberta === false && "🔴 Loja fechada no momento"}
+    {/* 🔥 CARRINHO */}
+    <div
+      onClick={() => setStep(3)}
+      style={{
+        position: "relative",
+        cursor: "pointer",
+        fontSize: 22
+      }}
+    >
+      🛒
+    </div>
+
+    {/* 🔥 BOTÃO SAIR */}
+    <button
+      onClick={sair}
+      style={{
+        padding: "2px 8px",
+        borderRadius: 10,
+        border: "none",
+        background: "#38094e",
+        color: "#fff",
+        cursor: "pointer",
+        fontSize: 24
+      }}
+    >
+      Sair
+    </button>
+
+          {carrinho.length > 0 && (
+            <span style={{
+              position: "absolute",
+              top: -8,
+              right: -10,
+              background: "#ff2aff",
+              color: "#fff",
+              borderRadius: "50%",
+              padding: "2px 6px",
+              fontSize: 10
+            }}>
+              {carrinho.length}
+            </span>
+          )}
+        </div>
+
+      </div>
+
+      {/* 🔥 SAUDAÇÃO */}
+      <h3 style={{ marginBottom: 10 }}>
+        👋 Olá, <span style={{ color: "#a855f7" }}>
+          {clienteNome || "Cliente"}
+        </span>
+      </h3>
+
+      {/* 🔥 MENU */}
+      <div style={{
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        marginBottom: 15
+      }}>
+
+        <button onClick={() => setStep(1)}>Inicio</button>
+
+        <button onClick={() => setStep(5)}>Pedidos</button>
+
+        <button onClick={() => setStep(3)}>Carrinho</button>
+
+        <button onClick={() => setStep(4)}>Dados</button>
+
+        <button onClick={() => setStep(99)}>Informações</button>
+
+        <button onClick={() => setDark(!dark)}>
+          {dark ? "🌙" : "☀️"}
+        </button>
+
+      </div>
+{/* STEP 1 */}
+{step === 1 && (
+  <>
+    <h3 style={{ marginBottom: 10 }}>🍧 Escolha seu açaí</h3>
+
+    {/* 🔥 LOJA FECHADA */}
+    {!lojaAberta && (
+      <div style={{
+        background: "linear-gradient(90deg,#ff0000,#ff4d4d)",
+        padding: 12,
+        borderRadius: 12,
+        marginBottom: 12,
+        textAlign: "center",
+        fontWeight: "bold",
+        color: "#fff"
+      }}>
+        🚫 Loja fechada no momento
+      </div>
+    )}
+
+    {produtos.length === 0 ? (
+
+      /* 🔥 SKELETON SHIMMER */
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10
+      }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{
+            height: 180,
+            borderRadius: 20,
+            background: "linear-gradient(90deg,#222,#333,#222)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 1.5s infinite"
+          }} />
+        ))}
+      </div>
+
+    ) : (
+
+      /* 🔥 GRID */
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10
+      }}>
+
+        {produtos.map(p => {
+          const ativo = selectedId === p.id;
+
+          return (
+            <div
+              key={p.id}
+              onClick={(e) => {
+
+                if (!lojaAberta) {
+                  alert("🚫 Loja fechada");
+                  return;
+                }
+
+                // 🔥 RIPPLE
+                const rippleSpan = document.createElement("span");
+                rippleSpan.style.position = "absolute";
+                rippleSpan.style.background = "rgba(255,255,255,0.4)";
+                rippleSpan.style.borderRadius = "50%";
+                rippleSpan.style.transform = "scale(0)";
+                rippleSpan.style.animation = "ripple 0.5s linear";
+                rippleSpan.style.left = e.nativeEvent.offsetX + "px";
+                rippleSpan.style.top = e.nativeEvent.offsetY + "px";
+                rippleSpan.style.width = rippleSpan.style.height = "100px";
+
+                e.currentTarget.appendChild(rippleSpan);
+                setTimeout(() => rippleSpan.remove(), 500);
+
+                setProduto(p);
+                setSelectedId(p.id);
+
+                setTimeout(() => setStep(2), 120);
+              }}
+              style={{
+                borderRadius: 20,
+                overflow: "hidden",
+                position: "relative",
+                cursor: lojaAberta ? "pointer" : "not-allowed",
+                opacity: lojaAberta ? 1 : 0.5,
+                transform: ativo ? "scale(0.96)" : "scale(1)",
+                transition: "all 0.2s ease",
+                boxShadow: ativo
+                  ? "0 0 20px rgba(122,0,255,0.6)"
+                  : "0 0 10px rgba(0,0,0,0.2)"
+              }}
+            >
+
+              {/* 🔥 BADGE */}
+              {p.maisVendido && (
+                <div style={{
+                  position: "absolute",
+                  top: 8,
+                  left: 8,
+                  background: "linear-gradient(90deg,#ff2aff,#ff0080)",
+                  color: "#fff",
+                  padding: "4px 8px",
+                  borderRadius: 10,
+                  fontSize: 10,
+                  fontWeight: "bold",
+                  zIndex: 2
+                }}>
+                  🔥 Mais vendido
+                </div>
+              )}
+
+              {/* IMAGEM */}
+              <img
+                src={
+                  typeof p.imagem === "string" &&
+                  p.imagem.startsWith("data:image")
+                    ? p.imagem
+                    : "/acai.png"
+                }
+                onError={(e) => (e.target.src = "/acai.png")}
+                style={{
+                  width: "100%",
+                  height: 140,
+                  objectFit: "cover"
+                }}
+              />
+
+              {/* OVERLAY */}
+              <div style={{
+                position: "absolute",
+                bottom: 0,
+                width: "100%",
+                padding: 10,
+                background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)"
+              }}>
+
+                {/* PREÇO */}
+                <div style={{
+                  background: "rgba(255,255,255,0.2)",
+                  backdropFilter: "blur(10px)",
+                  padding: "4px 8px",
+                  borderRadius: 10,
+                  fontWeight: "bold",
+                  fontSize: 12,
+                  color: "#fff",
+                  width: "fit-content",
+                  marginBottom: 4
+                }}>
+                  R$ {Number(p.preco || 0).toFixed(2)}
+                </div>
+
+                {/* NOME */}
+                <div style={{
+                  fontSize: 13,
+                  fontWeight: "bold",
+                  color: "#fff"
+                }}>
+                  {p.nome} {p.tamanho || ""}
+                </div>
+
+                {/* DESCRIÇÃO */}
+                <div style={{
+                  fontSize: 11,
+                  color: "#ddd",
+                  opacity: 0.9,
+                  marginTop: 2,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden"
+                }}>
+                  {p.descricao || "Açaí tradicional com complementos"}
+                </div>
+
+              </div>
+
+            </div>
+          );
+        })}
+      </div>
+
+    )}
+
+   
+  </>
+)}
+        {step === 2 && (
+  <>
+    <h3>✨ Personalize seu açaí</h3>
+
+    {/* QUANTIDADE */}
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 15
+    }}>
+      <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>-</button>
+      <strong>{quantidade}</strong>
+      <button onClick={() => setQuantidade(q => q + 1)}>+</button>
+    </div>
+
+    {/* EXTRAS */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10
+    }}>
+
+      {adicionais.map(e => {
+        const selected = extras.find(x => x.nome === e.nome);
+
+        return (
+          <div
+            key={e.nome}
+            onClick={() => toggleExtra(e)}
+            style={{
+              padding: 12,
+              borderRadius: 14,
+              cursor: "pointer",
+              border: selected
+                ? "2px solid #7a00ff"
+                : "1px solid #ccc",
+              background: selected
+                ? "rgba(122,0,255,0.15)"
+                : themeAtual.card,
+              transition: "0.2s"
+            }}
+          >
+
+            {/* NOME */}
+            <div style={{
+              fontWeight: "bold",
+              marginBottom: 4
+            }}>
+              {e.nome}
+            </div>
+
+            {/* PREÇO */}
+            <div style={{
+              fontSize: 13,
+              opacity: 0.8
+            }}>
+              + R$ {Number(e.preco).toFixed(2)}
+            </div>
+
+          </div>
+        );
+      })}
+
+    </div>
+
+    {/* TOTAL DINÂMICO */}
+    <div style={{
+      marginTop: 15,
+      padding: 12,
+      borderRadius: 12,
+      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      color: "#fff",
+      fontWeight: "bold",
+      textAlign: "center"
+    }}>
+      Total: R$ {((produto?.preco || 0) + totalExtras).toFixed(2)}
+    </div>
+
+    {/* BOTÕES */}
+    <button style={{ marginTop: 10 }} onClick={adicionarCarrinho}>
+      🛒 Adicionar ao carrinho
+    </button>
+
+    <button onClick={() => setStep(1)}>
+      ← Voltar
+    </button>
+  </>
+)}
+
+        {step === 3 && (
+  <>
+    <h3>🛒 Seu Carrinho</h3>
+
+    {carrinho.length === 0 && (
+      <p>Seu carrinho está vazio</p>
+    )}
+
+    {carrinho.map((item, i) => (
+      <div key={i} style={{
+        background: themeAtual.card,
+        padding: 15,
+        borderRadius: 16,
+        marginBottom: 10,
+        boxShadow: "0 0 10px rgba(0,0,0,0.2)"
+      }}>
+
+        {/* 🔥 PRODUTO */}
+        <p style={{ fontWeight: "bold", fontSize: 16 }}>
+          {item.produto.nome}
+        </p>
+
+        {/* 🔥 QUANTIDADE */}
+        <p style={{ fontSize: 13, opacity: 0.8 }}>
+          Quantidade: {item.quantidade}
+        </p>
+
+        {/* 🔥 EXTRAS */}
+        {item.extras?.length > 0 && (
+          <div style={{ marginTop: 5 }}>
+            {item.extras.map(e => (
+              <div key={e.nome} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 13
+              }}>
+                <span>+ {e.nome}</span>
+                <span>R$ {Number(e.preco).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 🔥 TOTAL ITEM */}
+        <p style={{
+          marginTop: 8,
+          fontWeight: "bold",
+          color: "#a855f7"
+        }}>
+          Total: R$ {Number(item.total).toFixed(2)}
+        </p>
+       {/* 🔥 EDITAR PEDIDO */}
+        <button onClick={() => editarItem(i)}>
+        ✏️ Editar
+       </button>
+
+        {/* 🔥 AÇÕES */}
+        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+          <button onClick={() => removerItem(i)}>
+            🗑️ Remover
+          </button>
+        </div>
+
+      </div>
+    ))}
+
+    {/* 🔥 CUPOM */}
+<div style={{
+  marginTop: 15,
+  padding: 12,
+  borderRadius: 14,
+  border: "2px solid #7a00ff",
+  background: themeAtual.card
+}}>
+
+  <strong>🎟️ Cupom de desconto</strong>
+
+  <p style={{
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 4
+  }}>
+    Use um cupom para ganhar desconto (ex: DESCONTO10)
+  </p>
+
+  <div style={{
+    display: "flex",
+    gap: 8,
+    marginTop: 10
+  }}>
+
+    <input
+  placeholder="Cupom"
+  value={cupomInput}
+  disabled={!!cupomAplicado}
+  onChange={(e) => setCupomInput(e.target.value.toUpperCase())}
+/>
+
+<button
+  onClick={aplicarCupom}
+  disabled={!!cupomAplicado}
+>
+  Aplicar cupom
+</button>
+
+{/* 🔥 PASSO 4 AQUI */}
+{cupomAplicado && (
+  <button
+    onClick={() => {
+      setCupomAplicado(null);
+      setCupomInput("");
+    }}
+    style={{
+      marginTop: 8,
+      background: "#9a03ff",
+      color: "#fff"
+      
+    }}
+  >
+    ❌ Remover cupom
+  </button>
+)}
+
+  </div>
 
 </div>
 
-    {/* 🔥 HORÁRIOS */}
-    <h4>Horário de atendimento</h4>
+{/* 🔥 FEEDBACK DO CUPOM */}
+{cupomAtivo && (
+  <div style={{
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    background: "linear-gradient(90deg,#5a00ff,#8a00ff)",
+    color: "#fff",
+    display: "flex",
+    justifyContent: "space-between"
+  }}>
+    <span>✔ Cupom: {cupomAtivo}</span>
+    <strong>- R$ {descontoCupom.toFixed(2)}</strong>
+  </div>
+)}
+
+    {/* 🔥 TOTAL FINAL */}
+    <div style={{
+      marginTop: 15,
+      padding: 14,
+      borderRadius: 14,
+      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      color: "#fff",
+      textAlign: "center",
+      fontWeight: "bold"
+    }}>
+      <p>Subtotal: R$ {Number(totalCarrinho || 0).toFixed(2)}</p>
+
+    {cupomAplicado && (
+    <p style={{ color: "#22c55e" }}>
+    Desconto: -R$ {(Number(valorDesconto || 0)).toFixed(2)}
+   </p>
+)}
+
+<p>
+  <strong>Total: R$ {(Number(totalFinal || 0)).toFixed(2)}</strong>
+</p>
+    </div>
+{/* 🔥 FINALIZAR PEDIDO */}
+<button
+  style={{
+    padding: 12,
+    borderRadius: 12,
+    background: "#6a00ff",
+    color: "#fff"
+  }}
+  onClick={finalizarPedido}
+>
+  📲 Finalizar Pedido
+</button>
+
+    <button onClick={() => setStep(2)}>
+      ← Voltar
+    </button>
+  </>
+)}
+{/* STEP 4 */}
+   {step === 4 && (
+  <>
+    <h3>👤 Dados do Cliente</h3>
 
     <div style={{
-      background: dark ? 'rgba(255,255,255,0.05)' : '#fff',
-      padding: 10,
-      borderRadius: 12,
-      marginBottom: 15
+      background: themeAtual.card,
+      padding: 20,
+      borderRadius: 16,
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10
     }}>
-      <p>Domingo: 18h às 23h20</p>
-      <p>Segunda: Fechado</p>
-      <p>Terça: 18h15 às 23h20</p>
-      <p>Quarta: 18h15 às 23h20</p>
-      <p>Quinta: 18h15 às 23h20</p>
-      <p>Sexta: 18h15 às 23h20</p>
-      <p>Sábado: 18h15 às 23h20</p>
+
+      {/* NOME */}
+      <div>
+        <small style={{ opacity: 0.6 }}>Nome</small>
+        <input
+          value={clienteNome}
+          onChange={(e) => setClienteNome(e.target.value)}
+        />
+      </div>
+
+      {/* CPF BLOQUEADO */}
+      <div>
+        <small style={{ opacity: 0.6 }}>CPF</small>
+        <input
+          value={clienteCpf}
+          disabled
+          style={{
+            
+            cursor: "not-allowed"
+          }}
+        />
+      </div>
+
+      {/* TELEFONE */}
+<div>
+  <small style={{ opacity: 0.6 }}>Telefone</small>
+  <input
+    value={clienteTelefone}
+    onChange={(e) => {
+      const formatado = formatarTelefone(e.target.value);
+      setClienteTelefone(formatado);
+    }}
+    placeholder="(00) 00000-0000"
+  />
+</div>
+
+      {/* EMAIL */}
+      <div>
+  <small style={{ opacity: 0.6 }}>Email</small>
+  <input
+    type="email"
+    value={clienteEmail}
+    disabled
+    style={{
+     cursor: "not-allowed"
+    }}
+  />
+</div>
+
+      {/* CEP */}
+      <div>
+  <small style={{ opacity: 0.6 }}>CEP</small>
+  <input
+    value={clienteCep}
+    onChange={(e) => {
+      const formatado = formatarCEP(e.target.value);
+      setClienteCep(formatado);
+
+      const cepLimpo = formatado.replace(/\D/g, "");
+
+      if (cepLimpo.length === 8) {
+        buscarCEP(cepLimpo);
+      }
+    }}
+    placeholder="00000-000"
+  />
+</div>
+
+      {/* ENDEREÇO */}
+      <div>
+        <small style={{ opacity: 0.6 }}>Endereço</small>
+        <input
+          value={clienteEndereco}
+          onChange={(e) => setClienteEndereco(e.target.value)}
+        />
+      </div>
+
+      {/* NÚMERO */}
+      <div>
+        <small style={{ opacity: 0.6 }}>Número</small>
+        <input
+          value={clienteNumeroCasa}
+          onChange={(e) => setClienteNumeroCasa(e.target.value)}
+        />
+      </div>
+
     </div>
 
-    {/* 🔥 PAGAMENTO */}
-    <h4>Formas de pagamento</h4>
+    {/* BOTÕES */}
+    <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+      <button
+  onClick={salvarDadosCliente}
+  disabled={!authReady}
+>
+  💾 Salvar dados
+</button>
 
+      <button onClick={() => setStep(1)}>
+        ← Voltar
+      </button>
+    </div>
+  </>
+)}
+
+{step === 5 && (
+  <>
+    <h3>📦 Seus pedidos</h3>
+
+    {pedidos.length === 0 && (
+      <p>Nenhum pedido ainda</p>
+    )}
+
+    {pedidos.map((p, i) => (
+      <div key={i} style={{
+        background: themeAtual.card,
+        padding: 15,
+        borderRadius: 14,
+        marginBottom: 10
+      }}>
+
+        {/* 🔥 CÓDIGO */}
+        <p><strong>Pedido #{p.codigo}</strong></p>
+
+        {/* 🔥 CLIENTE (CORRIGIDO) */}
+        <p>👤 {p.cliente?.nome}</p>
+        <p>📞 {p.cliente?.telefone}</p>
+
+        {p.cliente?.endereco && (
+          <p>
+            📍 {p.cliente.endereco}, {p.cliente.numero}
+          </p>
+        )}
+
+        {/* 🔥 STATUS */}
+        <p>Status: 
+          <span style={{
+            color:
+              p.status === "preparando" ? "#facc15" :
+              p.status === "saiu" ? "#60a5fa" :
+              "#4ade80"
+          }}>
+            {" " + p.status}
+          </span>
+        </p>
+
+        {/* 🔥 TOTAL */}
+        <p>Total: R$ {Number(p.total).toFixed(2)}</p>
+
+        {/* 🔥 DATA */}
+        <small style={{ opacity: 0.6 }}>
+          {new Date(p.data).toLocaleString()}
+        </small>
+
+      </div>
+    ))}
+
+    <button onClick={() => setStep(1)}>
+      ← Voltar
+    </button>
+  </>
+)}
+
+{step === 99 && (
+  <>
+    <h3 style={{ marginBottom: 10 }}>📍 Informações da Loja</h3>
+
+    {/* STATUS */}
     <div style={{
-      background: dark ? 'rgba(255,255,255,0.05)' : '#fff',
-      padding: 10,
+      background: lojaAberta
+        ? (dark ? "#003300" : "#e6ffe6")
+        : (dark ? "#330000" : "#ffe6e6"),
+      padding: 12,
       borderRadius: 12,
+      color: lojaAberta ? "#00ff88" : "#ff4d4d",
+      marginBottom: 15,
+      fontWeight: "bold"
+    }}>
+      {lojaAberta ? "🟢 Loja aberta agora" : "🔴 Loja fechada"}
+    </div>
+
+    {/* HORÁRIO */}
+    <div style={{
+      background: themeAtual.card,
+      padding: 12,
+      borderRadius: 16,
       marginBottom: 15
     }}>
-      <p>💵 Dinheiro</p>
-      <p>💳 Cartão de crédito</p>
+      <h4>⏰ Horário</h4>
+      <p>Domingo: 18h às 23h20</p>
+      <p>Segunda: Fechado</p>
+      <p>Terça a Sábado: 18h15 às 23h20</p>
+    </div>
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 5 }}>
+    {/* PAGAMENTO */}
+    <div style={{
+      background: themeAtual.card,
+      padding: 12,
+      borderRadius: 16,
+      marginBottom: 15
+    }}>
+      <h4>💳 Pagamento</h4>
+
+      <p>💵 Dinheiro</p>
+      <p>💳 Cartão</p>
+
+      <div style={{ display: "flex", gap: 8 }}>
         {["VISA", "MASTERCARD", "ELO", "HIPERCARD"].map(b => (
           <span key={b} style={{
-            background: dark ? '#222' : '#eee',
-            color: dark ? '#fff' : '#000',
-            padding: '4px 8px',
+            background: dark ? "#222" : "#eee",
+            padding: "4px 8px",
             borderRadius: 8,
             fontSize: 12
           }}>
@@ -975,737 +1339,208 @@ return (
       </div>
     </div>
 
-    {/* 🔥 ENDEREÇO */}
-    <h4>Endereço</h4>
-
+    {/* ENDEREÇO */}
     <div style={{
-      background: dark ? 'rgba(255,255,255,0.05)' : '#fff',
-      padding: 10,
-      borderRadius: 12,
+      background: themeAtual.card,
+      padding: 12,
+      borderRadius: 16,
       marginBottom: 10
     }}>
-      <p>Rua Seis de janeiro, 209 - Olinda</p>
+      <h4>📍 Endereço</h4>
+      <p>Rua Seis de Janeiro, 209 - Olinda</p>
     </div>
 
-    {/* 🔥 MAPA */}
+    {/* MAPA */}
     <iframe
-      src="https://www.google.com/maps?q=R.+Seis+de+Janeiro,+209+Olindafe&output=embed"
+      src="https://www.google.com/maps?q=R.+Seis+de+Janeiro,+209+Olinda&output=embed"
       width="100%"
       height="200"
       style={{
         border: 0,
         borderRadius: 12,
         marginTop: 10,
-        filter: dark ? 'grayscale(1) invert(1)' : 'none' // 🔥 mapa dark
+        filter: dark ? "grayscale(1) invert(1)" : "none"
       }}
-      loading="lazy"
     />
 
-    <button onClick={() => setStep(1)}>
-      ← Voltar
-    </button>
-  </>
-)}
-
-      {/* STEP 1 */}
-{step === 1 && (
-  <>
-    {produtos.map(p => {
-  const ativo = selectedId === p.id;
-
-  return (
-    <div
-      key={p.id + p.ordem} // 🔥 IMPORTANTE
-      onClick={() => {
-        setProduto(p);
-        setSelectedId(p.id);
-      }}
-      className={`card ${ativo ? 'active' : ''}`}
-    >
-
-      <img
-        src={p.imagem || "/acai.png"}
-        style={{
-          width: "100%",
-          borderRadius: 12
-        }}
-      />
-
-      <div className="overlay">
-        <strong className="price">
-          R$ {Number(p.preco).toFixed(2)}
-        </strong>
-        <span className="nome">{p.nome}</span>
-      </div>
-
-        </div>
-      );
-    })}
-
-    <button onClick={() => {
-      if (!produto) return alert("Escolha um açaí!");
-      setStep(2);
-    }}>
-      Próximo
-    </button>
-  </>
-)}
-
-     {/* STEP 2 */}
-{step === 2 && (
-  <>
-    <h3>Adicionais</h3>
-
-    {/* 🔥 QUANTIDADE */}
-    <div style={{ display: 'flex', gap: 10 }}>
-      <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>-</button>
-      <strong>{quantidade}</strong>
-      <button onClick={() => setQuantidade(q => q + 1)}>+</button>
-    </div>
-
-    {/* 🔥 EXTRAS CORRIGIDOS */}
-    {adicionais.map(e => {
-      const selected = extras.find(x => x.nome === e.nome);
-
-      return (
-        <div
-          key={e.nome}
-          onClick={() => toggleExtra({
-            nome: e.nome,
-            preco: Number(e.preco)
-          })}
-          className={`extra ${selected ? 'selected' : ''}`}
-        >
-          {selected ? " " : ""}
-          {e.nome} (+R$ {Number(e.preco).toFixed(2)})
-        </div>
-      );
-    })}
-
-    {/* 🔥 BOTÕES */}
-    <button onClick={adicionarCarrinhoAtual}>
-      🛒 Adicionar
-    </button>
-
+    {/* VOLTAR */}
     <button
-      onClick={() => {
-        if (carrinho.length === 0) {
-          alert("Adicione pelo menos 1 item!");
-          return;
-        }
-        setStep(3);
-      }}
+      style={{ marginTop: 15 }}
+      onClick={() => setStep(1)}
     >
-      Carrinho
-    </button>
-
-    <button onClick={() => setStep(1)}>
       ← Voltar
     </button>
   </>
 )}
 
-{/* STEP 3 */}
-{step === 3 && (
-  <>
-    <h3>🛒 Carrinho</h3>
+{/* 🔥 STYLES */}
+  <style jsx>{`
+    .overlay {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
 
-    {carrinho.map((item, i) => (
-      <div key={i} className="history">
-
-        <p>
-          <strong>{item.produto.nome}</strong>
-        </p>
-
-        {/* 🔥 EXTRAS */}
-        {Array.isArray(item.extras) && item.extras.length > 0 &&
-          item.extras.map(e => (
-            <div
-              key={e.nome}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
-            >
-              <span>
-                + {e.nome} (R$ {Number(e.preco).toFixed(2)})
-              </span>
-
-              <button onClick={() => removerExtraDoItem(i, e.nome)}>
-                ❌
-              </button>
-            </div>
-          ))
-        }
-
-        {/* 🔥 TOTAL CORRETO */}
-        <p>
-          Total: <strong>
-            R$ {
-              (
-                Number(item.produto?.preco || 0) +
-                (item.extras || []).reduce((acc, e) => acc + Number(e.preco || 0), 0)
-              ).toFixed(2)
-            }
-          </strong>
-        </p>
-
-        {/* 🔥 AÇÕES */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => editarItem(item, i)}>✏️</button>
-          <button onClick={() => removerItem(i)}>🗑️</button>
-        </div>
-
-      </div>
-    ))}
-
-    {/* 🔥 FINALIZAR PEDIDO */}
-<div style={{ marginTop: 20 }}>
-
-  <h3>Finalizar Pedido</h3>
-
-  <button
-    disabled={!lojaAberta}
-    onClick={() => {
-
-      // 🔒 LOJA FECHADA
-      if (!lojaAberta) {
-        alert("🚫 Loja fechada no momento");
-        return;
-      }
-
-      // 🔒 CARRINHO VAZIO
-      if (!carrinho || carrinho.length === 0) {
-        alert("🛒 Adicione um açaí primeiro");
-        return;
-      }
-
-
-      enviarWhatsApp(carrinho);
-    }}
-    style={{
-      padding: 14,
-      borderRadius: 14,
-      border: "none",
-      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-      color: "white",
-      fontWeight: "bold",
-      marginTop: 10,
-      width: "100%",
-
-      // 🔥 VISUAL BLOQUEADO
-      opacity: lojaAberta ? 1 : 0.5,
-      cursor: lojaAberta ? "pointer" : "not-allowed"
-    }}
-  >
-    📲 Pedir pelo WhatsApp
-  </button>
-
-</div>
-
-  {/* 🎟️ CUPOM */}
-<div style={{ marginTop: 15 }}>
-
-  <input
-    placeholder="Digite seu cupom"
-    value={cupom}
-    onChange={e => setCupom(e.target.value)}
-    autoCapitalize="characters"
-    autoCorrect="off"
-    style={{
-      padding: 12,
-      borderRadius: 14,
-      border: "1px solid rgba(122,0,255,0.2)",
-      width: "100%",
-      marginBottom: 10
-    }}
-  />
-
-  <button
-    onClick={aplicarCupom}
-    style={{
-      width: "100%",
-      padding: 12,
-      borderRadius: 14,
-      border: "none",
-      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-      color: "#fff"
-    }}
-  >
-    Aplicar Cupom
-  </button>
-
-</div>
-
-    {cupomAtivo && (
-      <p style={{ color: "#00ff88", marginTop: 10 }}>
-        🎟️ Cupom aplicado: {cupomAtivo} (-R$ {descontoCupom})
-      </p>
-    )}
-
-    {/* 🔥 TOTAL FINAL */}
-    <h4>
-      Total: R$ {Number(totalCarrinho - descontoCupom).toFixed(2)}
-    </h4>
-
-    <button onClick={duplicarAtual}>
-      🔁 Duplicar pedido
-    </button>
-
-    <button onClick={() => setStep(2)}>
-      ← Voltar
-    </button>
-
-  </>
-)}
-
-{/* 🔥 MODAL PIX */}
-{mostrarPix && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 20,
-      textAlign: "center",
-      width: 300
-    }}>
-      
-      <h2>Pagamento via Pix</h2>
-
-      <p>Valor:</p>
-      <strong>
-        R$ {carrinho.reduce((acc, item) => acc + item.total, 0).toFixed(2)}
-      </strong>
-
-      <p style={{ marginTop: 10 }}>🔑 Chave Pix:</p>
-      <strong>seuemail@pix.com</strong>
-
-      <button
-        style={{ marginTop: 10 }}
-        onClick={() => {
-          navigator.clipboard.writeText("seuemail@pix.com");
-          alert("Chave Pix copiada!");
-        }}
-      >
-        📋 Copiar chave
-      </button>
-
-      <br /><br />
-
-      <button onClick={() => setMostrarPix(false)}>
-        Fechar
-      </button>
-
-    </div>
-  </div>
-)}
-{/* STEP 4 */}
-{step === 4 && (
-  <>
-    <h3>👤 Dados do Cliente</h3>
-
-    <div style={{
-      background: dark ? "#111" : "#fff",
-      color: dark ? "#fff" : "#000",
-      padding: 20,
-      borderRadius: 16
-    }}>
-
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 10
-      }}>
-
-        <input
-          style={inputStyle}
-          placeholder="Nome"
-          value={clienteNome}
-          onChange={(e) => setClienteNome(e.target.value)}
-        />
-
-        <input
-          style={inputStyle}
-          placeholder="CPF"
-          value={clienteCpf}
-          disabled={clienteCpf.length >= 14}
-          onChange={(e) => setClienteCpf(formatarCPF(e.target.value))}
-        />
-
-        <input
-          style={inputStyle}
-          placeholder="Telefone"
-          value={clienteTelefone}
-          onChange={(e) => setClienteTelefone(formatarTelefone(e.target.value))}
-        />
-
-        <input
-          style={inputStyle}
-          type="email"
-          placeholder="Email"
-          value={clienteEmail}
-          onChange={(e) => setClienteEmail(e.target.value)}
-        />
-        
-        <input
-  style={inputStyle}
-  placeholder="CEP"
-  value={clienteCep}
-  onChange={(e) => {
-    const valor = formatarCEP(e.target.value);
-    setClienteCep(valor);
-
-    if (valor.replace(/\D/g, "").length === 8) {
-      buscarCEP(valor);
+      background: ${dark 
+        ? 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)'
+        : 'linear-gradient(to top, rgba(255,255,255,0.9), rgba(255,255,255,0.4), transparent)'};
     }
-  }}
-/>
 
+    .price {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
 
-        <input
-          style={inputStyle}
-          placeholder="Endereço"
-          value={clienteEndereco}
-          onChange={(e) =>
-            setClienteEndereco(
-              e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "")
-            )
-            
+      padding: 6px 10px;
+      border-radius: 10px;
 
-            
-          }
-        />
+      background: ${dark 
+        ? 'rgba(122,0,255,0.15)' 
+        : 'rgba(122,0,255,0.08)'};
 
-        <input
-          style={inputStyle}
-          placeholder="Número da casa"
-          value={clienteNumeroCasa}
-          onChange={(e) =>
-            setClienteNumeroCasa(e.target.value.replace(/\D/g, ""))
-          }
-        />
+      border: 1px solid rgb(255, 255, 255);
 
-      </div>
+      width: fit-content;
+      margin-bottom: 6px;
 
-      <button
-  onClick={salvarDadosCliente}
-  style={{
-    marginTop: 15,
-    padding: 12,
-    borderRadius: 12,
-    border: "none",
-    background: "linear-gradient(90deg,550094,#550092)",
-    color: "#fff",
-    fontWeight: "bold",
-    cursor: "pointer",
-    width: "100%"
-  }}
->
-  💾 Salvar dados
-</button>
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+    }
 
-      <button
-        style={{ marginTop: 15 }}
-        onClick={() => setStep(1)}
-      >
-        ← Voltar
-      </button>
+    .card:hover .price {
+      transform: scale(1.04);
+      background: ${dark 
+        ? 'rgba(122,0,255,0.25)' 
+        : 'rgba(122,0,255,0.15)'};
+    }
 
-    </div>
-  </>
-)}
+    .nome {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.95;
+      color: #ffffff;
 
-{/* STEP 5 */}
-{step === 5 && (
-  <>
-    <h3>📦 Seus pedidos</h3>
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgb(255, 255, 255);
 
-    <div style={{
-      maxHeight: 400,
-      overflowY: "auto",
-      display: "flex",
-      flexDirection: "column",
-      gap: 10,
-      marginTop: 10
-    }}>
+      width: fit-content;
+      margin-bottom: 6px;
 
-      {pedidos
-  .sort((a, b) => {
-    const dataA = new Date(a.data || 0).getTime();
-    const dataB = new Date(b.data || 0).getTime();
-    return dataB - dataA;
-  })
+      backdrop-filter: blur(30px);
+      transition: all 0.2s ease;
+    }
 
-  .map((p, i) => (
-    <div key={i} className="history">
+    .infoBox {
+      background: rgba(255,255,255,0.05);
+      padding: 10px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
 
-      {/* 🔥 ITENS */}
-      {p.itens?.length > 0 ? (
-        p.itens.map((item, idx) => (
-          <p key={idx}>
-            <strong>
-              {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
-            </strong>
-          </p>
-        ))
-      ) : (
-        <p><strong>Açaí (x1)</strong></p>
-      )}
+    .tag {
+      background: #eee;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
 
-      {/* 🔥 CÓDIGO */}
-      <p>
-        Código: <strong>{p.codigo || "—"}</strong>
-      </p>
+    .card {
+      margin-top: 10px;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
 
-      {/* 🔥 DATA CORRIGIDA */}
-      <p style={{ fontSize: 12, opacity: 0.7 }}>
-        {p.data
-          ? new Date(p.data).toLocaleString("pt-BR")
-          : ""}
-      </p>
+    .card:hover {
+      transform: scale(1.02);
+    }
 
-      {/* 🔥 STATUS */}
-      <p>
-        Status:
-        <strong style={{
-          marginLeft: 6,
-          color:
-            p.status === "preparando" ? "orange" :
-            p.status === "saiu para entrega" ? "#00b0ff" :
-            p.status === "entregue" ? "#00c853" :
-            "#888"
-        }}>
-          {p.status || "preparando"}
-        </strong>
-      </p>
+    .card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
 
-      {/* 🔥 TOTAL */}
-      <p>
-        Total: R$ {Number(p.total || 0).toFixed(2)}
-      </p>
+    .active {
+      border: 2px solid #7a00ff;
+      box-shadow: 0 0 10px rgba(122,0,255,0.4);
+    }
 
-      <button onClick={() => comprarNovamente(p)}>
-        🔁 Repetir pedido
-      </button>
+    .extra {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: ${dark ? '#111' : '#fff'};
+    }
 
-          </div>
-        ))}
+    .selected {
+      background: #7a00ff;
+      color: white;
+      box-shadow: 0 0 8px rgba(122,0,255,0.4);
+    }
 
-    </div>
+    .history {
+      margin-top: 10px;
+      padding: 10px;
+      background: ${dark ? '#111' : '#fff'};
+      border-radius: 10px;
+    }
 
-    <button onClick={() => setStep(1)}>
-      ← Voltar
-    </button>
-  </>
-)}
+    .cupomBox {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 2px solid #7a00ff;
+    }
 
- <style jsx>{`
-  .overlay {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    .cupomAtivo {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      background: linear-gradient(90deg,#5a00ff,#8a00ff);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+    }
 
-    background: ${dark 
-      ? 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.3), transparent)'
-      : 'linear-gradient(to top, rgba(255,255,255,0.9), rgba(255,255,255,0.4), transparent)'};
-      
-  }
+    .totalBox {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(90deg,#5a00ff,#8a00ff);
+      color: white;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
 
-  /* 💎 PREÇO PREMIUM CLEAN */
-  .price {
-    font-size: 15px;
-    font-weight: 700;
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background: linear-gradient(90deg,#5a00ff,#8a00ff);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-    color: #ffffff;
-
-    padding: 6px 10px;
-    border-radius: 10px;
-
-    background: ${dark 
-      ? 'rgba(122,0,255,0.15)' 
-      : 'rgba(122,0,255,0.08)'};
-
-    border: 1px solid rgb(255, 255, 255);
-
-    width: fit-content;
-    margin-bottom: 6px;
-
-    backdrop-filter: blur(4px);
-
-    transition: all 0.2s ease;
-  }
-
-  /* 🔥 HOVER SUAVE */
-  .card:hover .price {
-    transform: scale(1.04);
-    background: ${dark 
-      ? 'rgba(122,0,255,0.25)' 
-      : 'rgba(122,0,255,0.15)'};
-  }
-
-  .nome {
-    font-size: 12px;
-    font-weight: 500;
-    opacity: 0.95;
-
-    color: #ffffff;
+    button:active {
+      transform: scale(0.95);
+    }
+  `}</style>
     
-
-     padding: 6px 10px;
-    border-radius: 10px;
-    border: 1px solid rgb(255, 255, 255);
-
-        width: fit-content;
-    margin-bottom: 6px;
-
-    backdrop-filter: blur(30px);
-
-    transition: all 0.2s ease;
-
-
-  }
-   .infoBox {
-  background: rgba(255,255,255,0.05);
-  padding: 10px;
-  border-radius: 12px;
-  margin-bottom: 15px;
-}
-
-.tag {
-  background: #eee;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-  .card {
-    margin-top: 10px;
-    border-radius: 20px;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .card:hover {
-    transform: scale(1.02);
-  }
-
-  .card img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    display: block;
-
-    background: var(--card);
-  }
-
-  .active {
-    border: 2px solid #7a00ff;
-    box-shadow: 0 0 10px rgba(122,0,255,0.4);
-  }
-
-  .extra {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    background: ${dark ? '#111' : '#fff'};
-  }
-
-  .selected {
-    background: #7a00ff;
-    color: white;
-    box-shadow: 0 0 8px rgba(122,0,255,0.4);
-  }
-
-  .history {
-    margin-top: 10px;
-    padding: 10px;
-    background: ${dark ? '#111' : '#fff'};
-    border-radius: 10px;
-  }
-
-  .cupomBox {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-    padding: 12px;
-    border-radius: 14px;
-    border: 2px solid #7a00ff;
-    background: var(--card);
-  }
-
-  .cupomBox input {
-  flex: 1;
-  background: var(--input);
-  color: var(--text);
-}
-
-  .cupomAtivo {
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 12px;
-    background: linear-gradient(90deg,#5a00ff,#8a00ff);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .totalBox {
-    margin-top: 10px;
-    padding: 14px;
-    border-radius: 14px;
-
-    background: linear-gradient(90deg,#5a00ff,#8a00ff);
-    color: white;
-
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-
-    box-shadow: 0 0 10px rgba(122,0,255,0.4);
-  }
-
-  button {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 10px;
-
-    background: linear-gradient(90deg,#5a00ff,#8a00ff);
-    color: white;
-
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  button:hover {
-    opacity: 0.9;
-  }
-
-  button:active {
-    transform: scale(0.95);
-  }
-
-  boxShadow: nomeCliente
-  ? "0 0 0 2px rgba(122,0,255,0.2)"
-  : "none",
-`}</style>
-
-      </div>
+    </div>
     </div>
   );
 }
+
+
