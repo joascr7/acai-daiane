@@ -1,55 +1,51 @@
-import { MercadoPagoConfig, Payment } from "mercadopago";
-import { db } from "../../services/firebase";
 import { collection, query, where, getDocs, updateDoc } from "firebase/firestore";
-export const config = {
-  api: {
-    bodyParser: true,
-  },
-};
-
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN,
-});
+import { db } from "../../services/firebase";
 
 export default async function handler(req, res) {
 
   try {
 
-    const body = req.body;
+    const paymentId = req.query["data.id"];
 
-    // 🔥 EVENTO DE PAGAMENTO
-    if (body.type === "payment") {
-
-      const paymentId = body.data.id;
-
-      const payment = new Payment(client);
-      const dados = await payment.get({ id: paymentId });
-
-      // 🔥 SE FOI PAGO
-      if (dados.status === "approved") {
-
-        // 🔍 PROCURA PEDIDO NO FIREBASE
-        const q = query(
-          collection(db, "pedidos"),
-          where("paymentId", "==", paymentId)
-        );
-
-        const snap = await getDocs(q);
-
-        snap.forEach(async (docSnap) => {
-          await updateDoc(docSnap.ref, {
-            statusPagamento: "pago"
-          });
-        });
-
-        console.log("Pagamento confirmado:", paymentId);
-      }
+    if (!paymentId) {
+      return res.status(200).send("ok");
     }
 
-    res.status(200).send("OK");
+    console.log("Webhook recebido:", paymentId);
+
+    // 🔥 CONSULTA STATUS DO PAGAMENTO
+    const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+      },
+    });
+
+    const pagamento = await response.json();
+
+    console.log("Status pagamento:", pagamento.status);
+
+    // 🔥 SE PAGOU
+    if (pagamento.status === "approved") {
+
+      const pedidosRef = collection(db, "pedidos");
+
+      const q = query(pedidosRef, where("paymentId", "==", String(paymentId)));
+
+      const snapshot = await getDocs(q);
+
+      snapshot.forEach(async (docItem) => {
+        await updateDoc(docItem.ref, {
+          statusPagamento: "pago"
+        });
+      });
+
+      console.log("Pedido atualizado para PAGO");
+    }
+
+    return res.status(200).send("ok");
 
   } catch (e) {
-    console.log("ERRO WEBHOOK:", e);
-    res.status(500).send("Erro");
+    console.log("Erro webhook:", e);
+    return res.status(500).send("erro");
   }
 }

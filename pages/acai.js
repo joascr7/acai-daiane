@@ -130,32 +130,37 @@ const blurInput = (e) => {
   const [loadingPedido, setLoadingPedido] = useState(false);
 
    // 🔥 NOVOS STATES DO PIX
-  const [qrBase64, setQrBase64] = useState(null);
-  const [paymentId, setPaymentId] = useState(null);
+const [loadingPix, setLoadingPix] = useState(false);
+const [qrBase64, setQrBase64] = useState(null);
+const [qrCode, setQrCode] = useState(null);
+const [paymentId, setPaymentId] = useState(null);
 
-  // 🔥 AQUI 👇 (COLOCA A FUNÇÃO)
-  const gerarPix = async () => {
-    try {
-      const res = await fetch("/api/pix", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          total: totalFinal
-        })
-      });
+const gerarPix = async () => {
+  try {
+    setQrBase64(null);
+    setQrCode(null);
 
-      const data = await res.json();
+    const res = await fetch("/api/pix", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        total: Number(totalFinal || 5) // 🔥 mínimo seguro
+      })
+    });
 
-      setQrBase64(data.qr_code_base64);
-      setPaymentId(data.payment_id);
+    const data = await res.json();
 
-    } catch (e) {
-      alert("Erro ao gerar Pix");
-      console.log(e);
-    }
-  };
+    setQrBase64(data.qr_code_base64);
+    setQrCode(data.qr_code);
+    setPaymentId(data.payment_id);
+
+  } catch (e) {
+    alert("Erro ao gerar Pix");
+    console.log(e);
+  }
+};
 
   // 🔥 CUPOM
   const [cupomInput, setCupomInput] = useState("");
@@ -867,7 +872,7 @@ async function finalizarPedido(statusFinalPagamento) {
           ? "aguardando_pagamento"
           : "pendente",
 
-      paymentId: paymentId || null, // 🔥 PIX REAL
+      paymentId: paymentId ? String(paymentId) : null,
 
       status: "preparando",
       data: new Date().toISOString()
@@ -2557,25 +2562,34 @@ return (
 
       {/* PIX */}
       <button
-        onClick={() => {
-          setFormaPagamento("pix");
-          setPixConfirmado(false);
-          gerarPix();
-        }}
-        style={{
-          width: "100%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
-          border: "none",
-          cursor: "pointer",
-          background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
-          color: formaPagamento === "pix" ? "#fff" : "#000",
-          fontWeight: "bold"
-        }}
-      >
-        ⚡ Pix
-      </button>
+  onClick={() => {
+    if (loadingPix) return; // 🔥 evita clique duplo
+
+    setFormaPagamento("pix");
+    setPixConfirmado(false);
+
+    // 🔥 limpa estado anterior
+    setQrBase64(null);
+    setQrCode(null);
+    setPaymentId(null);
+
+    gerarPix();
+  }}
+  style={{
+    width: "100%",
+    padding: 12,
+    marginTop: 8,
+    borderRadius: 10,
+    border: "none",
+    cursor: loadingPix ? "not-allowed" : "pointer",
+    background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
+    color: formaPagamento === "pix" ? "#fff" : "#000",
+    fontWeight: "bold",
+    opacity: loadingPix ? 0.7 : 1
+  }}
+>
+  {loadingPix ? "Gerando Pix..." : "⚡ Pix"}
+</button>
 
       {/* DINHEIRO */}
       <button
@@ -2620,79 +2634,142 @@ return (
       </button>
 
       {/* PIX AREA */}
-      {formaPagamento === "pix" && (
-        <div style={{ marginTop: 20, textAlign: "center" }}>
+     {formaPagamento === "pix" && (
+  <div style={{ marginTop: 20, textAlign: "center" }}>
 
-          <p><strong>Valor: R$ {Number(totalFinal).toFixed(2)}</strong></p>
+    <p><strong>Valor: R$ {Number(totalFinal).toFixed(2)}</strong></p>
 
-          {qrBase64 ? (
-            <img
-              src={`data:image/png;base64,${qrBase64}`}
-              style={{ width: 200 }}
-            />
-          ) : (
-            <p>Gerando QR Code...</p>
-          )}
+    {/* 🔥 LOADING */}
+    {!qrBase64 && (
+      <p style={{ marginTop: 10 }}>Gerando QR Code...</p>
+    )}
 
-          <button
-            onClick={() => setPixConfirmado(true)}
-            style={{
-              marginTop: 10,
-              background: pixConfirmado ? "#00c853" : "#6a00ff",
-              color: "#fff",
-              border: "none",
-              padding: 10,
-              borderRadius: 10,
-              cursor: "pointer",
-              width: "100%"
-            }}
-          >
-            {pixConfirmado ? "✅ Pagamento confirmado" : "Já paguei"}
-          </button>
+    {/* 🔥 QR CODE */}
+    {qrBase64 && (
+      <div style={{
+        background: "#fff",
+        padding: 10,
+        borderRadius: 12,
+        display: "inline-block",
+        marginTop: 10
+      }}>
+        <img
+          src={`data:image/png;base64,${qrBase64}`}
+          style={{ width: 220 }}
+        />
+      </div>
+    )}
 
-        </div>
-      )}
+    {/* 🔥 COPIA E COLA */}
+    {qrCode && (
+      <>
+        <textarea
+          value={qrCode}
+          readOnly
+          style={{
+            width: "100%",
+            marginTop: 12,
+            padding: 10,
+            borderRadius: 10,
+            fontSize: 12,
+            border: "1px solid #ddd"
+          }}
+        />
+
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(qrCode);
+            alert("Pix copiado!");
+          }}
+          style={{
+            marginTop: 10,
+            width: "100%",
+            padding: 10,
+            borderRadius: 10,
+            border: "none",
+            background: "#6a00ff",
+            color: "#fff",
+            fontWeight: "bold"
+          }}
+        >
+          📋 Copiar código Pix
+        </button>
+      </>
+    )}
+
+    {/* 🔥 CONFIRMAÇÃO PIX */}
+    <button
+      disabled={!qrBase64}
+      onClick={() => setPixConfirmado(true)}
+      style={{
+        marginTop: 10,
+        background: pixConfirmado ? "#00c853" : "#6a00ff",
+        color: "#fff",
+        border: "none",
+        padding: 10,
+        borderRadius: 10,
+        width: "100%",
+        opacity: !qrBase64 ? 0.5 : 1,
+        cursor: !qrBase64 ? "not-allowed" : "pointer"
+      }}
+    >
+      {pixConfirmado ? "✅ Pagamento confirmado" : "Já paguei"}
+    </button>
+
+  </div>
+)}
 
       {/* CONFIRMAR */}
       <button
-        style={{
-          marginTop: 20,
-          width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "none",
-          background: "linear-gradient(90deg,#00c853,#00e676)",
-          color: "#fff",
-          fontWeight: "bold",
-          cursor: loadingPedido ? "not-allowed" : "pointer",
-          opacity: loadingPedido ? 0.7 : 1
-        }}
-        disabled={loadingPedido}
-        onClick={async () => {
+  style={{
+    marginTop: 20,
+    width: "100%",
+    padding: 12,
+    borderRadius: 12,
+    border: "none",
+    background: "linear-gradient(90deg,#00c853,#00e676)",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: loadingPedido ? "not-allowed" : "pointer",
+    opacity: loadingPedido ? 0.7 : 1
+  }}
+  disabled={loadingPedido}
+  onClick={async () => {
 
-          if (!formaPagamento) {
-            alert("Escolha uma forma de pagamento");
-            return;
-          }
+    if (!formaPagamento) {
+      alert("Escolha uma forma de pagamento");
+      return;
+    }
 
-          if (formaPagamento === "pix" && !pixConfirmado) {
-            alert("Confirme o pagamento via Pix");
-            return;
-          }
+    // 🔥 TRAVA REAL DO PIX
+    if (formaPagamento === "pix") {
 
-          const statusFinal =
-            formaPagamento === "pix" ? "pago" : "pendente";
+      if (!qrBase64) {
+        alert("Aguarde o QR Code gerar");
+        return;
+      }
 
-          try {
-            setLoadingPedido(true);
-            await finalizarPedido(statusFinal);
-          } finally {
-            setLoadingPedido(false);
-          }
-        }}
-      >
-        {loadingPedido ? "Processando..." : "Confirmar Pedido"}
-      </button>
+      if (!pixConfirmado) {
+        alert("Confirme o pagamento via Pix");
+        return;
+      }
+    }
+
+    const statusFinal =
+      formaPagamento === "pix"
+        ? "aguardando_pagamento" // 🔥 CORRETO (não usar "pago")
+        : "pendente";
+
+    try {
+      setLoadingPedido(true);
+      await finalizarPedido(statusFinal);
+    } finally {
+      setLoadingPedido(false);
+    }
+  }}
+>
+  {loadingPedido ? "Processando..." : "Confirmar Pedido"}
+</button>
 
       {/* CANCELAR */}
       <button
