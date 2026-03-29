@@ -125,6 +125,11 @@ button {
   transition: all 0.2s ease;
 }
 
+.btn {
+  padding: 12px;
+  border-radius: 12px;
+}
+
 button:hover {
   opacity: 0.9;
 }
@@ -496,4 +501,12 @@ button:active {
 
 .cardProduto:hover {
   transform: scale(1.02);
+}
+
+button {
+  transition: all 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.9);
 }

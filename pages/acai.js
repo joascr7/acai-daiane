@@ -1,12 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
-import { updateDoc } from "firebase/firestore";
-import { query, where } from "firebase/firestore";
-import { runTransaction } from "firebase/firestore";
 
-
+// 🔥 FIREBASE (TUDO EM UM)
+import {
+  collection,
+  onSnapshot,
+  doc,
+  getDoc,
+  getDocs, // 🔥 ADICIONA ISSO
+  addDoc,
+  setDoc,
+  updateDoc,
+  query,
+  where,
+  runTransaction
+} from "firebase/firestore";
 
 import {
   signOut,
@@ -15,39 +25,28 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 
-import {
-  collection,
-  onSnapshot,
-  doc,
-  getDoc,
-  addDoc,
-  setDoc
-} from "firebase/firestore";
-
 import { lightTheme, darkTheme } from "../styles/theme";
-
-
 
 export default function Acai() {
 
-   const [user, setUser] = useState(null);
-   const [authReady, setAuthReady] = useState(false);
-   const [logo, setLogo] = useState(null);
+  // 🔥 USER
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [logo, setLogo] = useState(null);
 
-   const [promptInstall, setPromptInstall] = useState(null);
+  const [promptInstall, setPromptInstall] = useState(null);
 
-// 🔥 CATEGORIA
-   const [categoria, setCategoria] = useState("acai");
-   const [busca, setBusca] = useState("");
-   
+  // 🔥 CATEGORIA
+  const [categoria, setCategoria] = useState("acai");
+  const [busca, setBusca] = useState("");
+
+  // 🔥 UI
+  const [toast, setToast] = useState(null);
+  const carrinhoRef = useRef(null);
 
   // 🔥 THEME
   const [dark, setDark] = useState(false);
   const themeAtual = dark ? darkTheme : lightTheme;
-  // 🔥 cupom
-  const [cupons, setCupons] = useState([]);
-  const [cupomInput, setCupomInput] = useState("");
-  const [cupomAplicado, setCupomAplicado] = useState(null);
 
   // 🔥 STEPS
   const [step, setStep] = useState(1);
@@ -68,7 +67,7 @@ export default function Acai() {
     { nome: "Banana", preco: 2 },
     { nome: "Uva", preco: 2 },
     { nome: "Jujuba", preco: 2 },
-    { nome: "Amedoim", preco: 2 }
+    { nome: "Amendoim", preco: 2 }
   ];
 
   // 🔥 CARRINHO
@@ -77,40 +76,104 @@ export default function Acai() {
 
   // 🔥 CLIENTE
   const [clienteNome, setClienteNome] = useState("");
+  const [clienteCpf, setClienteCpf] = useState("");
+  const [clienteTelefone, setClienteTelefone] = useState("");
+  const [clienteEmail, setClienteEmail] = useState("");
+  const [clienteEndereco, setClienteEndereco] = useState("");
+  const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
+  const [clienteCep, setClienteCep] = useState("");
 
+  const botaoStyle = {
+  width: "90%",
+  maxWidth: 380,
 
-const [clienteCpf, setClienteCpf] = useState("");
-const [clienteTelefone, setClienteTelefone] = useState("");
-const [clienteEmail, setClienteEmail] = useState("");
-const [clienteEndereco, setClienteEndereco] = useState("");
-const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
-const [clienteCep, setClienteCep] = useState("");
+  padding: "10px",
+  borderRadius: 14,
 
+  background: dark
+    ? "linear-gradient(90deg,#9333ea,#c026d3)"
+    : "linear-gradient(90deg,#6a00ff,#ff2aff)",
 
-  // 🔥 CUPOM
-  const [cupom, setCupom] = useState("");
-  const [descontoCupom, setDescontoCupom] = useState(0);
-  const [cupomAtivo, setCupomAtivo] = useState(null);
+  color: "#fff",
+  border: "none",
 
-  // 🔥 TOTAL
-  const totalExtras = (extras || []).reduce((acc, e) => acc + e.preco, 0);
+  fontWeight: "bold",
+  fontSize: 13,
 
-  const totalCarrinho = carrinho.reduce(
-  (acc, item) => acc + Number(item.total),
-  0
+  boxShadow: dark
+    ? "0 5px 20px rgba(147,51,234,0.4)"
+    : "0 5px 20px rgba(122,0,255,0.3)",
+
+  transition: "all 0.2s ease"
+};
+
+  // 🔥 CUPOM (VERSÃO CORRETA - LIMPA)
+  const [cupomInput, setCupomInput] = useState("");
+  const [cupomAplicado, setCupomAplicado] = useState(null);
+  const [desconto, setDesconto] = useState(0);
+  const [cupons, setCupons] = useState([]);
+
+  // 🔥 TOTAL EXTRAS (produto atual)
+  const totalExtras = (extras || []).reduce((acc, e) => {
+    return acc + Number(e.preco || 0);
+  }, 0);
+
+  // 🔥 TOTAL DO CARRINHO (OFICIAL)
+  const total = Array.isArray(carrinho)
+    ? carrinho.reduce((acc, item) => {
+        return acc + Number(item.total || 0);
+      }, 0)
+    : 0;
+
+  // 🔥 TOTAL FINAL (COM CUPOM)
+  
+const totalFinal = Math.max(
+  0,
+  Number(total || 0) - Number(desconto || 0)
 );
 
-let valorDesconto = 0;
+const melhorCupom = Array.isArray(cupons)
+  ? cupons.reduce((melhor, atual) => {
 
-if (cupomAplicado) {
-  if (cupomAplicado.tipo === "porcentagem") {
-    valorDesconto = (totalCarrinho * cupomAplicado.desconto) / 100;
-  } else {
-    valorDesconto = cupomAplicado.desconto;
-  }
-}
+      const totalSeguro = Number(total || 0);
 
-const totalFinal = Math.max(0, totalCarrinho - (valorDesconto || 0));
+      if (!melhor) return atual;
+
+      if (totalSeguro === 0) {
+        return atual.desconto > melhor.desconto ? atual : melhor;
+      }
+
+      const descontoAtual =
+        atual.tipo === "porcentagem"
+          ? totalSeguro * (atual.desconto / 100)
+          : atual.desconto;
+
+      const descontoMelhor =
+        melhor.tipo === "porcentagem"
+          ? totalSeguro * (melhor.desconto / 100)
+          : melhor.desconto;
+
+      return descontoAtual > descontoMelhor ? atual : melhor;
+
+    }, null)
+  : null;
+
+
+// 🔥 VARIOS CUPONS
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "cupons"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setCupons(lista);
+  });
+
+  return () => unsub();
+}, []);
+
 // 🔥 APP instalar
 useEffect(() => {
   const handler = (e) => {
@@ -220,20 +283,6 @@ useEffect(() => {
 
   return () => unsub();
 
-}, []);
-// 🔥 CUPOM
-useEffect(() => {
-  const unsub = onSnapshot(collection(db, "cupons"), (snapshot) => {
-
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    setCupons(lista);
-  });
-
-  return () => unsub();
 }, []);
 
   // 🔥 CLIENTE
@@ -413,75 +462,240 @@ function formatarTelefone(valor) {
 }
 
    // 🔥 FUNÇÕES rempover item carrinho
-  function removerItem(index) {
+function adicionarCarrinho() {
+  if (!produto) return;
+
+  // 🔥 GUARDA O NOME ANTES DE QUALQUER COISA
+  const nomeProduto = produto.nome;
+
+  const total = ((produto.preco || 0) + totalExtras) * quantidade;
+
+  setCarrinho(prev => [
+    ...prev,
+    { produto, quantidade, extras, total }
+  ]);
+
+  // 🔥 LIMPA DEPOIS
+  setExtras([]);
+  setQuantidade(1);
+
+  // 🔥 TOAST (AGORA NÃO QUEBRA)
+  setToast({
+    nome: nomeProduto,
+  });
+
+  setTimeout(() => setToast(null), 2500);
+
+  // 🔥 MUDA TELA POR ÚLTIMO
+  setTimeout(() => {
+  setStep(3);
+}, 200);
+}
+
+function removerItem(index) {
   setCarrinho(prev => prev.filter((_, i) => i !== index));
 }
 
-  function adicionarCarrinho() {
-    if (!produto) return;
-
-    const total = (produto.preco + totalExtras) * quantidade;
-
-    setCarrinho(prev => [
-      ...prev,
-      { produto, quantidade, extras, total }
-    ]);
-
-    setExtras([]);
-    setQuantidade(1);
-    setStep(3);
-  }
 // 🔥 EDITAR PEDIDO
   function editarItem(index) {
 
   const item = carrinho[index];
 
-  // 🔥 carrega dados do item
+  // 🔥 remove do carrinho (pra editar)
+  setCarrinho(prev => prev.filter((_, i) => i !== index));
+
+  // 🔥 SE FOR BEBIDA → volta pro carrinho direto
+  if (item.produto.categoria === "bebidas") {
+
+    setCarrinho(prev => [
+      ...prev,
+      {
+        produto: item.produto,
+        quantidade: 1,
+        extras: [],
+        total: item.produto.preco || 0
+      }
+    ]);
+
+    // 🔥 toast
+    setToast({ nome: item.produto.nome });
+    setTimeout(() => setToast(null), 2000);
+
+    return;
+  }
+
+  // 🍧 AÇAÍ → abre edição normal
   setProduto(item.produto);
   setQuantidade(item.quantidade);
   setExtras(item.extras || []);
 
-  // 🔥 remove do carrinho (pra não duplicar)
-  setCarrinho(prev => prev.filter((_, i) => i !== index));
-
-  // 🔥 volta pra tela de edição
   setStep(2);
 }
+// 🍧 AÇAÍ → ADICIONAR OU TIRAR
+function alterarQuantidade(index, tipo) {
+  setCarrinho(prev => {
+    return prev.map((item, i) => {
+      if (i !== index) return item;
+
+      let novaQuantidade =
+        tipo === "mais"
+          ? item.quantidade + 1
+          : Math.max(1, item.quantidade - 1);
+
+      const preco = item.produto.preco || 0;
+      const extrasTotal = (item.extras || []).reduce(
+        (acc, e) => acc + e.preco,
+        0
+      );
+
+      return {
+        ...item,
+        quantidade: novaQuantidade,
+        total: (preco + extrasTotal) * novaQuantidade
+      };
+    });
+  });
+}
+
 
 async function aplicarCupom() {
-  const codigoDigitado = cupomInput.trim().toLowerCase();
 
-  const cupom = cupons.find(
-    c =>
-      c.codigo?.toLowerCase() === codigoDigitado &&
-      c.ativo === true
-  );
+  if (!cupomInput) return alert("Digite um cupom");
 
-  if (!cupom) {
-    alert("Cupom inválido ❌");
+  const cupomDigitado = (cupomInput || "").trim().toLowerCase();
+
+  const snap = await getDocs(collection(db, "cupons"));
+
+  if (cupomAplicado) {
+  alert("Já existe um cupom aplicado");
+  return;
+}
+
+  let cupomValido = null;
+
+  snap.forEach(doc => {
+    const c = doc.data();
+
+    if (
+      typeof c.codigo === "string" &&
+      c.codigo.trim().toLowerCase() === cupomDigitado
+    ) {
+      cupomValido = { id: doc.id, ...c };
+    }
+  });
+
+  if (!cupomValido) {
+    alert("Cupom inválido");
     return;
   }
 
-  const cpfLimpo = clienteCpf.replace(/\D/g, "");
-
-  // 🔥 VALIDA DIRETO NO FIREBASE (ANTI-BUG)
-  const snap = await getDoc(doc(db, "cupons", cupom.id));
-
-  if (!snap.exists()) {
-    alert("Cupom não encontrado ❌");
+  if (!cupomValido.ativo) {
+    alert("Cupom desativado");
     return;
   }
 
-  const dados = snap.data();
-
-  if (dados.usos && dados.usos[cpfLimpo]) {
-    alert("Você já usou esse cupom ❌");
+  if (Number(total || 0) < Number(cupomValido.minimo || 0)) {
+    alert(`Pedido mínimo: R$ ${cupomValido.minimo}`);
     return;
   }
 
-  setCupomAplicado({ id: cupom.id, ...dados });
+  const hoje = new Date();
+  const validade = new Date(cupomValido.validade);
 
-  alert("Cupom aplicado ✅");
+  if (hoje > validade) {
+    alert("Cupom expirado");
+    return;
+  }
+
+  const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
+
+  if (cupomValido.usos?.[cpfLimpo]) {
+    alert("Você já usou esse cupom");
+    return;
+  }
+
+  // 🔥 CALCULAR DESCONTO
+  let valorDesconto = 0;
+  const totalSeguro = Number(total || 0);
+
+  if (cupomValido.tipo === "porcentagem") {
+  valorDesconto = total * (cupomValido.desconto / 100);
+  } else {
+  valorDesconto = cupomValido.desconto;
+}
+
+  setDesconto(valorDesconto);
+  setCupomAplicado(cupomValido);
+
+  alert("Cupom aplicado!");
+}
+
+function aplicarMelhorCupom() {
+
+  if (!cupons.length) {
+    alert("Nenhum cupom disponível");
+    return;
+  }
+
+  if (cupomAplicado) {
+  alert("Já existe um cupom aplicado");
+  return;
+}
+
+  const hoje = new Date();
+
+  const validos = cupons.filter(c => {
+    if (!c.ativo) return false;
+
+    if (new Date(c.validade) < hoje) return false;
+
+    if (Number(total || 0) < Number(c.minimo || 0)) return false;
+
+    return true;
+  });
+  
+
+  if (!validos.length) {
+    alert("Nenhum cupom disponível para esse pedido");
+    return;
+  }
+
+  let melhor = null;
+  let maiorDesconto = 0;
+
+  validos.forEach(c => {
+
+    let descontoTemp = 0;
+
+    if (c.tipo === "porcentagem") {
+      descontoTemp = total * (c.desconto / 100);
+    } else {
+      descontoTemp = c.desconto;
+    }
+
+    if (descontoTemp > maiorDesconto) {
+      maiorDesconto = descontoTemp;
+      melhor = c;
+    }
+  });
+
+  setCupomAplicado(melhor);
+  setDesconto(maiorDesconto);
+
+  alert(`🔥 Melhor cupom aplicado: ${melhor.codigo}`);
+}
+
+function aplicarCupomDireto(cupom) {
+  let valorDesconto = 0;
+
+  if (cupom.tipo === "porcentagem") {
+    valorDesconto = total * (cupom.desconto / 100);
+  } else {
+    valorDesconto = cupom.desconto;
+  }
+
+  setCupomAplicado(cupom);
+  setDesconto(valorDesconto);
 }
 
 async function finalizarPedido() {
@@ -566,12 +780,12 @@ async function finalizarPedido() {
       mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
     });
 
-    mensagem += `💰 Total: R$ ${totalFinalPedido}\n\n`;
-    mensagem += `👤 ${clienteNome}\n`;
-    mensagem += `📞 ${clienteTelefone}\n`;
+    mensagem += ` Total: R$ ${totalFinalPedido}\n\n`;
+    mensagem += ` ${clienteNome}\n`;
+    mensagem += ` ${clienteTelefone}\n`;
 
     if (clienteEndereco) {
-      mensagem += `📍 ${clienteEndereco}, ${clienteNumeroCasa}\n`;
+      mensagem += ` ${clienteEndereco}, ${clienteNumeroCasa}\n`;
     }
 
     const numero = "5581973119512";
@@ -610,8 +824,7 @@ async function finalizarPedido() {
 
   setTimeout(() => circle.remove(), 400);
 }
-
-  // 🔥 UI
+ 
 return (
   <div style={{
     minHeight: "100vh",
@@ -623,6 +836,7 @@ return (
 
     
     <div style={{ width: 420, padding: 20 }}>
+     
 
       {/* 🔥 HEADER */}
 <div style={{
@@ -640,109 +854,175 @@ return (
     color: "transparent"
   }}>
 
-<div style={{ display: "flex", alignItems: "center", gap: 10 }}></div>
-    {logo && (
-  <img
-    src={logo}
-    style={{
-      width: 80,
-      height: 80,
-      borderRadius: "50%",
-      objectFit: "cover",
-      marginBottom: 10
-    }}
-  />
-)}
+{/* 🔥 ESQUERDA (LOGO + NOME) */}
+<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+  {logo && (
+    <img
+      src={logo}
+      style={{
+        width: 50,
+        height: 50,
+        borderRadius: "50%",
+        objectFit: "cover"
+      }}
+    />
+  )}
+
+  <h2 style={{
+    fontWeight: "bold",
+    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    WebkitBackgroundClip: "text",
+    color: "transparent",
+    margin: 0
+  }}>
+    Acai Daiane
+  </h2>
+
+</div>
     {/* TEXTO AQUI EM BAIXO*/}
 
   </h2>
 
   {/* 🔥 DIREITA */}
-  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+{/* 🔥 DIREITA */}
+<div style={{
+  display: "flex",
+  alignItems: "flex-end",
+  gap: 10
+}}>
 
-    {/* 🔥 CARRINHO */}
-    <div
-      onClick={() => setStep(3)}
-      style={{
-        position: "relative",
-        cursor: "pointer",
-        fontSize: 22
-      }}
-    >
-      🛒
-    </div>
+  {/* 🛒 CARRINHO */}
+  <div
+    onClick={() => setStep(3)}
+    style={{
+      position: "relative",
+      cursor: "pointer",
+      fontSize: 22
+    }}
+  >
+    🛒
+
+    {carrinho.length > 0 && (
+      <span style={{
+        position: "absolute",
+        top: -8,
+        right: -10,
+        background: "#ff2aff",
+        color: "#fff",
+        borderRadius: "50%",
+        padding: "2px 6px",
+        fontSize: 10
+      }}>
+        {carrinho.length}
+      </span>
+    )}
+  </div>
+
+  {/* 🔥 COLUNA (SAIR + DARK) */}
+  <div style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 6
+  }}>
 
     {/* 🔥 BOTÃO SAIR */}
     <button
       onClick={sair}
       style={{
-        padding: "2px 8px",
+        padding: "8px 12px",
         borderRadius: 10,
         border: "none",
-        background: "#38094e",
+        background: "linear-gradient(90deg,#2500c7,#56007e)",
         color: "#fff",
-        cursor: "pointer",
-        fontSize: 24
+        fontSize: 12,
+        cursor: "pointer"
       }}
     >
       Sair
     </button>
 
-          {carrinho.length > 0 && (
-            <span style={{
-              position: "absolute",
-              top: -8,
-              right: -10,
-              background: "#ff2aff",
-              color: "#fff",
-              borderRadius: "50%",
-              padding: "2px 6px",
-              fontSize: 10
-            }}>
-              {carrinho.length}
-            </span>
-          )}
-        </div>
+    {/* 🌙 BOTÃO DARK MODE */}
+    <button
+      onClick={() => setDark(!dark)}
+      style={{
+        padding: "6px 10px",
+        borderRadius: 10,
+        border: "none",
+
+        background: dark ? "#111" : "#eee",
+        color: dark ? "#fff" : "#111",
+
+        fontSize: 11,
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      }}
+    >
+      {dark ? "🌙 Escuro" : "☀️ Claro"}
+    </button>
+
+  </div>
+
+</div>
 
       </div>
 
-      {/* 🔥 SAUDAÇÃO */}
-      <h3 style={{ marginBottom: 10 }}>
-        👋 Olá, <span style={{ color: "#a855f7" }}>
-          {clienteNome || "Cliente"}
-        </span>
-      </h3>
+      {/* 🔥 MENU INFERIOR */}
+<div style={{
+  position: "fixed",
+  bottom: 10,
+  left: 0,
+  right: 0,
+  display: "flex",
+  justifyContent: "center",
+  zIndex: 9999
+}}>
 
-      {/* 🔥 MENU */}
-      <div style={{
-        display: "flex",
-        gap: 8,
-        flexWrap: "wrap",
-        marginBottom: 15
-      }}>
+  <div style={{
+    width: "90%",
+    maxWidth: 420,
+    height: 65,
+    background: themeAtual.card,
+    borderRadius: 20,
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+  }}>
 
-        <button onClick={() => {
-        setStep(1);
-        setCategoria("acai"); // 🔥 volta pra aba Açaí
-        setBusca(""); // 🔥 limpa busca
-        }}>
-        Início
-       </button>
+    <div onClick={() => setStep(1)} style={{ cursor: "pointer" }}>🏠</div>
 
-        <button onClick={() => setStep(5)}>Pedidos</button>
+    <div onClick={() => setStep(5)} style={{ cursor: "pointer" }}>📄</div>
 
-        <button onClick={() => setStep(3)}>Carrinho</button>
+    <div onClick={() => setStep(3)} style={{ cursor: "pointer" }}>🛒</div>
 
-        <button onClick={() => setStep(4)}>Dados</button>
+    <div onClick={() => setStep(4)} style={{ cursor: "pointer" }}>👤</div>
 
-        <button onClick={() => setStep(99)}>Informações</button>
+  </div>
 
-        <button onClick={() => setDark(!dark)}>
-          {dark ? "Escuro🌙" : "Claro☀️"}
-        </button>
+</div>
 
-      </div>
-
+{toast && (
+  <div
+    onClick={() => setStep(3)}
+    style={{
+      position: "fixed",
+      bottom: 90,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      color: "#fff",
+      padding: "14px 20px",
+      borderRadius: 14,
+      fontWeight: "bold",
+      boxShadow: "0 0 25px rgba(122,0,255,0.6)",
+      zIndex: 9999,
+      cursor: "pointer"
+    }}
+  >
+    🛒 {toast.nome} adicionado • Ver carrinho
+  </div>
+)}
       
 
       
@@ -766,107 +1046,85 @@ return (
       </div>
     )}
 
-{/* 🔥 buscar produtos */}
-<div className="buscaBox">
-  <input
-    placeholder="🔍 Buscar produto..."
-    value={busca}
-    onChange={(e) => setBusca(e.target.value)}
-  />
-</div>
+    {/* 🔍 BUSCA */}
+    <div style={{ marginBottom: 10 }}>
+      <input
+        placeholder="🔍 Buscar produto..."
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        style={{
+          width: "100%",
+          padding: 12,
+          borderRadius: 12,
+          border: "none",
+          outline: "none",
+          background: themeAtual.card,
+          color: themeAtual.text
+        }}
+      />
+    </div>
 
-{/* 🔥 abas dos produtos */}
-   <div className="tabs">
-     
-  <button
-  onClick={() => setCategoria("acai")}
-  className={categoria === "acai" ? "activeTab" : ""}
->
-   Açaí
-</button>
-
-<button
-  onClick={() => setCategoria("bebidas")}
-  className={categoria === "bebidas" ? "activeTab" : ""}
->
-   Bebidas
-</button>
-
-<button
-  onClick={() => setCategoria("teste")}
-  className={categoria === "teste" ? "activeTab" : ""}
->
-   Teste
-</button>
-
-<button
-  onClick={() => setCategoria("teste2")}
-  className={categoria === "teste2" ? "activeTab" : ""}
->
-   Teste2
-</button>
-
-<button
-  onClick={() => setCategoria("teste3")}
-  className={categoria === "teste3" ? "activeTab" : ""}
->
-   Teste3
-</button>
-
-</div>
-
-    {produtos.length === 0 ? (
-
-      /* 🔥 SKELETON SHIMMER */
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 10
-      }}>
-        {[1,2,3,4].map(i => (
-          <div key={i} style={{
-            height: 180,
+    {/* 🔥 TABS */}
+    <div style={{
+      display: "flex",
+      gap: 8,
+      overflowX: "auto",
+      marginBottom: 12
+    }}>
+      {["acai","bebidas","teste","teste2","teste3"].map(cat => (
+        <button
+          key={cat}
+          onClick={() => {
+            setCategoria(cat);
+            setProduto(null);
+            setSelectedId(null);
+            setExtras([]);
+            setQuantidade(1);
+            setStep(1);
+          }}
+          style={{
+            padding: "8px 14px",
             borderRadius: 20,
-            background: "linear-gradient(90deg,#222,#333,#222)",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 1.5s infinite"
-          }} />
-        ))}
-      </div>
+            border: "none",
+            cursor: "pointer",
+            background: categoria === cat
+              ? "linear-gradient(90deg,#6a00ff,#ff2aff)"
+              : themeAtual.card,
+            color: categoria === cat ? "#fff" : themeAtual.text,
+            whiteSpace: "nowrap"
+          }}
+        >
+          {cat.toUpperCase()}
+        </button>
+      ))}
+    </div>
 
-    ) : (
+    {/* 🔥 GRID */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12
+    }}>
 
-      /* 🔥 GRID */
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 10
-      }}>
-      {/* 🔥 PRODUTOS MAP*/}
-              {produtos
-             .filter(p => {
+      {produtos
+        .filter(p => {
 
-            const nome = p.nome?.toLowerCase() || "";
-            const termo = busca.toLowerCase();
+          const nome = p.nome?.toLowerCase() || "";
+          const termo = busca.toLowerCase();
 
-            const categoriaProduto = String(p.categoria || "")
+          const categoriaProduto = String(p.categoria || "")
             .trim()
             .toLowerCase();
 
-            const categoriaAtual = String(categoria || "")
+          const categoriaAtual = String(categoria || "")
             .trim()
             .toLowerCase();
 
-    // 🔍 BUSCA
-    if (busca) {
-      return nome.includes(termo);
-    }
+          if (busca) return nome.includes(termo);
 
-    // 📂 CATEGORIA
-    return categoriaProduto === categoriaAtual;
-  })
-  .map(p => {
-          const ativo = selectedId === p.id;
+          return categoriaProduto === categoriaAtual;
+        })
+        .map(p => {
 
           return (
             <div
@@ -878,58 +1136,42 @@ return (
                   return;
                 }
 
-                // 🔥 RIPPLE
-                const rippleSpan = document.createElement("span");
-                rippleSpan.style.position = "absolute";
-                rippleSpan.style.background = "rgba(255,255,255,0.4)";
-                rippleSpan.style.borderRadius = "50%";
-                rippleSpan.style.transform = "scale(0)";
-                rippleSpan.style.animation = "ripple 0.5s linear";
-                rippleSpan.style.left = e.nativeEvent.offsetX + "px";
-                rippleSpan.style.top = e.nativeEvent.offsetY + "px";
-                rippleSpan.style.width = rippleSpan.style.height = "100px";
-
-                e.currentTarget.appendChild(rippleSpan);
-                setTimeout(() => rippleSpan.remove(), 500);
-
                 setProduto(p);
                 setSelectedId(p.id);
 
-                setTimeout(() => setStep(2), 120);
+                if (p.categoria === "bebidas") {
+
+                  const total = p.preco || 0;
+
+                  setCarrinho(prev => [
+                    ...prev,
+                    {
+                      produto: p,
+                      quantidade: 1,
+                      extras: [],
+                      total
+                    }
+                  ]);
+
+                  setToast({ nome: p.nome });
+                  setTimeout(() => setToast(null), 2000);
+
+                  return;
+                }
+
+                setStep(2);
               }}
               style={{
-                borderRadius: 20,
+                borderRadius: 18,
                 overflow: "hidden",
-                position: "relative",
-                cursor: lojaAberta ? "pointer" : "not-allowed",
-                opacity: lojaAberta ? 1 : 0.5,
-                transform: ativo ? "scale(0.96)" : "scale(1)",
+                cursor: "pointer",
+                background: themeAtual.card,
                 transition: "all 0.2s ease",
-                boxShadow: ativo
-                  ? "0 0 20px rgba(122,0,255,0.6)"
-                  : "0 0 10px rgba(0,0,0,0.2)"
+                boxShadow: "0 5px 15px rgba(0,0,0,0.15)"
               }}
             >
 
-              {/* 🔥 BADGE */}
-              {p.maisVendido && (
-                <div style={{
-                  position: "absolute",
-                  top: 8,
-                  left: 8,
-                  background: "linear-gradient(90deg,#ee737a,#ee737a)",
-                  color: "#fff",
-                  padding: "4px 8px",
-                  borderRadius: 10,
-                  fontSize: 10,
-                  fontWeight: "bold",
-                  zIndex: 2
-                }}>
-                  🔥 Mais vendido
-                </div>
-              )}
-
-              {/* IMAGEM */}
+              {/* 🔥 IMAGEM */}
               <img
                 src={
                   typeof p.imagem === "string" &&
@@ -945,509 +1187,814 @@ return (
                 }}
               />
 
-              {/* OVERLAY */}
-              <div style={{
-                position: "absolute",
-                bottom: 0,
-                width: "100%",
-                padding: 10,
-                background: "linear-gradient(to top, rgba(0,0,0,0.75), transparent)"
-              }}>
+              {/* 🔥 INFO */}
+              <div style={{ padding: 10 }}>
 
-                {/* PREÇO */}
-                <div style={{
-                  background: "rgba(255,255,255,0.2)",
-                  backdropFilter: "blur(10px)",
-                  padding: "4px 8px",
-                  borderRadius: 10,
+                <p style={{
                   fontWeight: "bold",
+                  margin: 0
+                }}>
+                  {p.nome}
+                </p>
+
+                <p style={{
                   fontSize: 12,
-                  color: "#fff",
-                  width: "fit-content",
-                  marginBottom: 4
+                  opacity: 0.7,
+                  marginTop: 4
+                }}>
+                  {p.descricao || "Açaí com complementos"}
+                </p>
+
+                <strong style={{
+                  color: "#6a00ff"
                 }}>
                   R$ {Number(p.preco || 0).toFixed(2)}
-                </div>
-
-                {/* NOME */}
-                <div style={{
-                  fontSize: 13,
-                  fontWeight: "bold",
-                  color: "#fff"
-                }}>
-                  {p.nome} {p.tamanho || ""}
-                </div>
-
-                {/* DESCRIÇÃO */}
-                <div style={{
-                  fontSize: 11,
-                  color: "#ddd",
-                  opacity: 0.9,
-                  marginTop: 2,
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden"
-                }}>
-                  {p.descricao || "Açaí tradicional com complementos"}
-                </div>
+                </strong>
 
               </div>
 
             </div>
           );
         })}
-      </div>
 
-    )}
-
-   
+    </div>
   </>
 )}
         {step === 2 && (
   <>
-    <h3>✨ Personalize seu açaí</h3>
-
-    {/* QUANTIDADE */}
+    {/* 🔥 IMAGEM TOPO */}
     <div style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      marginBottom: 15
+      width: "100%",
+      height: 220,
+      overflow: "hidden",
+      borderBottomLeftRadius: 20,
+      borderBottomRightRadius: 20
     }}>
-      <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>-</button>
-      <strong>{quantidade}</strong>
-      <button onClick={() => setQuantidade(q => q + 1)}>+</button>
+      <img
+        src={produto?.imagem || "/acai.png"}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover"
+        }}
+      />
     </div>
 
-    {/* EXTRAS */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 10
-    }}>
+    {/* 🔥 INFO PRODUTO */}
+    <div style={{ padding: 15 }}>
 
-      {adicionais.map(e => {
-        const selected = extras.find(x => x.nome === e.nome);
+      <h2 style={{ margin: 0 }}>
+        {produto?.nome}
+      </h2>
 
-        return (
-          <div
-            key={e.nome}
-            onClick={() => toggleExtra(e)}
-            style={{
-              padding: 12,
-              borderRadius: 14,
-              cursor: "pointer",
-              border: selected
-                ? "2px solid #7a00ff"
-                : "1px solid #ccc",
-              background: selected
-                ? "rgba(122,0,255,0.15)"
-                : themeAtual.card,
-              transition: "0.2s"
-            }}
-          >
+      <p style={{ opacity: 0.7, fontSize: 14 }}>
+        {produto?.descricao || "Monte seu açaí com complementos"}
+      </p>
 
-            {/* NOME */}
-            <div style={{
-              fontWeight: "bold",
-              marginBottom: 4
-            }}>
-              {e.nome}
-            </div>
+      <h3 style={{ marginTop: 5 }}>
+        R$ {Number(produto?.preco || 0).toFixed(2)}
+      </h3>
 
-            {/* PREÇO */}
-            <div style={{
-              fontSize: 13,
-              opacity: 0.8
-            }}>
-              + R$ {Number(e.preco).toFixed(2)}
-            </div>
-
-          </div>
-        );
-      })}
+      {/* 🔥 QUANTIDADE */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        marginTop: 15
+      }}>
+        <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>➖</button>
+        <strong>{quantidade}</strong>
+        <button onClick={() => setQuantidade(q => q + 1)}>➕</button>
+      </div>
 
     </div>
 
-    {/* TOTAL DINÂMICO */}
-    <div style={{
-      marginTop: 15,
-      padding: 12,
-      borderRadius: 12,
+    {/* 🔥 EXTRAS */}
+    <div style={{ padding: 15 }}>
+
+      <h4>Escolha seus adicionais</h4>
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10,
+        marginTop: 10
+      }}>
+
+        {adicionais.map(e => {
+          const selected = extras.find(x => x.nome === e.nome);
+
+          return (
+            <div
+              key={e.nome}
+              onClick={() => toggleExtra(e)}
+              style={{
+                padding: 12,
+                borderRadius: 14,
+                cursor: "pointer",
+                border: selected
+                  ? "2px solid #6a00ff"
+                  : "1px solid #ddd",
+                background: selected
+                  ? "rgba(122,0,255,0.1)"
+                  : themeAtual.card,
+                transition: "0.2s"
+              }}
+            >
+
+              <div style={{ fontWeight: "bold" }}>
+                {e.nome}
+              </div>
+
+              <div style={{ fontSize: 13, opacity: 0.7 }}>
+                + R$ {Number(e.preco).toFixed(2)}
+              </div>
+
+            </div>
+          );
+        })}
+
+      </div>
+
+    </div>
+
+    {/* 🔥 BOTÃO FIXO (ESTILO IFOOD) */}
+<div style={{
+  position: "fixed",
+  bottom: 90,
+  left: 0,
+  right: 0,
+  display: "flex",
+  justifyContent: "center",
+  zIndex: 999
+}}>
+
+  <button
+    onClick={adicionarCarrinho}
+    style={{
+      width: "90%",
+      maxWidth: 420,
+
+      padding: "12px 16px",
+      borderRadius: 16,
+
       background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
       color: "#fff",
+
+      border: "none",
       fontWeight: "bold",
-      textAlign: "center"
-    }}>
-      Total: R$ {((produto?.preco || 0) + totalExtras).toFixed(2)}
-    </div>
+      fontSize: 14,
 
-    {/* BOTÕES */}
-    <button style={{ marginTop: 10 }} onClick={adicionarCarrinho}>
-      🛒 Adicionar ao carrinho
-    </button>
+      display: "block",
+      boxSizing: "border-box",
 
-    <button onClick={() => setStep(1)}>
-      ← Voltar
-    </button>
+      boxShadow: "0 5px 20px rgba(122,0,255,0.4)"
+    }}
+  >
+    🛒 Adicionar • R$ {((produto?.preco || 0) + totalExtras).toFixed(2)}
+  </button>
+
+</div>
+
+    {/* 🔥 ESPAÇO PRA NÃO FICAR ESCONDIDO */}
+    <div style={{ height: 100 }} />
+
   </>
 )}
 
-        {step === 3 && (
+  {step === 3 && (
   <>
-    <h3>🛒 Seu Carrinho</h3>
+    <h3 style={{ marginBottom: 10 }}>🛒 Sacola</h3>
 
-    {carrinho.length === 0 && (
-      <p>Seu carrinho está vazio</p>
-    )}
-
+    {/* 🔥 ITENS */}
     {carrinho.map((item, i) => (
-      <div key={i} style={{
-        background: themeAtual.card,
-        padding: 15,
-        borderRadius: 16,
-        marginBottom: 10,
-        boxShadow: "0 0 10px rgba(0,0,0,0.2)"
-      }}>
+      <div
+        key={i}
+        style={{
+          background: themeAtual.card,
+          padding: 15,
+          borderRadius: 16,
+          marginBottom: 12,
+          display: "flex",
+          gap: 10
+        }}
+      >
 
-        {/* 🔥 PRODUTO */}
-        <p style={{ fontWeight: "bold", fontSize: 16 }}>
-          {item.produto.nome}
-        </p>
+        {/* IMAGEM */}
+        <img
+          src={item.produto.imagem || "/acai.png"}
+          style={{
+            width: 70,
+            height: 70,
+            borderRadius: 12,
+            objectFit: "cover"
+          }}
+        />
 
-        {/* 🔥 QUANTIDADE */}
-        <p style={{ fontSize: 13, opacity: 0.8 }}>
-          Quantidade: {item.quantidade}
-        </p>
+        {/* INFO */}
+        <div style={{ flex: 1 }}>
 
-        {/* 🔥 EXTRAS */}
-        {item.extras?.length > 0 && (
-          <div style={{ marginTop: 5 }}>
-            {item.extras.map(e => (
-              <div key={e.nome} style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 13
-              }}>
-                <span>+ {e.nome}</span>
-                <span>R$ {Number(e.preco).toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-        )}
+          <strong>{item.produto.nome}</strong>
 
-        {/* 🔥 TOTAL ITEM */}
-        <p style={{
-          marginTop: 8,
-          fontWeight: "bold",
-          color: "#a855f7"
+          <p style={{ fontSize: 13, opacity: 0.7 }}>
+            {item.produto.descricao}
+          </p>
+
+          {/* EXTRAS */}
+          {item.extras?.map(e => (
+            <div key={e.nome} style={{
+              fontSize: 12,
+              opacity: 0.7
+            }}>
+              • {e.nome}
+            </div>
+          ))}
+
+          <p style={{ marginTop: 6 }}>
+            R$ {Number(item.total).toFixed(2)}
+          </p>
+
+        </div>
+
+        {/* QUANTIDADE */}
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6
         }}>
-          Total: R$ {Number(item.total).toFixed(2)}
-        </p>
-       {/* 🔥 EDITAR PEDIDO */}
-        <button onClick={() => editarItem(i)}>
-        ✏️ Editar
-       </button>
-
-        {/* 🔥 AÇÕES */}
-        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-          <button onClick={() => removerItem(i)}>
-            🗑️ Remover
-          </button>
+          <button onClick={() => alterarQuantidade(i, "mais")}>➕</button>
+          <strong>{item.quantidade}</strong>
+          <button onClick={() => alterarQuantidade(i, "menos")}>➖</button>
         </div>
 
       </div>
     ))}
 
-    {/* 🔥 CUPOM */}
-<div style={{
-  marginTop: 15,
-  padding: 12,
-  borderRadius: 14,
-  border: "2px solid #7a00ff",
-  background: themeAtual.card
-}}>
+    {/* 🔥 CUPOM SIMPLES */}
+    <div style={{
+      background: themeAtual.card,
+      padding: 15,
+      borderRadius: 16,
+      marginTop: 10
+    }}>
+      <strong>🎟️ Cupom</strong>
 
-  <strong>🎟️ Cupom de desconto</strong>
+      <button
+        onClick={aplicarMelhorCupom}
+        style={{
+          width: "100%",
+          marginTop: 10,
+          padding: 10,
+          borderRadius: 10,
+          background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+          color: "#fff",
+          border: "none"
+        }}
+      >
+        ⚡ Aplicar melhor desconto
+      </button>
+    </div>
 
-  <p style={{
-    fontSize: 12,
-    opacity: 0.7,
-    marginTop: 4
-  }}>
-    Use um cupom para ganhar desconto (ex: DESCONTO10)
-  </p>
-
-  <div style={{
-    display: "flex",
-    gap: 8,
-    marginTop: 10
-  }}>
-
-    <input
-  placeholder="Cupom"
-  value={cupomInput}
-  disabled={!!cupomAplicado}
-  onChange={(e) => setCupomInput(e.target.value.toUpperCase())}
-/>
-
-<button
-  onClick={aplicarCupom}
-  disabled={!!cupomAplicado}
->
-  Aplicar cupom
-</button>
-
-{/* 🔥 PASSO 4 AQUI */}
+    {/* 🔥 CUPOM APLICADO (COM REMOVER) */}
 {cupomAplicado && (
-  <button
-    onClick={() => {
-      setCupomAplicado(null);
-      setCupomInput("");
-    }}
-    style={{
-      marginTop: 8,
-      background: "#9a03ff",
-      color: "#fff"
-      
-    }}
-  >
-    ❌ Remover cupom
-  </button>
-)}
-
-  </div>
-
-</div>
-
-{/* 🔥 FEEDBACK DO CUPOM */}
-{cupomAtivo && (
   <div style={{
     marginTop: 10,
     padding: 12,
     borderRadius: 12,
-    background: "linear-gradient(90deg,#5a00ff,#8a00ff)",
-    color: "#fff",
+    background: dark ? "rgba(0,255,136,0.08)" : "rgba(0,255,136,0.1)",
     display: "flex",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    alignItems: "center"
   }}>
-    <span>✔ Cupom: {cupomAtivo}</span>
-    <strong>- R$ {descontoCupom.toFixed(2)}</strong>
+
+    <div>
+      <p style={{
+        color: "#00c853",
+        fontWeight: "bold",
+        margin: 0
+      }}>
+        🎟️ {cupomAplicado.nome}
+      </p>
+
+      <small>
+        💸 Economizou R$ {desconto.toFixed(2)}
+      </small>
+    </div>
+
+    <button
+      onClick={() => {
+        setCupomAplicado(null);
+        setDesconto(0);
+        setCupomInput("");
+      }}
+      style={{
+        background: "#ff0033",
+        color: "#fff",
+        border: "none",
+        borderRadius: 8,
+        padding: "6px 10px",
+        fontSize: 12,
+        cursor: "pointer"
+      }}
+    >
+      ❌ Remover
+    </button>
+
   </div>
 )}
 
-    {/* 🔥 TOTAL FINAL */}
+    {/* 🔥 RESUMO */}
     <div style={{
-      marginTop: 15,
-      padding: 14,
-      borderRadius: 14,
-      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-      color: "#fff",
-      textAlign: "center",
-      fontWeight: "bold"
+      background: themeAtual.card,
+      padding: 15,
+      borderRadius: 16,
+      marginTop: 10
     }}>
-      <p>Subtotal: R$ {Number(totalCarrinho || 0).toFixed(2)}</p>
 
-    {cupomAplicado && (
-    <p style={{ color: "#22c55e" }}>
-    Desconto: -R$ {(Number(valorDesconto || 0)).toFixed(2)}
-   </p>
-)}
+      <h4>Resumo</h4>
 
-<p>
-  <strong>Total: R$ {(Number(totalFinal || 0)).toFixed(2)}</strong>
-</p>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <span>Subtotal</span>
+        <span>R$ {total.toFixed(2)}</span>
+      </div>
+
+      {desconto > 0 && (
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          color: "#00c853"
+        }}>
+          <span>Desconto</span>
+          <span>-R$ {desconto.toFixed(2)}</span>
+        </div>
+      )}
+
+      <hr style={{ margin: "10px 0", opacity: 0.2 }} />
+
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        fontWeight: "bold"
+      }}>
+        <span>Total</span>
+        <span>R$ {(total - desconto).toFixed(2)}</span>
+      </div>
+
     </div>
-{/* 🔥 FINALIZAR PEDIDO */}
-<button
-  style={{
-    padding: 12,
-    borderRadius: 12,
-    background: "#6a00ff",
-    color: "#fff"
+
+    {/* 🔥 ESPAÇO */}
+    <div style={{ height: 120 }} />
+
+    {/* 🔥 BOTÃO FIXO */}
+    <div style={{
+      position: "fixed",
+      bottom: 90,
+      left: 0,
+      right: 0,
+      display: "flex",
+      justifyContent: "center"
+    }}>
+
+      <button
+  onClick={() => {
+    // 🔥 VALIDAÇÃO INTELIGENTE
+    if (!clienteNome || !clienteEndereco || !clienteTelefone) {
+      alert("⚠️ Preencha seus dados para continuar");
+      setStep(4); // vai pra dados
+      return;
+    }
+
+    // 🔥 SE JÁ TEM DADOS → VAI DIRETO
+    setStep(6); // pagamento ou próximo passo
   }}
-  onClick={finalizarPedido}
+  style={{
+    width: "90%",
+    maxWidth: 380,
+
+    padding: "12px",
+    borderRadius: 18,
+
+    background: dark
+      ? "linear-gradient(90deg,#9333ea,#c026d3)"
+      : "linear-gradient(90deg,#ff0033,#ff4d4d)",
+
+    color: "#fff",
+    border: "none",
+
+    fontWeight: "bold",
+    fontSize: 14,
+
+    boxShadow: dark
+      ? "0 8px 25px rgba(147,51,234,0.4)"
+      : "0 8px 25px rgba(255,0,51,0.3)",
+
+    transition: "all 0.2s ease",
+    cursor: "pointer"
+  }}
+
+  // 🔥 EFEITO CLIQUE PREMIUM
+  onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.96)"}
+  onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
 >
-  📲 Finalizar Pedido
+  🚀 Continuar pedido
 </button>
 
-    <button onClick={() => setStep(2)}>
-      ← Voltar
-    </button>
+    </div>
   </>
 )}
 {/* STEP 4 */}
-   {step === 4 && (
+{step === 4 && (
   <>
-    <h3>👤 Dados do Cliente</h3>
+    <h3 style={{ marginBottom: 10 }}>👤 Seus dados</h3>
 
-    <div className="dadosGrid" style={{
-     background: themeAtual.card,
-     padding: 20,
-     borderRadius: 16
-     }}>
+    {/* 🔥 CARD */}
+    <div style={{
+      background: themeAtual.card,
+      padding: 20,
+      borderRadius: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }}>
 
-      {/* NOME */}
-      <div>
-        <small style={{ opacity: 0.6 }}>Nome</small>
-        <input
-          value={clienteNome}
-          onChange={(e) => setClienteNome(e.target.value)}
-        />
-      </div>
+      {/* INPUT PADRÃO */}
+      {[
+        {
+          label: "Nome",
+          value: clienteNome,
+          onChange: (e) => setClienteNome(e.target.value)
+        },
+        {
+          label: "CPF",
+          value: clienteCpf,
+          disabled: true
+        },
+        {
+          label: "Telefone",
+          value: clienteTelefone,
+          onChange: (e) => {
+            const formatado = formatarTelefone(e.target.value);
+            setClienteTelefone(formatado);
+          },
+          placeholder: "(00) 00000-0000"
+        },
+        {
+          label: "Email",
+          value: clienteEmail,
+          disabled: true
+        },
+        {
+          label: "CEP",
+          value: clienteCep,
+          onChange: (e) => {
+            const formatado = formatarCEP(e.target.value);
+            setClienteCep(formatado);
 
-      {/* CPF BLOQUEADO */}
-      <div>
-        <small style={{ opacity: 0.6 }}>CPF</small>
-        <input
-          value={clienteCpf}
-          disabled
-          style={{
-            
-            cursor: "not-allowed"
-          }}
-        />
-      </div>
+            const cepLimpo = formatado.replace(/\D/g, "");
+            if (cepLimpo.length === 8) buscarCEP(cepLimpo);
+          },
+          placeholder: "00000-000"
+        },
+        {
+          label: "Endereço",
+          value: clienteEndereco,
+          onChange: (e) => setClienteEndereco(e.target.value)
+        },
+        {
+          label: "Número",
+          value: clienteNumeroCasa,
+          onChange: (e) => setClienteNumeroCasa(e.target.value)
+        }
+      ].map((field, i) => (
+        <div key={i}>
+          <small style={{ opacity: 0.6 }}>{field.label}</small>
 
-      {/* TELEFONE */}
-<div>
-  <small style={{ opacity: 0.6 }}>Telefone</small>
-  <input
-    value={clienteTelefone}
-    onChange={(e) => {
-      const formatado = formatarTelefone(e.target.value);
-      setClienteTelefone(formatado);
-    }}
-    placeholder="(00) 00000-0000"
-  />
-</div>
+          <input
+            value={field.value}
+            onChange={field.onChange}
+            disabled={field.disabled}
+            placeholder={field.placeholder}
+            style={{
+              width: "100%",
+              padding: 12,
+              borderRadius: 12,
+              border: "none",
+              outline: "none",
+              marginTop: 4,
+              background: dark ? "#111" : "#fff",
+              color: themeAtual.text,
+              cursor: field.disabled ? "not-allowed" : "text"
+            }}
+          />
+        </div>
+      ))}
 
-      {/* EMAIL */}
-      <div>
-  <small style={{ opacity: 0.6 }}>Email</small>
-  <input
-    type="email"
-    value={clienteEmail}
-    disabled
+    </div>
+
+    {/* 🔥 ESPAÇO PRA BOTÃO FIXO */}
+    <div style={{ height: 100 }} />
+
+    {/* 🔥 BOTÃO FIXO (IGUAL IFOOD) */}
+    <div style={{
+  position: "fixed",
+  bottom: 90,
+  left: 0,
+  right: 0,
+  display: "flex",
+  justifyContent: "center",
+  zIndex: 999
+}}>
+
+  <button
+    onClick={salvarDadosCliente}
+    disabled={!authReady}
     style={{
-     cursor: "not-allowed"
-    }}
-  />
-</div>
-
-      {/* CEP */}
-      <div>
-  <small style={{ opacity: 0.6 }}>CEP</small>
-  <input
-    value={clienteCep}
-    onChange={(e) => {
-      const formatado = formatarCEP(e.target.value);
-      setClienteCep(formatado);
-
-      const cepLimpo = formatado.replace(/\D/g, "");
-
-      if (cepLimpo.length === 8) {
-        buscarCEP(cepLimpo);
-      }
-    }}
-    placeholder="00000-000"
-  />
-</div>
-
-      {/* ENDEREÇO */}
-      <div>
-        <small style={{ opacity: 0.6 }}>Endereço</small>
-        <input
-          value={clienteEndereco}
-          onChange={(e) => setClienteEndereco(e.target.value)}
-        />
-      </div>
-
-      {/* NÚMERO */}
-      <div>
-        <small style={{ opacity: 0.6 }}>Número</small>
-        <input
-          value={clienteNumeroCasa}
-          onChange={(e) => setClienteNumeroCasa(e.target.value)}
-        />
-      </div>
-
-    </div>
-
-    {/* BOTÕES */}
-    <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-      <button
-  onClick={salvarDadosCliente}
-  disabled={!authReady}
->
-  💾 Salvar dados
-</button>
-
-      <button onClick={() => setStep(1)}>
-        ← Voltar
-      </button>
-    </div>
+      width: "90%",
+          maxWidth: 420,
+          padding: 14,
+          borderRadius: 20,
+          background: "#3d03c4",
+          color: "#fff",
+          border: "none",
+          fontWeight: "bold",
+          boxShadow: "0 10px 30px rgba(49, 4, 131, 0.3)"
+         }}
+         >
+         💾 Salvar e continuar
+        </button>
+   </div>
   </>
 )}
-
 {step === 5 && (
   <>
-    <h3>📦 Seus pedidos</h3>
+    <h3 style={{ marginBottom: 10 }}>📦 Histórico</h3>
 
     {pedidos.length === 0 && (
       <p>Nenhum pedido ainda</p>
     )}
 
     {pedidos.map((p, i) => (
-      <div key={i} style={{
-        background: themeAtual.card,
-        padding: 15,
-        borderRadius: 14,
-        marginBottom: 10
-      }}>
+      <div key={i} style={{ marginBottom: 15 }}>
 
-        {/* 🔥 CÓDIGO */}
-        <p><strong>Pedido #{p.codigo}</strong></p>
-
-        {/* 🔥 CLIENTE (CORRIGIDO) */}
-        <p>👤 {p.cliente?.nome}</p>
-        <p>📞 {p.cliente?.telefone}</p>
-
-        {p.cliente?.endereco && (
-          <p>
-            📍 {p.cliente.endereco}, {p.cliente.numero}
-          </p>
-        )}
-
-        {/* 🔥 STATUS */}
-        <p>Status: 
-          <span style={{
-            color:
-              p.status === "preparando" ? "#facc15" :
-              p.status === "saiu para entrega" ? "#60a5fa" :
-              "#4ade80"
-          }}>
-            {" " + p.status}
-          </span>
+        {/* DATA */}
+        <p style={{ opacity: 0.6, fontSize: 13 }}>
+          {new Date(p.data || Date.now()).toLocaleDateString("pt-BR")}
         </p>
 
-        {/* 🔥 TOTAL */}
-        <p>Total: R$ {Number(p.total).toFixed(2)}</p>
+        {/* CARD */}
+        <div style={{
+          background: themeAtual.card,
+          padding: 15,
+          borderRadius: 16,
+          border: "1px solid rgba(0,0,0,0.05)"
+        }}>
 
-        {/* 🔥 DATA */}
-        <small style={{ opacity: 0.6 }}>
-          {new Date(p.data).toLocaleString()}
-        </small>
+          {/* TOPO */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10
+          }}>
+
+            <img
+              src={p.itens?.[0]?.produto?.imagem || "/acai.png"}
+              style={{
+                width: 45,
+                height: 45,
+                borderRadius: "50%",
+                objectFit: "cover"
+              }}
+            />
+
+            <div style={{ flex: 1 }}>
+              <strong>Acai Daiane</strong>
+
+              <div style={{
+                fontSize: 12,
+                color:
+                  p.status === "preparando" ? "#facc15" :
+                  p.status === "saiu para entrega" ? "#60a5fa" :
+                  "#00c853"
+              }}>
+                {p.status}
+              </div>
+            </div>
+
+            <img
+              src={p.itens?.[0]?.produto?.imagem || "/acai.png"}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                objectFit: "cover"
+              }}
+            />
+
+          </div>
+
+          {/* ITENS */}
+          <div style={{
+            marginTop: 10,
+            fontSize: 13,
+            opacity: 0.8
+          }}>
+            {p.itens?.map((item, idx) => (
+              <div key={idx}>
+                {item.quantidade}x {item.produto.nome}
+              </div>
+            ))}
+          </div>
+
+          {/* TOTAL */}
+          <div style={{
+            marginTop: 10,
+            fontWeight: "bold"
+          }}>
+            R$ {Number(p.total).toFixed(2)}
+          </div>
+
+          {/* AÇÕES */}
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 12,
+            borderTop: "1px solid rgba(0,0,0,0.1)",
+            paddingTop: 10
+          }}>
+
+            <button style={{
+              background: "transparent",
+              border: "none",
+              color: "#ff0033",
+              fontWeight: "bold"
+            }}>
+              Ajuda
+            </button>
+
+            <button
+              onClick={() => {
+                setCarrinho(p.itens);
+                setStep(3);
+              }}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#ff0033",
+                fontWeight: "bold"
+              }}
+            >
+              Pedir novamente
+            </button>
+
+          </div>
+
+        </div>
 
       </div>
     ))}
 
+    {/* VOLTAR */}
     <button onClick={() => setStep(1)}>
       ← Voltar
     </button>
   </>
 )}
+
+{step === 6 && (
+  <>
+    <h3 style={{ marginBottom: 10 }}>💰 Pagamento</h3>
+
+    {/* 🔥 RESUMO DO PEDIDO */}
+    <div style={{
+      background: themeAtual.card,
+      padding: 15,
+      borderRadius: 16,
+      marginBottom: 10
+    }}>
+
+      <h4>🧾 Resumo</h4>
+
+      {/* ITENS */}
+      {carrinho.map((item, i) => (
+        <div key={i} style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 13,
+          marginBottom: 4
+        }}>
+          <span>{item.quantidade}x {item.produto.nome}</span>
+          <span>R$ {Number(item.total).toFixed(2)}</span>
+        </div>
+      ))}
+
+      <hr style={{ margin: "10px 0", opacity: 0.2 }} />
+
+      {/* SUBTOTAL */}
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <span>Subtotal</span>
+        <span>R$ {total.toFixed(2)}</span>
+      </div>
+
+      {/* DESCONTO */}
+      {desconto > 0 && (
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          color: "#00c853"
+        }}>
+          <span>Desconto</span>
+          <span>-R$ {desconto.toFixed(2)}</span>
+        </div>
+      )}
+
+      <hr style={{ margin: "10px 0", opacity: 0.2 }} />
+
+      {/* TOTAL FINAL */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        fontWeight: "bold",
+        fontSize: 16
+      }}>
+        <span>Total</span>
+        <span>R$ {(total - desconto).toFixed(2)}</span>
+      </div>
+
+    </div>
+
+    {/* 🔥 FORMA DE PAGAMENTO */}
+    <div style={{
+      background: themeAtual.card,
+      padding: 15,
+      borderRadius: 16,
+      marginBottom: 10
+    }}>
+      <h4>💳 Forma de pagamento</h4>
+
+      <div style={{
+        marginTop: 10,
+        padding: 10,
+        borderRadius: 12,
+        background: dark ? "#111" : "#f5f5f5",
+        textAlign: "center",
+        fontWeight: "bold"
+      }}>
+        PIX 💰
+      </div>
+    </div>
+
+    {/* 🔥 ESPAÇO */}
+    <div style={{ height: 120 }} />
+
+    {/* 🔥 BOTÃO FIXO CONFIRMAR */}
+    <div style={{
+      position: "fixed",
+      bottom: 90,
+      left: 0,
+      right: 0,
+      display: "flex",
+      justifyContent: "center",
+      zIndex: 999
+    }}>
+
+      <button
+        onClick={finalizarPedido}
+        style={{
+          width: "90%",
+          maxWidth: 380,
+          padding: "12px",
+          borderRadius: 18,
+
+          background: dark
+            ? "linear-gradient(90deg,#9333ea,#c026d3)"
+            : "linear-gradient(90deg,#00c853,#00e676)",
+
+          color: "#fff",
+          border: "none",
+          fontWeight: "bold",
+          fontSize: 14,
+
+          boxShadow: dark
+            ? "0 8px 25px rgba(147,51,234,0.4)"
+            : "0 8px 25px rgba(0,200,83,0.3)",
+
+          cursor: "pointer"
+        }}
+      >
+        ✅ Confirmar pagamento
+      </button>
+
+    </div>
+
+    {/* 🔥 VOLTAR */}
+    <button onClick={() => setStep(3)}>
+      ← Voltar ao carrinho
+    </button>
+  </>
+)}
+
 
 {step === 99 && (
   <>
@@ -1543,13 +2090,13 @@ return (
 
     {/* 🔥 BOTÃO INSTALAR */}
     {promptInstall && (
-      <button
-        onClick={instalarApp}
-        className="btnInstall"
-      >
-        📲 Instalar App
-      </button>
-    )}
+  <button onClick={instalarApp}>
+    📲 Instalar App
+  </button>
+)}
+
+{/* 🔥 ESPAÇO PRO MENU */}
+<div style={{ height: 90 }} />
 
 
 {/* 🔥 STYLES */}
@@ -1766,6 +2313,19 @@ return (
     background: #1a1a1a;
     cursor: not-allowed;
   }
+
+  @keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+
 
   `}</style>
     
