@@ -417,6 +417,33 @@ useEffect(() => {
   carregar();
 }, []);
 
+// 🔥 app atualiza pagamento
+
+useEffect(() => {
+  if (!paymentId) return;
+
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/checkPagamento?paymentId=${paymentId}`);
+      const data = await res.json();
+
+      if (data.status === "approved") {
+        clearInterval(interval);
+
+        alert("Pagamento confirmado! ✅");
+
+        setMostrarPagamento(false);
+        setCarrinho([]);
+      }
+
+    } catch (e) {
+      console.log(e);
+    }
+  }, 3000); // 🔁 a cada 3s
+
+  return () => clearInterval(interval);
+}, [paymentId]);
+
 // 🔥 mais vendido
 function calcularMaisVendido(pedidos) {
   const contador = {};
@@ -2726,10 +2753,6 @@ return (
         return;
       }
 
-      if (!pixConfirmado) {
-        alert("Confirme o pagamento via Pix");
-        return;
-      }
     }
 
     const statusFinal =
