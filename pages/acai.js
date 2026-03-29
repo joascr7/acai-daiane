@@ -133,6 +133,7 @@ const [loadingPix, setLoadingPix] = useState(false);
 const [qrBase64, setQrBase64] = useState(null);
 const [qrCode, setQrCode] = useState(null);
 const [paymentId, setPaymentId] = useState(null);
+const [pedidoAtual, setPedidoAtual] = useState(null);
 
 const gerarPix = async () => {
   try {
