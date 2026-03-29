@@ -427,20 +427,18 @@ useEffect(() => {
       const res = await fetch(`/api/checkPagamento?paymentId=${paymentId}`);
       const data = await res.json();
 
-      console.log("STATUS PIX:", data.status);
-
       if (data.status === "approved") {
         clearInterval(interval);
 
         alert("Pagamento confirmado! ✅");
 
-        // 🔥 FECHA MODAL
-        setMostrarPagamento(false);
+        // 🔥 ENVIA WHATSAPP AUTOMÁTICO
+        if (pedidoAtual) {
+          enviarWhatsApp(pedidoAtual);
+        }
 
-        // 🔥 LIMPA TUDO
-        setCarrinho([]);
-        setQrBase64(null);
-        setPaymentId(null);
+        // 🔥 LIMPA
+        setPedidoAtual(null);
       }
 
     } catch (e) {
@@ -892,7 +890,7 @@ async function finalizarPedido(statusFinalPagamento) {
 
       total: totalFinalPedido,
 
-      // 💳 PAGAMENTO COMPLETO
+      // 💳 PAGAMENTO
       formaPagamento,
       statusPagamento:
         formaPagamento === "pix"
@@ -905,7 +903,7 @@ async function finalizarPedido(statusFinalPagamento) {
       data: new Date().toISOString()
     };
 
-    // 🔒 CUPOM (ANTI FRAUDE)
+    // 🔒 CUPOM
     if (cupomAplicado?.id) {
 
       const cpfLimpo = clienteCpf.replace(/\D/g, "");
@@ -932,60 +930,69 @@ async function finalizarPedido(statusFinalPagamento) {
     // 💾 SALVA PEDIDO
     await addDoc(collection(db, "pedidos"), pedido);
 
-    // 📲 WHATSAPP
-    let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
-
-    carrinho.forEach((item, i) => {
-      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
-      mensagem += `Qtd: ${item.quantidade}\n`;
-
-      if (item.extras?.length) {
-        mensagem += "Extras:\n";
-        item.extras.forEach(e => {
-          mensagem += `+ ${e.nome}\n`;
-        });
-      }
-
-      mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
+    // 🔥 SALVA PEDIDO ATUAL (USADO NO WHATSAPP AUTOMÁTICO)
+    setPedidoAtual({
+      codigo,
+      total: totalFinalPedido,
+      clienteNome,
+      clienteTelefone,
+      clienteEndereco,
+      clienteNumeroCasa,
+      itens: carrinho
     });
 
-    mensagem += ` Total: R$ ${totalFinalPedido}\n\n`;
-    mensagem += `Pagamento: ${formaPagamento}\n`;
-    mensagem += `Status: ${pedido.statusPagamento}\n\n`;
-
-    mensagem += ` ${clienteNome}\n`;
-    mensagem += ` ${clienteTelefone}\n`;
-
-    if (clienteEndereco) {
-      mensagem += ` ${clienteEndereco}, ${clienteNumeroCasa}\n`;
-    }
-
-    const numero = "5581973119512";
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-
-    if (/Android|iPhone/i.test(navigator.userAgent)) {
-      window.location.href = url;
-    } else {
-      window.open(url, "_blank");
-    }
-
-    // 🔥 RESET COMPLETO
+    // 🔥 LIMPA UI (MAS NÃO WHATSAPP)
     setCarrinho([]);
     setCupomAplicado(null);
     setFormaPagamento(null);
     setMostrarPagamento(false);
 
-    // 🔥 LIMPA PIX
     setQrBase64(null);
     setPaymentId(null);
 
-    alert("Pedido realizado com sucesso! 🚀");
+    alert("Pedido criado! Aguardando pagamento... 💳");
 
   } catch (e) {
     alert(e);
     console.log("ERRO FINAL:", e);
   }
 }
+
+
+const enviarWhatsApp = (pedido) => {
+
+  let mensagem = `🛒 *Pedido #${pedido.codigo}*\n\n`;
+
+  pedido.itens.forEach((item, i) => {
+    mensagem += `*${i + 1}. ${item.produto?.nome || item.nome}*\n`;
+    mensagem += `Qtd: ${item.quantidade}\n`;
+
+    if (item.extras?.length) {
+      mensagem += "Extras:\n";
+      item.extras.forEach(e => {
+        mensagem += `+ ${e.nome}\n`;
+      });
+    }
+
+    mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
+  });
+
+  mensagem += `Total: R$ ${pedido.total}\n\n`;
+  mensagem += `Pagamento confirmado via Pix ✅\n\n`;
+
+  mensagem += `${pedido.clienteNome}\n`;
+  mensagem += `${pedido.clienteTelefone}\n`;
+
+  if (pedido.clienteEndereco) {
+    mensagem += `${pedido.clienteEndereco}, ${pedido.clienteNumeroCasa}\n`;
+  }
+
+  const numero = "5581973119512";
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+  window.open(url, "_blank");
+};
+
   // 🔥  2 grades
   function ripple(e) {
   const circle = document.createElement("span");
