@@ -1,3 +1,9 @@
+import { MercadoPagoConfig, Payment } from "mercadopago";
+
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN
+});
+
 export default async function handler(req, res) {
 
   if (req.method !== "POST") {
@@ -6,51 +12,61 @@ export default async function handler(req, res) {
 
   try {
 
-    const { total } = req.body;
+    const { total, pedidoId } = req.body;
 
-    // 🔥 expiração 30 minutos
-    const expiration = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    // 🔥 VALIDAÇÕES
+    if (!total || total <= 0) {
+      return res.status(400).json({
+        erro: "Valor inválido"
+      });
+    }
 
-    const response = await fetch("https://api.mercadopago.com/v1/payments", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
+    if (!pedidoId) {
+      return res.status(400).json({
+        erro: "PedidoId obrigatório"
+      });
+    }
 
-        // 🔥 evita conflito (ESSENCIAL)
-        "X-Idempotency-Key": `${Date.now()}-${Math.random()}`
-      },
-      body: JSON.stringify({
+    const payment = new Payment(client);
+
+    const result = await payment.create({
+      body: {
         transaction_amount: Number(total),
         description: "Pedido Açaí",
-
         payment_method_id: "pix",
 
-        date_of_expiration: expiration,
+        // 🔥 ESSENCIAL PARA WEBHOOK
+        external_reference: String(pedidoId),
 
         payer: {
-          email: "contatojoasvieira@gmail.com" // 🔥 coloca seu email real
+          email: "teste@test.com"
         }
-      }),
+      }
     });
 
-    const data = await response.json();
+    // 🔥 GARANTE QUE O PIX FOI GERADO
+    const qrData = result.point_of_interaction?.transaction_data;
 
-    console.log("PIX GERADO:", data);
-
-    if (!response.ok) {
-      console.log("ERRO MP:", data);
-      return res.status(500).json({ erro: data });
+    if (!qrData) {
+      return res.status(500).json({
+        erro: "Erro ao gerar QR Code"
+      });
     }
 
     return res.status(200).json({
-      qr_code: data.point_of_interaction.transaction_data.qr_code,
-      qr_code_base64: data.point_of_interaction.transaction_data.qr_code_base64,
-      payment_id: data.id,
+      payment_id: result.id,
+      status: result.status,
+      qr_code: qrData.qr_code,
+      qr_code_base64: qrData.qr_code_base64
     });
 
   } catch (e) {
-    console.log("ERRO GERAL:", e);
-    return res.status(500).json({ erro: "Erro ao gerar Pix" });
+
+    console.log("ERRO PIX COMPLETO:", e);
+
+    return res.status(500).json({
+      erro: "Erro ao gerar Pix",
+      detalhe: e.message
+    });
   }
 }

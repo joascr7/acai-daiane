@@ -65,6 +65,11 @@ export default function Admin() {
   const [novoTamanho, setNovoTamanho] = useState("");
   const [novaImagem, setNovaImagem] = useState(""); // 🔥 corrigido
   const [maisVendido, setMaisVendido] = useState(false);
+  const [notificacoes, setNotificacoes] = useState([]);
+  const [textoNotificacao, setTextoNotificacao] = useState("");
+  const [clientes, setClientes] = useState([]);
+  const [clienteSelecionado, setClienteSelecionado] = useState("");
+  
   
 
   // 🔍 BUSCA
@@ -77,6 +82,34 @@ function tocarSom() {
   // 🔥 se quiser som real depois:
   // const audio = new Audio("/notificacao.mp3");
   // audio.play();
+}
+
+
+async function enviarNotificacao(tipo) {
+
+  if (!textoNotificacao) {
+    alert("Digite a notificação");
+    return;
+  }
+
+  // 🔥 SE FOR USUÁRIO E NÃO SELECIONOU
+  if (tipo === "usuario" && !clienteSelecionado) {
+    alert("Selecione um cliente");
+    return;
+  }
+
+  await addDoc(collection(db, "notificacoes"), {
+    texto: textoNotificacao,
+    para: tipo,
+    uid: tipo === "usuario" ? clienteSelecionado : null,
+    ativo: true,
+    data: new Date().toISOString()
+  });
+
+  setTextoNotificacao("");
+  setClienteSelecionado("");
+
+  alert("Notificação enviada 🚀");
 }
 
 async function salvarLogo() {
@@ -96,6 +129,7 @@ async function excluirProduto(produto) {
 
   await deleteDoc(doc(db, "produtos", produto.id));
 }
+
 
 // 🔥 editar produtos
 useEffect(() => {
@@ -117,6 +151,9 @@ useEffect(() => {
   return () => unsub();
 
 }, []);
+
+
+
 
 
 // 🔥 criar categoria
@@ -289,6 +326,43 @@ useEffect(() => {
   return () => unsub();
 
 }, []);
+
+
+// buscar usuario effect
+useEffect(() => {
+
+  const unsub = onSnapshot(collection(db, "usuarios"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id, // 🔥 UID
+      ...doc.data()
+    }));
+
+    setClientes(lista);
+
+  });
+
+  return () => unsub();
+
+}, []);
+
+useEffect(() => {
+
+  const unsub = onSnapshot(collection(db, "notificacoes"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setNotificacoes(lista);
+
+  });
+
+  return () => unsub();
+
+}, []);
+
 
 
 // 🔓 LOGOUT
@@ -535,6 +609,88 @@ return (
 >
   🗑️ Limpar pedidos
 </button>
+
+
+<div style={{
+  background: "#111",
+  padding: 20,
+  borderRadius: 16,
+  marginTop: 20
+}}>
+
+
+  <select
+  value={clienteSelecionado}
+  onChange={(e) => setClienteSelecionado(e.target.value)}
+  style={{
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10
+  }}
+>
+
+  <option value="">Selecionar cliente</option>
+
+  {clientes.map(c => (
+    <option key={c.id} value={c.id}>
+      {c.clienteNome || "Sem nome"} - {c.clienteTelefone || ""}
+    </option>
+  ))}
+
+</select>
+
+  <h3 style={{ marginBottom: 10 }}>🔔 Enviar notificação</h3>
+
+  {/* INPUT */}
+  <input
+    placeholder="Digite a notificação..."
+    value={textoNotificacao}
+    onChange={(e) => setTextoNotificacao(e.target.value)}
+    style={{
+      width: "100%",
+      padding: 10,
+      borderRadius: 10,
+      border: "none",
+      marginBottom: 10
+    }}
+  />
+
+  {/* BOTÕES */}
+  <div style={{ display: "flex", gap: 10 }}>
+
+    <button
+      onClick={() => enviarNotificacao("todos")}
+      style={{
+        flex: 1,
+        padding: 10,
+        borderRadius: 10,
+        border: "none",
+        background: "#6a00ff",
+        color: "#fff",
+        fontWeight: "bold"
+      }}
+    >
+      📢 Enviar para TODOS
+    </button>
+
+    <button
+  onClick={() => enviarNotificacao("usuario")}
+  style={{
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    background: "#00c853",
+    color: "#fff",
+    fontWeight: "bold"
+  }}
+>
+  👤 Enviar para cliente
+</button>
+
+  </div>
+
+</div>
 
       {/* 🔥 STATUS LOJA */}
       <div className="card">

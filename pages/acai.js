@@ -107,6 +107,46 @@ const blurInput = (e) => {
   const [produtos, setProdutos] = useState([]);
   const maisVendido = calcularMaisVendido(pedidos);
 
+
+  // 🔥 NOTIFICACAO
+ useEffect(() => {
+
+  const unsub = onSnapshot(collection(db, "notificacoes"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setNotificacoes(lista);
+
+    const naoLidas = lista.filter(n => n.ativo && !n.lida);
+
+    // 🔔 ATIVA SINO
+    setTemNotificacao(naoLidas.length > 0);
+
+    // 🔥 NOVA NOTIFICAÇÃO → SOM + VIBRAÇÃO
+    if (naoLidas.length > 0) {
+
+      // 🔊 SOM
+      try {
+        const audio = new Audio("/notify.mp3");
+        audio.play();
+      } catch (e) {}
+
+      // 📳 VIBRAÇÃO (CELULAR)
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
+
+    }
+
+  });
+
+  return () => unsub();
+
+}, []);
+
   // 🔥 EXTRAS
   const [extras, setExtras] = useState([]);
   const adicionais = [
@@ -122,11 +162,15 @@ const blurInput = (e) => {
   // 🔥 CARRINHO
   const [quantidade, setQuantidade] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
+  const [notificacoes, setNotificacoes] = useState([]);
+  const [temNotificacao, setTemNotificacao] = useState(false);
+  const [editandoIndex, setEditandoIndex] = useState(null);
 // 🔥 forma de pagamento
   const [formaPagamento, setFormaPagamento] = useState(null);
   const [statusPagamento, setStatusPagamento] = useState("pendente");
   const [mostrarPagamento, setMostrarPagamento] = useState(false);
   const [loadingPedido, setLoadingPedido] = useState(false);
+  const [pedidoPago, setPedidoPago] = useState(null);
 
    // 🔥 NOVOS STATES DO PIX
 const [loadingPix, setLoadingPix] = useState(false);
@@ -135,26 +179,190 @@ const [qrCode, setQrCode] = useState(null);
 const [paymentId, setPaymentId] = useState(null);
 const [pedidoAtual, setPedidoAtual] = useState(null);
 
+
+// agrupar notificacoes
+
+function agruparNotificacoes(lista) {
+  const hoje = new Date().toDateString();
+
+  const grupos = {
+    hoje: [],
+    antigas: []
+  };
+
+  lista.forEach(n => {
+    const data = new Date(n.data).toDateString();
+
+    if (data === hoje) {
+      grupos.hoje.push(n);
+    } else {
+      grupos.antigas.push(n);
+    }
+  });
+
+  return grupos;
+}
+
+const grupos = agruparNotificacoes(notificacoes);
+
+
+// notificar
+
+function NotificacaoItem({ n }) {
+
+  return (
+    <div
+      style={{
+        background: dark ? "#1a1a1a" : "#fff",
+        borderRadius: 16,
+        padding: 15,
+        marginBottom: 10,
+        position: "relative",
+        transition: "0.2s",
+        border: !n.lida ? "1px solid #9333ea" : "1px solid transparent"
+      }}
+    >
+
+      {/* TIPO */}
+      <div style={{
+        fontSize: 12,
+        marginBottom: 5,
+        color: n.para === "todos" ? "#9333ea" : "#00c853"
+      }}>
+        {n.para === "todos" ? "📢 Aviso" : "📦 Pedido"}
+      </div>
+
+      {/* TEXTO */}
+      <div style={{
+        fontSize: 14,
+        fontWeight: 500
+      }}>
+        {n.texto}
+      </div>
+
+      {/* DATA */}
+      <div style={{
+        fontSize: 11,
+        opacity: 0.5,
+        marginTop: 5
+      }}>
+        {new Date(n.data).toLocaleString()}
+      </div>
+
+      {/* 🔴 NÃO LIDO */}
+      {!n.lida && (
+        <span style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          width: 8,
+          height: 8,
+          background: "#ff0033",
+          borderRadius: "50%"
+        }} />
+      )}
+
+    </div>
+  );
+}
+
+
+// marca tudo como lido
+async function marcarComoLida() {
+
+  notificacoes.forEach(async (n) => {
+    if (!n.lida) {
+      await updateDoc(doc(db, "notificacoes", n.id), {
+        lida: true
+      });
+    }
+  });
+
+  setTemNotificacao(false);
+}
+
+
+
+
+// gerar pix
+
 const gerarPix = async () => {
   try {
+
+    if (!totalFinal || totalFinal <= 0) {
+      alert("Carrinho vazio!");
+      return;
+    }
+
+    // 🔥 CRIA ID DO PEDIDO
+    const pedidoId = Date.now().toString();
+
+    // 🔥 SALVA AQUI (ESSENCIAL)
+      setPedidoAtual({
+      id: pedidoId,
+      ativo: true // 🔥 força o React atualizar
+      });
+
+    // 🔥 LIMPA PIX ANTIGO
     setQrBase64(null);
     setQrCode(null);
+    setPaymentId(null);
+    setPedidoPago(null);
 
+  
     const res = await fetch("/api/pix", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        total: Number(totalFinal || 5) // 🔥 mínimo seguro
+        total: Number(totalFinal),
+        pedidoId // 🔥 ENVIA PRO BACKEND
       })
     });
 
     const data = await res.json();
+    
+
+    if (!data.payment_id) {
+      alert("Erro ao gerar Pix");
+      return;
+    }
 
     setQrBase64(data.qr_code_base64);
     setQrCode(data.qr_code);
     setPaymentId(data.payment_id);
+
+    // 🔥 CRIA PEDIDO NO FIREBASE (ANTES DE PAGAR)
+await setDoc(doc(db, "pedidos", pedidoId), {
+  codigo: Math.floor(100000 + Math.random() * 900000),
+
+  cliente: {
+    nome: clienteNome,
+    telefone: clienteTelefone,
+    endereco: clienteEndereco,
+    numero: clienteNumeroCasa,
+    uid: user.uid
+  },
+
+  itens: carrinho.map(item => ({
+    nome: item.produto.nome,
+    imagem: item.produto.imagem,
+    quantidade: item.quantidade,
+    total: item.total,
+    extras: item.extras || []
+  })),
+
+  total: Number(totalFinal),
+
+  formaPagamento: "pix",
+  statusPagamento: "aguardando_pagamento",
+  status: "aguardando_pagamento",
+
+  paymentId: String(data.payment_id),
+
+  data: new Date().toISOString()
+});
 
   } catch (e) {
     alert("Erro ao gerar Pix");
@@ -418,37 +626,43 @@ useEffect(() => {
   carregar();
 }, []);
 
-// 🔥 app atualiza pagamento
+// 🔥 CHAMA WHATSAPP AQUI
 
 useEffect(() => {
-  if (!paymentId) return;
+  if (!pedidoAtual?.id) return;
 
-  const interval = setInterval(async () => {
-    try {
-      const res = await fetch(`/api/checkPagamento?paymentId=${paymentId}`);
-      const data = await res.json();
+  console.log("🔎 Monitorando pedido:", pedidoAtual.id);
 
-      if (data.status === "approved") {
-        clearInterval(interval);
+  const ref = doc(db, "pedidos", pedidoAtual.id);
 
-        alert("Pagamento confirmado! ✅");
+  const unsubscribe = onSnapshot(ref, (snap) => {
+    if (!snap.exists()) return;
 
-        // 🔥 ENVIA WHATSAPP AUTOMÁTICO
-        if (pedidoAtual) {
-          enviarWhatsApp(pedidoAtual);
-        }
+    const dados = snap.data();
 
-        // 🔥 LIMPA
-        setPedidoAtual(null);
-      }
+    console.log("🔥 FIREBASE:", dados);
 
-    } catch (e) {
-      console.log(e);
+    // ✅ SOMENTE quando for PAGO REAL
+    if (dados.statusPagamento === "pago") {
+
+      console.log("✅ PAGAMENTO REAL CONFIRMADO");
+
+      setPedidoPago({
+        codigo: dados.codigo,
+        total: dados.total,
+        itens: dados.itens,
+        clienteNome: dados.cliente?.nome,
+        clienteTelefone: dados.cliente?.telefone
+      });
+
     }
-  }, 3000);
+  });
 
-  return () => clearInterval(interval);
-}, [paymentId]);
+  return () => unsubscribe();
+}, [pedidoAtual]);
+
+// 🔥 app atualiza pagamento
+
 
 // 🔥 mais vendido
 function calcularMaisVendido(pedidos) {
@@ -611,31 +825,48 @@ function formatarTelefone(valor) {
 function adicionarCarrinho() {
   if (!produto) return;
 
-  // 🔥 GUARDA O NOME ANTES DE QUALQUER COISA
   const nomeProduto = produto.nome;
 
   const total = ((produto.preco || 0) + totalExtras) * quantidade;
 
-  setCarrinho(prev => [
-    ...prev,
-    { produto, quantidade, extras, total }
-  ]);
+  const novoItem = {
+    produto,
+    quantidade,
+    extras,
+    total
+  };
 
-  // 🔥 LIMPA DEPOIS
+  if (editandoIndex !== null) {
+
+    // 🔥 ATUALIZA ITEM EXISTENTE
+    setCarrinho(prev => {
+      const novo = [...prev];
+      novo[editandoIndex] = novoItem;
+      return novo;
+    });
+
+    setEditandoIndex(null);
+
+  } else {
+
+    // 🔥 ADICIONA NORMAL
+    setCarrinho(prev => [
+      ...prev,
+      novoItem
+    ]);
+
+  }
+
+  // 🔥 RESET
   setExtras([]);
   setQuantidade(1);
 
-  // 🔥 TOAST (AGORA NÃO QUEBRA)
-  setToast({
-    nome: nomeProduto,
-  });
-
+  setToast({ nome: nomeProduto });
   setTimeout(() => setToast(null), 2500);
 
-  // 🔥 MUDA TELA POR ÚLTIMO
   setTimeout(() => {
-  setStep(3);
-}, 200);
+    setStep(3);
+  }, 200)
 }
 
 function removerItem(index) {
@@ -647,33 +878,19 @@ function removerItem(index) {
 
   const item = carrinho[index];
 
-  // 🔥 remove do carrinho (pra editar)
-  setCarrinho(prev => prev.filter((_, i) => i !== index));
+  // 🔥 NÃO REMOVE MAIS
 
-  // 🔥 SE FOR BEBIDA → volta pro carrinho direto
+  // 🔥 SE FOR BEBIDA → NÃO EDITA
   if (item.produto.categoria === "bebidas") {
-
-    setCarrinho(prev => [
-      ...prev,
-      {
-        produto: item.produto,
-        quantidade: 1,
-        extras: [],
-        total: item.produto.preco || 0
-      }
-    ]);
-
-    // 🔥 toast
-    setToast({ nome: item.produto.nome });
-    setTimeout(() => setToast(null), 2000);
-
     return;
   }
 
-  // 🍧 AÇAÍ → abre edição normal
+  // 🍧 AÇAÍ → CARREGA DADOS
   setProduto(item.produto);
   setQuantidade(item.quantidade);
   setExtras(item.extras || []);
+
+  setEditandoIndex(index); // 🔥 ESSENCIAL
 
   setStep(2);
 }
@@ -831,6 +1048,17 @@ function aplicarMelhorCupom() {
   alert(`🔥 Melhor cupom aplicado: ${melhor.codigo}`);
 }
 
+// marcar notificao
+async function marcarComoLida() {
+
+  notificacoes.forEach(async (n) => {
+    await updateDoc(doc(db, "notificacoes", n.id), {
+      lida: true
+    });
+  });
+
+}
+
 function aplicarCupomDireto(cupom) {
   let valorDesconto = 0;
 
@@ -859,6 +1087,12 @@ async function finalizarPedido(statusFinalPagamento) {
 
   if (!formaPagamento) {
     alert("Escolha a forma de pagamento");
+    return;
+  }
+
+  // 🔥 PIX NÃO FINALIZA PEDIDO AQUI
+  if (formaPagamento === "pix") {
+    alert("Aguardando pagamento do Pix...");
     return;
   }
 
@@ -893,12 +1127,9 @@ async function finalizarPedido(statusFinalPagamento) {
 
       // 💳 PAGAMENTO
       formaPagamento,
-      statusPagamento:
-        formaPagamento === "pix"
-          ? "aguardando_pagamento"
-          : "pendente",
+      statusPagamento: "pendente",
 
-      paymentId: paymentId ? String(paymentId) : null,
+      paymentId: null,
 
       status: "preparando",
       data: new Date().toISOString()
@@ -928,30 +1159,46 @@ async function finalizarPedido(statusFinalPagamento) {
       });
     }
 
-    // 💾 SALVA PEDIDO
-    await addDoc(collection(db, "pedidos"), pedido);
+    // 💾 SALVA PEDIDO NORMAL (não pix)
+    await setDoc(doc(db, "pedidos", Date.now().toString()), pedido);
 
-    // 🔥 SALVA PEDIDO ATUAL (USADO NO WHATSAPP AUTOMÁTICO)
-    setPedidoAtual({
-      codigo,
-      total: totalFinalPedido,
-      clienteNome,
-      clienteTelefone,
-      clienteEndereco,
-      clienteNumeroCasa,
-      itens: carrinho
+    // 🔥 WHATSAPP
+    let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
+
+    carrinho.forEach((item, i) => {
+      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+      mensagem += `Qtd: ${item.quantidade}\n`;
+
+      if (item.extras?.length) {
+        mensagem += "Extras:\n";
+        item.extras.forEach(e => {
+          mensagem += `+ ${e.nome}\n`;
+        });
+      }
+
+      mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
     });
 
-    // 🔥 LIMPA UI (MAS NÃO WHATSAPP)
+    mensagem += `Total: R$ ${totalFinalPedido}\n\n`;
+    mensagem += `Pagamento: ${formaPagamento}\n\n`;
+    mensagem += `${clienteNome}\n${clienteTelefone}\n`;
+
+    const numero = "5581973119512";
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+    if (/Android|iPhone/i.test(navigator.userAgent)) {
+      window.location.href = url;
+    } else {
+      window.location.href = url;
+    }
+
+    // 🔥 LIMPA
     setCarrinho([]);
     setCupomAplicado(null);
     setFormaPagamento(null);
     setMostrarPagamento(false);
 
-    setQrBase64(null);
-    setPaymentId(null);
-
-    alert("Pedido criado! Aguardando pagamento... 💳");
+    alert("Pedido realizado com sucesso! 🚀");
 
   } catch (e) {
     alert(e);
@@ -965,35 +1212,21 @@ const enviarWhatsApp = (pedido) => {
   let mensagem = `🛒 *Pedido #${pedido.codigo}*\n\n`;
 
   pedido.itens.forEach((item, i) => {
-    mensagem += `*${i + 1}. ${item.produto?.nome || item.nome}*\n`;
+    mensagem += `*${i + 1}. ${item.nome}*\n`;
     mensagem += `Qtd: ${item.quantidade}\n`;
-
-    if (item.extras?.length) {
-      mensagem += "Extras:\n";
-      item.extras.forEach(e => {
-        mensagem += `+ ${e.nome}\n`;
-      });
-    }
-
     mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
   });
 
   mensagem += `Total: R$ ${pedido.total}\n\n`;
   mensagem += `Pagamento confirmado via Pix ✅\n\n`;
-
-  mensagem += `${pedido.clienteNome}\n`;
-  mensagem += `${pedido.clienteTelefone}\n`;
-
-  if (pedido.clienteEndereco) {
-    mensagem += `${pedido.clienteEndereco}, ${pedido.clienteNumeroCasa}\n`;
-  }
+  mensagem += `${pedido.clienteNome}\n${pedido.clienteTelefone}\n`;
 
   const numero = "5581973119512";
   const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
 
-  window.open(url, "_blank");
+  // 🔥 REDIRECIONA DIRETO (NÃO BLOQUEIA)
+  window.location.href = url;
 };
-
   // 🔥  2 grades
   function ripple(e) {
   const circle = document.createElement("span");
@@ -1030,134 +1263,152 @@ return (
 }}>
      
 
-      {/* 🔥 HEADER */}
+     {/* 🔥 HEADER */}
 <div style={{
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  marginBottom: 15
+  marginBottom: 20,
+  marginTop: 10 // 🔥 desce o topo
 }}>
 
-  {/* NOME LOJA */}
-  <h2 style={{
-    fontWeight: "bold",
-    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-    WebkitBackgroundClip: "text",
-    color: "transparent"
-  }}>
-
-{/* 🔥 ESQUERDA (LOGO + NOME) */}
-<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-
-  {logo && (
-    <img
-      src={logo}
-      style={{
-        width: 50,
-        height: 50,
-        borderRadius: "50%",
-        objectFit: "cover"
-      }}
-    />
-  )}
-
-  <h2 style={{
-    fontWeight: "bold",
-    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-    WebkitBackgroundClip: "text",
-    color: "transparent",
-    margin: 0
-  }}>
-    Acai Daiane
-  </h2>
-
-</div>
-    {/* TEXTO AQUI EM BAIXO*/}
-
-  </h2>
-
-  {/* 🔥 DIREITA */}
-{/* 🔥 DIREITA */}
-<div style={{
-  display: "flex",
-  alignItems: "flex-end",
-  gap: 10
-}}>
-
-  {/* 🛒 CARRINHO */}
-  <div
-    onClick={() => setStep(3)}
-    style={{
-      position: "relative",
-      cursor: "pointer",
-      fontSize: 22
-    }}
-  >
-    🛒
-
-    {carrinho.length > 0 && (
-      <span style={{
-        position: "absolute",
-        top: -8,
-        right: -10,
-        background: "#ff2aff",
-        color: "#fff",
-        borderRadius: "50%",
-        padding: "2px 6px",
-        fontSize: 10
-      }}>
-        {carrinho.length}
-      </span>
-    )}
-  </div>
-
-  {/* 🔥 COLUNA (SAIR + DARK) */}
+  {/* 🔥 ESQUERDA */}
   <div style={{
     display: "flex",
-    flexDirection: "column",
-    gap: 6
+    alignItems: "center",
+    gap: 10
   }}>
 
-    {/* 🔥 BOTÃO SAIR */}
-    <button
-      onClick={sair}
+    {/* LOGO */}
+    {logo && (
+      <img
+        src={logo}
+        style={{
+          width: 45,
+          height: 45,
+          borderRadius: "50%",
+          objectFit: "cover"
+        }}
+      />
+    )}
+
+    {/* 📍 ENDEREÇO */}
+    <div
+      onClick={() => setStep(4)}
       style={{
-        padding: "8px 12px",
-        borderRadius: 10,
-        border: "none",
-        background: "linear-gradient(90deg,#2500c7,#56007e)",
-        color: "#fff",
-        fontSize: 12,
-        cursor: "pointer"
-      }}
-    >
-      Sair
-    </button>
-
-    {/* 🌙 BOTÃO DARK MODE */}
-    <button
-      onClick={() => setDark(!dark)}
-      style={{
-        padding: "6px 10px",
-        borderRadius: 10,
-        border: "none",
-
-        background: dark ? "#111" : "#eee",
-        color: dark ? "#fff" : "#111",
-
-        fontSize: 11,
         cursor: "pointer",
-        transition: "all 0.2s ease"
+        display: "flex",
+        flexDirection: "column"
       }}
     >
-      {dark ? "🌙 Escuro" : "☀️ Claro"}
-    </button>
+      <span style={{
+        fontSize: 12,
+        opacity: 0.6,
+        color: dark ? "#aaa" : "#666"
+      }}>
+        Entregar em
+      </span>
+
+      <strong style={{
+        fontSize: 14,
+        color: dark ? "#ffffffe1" : "#000000", // 🔥 muda cor no dark
+        lineHeight: "16px"
+      }}>
+        {clienteEndereco || "Adicionar endereço"} ▼
+      </strong>
+    </div>
+
+  </div>
+
+  {/* 🔥 DIREITA */}
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10
+  }}>
+
+   {/* 🔔 SININHO */}
+<div
+  onClick={() => {
+  setStep(7);
+  setTemNotificacao(false);
+  marcarComoLida(); // 🔥 ESSENCIAL
+}}
+  style={{
+    width: 40,
+    height: 40,
+    borderRadius: "50%",
+    background: dark ? "#1a1a1a" : "#eee",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    position: "relative",
+    boxShadow: dark
+      ? "0 0 10px rgba(0,0,0,0.6)"
+      : "0 0 10px rgba(0,0,0,0.15)"
+  }}
+>
+  🔔
+
+  {temNotificacao && (
+    <span style={{
+      position: "absolute",
+      top: 6,
+      right: 6,
+      width: 8,
+      height: 8,
+      background: "#ff0033",
+      borderRadius: "50%"
+    }} />
+  )}
+</div>
+
+    {/* 🔥 COLUNA (SAIR + DARK EMBAIXO) */}
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }}>
+
+      {/* 🚪 SAIR */}
+      <button
+        onClick={sair}
+        style={{
+          padding: "6px 12px",
+          borderRadius: 10,
+          border: "none",
+          background: "linear-gradient(90deg,#2500c7,#56007e)",
+          color: "#fff",
+          fontSize: 12,
+          cursor: "pointer"
+        }}
+      >
+        Sair
+      </button>
+
+      {/* 🌙 / ☀️ */}
+      <button
+        onClick={() => setDark(!dark)}
+        style={{
+          padding: "5px 10px",
+          borderRadius: 10,
+          border: "none",
+          background: dark ? "#111" : "#eee",
+          color: dark ? "#fff" : "#111",
+          fontSize: 11,
+          cursor: "pointer",
+          transition: "all 0.2s ease"
+        }}
+      >
+        {dark ? "🌙 Escuro" : "☀️ Claro"}
+      </button>
+
+    </div>
 
   </div>
 
 </div>
-
-      </div>
 
       {/* 🔥 MENU INFERIOR */}
 <div style={{
@@ -1186,14 +1437,39 @@ return (
 
     <div onClick={() => setStep(5)} style={{ cursor: "pointer" }}>📄</div>
 
-    <div onClick={() => setStep(3)} style={{ cursor: "pointer" }}>🛒</div>
+    <div
+  onClick={() => setStep(3)}
+  style={{
+    position: "relative",
+    cursor: "pointer",
+    fontSize: 22
+  }}
+>
+  🛒
+
+  {carrinho.length > 0 && (
+    <span style={{
+      position: "absolute",
+      top: -6,
+      right: -10,
+      background: "#ff0033",
+      color: "#fff",
+      borderRadius: "50%",
+      padding: "2px 6px",
+      fontSize: 10,
+      fontWeight: "bold"
+    }}>
+      {carrinho.reduce((acc, item) => acc + item.quantidade, 0)}
+    </span>
+  )}
+</div>
 
     <div onClick={() => setStep(4)} style={{ cursor: "pointer" }}>👤</div>
 
   </div>
 
 </div>
-
+{/* STEP 1
 {toast && (
   <div
     onClick={() => setStep(3)}
@@ -1204,7 +1480,7 @@ return (
       transform: "translateX(-50%)",
       background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
       color: "#fff",
-      padding: "14px 20px",
+      padding: "4px 6px",
       borderRadius: 14,
       fontWeight: "bold",
       boxShadow: "0 0 25px rgba(122,0,255,0.6)",
@@ -1213,15 +1489,15 @@ return (
     }}
   >
     🛒 {toast.nome} adicionado • Ver carrinho
-  </div>
-)}
+  </div>  {/* STEP 1 */}
+
       
 
       
 {/* STEP 1 */}
 {step === 1 && (
   <>
-    <h3 style={{ marginBottom: 10 }}>🍧 Escolha seu açaí</h3>
+    <h3 style={{ marginBottom: 10 }}> Escolha seu açaí</h3>
 
     {/* 🔥 LOJA FECHADA */}
     {!lojaAberta && (
@@ -1546,30 +1822,26 @@ return (
   zIndex: 999
 }}>
 
-  <button
-    onClick={adicionarCarrinho}
-    style={{
-      width: "90%",
-      maxWidth: 420,
-
-      padding: "12px 16px",
-      borderRadius: 16,
-
-      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-      color: "#fff",
-
-      border: "none",
-      fontWeight: "bold",
-      fontSize: 14,
-
-      display: "block",
-      boxSizing: "border-box",
-
-      boxShadow: "0 5px 20px rgba(122,0,255,0.4)"
-    }}
-  >
-    🛒 Adicionar • R$ {((produto?.preco || 0) + totalExtras).toFixed(2)}
-  </button>
+<button
+  onClick={adicionarCarrinho}
+  style={{
+    width: "90%",
+    maxWidth: 420,
+    padding: "12px 16px",
+    borderRadius: 16,
+    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    color: "#fff",
+    border: "none",
+    fontWeight: "bold",
+    fontSize: 14,
+    boxShadow: "0 5px 20px rgba(122,0,255,0.4)"
+  }}
+>
+  {editandoIndex !== null
+    ? `🔄 Atualizar • R$ ${((produto?.preco || 0) + totalExtras).toFixed(2)}`
+    : `🛒 Adicionar • R$ ${((produto?.preco || 0) + totalExtras).toFixed(2)}`
+  }
+</button>
 
 </div>
 
@@ -1578,98 +1850,129 @@ return (
 
   </>
 )}
-
+ {/* 🔥step 3 */}
 {step === 3 && (
   <>
-    <h3 style={{ marginBottom: 10 }}>🛒 Sacola</h3>
+   <h3 style={{ marginBottom: 10 }}>🛒 Sacola</h3>
+  
+{carrinho.map((item, i) => (
+  <div key={i} style={{
+    background: themeAtual.card,
+    padding: 15,
+    borderRadius: 16,
+    marginBottom: 12,
+    display: "flex",
+    gap: 10,
+    alignItems: "center"
+  }}>
+    
+    {/* IMAGEM */}
+    <img
+      src={item.produto.imagem || "/acai.png"}
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: 12,
+        objectFit: "cover"
+      }}
+    />
 
-    {/* 🔥 ITENS */}
-    {carrinho.map((item, i) => (
-      <div key={i} style={{
-        background: themeAtual.card,
-        padding: 15,
-        borderRadius: 16,
-        marginBottom: 12,
+    {/* INFO */}
+    <div style={{ flex: 1 }}>
+
+      {/* TOPO */}
+      <div style={{
         display: "flex",
-        gap: 10,
+        justifyContent: "space-between",
         alignItems: "center"
       }}>
-        
-        {/* IMAGEM */}
-        <img
-          src={item.produto.imagem || "/acai.png"}
+        <strong>{item.produto.nome}</strong>
+
+        <button
+          onClick={() => removerItem(i)}
           style={{
-            width: 70,
-            height: 70,
-            borderRadius: 12,
-            objectFit: "cover"
+            background: "rgba(234,29,44,0.1)",
+            color: "#ea1d2c",
+            border: "none",
+            borderRadius: 10,
+            padding: "4px 8px",
+            fontSize: 11,
+            fontWeight: "bold",
+            cursor: "pointer"
           }}
-        />
-
-        {/* INFO */}
-        <div style={{ flex: 1 }}>
-
-          {/* 🔥 TOPO COM REMOVER */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <strong>{item.produto.nome}</strong>
-
-            <button
-              onClick={() => removerItem(i)}
-              style={{
-                background: "rgba(234,29,44,0.1)",
-                color: "#ea1d2c",
-                border: "none",
-                borderRadius: 10,
-                padding: "4px 8px",
-                fontSize: 11,
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}
-            >
-              Remover
-            </button>
-          </div>
-
-          <p style={{ fontSize: 13, opacity: 0.7 }}>
-            {item.produto.descricao}
-          </p>
-
-          {/* EXTRAS */}
-          {item.extras?.map(e => (
-            <div key={e.nome} style={{
-              fontSize: 12,
-              opacity: 0.7
-            }}>
-              • {e.nome}
-            </div>
-          ))}
-
-          {/* TOTAL ITEM */}
-          <p style={{ marginTop: 6 }}>
-            R$ {Number(item.total).toFixed(2)}
-          </p>
-
-        </div>
-
-        {/* QUANTIDADE */}
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 6
-        }}>
-          <button onClick={() => alterarQuantidade(i, "mais")}>➕</button>
-          <strong>{item.quantidade}</strong>
-          <button onClick={() => alterarQuantidade(i, "menos")}>➖</button>
-        </div>
-
+        >
+          Remover
+        </button>
       </div>
+
+      <p style={{ fontSize: 13, opacity: 0.7 }}>
+        {item.produto.descricao}
+      </p>
+
+
+      {/* EXTRAS */}
+      {item.extras?.length > 0 && (
+  <div style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 6
+  }}>
+    {item.extras.map(e => (
+      <span
+        key={e.nome}
+        style={{
+          background: "rgba(122,0,255,0.1)",
+          padding: "4px 8px",
+          borderRadius: 999,
+          fontSize: 11
+        }}
+      >
+        + {e.nome}
+      </span>
     ))}
+  </div>
+)}
+
+      {item.produto.categoria === "acai" && (
+  <button
+    onClick={() => editarItem(i)}
+    style={{
+      marginTop: 5,
+      background: "rgba(122,0,255,0.08)",
+      border: "none",
+      borderRadius: 10,
+      padding: "6px 10px",
+      fontSize: 12,
+      cursor: "pointer",
+      fontWeight: "bold",
+      color: "#6a00ff"
+    }}
+  >
+    ✏️ Editar adicionais
+  </button>
+)}
+
+      <p style={{ marginTop: 6 }}>
+        R$ {Number(item.total).toFixed(2)}
+      </p>
+
+    </div>
+
+    {/* QUANTIDADE */}
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 6
+    }}>
+      <button onClick={() => alterarQuantidade(i, "mais")}>➕</button>
+      <strong>{item.quantidade}</strong>
+      <button onClick={() => alterarQuantidade(i, "menos")}>➖</button>
+    </div>
+
+  </div>
+))}
 
     {/* 🔥 CUPOM */}
     <div style={{
@@ -2574,7 +2877,7 @@ return (
     {/* 🔥 MODAL DE PAGAMENTO */}
     {/* ========================= */}
     
-    {mostrarPagamento && (
+{mostrarPagamento && (
   <div style={{
     position: "fixed",
     inset: 0,
@@ -2596,40 +2899,36 @@ return (
 
       {/* PIX */}
       <button
-  onClick={() => {
-    if (loadingPix) return; // 🔥 evita clique duplo
+        onClick={() => {
+          if (loadingPix) return;
 
-    setFormaPagamento("pix");
-  
-    // 🔥 limpa estado anterior
-    setQrBase64(null);
-    setQrCode(null);
-    setPaymentId(null);
+          setFormaPagamento("pix");
 
-    gerarPix();
-  }}
-  style={{
-    width: "100%",
-    padding: 12,
-    marginTop: 8,
-    borderRadius: 10,
-    border: "none",
-    cursor: loadingPix ? "not-allowed" : "pointer",
-    background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
-    color: formaPagamento === "pix" ? "#fff" : "#000",
-    fontWeight: "bold",
-    opacity: loadingPix ? 0.7 : 1
-  }}
->
-  {loadingPix ? "Gerando Pix..." : "⚡ Pix"}
-</button>
+          setQrBase64(null);
+          setQrCode(null);
+          setPaymentId(null);
+
+          gerarPix();
+        }}
+        style={{
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
+          borderRadius: 10,
+          border: "none",
+          cursor: loadingPix ? "not-allowed" : "pointer",
+          background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "pix" ? "#fff" : "#000",
+          fontWeight: "bold",
+          opacity: loadingPix ? 0.7 : 1
+        }}
+      >
+        {loadingPix ? "Gerando Pix..." : "⚡ Pix"}
+      </button>
 
       {/* DINHEIRO */}
       <button
-        onClick={() => {
-          setFormaPagamento("dinheiro");
-          
-        }}
+        onClick={() => setFormaPagamento("dinheiro")}
         style={{
           width: "100%",
           padding: 12,
@@ -2647,10 +2946,7 @@ return (
 
       {/* CARTÃO */}
       <button
-        onClick={() => {
-          setFormaPagamento("cartao");
-          
-        }}
+        onClick={() => setFormaPagamento("cartao")}
         style={{
           width: "100%",
           padding: 12,
@@ -2667,124 +2963,122 @@ return (
       </button>
 
       {/* PIX AREA */}
-     {formaPagamento === "pix" && (
-  <div style={{ marginTop: 20, textAlign: "center" }}>
+      {formaPagamento === "pix" && (
+        <div style={{ marginTop: 20, textAlign: "center" }}>
 
-    <p><strong>Valor: R$ {Number(totalFinal).toFixed(2)}</strong></p>
+          <p><strong>Valor: R$ {Number(totalFinal).toFixed(2)}</strong></p>
 
-    {/* 🔥 LOADING */}
-    {!qrBase64 && (
-      <p style={{ marginTop: 10 }}>Gerando QR Code...</p>
-    )}
+          {!qrBase64 && (
+            <p style={{ marginTop: 10 }}>Gerando QR Code...</p>
+          )}
 
-    {/* 🔥 QR CODE */}
-    {qrBase64 && (
-      <div style={{
-        background: "#fff",
-        padding: 10,
-        borderRadius: 12,
-        display: "inline-block",
-        marginTop: 10
-      }}>
-        <img
-          src={`data:image/png;base64,${qrBase64}`}
-          style={{ width: 220 }}
-        />
-      </div>
-    )}
+          {qrBase64 && (
+            <div style={{
+              background: "#fff",
+              padding: 10,
+              borderRadius: 12,
+              display: "inline-block",
+              marginTop: 10
+            }}>
+              <img
+                src={`data:image/png;base64,${qrBase64}`}
+                style={{ width: 220 }}
+              />
+            </div>
+          )}
 
-    {/* 🔥 COPIA E COLA */}
-    {qrCode && (
-      <>
-        <textarea
-          value={qrCode}
-          readOnly
-          style={{
-            width: "100%",
-            marginTop: 12,
-            padding: 10,
-            borderRadius: 10,
-            fontSize: 12,
-            border: "1px solid #ddd"
-          }}
-        />
+          {qrCode && (
+            <>
+              <textarea
+                value={qrCode}
+                readOnly
+                style={{
+                  width: "100%",
+                  marginTop: 12,
+                  padding: 10,
+                  borderRadius: 10,
+                  fontSize: 12,
+                  border: "1px solid #ddd"
+                }}
+              />
 
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(qrCode);
-            alert("Pix copiado!");
-          }}
-          style={{
-            marginTop: 10,
-            width: "100%",
-            padding: 10,
-            borderRadius: 10,
-            border: "none",
-            background: "#6a00ff",
-            color: "#fff",
-            fontWeight: "bold"
-          }}
-        >
-          📋 Copiar código Pix
-        </button>
-      </>
-    )}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(qrCode);
+                  alert("Pix copiado!");
+                }}
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  padding: 10,
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#6a00ff",
+                  color: "#fff",
+                  fontWeight: "bold"
+                }}
+              >
+                📋 Copiar código Pix
+              </button>
+            </>
+          )}
 
-    {/* 🔥 TEXTO NOVO (AQUI) */}
-    <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
-      Após o pagamento, seu pedido será confirmado automaticamente.
-    </p>
+          <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
+            Após o pagamento, seu pedido será confirmado automaticamente.
+          </p>
 
-  </div>
-)}
+        </div>
+      )}
 
       {/* CONFIRMAR */}
       <button
-  style={{
-    marginTop: 20,
-    width: "100%",
-    padding: 12,
-    borderRadius: 12,
-    border: "none",
-    background: "linear-gradient(90deg,#00c853,#00e676)",
-    color: "#fff",
-    fontWeight: "bold",
-    cursor: loadingPedido ? "not-allowed" : "pointer",
-    opacity: loadingPedido ? 0.7 : 1
-  }}
-  disabled={loadingPedido}
-  onClick={async () => {
+        style={{
+          marginTop: 20,
+          width: "100%",
+          padding: 12,
+          borderRadius: 12,
+          border: "none",
+          background: "linear-gradient(90deg,#00c853,#00e676)",
+          color: "#fff",
+          fontWeight: "bold",
+          cursor: loadingPedido ? "not-allowed" : "pointer",
+          opacity: loadingPedido ? 0.7 : 1
+        }}
+        disabled={loadingPedido}
+        onClick={async () => {
 
-    if (!formaPagamento) {
-      alert("Escolha uma forma de pagamento");
-      return;
-    }
+          if (!formaPagamento) {
+            alert("Escolha uma forma de pagamento");
+            return;
+          }
 
-    // 🔥 TRAVA REAL DO PIX
-    if (formaPagamento === "pix") {
+          // 🔥 PIX NÃO FINALIZA PEDIDO
+          if (formaPagamento === "pix") {
 
-      if (!qrBase64) {
-        alert("Aguarde o QR Code gerar");
-        return;
-      }
+            if (!paymentId) {
+              alert("Erro no Pix. Gere novamente.");
+              return;
+            }
 
-    }
+            if (!qrBase64) {
+              alert("Aguarde o QR Code gerar");
+              return;
+            }
 
-    const statusFinal =
-      formaPagamento === "pix"
-        ? "aguardando_pagamento" // 🔥 CORRETO (não usar "pago")
-        : "pendente";
+            alert("Aguardando pagamento do Pix...");
+            return; // 🔥 ESSENCIAL
+          }
 
-    try {
-      setLoadingPedido(true);
-      await finalizarPedido(statusFinal);
-    } finally {
-      setLoadingPedido(false);
-    }
-  }}
->
-  {loadingPedido ? "Processando..." : "Confirmar Pedido"}
-</button>
+          try {
+            setLoadingPedido(true);
+            await finalizarPedido("pendente");
+          } finally {
+            setLoadingPedido(false);
+          }
+        }}
+      >
+        {loadingPedido ? "Processando..." : "Confirmar Pedido"}
+      </button>
 
       {/* CANCELAR */}
       <button
@@ -2805,6 +3099,130 @@ return (
       </button>
 
     </div>
+  </div>
+)}
+
+{/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
+{pedidoPago && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 16,
+      textAlign: "center"
+    }}>
+
+      <h2>✅ Pagamento confirmado</h2>
+
+      <button
+  onClick={() => {
+
+    enviarWhatsApp(pedidoPago);
+
+    // 🔥 AGORA SIM LIMPA TUDO
+    setCarrinho([]);
+    setFormaPagamento(null);
+    setQrBase64(null);
+    setQrCode(null);
+    setPaymentId(null);
+    setMostrarPagamento(false);
+    setPedidoAtual(null);
+    setPedidoPago(null);
+
+        }}
+        style={{
+          marginTop: 10,
+          padding: 12,
+          borderRadius: 10,
+          border: "none",
+          background: "#00c853",
+          color: "#fff",
+          fontWeight: "bold"
+        }}
+      >
+        📲 Enviar pedido no WhatsApp
+      </button>
+
+    </div>
+  </div>
+)}
+
+{step === 7 && (
+  <div style={{
+    padding: 20,
+    animation: "fadeIn 0.3s ease"
+  }}>
+
+    {/* HEADER */}
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20
+    }}>
+      <h2 style={{ margin: 0 }}>🔔 Notificações</h2>
+
+      <button
+        onClick={marcarComoLida}
+        style={{
+          fontSize: 12,
+          background: "transparent",
+          border: "none",
+          color: "#9333ea",
+          cursor: "pointer"
+        }}
+      >
+        Marcar tudo como lido
+      </button>
+    </div>
+
+    {/* 🔥 HOJE */}
+    {grupos.hoje.length > 0 && (
+      <>
+        <h4 style={{ opacity: 0.6 }}>Hoje</h4>
+
+        {grupos.hoje.map(n => (
+          <NotificacaoItem key={n.id} n={n} />
+        ))}
+      </>
+    )}
+
+    {/* 🔥 ANTIGAS */}
+    {grupos.antigas.length > 0 && (
+      <>
+        <h4 style={{ opacity: 0.6, marginTop: 15 }}>Anteriores</h4>
+
+        {grupos.antigas.map(n => (
+          <NotificacaoItem key={n.id} n={n} />
+        ))}
+      </>
+    )}
+
+    {/* BOTÃO VOLTAR */}
+    <button
+      onClick={() => setStep(1)}
+      style={{
+        width: "100%",
+        marginTop: 25,
+        padding: 12,
+        borderRadius: 14,
+        border: "none",
+        background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+        color: "#fff",
+        fontWeight: "bold"
+      }}
+    >
+      ← Voltar
+    </button>
+
   </div>
 )}
 
