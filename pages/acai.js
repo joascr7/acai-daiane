@@ -427,19 +427,26 @@ useEffect(() => {
       const res = await fetch(`/api/checkPagamento?paymentId=${paymentId}`);
       const data = await res.json();
 
+      console.log("STATUS PIX:", data.status);
+
       if (data.status === "approved") {
         clearInterval(interval);
 
         alert("Pagamento confirmado! ✅");
 
+        // 🔥 FECHA MODAL
         setMostrarPagamento(false);
+
+        // 🔥 LIMPA TUDO
         setCarrinho([]);
+        setQrBase64(null);
+        setPaymentId(null);
       }
 
     } catch (e) {
       console.log(e);
     }
-  }, 3000); // 🔁 a cada 3s
+  }, 3000);
 
   return () => clearInterval(interval);
 }, [paymentId]);
