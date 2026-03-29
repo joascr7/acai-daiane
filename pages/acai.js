@@ -105,6 +105,7 @@ const blurInput = (e) => {
   // 🔥 PRODUTO
   const [produto, setProduto] = useState(null);
   const [produtos, setProdutos] = useState([]);
+  const maisVendido = calcularMaisVendido(pedidos);
 
   // 🔥 EXTRAS
   const [extras, setExtras] = useState([]);
@@ -121,6 +122,40 @@ const blurInput = (e) => {
   // 🔥 CARRINHO
   const [quantidade, setQuantidade] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
+// 🔥 forma de pagamento
+  const [formaPagamento, setFormaPagamento] = useState(null);
+  const [statusPagamento, setStatusPagamento] = useState("pendente");
+  const [mostrarPagamento, setMostrarPagamento] = useState(false);
+  const [pixConfirmado, setPixConfirmado] = useState(false);
+  const [loadingPedido, setLoadingPedido] = useState(false);
+
+   // 🔥 NOVOS STATES DO PIX
+  const [qrBase64, setQrBase64] = useState(null);
+  const [paymentId, setPaymentId] = useState(null);
+
+  // 🔥 AQUI 👇 (COLOCA A FUNÇÃO)
+  const gerarPix = async () => {
+    try {
+      const res = await fetch("/api/pix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          total: totalFinal
+        })
+      });
+
+      const data = await res.json();
+
+      setQrBase64(data.qr_code_base64);
+      setPaymentId(data.payment_id);
+
+    } catch (e) {
+      alert("Erro ao gerar Pix");
+      console.log(e);
+    }
+  };
 
   // 🔥 CUPOM
   const [cupomInput, setCupomInput] = useState("");
@@ -377,6 +412,26 @@ useEffect(() => {
 
   carregar();
 }, []);
+
+// 🔥 mais vendido
+function calcularMaisVendido(pedidos) {
+  const contador = {};
+
+  pedidos.forEach(p => {
+    p.itens?.forEach(item => {
+      const nome = item.nome || item.produto?.nome;
+
+      if (!nome) return;
+
+      contador[nome] = (contador[nome] || 0) + item.quantidade;
+    });
+  });
+
+  const ordenado = Object.entries(contador)
+    .sort((a, b) => b[1] - a[1]);
+
+  return ordenado[0]?.[0];
+}
 
 // 🔥 remover do carrinho
 function removerItem(index) {
@@ -752,7 +807,7 @@ function aplicarCupomDireto(cupom) {
   setDesconto(valorDesconto);
 }
 
-async function finalizarPedido() {
+async function finalizarPedido(statusFinalPagamento) {
 
   if (!carrinho.length) {
     alert("Carrinho vazio!");
@@ -765,40 +820,60 @@ async function finalizarPedido() {
     return;
   }
 
+  if (!formaPagamento) {
+    alert("Escolha a forma de pagamento");
+    return;
+  }
+
+  // 🔥 PIX ainda não confirmado (manual por enquanto)
+  if (formaPagamento === "pix" && !pixConfirmado) {
+    alert("Confirme o pagamento via Pix");
+    return;
+  }
+
   try {
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
-
     const totalFinalPedido = Number(totalFinal.toFixed(2));
 
     const pedido = {
-  codigo,
-  cliente: {
-    nome: clienteNome,
-    telefone: clienteTelefone,
-    endereco: clienteEndereco,
-    numero: clienteNumeroCasa,
-    uid: user.uid
-  },
+      codigo,
 
-  // 🔥 CORREÇÃO AQUI
-  itens: carrinho.map(item => ({
-    nome: item.produto.nome,
-    imagem: item.produto.imagem, // 🔥 COLOCA AQUI
-    quantidade: item.quantidade,
-    total: item.total,
-    extras: item.extras?.map(e => ({
-      nome: e.nome,
-      preco: e.preco
-    }))
-  })),
+      cliente: {
+        nome: clienteNome,
+        telefone: clienteTelefone,
+        endereco: clienteEndereco,
+        numero: clienteNumeroCasa,
+        uid: user.uid
+      },
 
-  total: totalFinalPedido,
-  status: "preparando",
-  data: new Date().toISOString()
-};
+      itens: carrinho.map(item => ({
+        nome: item.produto.nome,
+        imagem: item.produto.imagem,
+        quantidade: item.quantidade,
+        total: item.total,
+        extras: item.extras?.map(e => ({
+          nome: e.nome,
+          preco: e.preco
+        }))
+      })),
 
-    // 🔒 TRAVA CUPOM ANTES (ANTI-FRAUDE REAL)
+      total: totalFinalPedido,
+
+      // 💳 PAGAMENTO COMPLETO
+      formaPagamento,
+      statusPagamento:
+        formaPagamento === "pix"
+          ? "aguardando_pagamento"
+          : "pendente",
+
+      paymentId: paymentId || null, // 🔥 PIX REAL
+
+      status: "preparando",
+      data: new Date().toISOString()
+    };
+
+    // 🔒 CUPOM (ANTI FRAUDE)
     if (cupomAplicado?.id) {
 
       const cpfLimpo = clienteCpf.replace(/\D/g, "");
@@ -808,28 +883,24 @@ async function finalizarPedido() {
         const ref = doc(db, "cupons", cupomAplicado.id);
         const snap = await transaction.get(ref);
 
-        if (!snap.exists()) {
-          throw "Cupom inválido ❌";
-        }
+        if (!snap.exists()) throw "Cupom inválido ❌";
 
         const dados = snap.data();
 
-        // 🔥 BLOQUEIO REAL
         if (dados.usos && dados.usos[cpfLimpo]) {
           throw "Cupom já utilizado ❌";
         }
 
-        // 🔥 MARCA COMO USADO
         transaction.update(ref, {
           [`usos.${cpfLimpo}`]: true
         });
       });
     }
 
-    // 💾 AGORA SIM salva pedido
+    // 💾 SALVA PEDIDO
     await addDoc(collection(db, "pedidos"), pedido);
 
-    // 📲 WHATSAPP (corrigido mobile)
+    // 📲 WHATSAPP
     let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
 
     carrinho.forEach((item, i) => {
@@ -847,6 +918,9 @@ async function finalizarPedido() {
     });
 
     mensagem += ` Total: R$ ${totalFinalPedido}\n\n`;
+    mensagem += `Pagamento: ${formaPagamento}\n`;
+    mensagem += `Status: ${pedido.statusPagamento}\n\n`;
+
     mensagem += ` ${clienteNome}\n`;
     mensagem += ` ${clienteTelefone}\n`;
 
@@ -863,9 +937,16 @@ async function finalizarPedido() {
       window.open(url, "_blank");
     }
 
-    // 🔥 limpa carrinho
+    // 🔥 RESET COMPLETO
     setCarrinho([]);
     setCupomAplicado(null);
+    setFormaPagamento(null);
+    setPixConfirmado(false);
+    setMostrarPagamento(false);
+
+    // 🔥 LIMPA PIX
+    setQrBase64(null);
+    setPaymentId(null);
 
     alert("Pedido realizado com sucesso! 🚀");
 
@@ -1198,66 +1279,91 @@ return (
         })
         .map(p => {
 
-          return (
-            <div
-              key={p.id}
-              onClick={(e) => {
+  return (
+    <div
+      key={p.id}
 
-                if (!lojaAberta) {
-                  alert("🚫 Loja fechada");
-                  return;
-                }
+      // 🔥 STYLE CORRETO (AQUI FORA)
+      style={{
+        position: "relative",
+        borderRadius: 18,
+        overflow: "hidden",
+        cursor: "pointer",
+        background: themeAtual.card,
+        transition: "all 0.2s ease",
+        boxShadow: "0 5px 15px rgba(0,0,0,0.15)"
+      }}
 
-                setProduto(p);
-                setSelectedId(p.id);
+      onClick={(e) => {
 
-                if (p.categoria === "bebidas") {
+        if (!lojaAberta) {
+          alert("🚫 Loja fechada");
+          return;
+        }
 
-                  const total = p.preco || 0;
+        setProduto(p);
+        setSelectedId(p.id);
 
-                  setCarrinho(prev => [
-                    ...prev,
-                    {
-                      produto: p,
-                      quantidade: 1,
-                      extras: [],
-                      total
-                    }
-                  ]);
+        if (p.categoria === "bebidas") {
 
-                  setToast({ nome: p.nome });
-                  setTimeout(() => setToast(null), 2000);
+          const total = p.preco || 0;
 
-                  return;
-                }
+          setCarrinho(prev => [
+            ...prev,
+            {
+              produto: p,
+              quantidade: 1,
+              extras: [],
+              total
+            }
+          ]);
 
-                setStep(2);
-              }}
-              style={{
-                borderRadius: 18,
-                overflow: "hidden",
-                cursor: "pointer",
-                background: themeAtual.card,
-                transition: "all 0.2s ease",
-                boxShadow: "0 5px 15px rgba(0,0,0,0.15)"
-              }}
-            >
+          setToast({ nome: p.nome });
+          setTimeout(() => setToast(null), 2000);
 
-              {/* 🔥 IMAGEM */}
-              <img
-                src={
-                  typeof p.imagem === "string" &&
-                  p.imagem.startsWith("data:image")
-                    ? p.imagem
-                    : "/acai.png"
-                }
-                onError={(e) => (e.target.src = "/acai.png")}
-                style={{
-                  width: "100%",
-                  height: 140,
-                  objectFit: "cover"
-                }}
-              />
+          return;
+        }
+
+        setStep(2);
+      }}
+    >
+
+  {/* 🔥 MAIS VENDIDO (AGORA NO LUGAR CERTO) */}
+    {p.maisVendido && (
+  <div style={{
+      position: "absolute",
+      top: 4,
+      left: 10,
+      background: "linear-gradient(90deg,#ff0033,#ff5a5a)",
+      color: "#fff",
+      padding: "5px 10px",
+      borderRadius: 999,
+      fontSize: 11,
+      fontWeight: "bold",
+      display: "flex",
+      alignItems: "center",
+      gap: 5,
+      boxShadow: "0 4px 12px rgba(255,0,51,0.4)"
+    }}>
+    🔥 Mais vendido
+  </div>
+)}
+
+      {/* 🔥 IMAGEM */}
+      <img
+        src={
+          typeof p.imagem === "string" &&
+          p.imagem.startsWith("data:image")
+            ? p.imagem
+            : "/acai.png"
+        }
+        onError={(e) => (e.target.src = "/acai.png")}
+        style={{
+          width: "100%",
+          height: 140,
+          objectFit: "cover"
+        }}
+      />
 
               {/* 🔥 INFO */}
               <div style={{ padding: 10 }}>
@@ -2389,32 +2495,32 @@ return (
       zIndex: 999
     }}>
 
-      <button
-        onClick={finalizarPedido}
-        style={{
-          width: "90%",
-          maxWidth: 380,
-          padding: "12px",
-          borderRadius: 18,
+     <button
+  onClick={() => setMostrarPagamento(true)}
+  style={{
+    width: "90%",
+    maxWidth: 380,
+    padding: "12px",
+    borderRadius: 18,
 
-          background: dark
-            ? "linear-gradient(90deg,#9333ea,#c026d3)"
-            : "linear-gradient(90deg,#00c853,#00e676)",
+    background: dark
+      ? "linear-gradient(90deg,#9333ea,#c026d3)"
+      : "linear-gradient(90deg,#00c853,#00e676)",
 
-          color: "#fff",
-          border: "none",
-          fontWeight: "bold",
-          fontSize: 14,
+    color: "#fff",
+    border: "none",
+    fontWeight: "bold",
+    fontSize: 14,
 
-          boxShadow: dark
-            ? "0 8px 25px rgba(147,51,234,0.4)"
-            : "0 8px 25px rgba(0,200,83,0.3)",
+    boxShadow: dark
+      ? "0 8px 25px rgba(147,51,234,0.4)"
+      : "0 8px 25px rgba(0,200,83,0.3)",
 
-          cursor: "pointer"
-        }}
-      >
-        ✅ Confirmar pagamento
-      </button>
+    cursor: "pointer"
+  }}
+>
+  💳 Escolher pagamento
+</button>
 
     </div>
 
@@ -2423,6 +2529,192 @@ return (
       ← Voltar ao carrinho
     </button>
   </>
+)}
+
+ {/* ========================= */}
+    {/* 🔥 MODAL DE PAGAMENTO */}
+    {/* ========================= */}
+    
+    {mostrarPagamento && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 16,
+      width: 350,
+      boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
+    }}>
+
+      <h3 style={{ marginBottom: 10 }}>💳 Forma de pagamento</h3>
+
+      {/* PIX */}
+      <button
+        onClick={() => {
+          setFormaPagamento("pix");
+          setPixConfirmado(false);
+          gerarPix();
+        }}
+        style={{
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
+          borderRadius: 10,
+          border: "none",
+          cursor: "pointer",
+          background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "pix" ? "#fff" : "#000",
+          fontWeight: "bold"
+        }}
+      >
+        ⚡ Pix
+      </button>
+
+      {/* DINHEIRO */}
+      <button
+        onClick={() => {
+          setFormaPagamento("dinheiro");
+          setPixConfirmado(false);
+        }}
+        style={{
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
+          borderRadius: 10,
+          border: "none",
+          cursor: "pointer",
+          background: formaPagamento === "dinheiro" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "dinheiro" ? "#fff" : "#000",
+          fontWeight: "bold"
+        }}
+      >
+        💵 Dinheiro na entrega
+      </button>
+
+      {/* CARTÃO */}
+      <button
+        onClick={() => {
+          setFormaPagamento("cartao");
+          setPixConfirmado(false);
+        }}
+        style={{
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
+          borderRadius: 10,
+          border: "none",
+          cursor: "pointer",
+          background: formaPagamento === "cartao" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "cartao" ? "#fff" : "#000",
+          fontWeight: "bold"
+        }}
+      >
+        💳 Cartão na entrega
+      </button>
+
+      {/* PIX AREA */}
+      {formaPagamento === "pix" && (
+        <div style={{ marginTop: 20, textAlign: "center" }}>
+
+          <p><strong>Valor: R$ {Number(totalFinal).toFixed(2)}</strong></p>
+
+          {qrBase64 ? (
+            <img
+              src={`data:image/png;base64,${qrBase64}`}
+              style={{ width: 200 }}
+            />
+          ) : (
+            <p>Gerando QR Code...</p>
+          )}
+
+          <button
+            onClick={() => setPixConfirmado(true)}
+            style={{
+              marginTop: 10,
+              background: pixConfirmado ? "#00c853" : "#6a00ff",
+              color: "#fff",
+              border: "none",
+              padding: 10,
+              borderRadius: 10,
+              cursor: "pointer",
+              width: "100%"
+            }}
+          >
+            {pixConfirmado ? "✅ Pagamento confirmado" : "Já paguei"}
+          </button>
+
+        </div>
+      )}
+
+      {/* CONFIRMAR */}
+      <button
+        style={{
+          marginTop: 20,
+          width: "100%",
+          padding: 12,
+          borderRadius: 12,
+          border: "none",
+          background: "linear-gradient(90deg,#00c853,#00e676)",
+          color: "#fff",
+          fontWeight: "bold",
+          cursor: loadingPedido ? "not-allowed" : "pointer",
+          opacity: loadingPedido ? 0.7 : 1
+        }}
+        disabled={loadingPedido}
+        onClick={async () => {
+
+          if (!formaPagamento) {
+            alert("Escolha uma forma de pagamento");
+            return;
+          }
+
+          if (formaPagamento === "pix" && !pixConfirmado) {
+            alert("Confirme o pagamento via Pix");
+            return;
+          }
+
+          const statusFinal =
+            formaPagamento === "pix" ? "pago" : "pendente";
+
+          try {
+            setLoadingPedido(true);
+            await finalizarPedido(statusFinal);
+          } finally {
+            setLoadingPedido(false);
+          }
+        }}
+      >
+        {loadingPedido ? "Processando..." : "Confirmar Pedido"}
+      </button>
+
+      {/* CANCELAR */}
+      <button
+        onClick={() => {
+          setMostrarPagamento(false);
+          setPixConfirmado(false);
+          setFormaPagamento(null);
+        }}
+        style={{
+          marginTop: 10,
+          background: "transparent",
+          border: "none",
+          color: "#999",
+          cursor: "pointer",
+          width: "100%"
+        }}
+      >
+        Cancelar
+      </button>
+
+    </div>
+  </div>
 )}
 
 
