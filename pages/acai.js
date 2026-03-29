@@ -126,7 +126,6 @@ const blurInput = (e) => {
   const [formaPagamento, setFormaPagamento] = useState(null);
   const [statusPagamento, setStatusPagamento] = useState("pendente");
   const [mostrarPagamento, setMostrarPagamento] = useState(false);
-  const [pixConfirmado, setPixConfirmado] = useState(false);
   const [loadingPedido, setLoadingPedido] = useState(false);
 
    // 🔥 NOVOS STATES DO PIX
@@ -830,12 +829,6 @@ async function finalizarPedido(statusFinalPagamento) {
     return;
   }
 
-  // 🔥 PIX ainda não confirmado (manual por enquanto)
-  if (formaPagamento === "pix" && !pixConfirmado) {
-    alert("Confirme o pagamento via Pix");
-    return;
-  }
-
   try {
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
@@ -946,7 +939,6 @@ async function finalizarPedido(statusFinalPagamento) {
     setCarrinho([]);
     setCupomAplicado(null);
     setFormaPagamento(null);
-    setPixConfirmado(false);
     setMostrarPagamento(false);
 
     // 🔥 LIMPA PIX
@@ -2566,8 +2558,7 @@ return (
     if (loadingPix) return; // 🔥 evita clique duplo
 
     setFormaPagamento("pix");
-    setPixConfirmado(false);
-
+  
     // 🔥 limpa estado anterior
     setQrBase64(null);
     setQrCode(null);
@@ -2595,7 +2586,7 @@ return (
       <button
         onClick={() => {
           setFormaPagamento("dinheiro");
-          setPixConfirmado(false);
+          
         }}
         style={{
           width: "100%",
@@ -2616,7 +2607,7 @@ return (
       <button
         onClick={() => {
           setFormaPagamento("cartao");
-          setPixConfirmado(false);
+          
         }}
         style={{
           width: "100%",
@@ -2697,24 +2688,10 @@ return (
       </>
     )}
 
-    {/* 🔥 CONFIRMAÇÃO PIX */}
-    <button
-      disabled={!qrBase64}
-      onClick={() => setPixConfirmado(true)}
-      style={{
-        marginTop: 10,
-        background: pixConfirmado ? "#00c853" : "#6a00ff",
-        color: "#fff",
-        border: "none",
-        padding: 10,
-        borderRadius: 10,
-        width: "100%",
-        opacity: !qrBase64 ? 0.5 : 1,
-        cursor: !qrBase64 ? "not-allowed" : "pointer"
-      }}
-    >
-      {pixConfirmado ? "✅ Pagamento confirmado" : "Já paguei"}
-    </button>
+    {/* 🔥 TEXTO NOVO (AQUI) */}
+    <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
+      Após o pagamento, seu pedido será confirmado automaticamente.
+    </p>
 
   </div>
 )}
@@ -2775,7 +2752,6 @@ return (
       <button
         onClick={() => {
           setMostrarPagamento(false);
-          setPixConfirmado(false);
           setFormaPagamento(null);
         }}
         style={{
