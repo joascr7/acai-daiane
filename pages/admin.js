@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
+import Cropper from "react-easy-crop";
+
 import { db } from '../services/firebase';
 import { setDoc } from "firebase/firestore";
 import { authAdmin as auth } from "../services/firebaseDual";
@@ -69,8 +71,15 @@ export default function Admin() {
   const [textoNotificacao, setTextoNotificacao] = useState("");
   const [clientes, setClientes] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState("");
+  const [imagemNotificacao, setImagemNotificacao] = useState("");
+  const [produtoSelecionado, setProdutoSelecionado] = useState("");
   
-  
+  // 🔍 CORTA IMAGEM ESTILO INSTA
+const [crop, setCrop] = useState({ x: 0, y: 0 });
+const [zoom, setZoom] = useState(1);
+const [imagemTemp, setImagemTemp] = useState(null);
+const [mostrarCrop, setMostrarCrop] = useState(false);
+const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
   // 🔍 BUSCA
   const [buscaCodigo, setBuscaCodigo] = useState("");
@@ -92,24 +101,35 @@ async function enviarNotificacao(tipo) {
     return;
   }
 
-  // 🔥 SE FOR USUÁRIO E NÃO SELECIONOU
-  if (tipo === "usuario" && !clienteSelecionado) {
-    alert("Selecione um cliente");
-    return;
-  }
-
   await addDoc(collection(db, "notificacoes"), {
-    texto: textoNotificacao,
-    para: tipo,
-    uid: tipo === "usuario" ? clienteSelecionado : null,
-    ativo: true,
-    data: new Date().toISOString()
-  });
 
-  setTextoNotificacao("");
-  setClienteSelecionado("");
+  texto: textoNotificacao,
+  para: tipo,
+  uid: tipo === "usuario" ? clienteSelecionado : null,
+  ativo: true,
 
-  alert("Notificação enviada 🚀");
+  // 🔥 DATA
+  data: new Date().toISOString(),
+
+  lida: false,
+
+  // 🔥 IMAGEM (ADICIONA ISSO)
+  imagem: imagemNotificacao || null,
+
+  produtoId: produtoSelecionado || null
+
+});
+
+setTextoNotificacao("");
+setClienteSelecionado("");
+setImagemNotificacao(""); // 🔥 limpa imagem também
+
+alert("Notificação enviada 🚀");
+}
+
+
+async function removerNotificacao(id) {
+  await deleteDoc(doc(db, "notificacoes", id));
 }
 
 async function salvarLogo() {
@@ -530,7 +550,6 @@ async function criarCupom() {
   }
 }
 
-
 async function deletarCupom(id) {
 
   const confirmar = confirm("Excluir cupom?");
@@ -656,6 +675,174 @@ return (
     }}
   />
 
+  <input
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setImagemTemp(reader.result); // 🔥 salva temporária
+      setMostrarCrop(true);         // 🔥 abre modal
+    };
+
+    reader.readAsDataURL(file);
+  }}
+  style={{
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    background: "#222",
+    color: "#fff"
+  }}
+/>
+
+
+// 🔥 CORTE DE IMAGEM UPLOAD
+{mostrarCrop && imagemTemp && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.9)",
+    zIndex: 9999,
+    display: "flex",
+    flexDirection: "column"
+  }}>
+
+    <div style={{ flex: 1, position: "relative" }}>
+      <Cropper
+        image={imagemTemp}
+        crop={crop}
+        zoom={zoom}
+        aspect={2 / 1}
+        onCropChange={setCrop}
+        onZoomChange={setZoom}
+        onCropComplete={(croppedArea, croppedPixels) => {
+          setCroppedAreaPixels(croppedPixels);
+        }}
+      />
+    </div>
+
+    <div style={{ padding: 20, background: "#111" }}>
+
+      <input
+        type="range"
+        min={1}
+        max={3}
+        step={0.1}
+        value={zoom}
+        onChange={(e) => setZoom(e.target.value)}
+        style={{ width: "100%" }}
+      />
+
+      <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+
+        <button onClick={() => setMostrarCrop(false)}>
+          ❌ Cancelar
+        </button>
+
+        <button
+          onClick={async () => {
+
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const img = new Image();
+            img.src = imagemTemp;
+
+            await new Promise(resolve => img.onload = resolve);
+
+            canvas.width = croppedAreaPixels.width;
+            canvas.height = croppedAreaPixels.height;
+
+            ctx.drawImage(
+              img,
+              croppedAreaPixels.x,
+              croppedAreaPixels.y,
+              croppedAreaPixels.width,
+              croppedAreaPixels.height,
+              0,
+              0,
+              croppedAreaPixels.width,
+              croppedAreaPixels.height
+            );
+
+            const base64 = canvas.toDataURL("image/jpeg", 0.8);
+
+            setImagemNotificacao(base64); // 🔥 salva FINAL
+            setMostrarCrop(false);
+
+          }}
+        >
+          💾 Salvar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+)}
+
+{/* 🔥 AQUI (PREVIEW) */}
+{imagemNotificacao && (
+  <img
+    src={imagemNotificacao}
+    style={{
+      width: "100%",
+      height: 130,
+      objectFit: "cover",
+      borderRadius: 12,
+      marginBottom: 10,
+      boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+    }}
+  />
+)}
+
+{imagemNotificacao && (
+  <button
+    onClick={() => setImagemNotificacao("")}
+    style={{
+      width: "100%",
+      padding: 10,
+      borderRadius: 10,
+      border: "none",
+      background: "#ff0033",
+      color: "#fff",
+      marginBottom: 10,
+      cursor: "pointer"
+    }}
+  >
+    ❌ Remover imagem
+  </button>
+)}
+
+{/* 🔥 AQUI ENTRA O SELECT */}
+<select
+  value={produtoSelecionado}
+  onChange={(e) => setProdutoSelecionado(e.target.value)}
+  style={{
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10
+  }}
+>
+  <option value="">Selecionar produto (opcional)</option>
+
+  {produtos.map(p => (
+    <option key={p.id} value={p.id}>
+      {p.nome}
+    </option>
+  ))}
+
+</select>
+
   {/* BOTÕES */}
   <div style={{ display: "flex", gap: 10 }}>
 
@@ -689,6 +876,65 @@ return (
 </button>
 
   </div>
+
+</div>
+
+<div style={{ marginTop: 20 }}>
+
+  <h3>📩 Notificações enviadas</h3>
+
+  {notificacoes.length === 0 && (
+    <p>Nenhuma notificação</p>
+  )}
+
+  {notificacoes.map((n) => (
+
+    <div key={n.id} style={{
+      background: "#1a1a1a",
+      padding: 15,
+      borderRadius: 12,
+      marginBottom: 10,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 10
+    }}>
+
+      <div style={{ flex: 1 }}>
+
+        {/* TEXTO */}
+        <div style={{ fontSize: 14 }}>
+          {n.texto}
+        </div>
+
+        {/* DATA */}
+        <div style={{
+          fontSize: 11,
+          opacity: 0.6
+        }}>
+          {n.data ? new Date(n.data).toLocaleString() : ""}
+        </div>
+
+      </div>
+
+      {/* 🗑️ REMOVER */}
+      <button
+        onClick={() => removerNotificacao(n.id)}
+        style={{
+          background: "#ff0033",
+          color: "#fff",
+          border: "none",
+          borderRadius: 10,
+          padding: "6px 10px",
+          cursor: "pointer"
+        }}
+      >
+        🗑️
+      </button>
+
+    </div>
+
+  ))}
 
 </div>
 

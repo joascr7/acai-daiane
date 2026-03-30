@@ -180,6 +180,7 @@ const [paymentId, setPaymentId] = useState(null);
 const [pedidoAtual, setPedidoAtual] = useState(null);
 
 
+
 // agrupar notificacoes
 
 function agruparNotificacoes(lista) {
@@ -203,61 +204,127 @@ function agruparNotificacoes(lista) {
   return grupos;
 }
 
-const grupos = agruparNotificacoes(notificacoes);
+const notificacoesOrdenadas = [...notificacoes].sort(
+  (a, b) => new Date(b.data) - new Date(a.data)
+);
 
+const grupos = agruparNotificacoes(notificacoesOrdenadas);
+
+// notificar marca lida
+async function marcarUmaComoLida(n) {
+
+  if (n.lida) return;
+
+  await updateDoc(doc(db, "notificacoes", n.id), {
+    lida: true
+  });
+
+}
 
 // notificar
 
 function NotificacaoItem({ n }) {
 
+  async function marcarUmaComoLida() {
+    if (n.lida) return;
+
+    await updateDoc(doc(db, "notificacoes", n.id), {
+      lida: true
+    });
+  }
+
   return (
     <div
+      onClick={marcarUmaComoLida}
       style={{
-        background: dark ? "#1a1a1a" : "#fff",
+        background: !n.lida
+          ? (dark ? "rgba(147,51,234,0.15)" : "rgba(147,51,234,0.08)")
+          : (dark ? "#1a1a1a" : "#fff"),
         borderRadius: 16,
         padding: 15,
-        marginBottom: 10,
+        marginBottom: 12,
         position: "relative",
-        transition: "0.2s",
-        border: !n.lida ? "1px solid #9333ea" : "1px solid transparent"
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        border: !n.lida
+          ? "1px solid #9333ea"
+          : "1px solid transparent",
+        animation: "slideUp 0.3s ease",
+        boxShadow: "0 6px 20px rgba(0,0,0,0.15)"
       }}
+
+      onMouseEnter={e => e.currentTarget.style.transform = "scale(1.01)"}
+      onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
     >
 
-      {/* TIPO */}
+      {/* 🔥 TIPO */}
       <div style={{
         fontSize: 12,
-        marginBottom: 5,
-        color: n.para === "todos" ? "#9333ea" : "#00c853"
+        marginBottom: 6,
+        color: n.para === "todos" ? "#9333ea" : "#00c853",
+        fontWeight: "bold"
       }}>
         {n.para === "todos" ? "📢 Aviso" : "📦 Pedido"}
       </div>
 
-      {/* TEXTO */}
+      {/* 🔥 IMAGEM (BANNER) */}
+      {n.imagem && (
+        <img
+          src={n.imagem}
+          onClick={(e) => {
+            e.stopPropagation(); // 🔥 evita conflito
+
+            if (n.produtoId && produtos) {
+
+              const produtoEncontrado = produtos.find(
+                p => p.id === n.produtoId
+              );
+
+              if (produtoEncontrado) {
+                setProduto(produtoEncontrado);
+                setStep(2); // 🔥 abre produto
+              }
+
+            }
+          }}
+          style={{
+            width: "100%",
+            height: 130,
+            objectFit: "cover",
+            borderRadius: 12,
+            marginBottom: 10,
+            cursor: "pointer"
+          }}
+        />
+      )}
+
+      {/* 🔥 TEXTO */}
       <div style={{
         fontSize: 14,
-        fontWeight: 500
+        fontWeight: 500,
+        lineHeight: "18px"
       }}>
         {n.texto}
       </div>
 
-      {/* DATA */}
+      {/* 🔥 DATA */}
       <div style={{
         fontSize: 11,
         opacity: 0.5,
-        marginTop: 5
+        marginTop: 6
       }}>
-        {new Date(n.data).toLocaleString()}
+        {n.data ? new Date(n.data).toLocaleString() : ""}
       </div>
 
-      {/* 🔴 NÃO LIDO */}
+      {/* 🔴 INDICADOR */}
       {!n.lida && (
         <span style={{
           position: "absolute",
-          top: 10,
-          right: 10,
+          top: 12,
+          right: 12,
           width: 8,
           height: 8,
-          background: "#ff0033",
+          background: "#9333ea",
           borderRadius: "50%"
         }} />
       )}
@@ -3184,7 +3251,7 @@ return (
       </button>
     </div>
 
-    {/* 🔥 HOJE */}
+    {/* HOJE */}
     {grupos.hoje.length > 0 && (
       <>
         <h4 style={{ opacity: 0.6 }}>Hoje</h4>
@@ -3195,7 +3262,7 @@ return (
       </>
     )}
 
-    {/* 🔥 ANTIGAS */}
+    {/* ANTIGAS */}
     {grupos.antigas.length > 0 && (
       <>
         <h4 style={{ opacity: 0.6, marginTop: 15 }}>Anteriores</h4>
@@ -3206,7 +3273,7 @@ return (
       </>
     )}
 
-    {/* BOTÃO VOLTAR */}
+    {/* BOTÃO */}
     <button
       onClick={() => setStep(1)}
       style={{
