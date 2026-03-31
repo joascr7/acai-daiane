@@ -5,6 +5,7 @@ import { dbCliente as db } from "../services/firebaseDual";
 
 
 
+
 // 🔥 FIREBASE
 import {
   collection,
@@ -28,6 +29,7 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 
+
 import {
   Home,
   FileText,
@@ -47,9 +49,19 @@ import {
 
 
 
+
 import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
+
+
+  // 🔥 TODOS OS STATES PRIMEIRO
+
+ const [mounted, setMounted] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+}, []);
 
   // 🔥 USER
   const [user, setUser] = useState(null);
@@ -69,8 +81,86 @@ export default function Acai() {
   const [clienteCep, setClienteCep] = useState("");
   const [abrirPagamento, setAbrirPagamento] = useState(false);
   const [mostrarPix, setMostrarPix] = useState(false);
- 
+
+    // 🔥 PERFIL
+  const [abaPerfil, setAbaPerfil] = useState("menu");
+
+  // ❌ REMOVIDO useEffect BUGADO
+
+  // 🔥 UI
+  const [toast, setToast] = useState(null);
+  const carrinhoRef = useRef(null);
+
+  // 🔥 THEME
+  const [dark, setDark] = useState(false);
+
+
+
+  // 🔥 CATEGORIA
+  const [categoria, setCategoria] = useState("acai");
+  const [busca, setBusca] = useState("");
+
+  // 🔥 STEPS
+  const [step, setStep] = useState(1);
+  useEffect(() => {
+  setAbaPerfil("menu");
+}, [step]);
+  const [lojaAberta, setLojaAberta] = useState(true);
+  const [pedidos, setPedidos] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [extrasGlobais, setExtrasGlobais] = useState([]);
+
+  // 🔥 PRODUTO
+  const [produto, setProduto] = useState(null);
+  const [produtos, setProdutos] = useState([]);
+  const maisVendido = calcularMaisVendido(pedidos);
+
+    // 🔥 CARRINHO
+  const [quantidade, setQuantidade] = useState(1);
+  const [carrinho, setCarrinho] = useState([]);
+  const [notificacoes, setNotificacoes] = useState([]);
+  const [temNotificacao, setTemNotificacao] = useState(false);
+  const [editandoIndex, setEditandoIndex] = useState(null);
+// 🔥 forma de pagamento
+  const [formaPagamento, setFormaPagamento] = useState(null);
+
   
+  const [statusPagamento, setStatusPagamento] = useState("pendente");
+  const [mostrarPagamento, setMostrarPagamento] = useState(false);
+  const [loadingPedido, setLoadingPedido] = useState(false);
+  const [pedidoPago, setPedidoPago] = useState(null);
+
+   // 🔥 NOVOS STATES DO PIX
+const [loadingPix, setLoadingPix] = useState(false);
+const [qrBase64, setQrBase64] = useState(null);
+const [qrCode, setQrCode] = useState(null);
+const [paymentId, setPaymentId] = useState(null);
+const [pedidoAtual, setPedidoAtual] = useState(null);
+
+ // 🔥 CUPOM
+  const [cupomInput, setCupomInput] = useState("");
+  const [cupomAplicado, setCupomAplicado] = useState(null);
+  const [desconto, setDesconto] = useState(0);
+  const [cupons, setCupons] = useState([]);
+
+  // 🔥 BOTÃO PADRÃO
+  const botaoStyle = {
+    width: "90%",
+    maxWidth: 380,
+    padding: "10px",
+    borderRadius: 14,
+    background: dark
+      ? "linear-gradient(90deg,#9333ea,#c026d3)"
+      : "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    color: "#fff",
+    border: "none",
+    fontWeight: "bold",
+    fontSize: 13,
+    boxShadow: dark
+      ? "0 5px 20px rgba(147,51,234,0.4)"
+      : "0 5px 20px rgba(122,0,255,0.3)",
+    transition: "all 0.2s ease"
+  };
 
 
 
@@ -98,7 +188,7 @@ export default function Acai() {
   </div>
 );
 
- 
+
 
 // 🔥 parte do step 4
 const focoInput = (e) => {
@@ -111,17 +201,6 @@ const blurInput = (e) => {
     : "1px solid #e5e5e5";
 };
 
-  // 🔥 PERFIL
-  const [abaPerfil, setAbaPerfil] = useState("menu");
-
-  // ❌ REMOVIDO useEffect BUGADO
-
-  // 🔥 UI
-  const [toast, setToast] = useState(null);
-  const carrinhoRef = useRef(null);
-
-  // 🔥 THEME
-  const [dark, setDark] = useState(false);
   const themeAtual = dark ? darkTheme : lightTheme;
   const inputStyle = {
   width: "100%",
@@ -144,33 +223,6 @@ const blurInput = (e) => {
   boxSizing: "border-box"
 };
 
-
-  // 🔥 CATEGORIA
-  const [categoria, setCategoria] = useState("acai");
-  const [busca, setBusca] = useState("");
-
-  // 🔥 STEPS
-  const [step, setStep] = useState(1);
-  useEffect(() => {
-  setAbaPerfil("menu");
-}, [step]);
-  const [lojaAberta, setLojaAberta] = useState(true);
-  const [pedidos, setPedidos] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [extrasGlobais, setExtrasGlobais] = useState([]);
-
-  // 🔥 PRODUTO
-  const [produto, setProduto] = useState(null);
-  const [produtos, setProdutos] = useState([]);
-  const maisVendido = calcularMaisVendido(pedidos);
-
-  // 🔥 FORMATACAO BRASIL CENTAVOS COM VIRGULA
-  function formatarReal(valor) {
-  return (valor / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-}
 
 
   // 🔥 NOTIFICACAO
@@ -207,6 +259,22 @@ const blurInput = (e) => {
     }
 
   });
+
+
+  // 🔥 FORMATACAO BRASIL CENTAVOS COM VIRGULA
+  function formatarReal(valor) {
+  return (valor / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+// funct voltar para aba ex:  onClick={() => voltarPara("home", 1)}
+
+function voltarPara(abaDestino, stepDestino) {
+  setAba(abaDestino);
+  setStep(stepDestino);
+}
 
 
   // agrupar notificacoes
@@ -260,31 +328,240 @@ const grupos = agruparNotificacoes(notificacoesOrdenadas);
   return () => unsub();
 
 }, []);
+
+
+// 🔥 VARIOS CUPONS
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "cupons"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setCupons(lista);
+  });
+
+  return () => unsub();
+}, []);
+
+// 🔥 APP instalar
+useEffect(() => {
+  const handler = (e) => {
+    e.preventDefault();
+    setPromptInstall(e);
+  };
+
+  window.addEventListener("beforeinstallprompt", handler);
+
+  return () => window.removeEventListener("beforeinstallprompt", handler);
+}, []);
+
+// 🔥 MUDA ABA
+useEffect(() => {
+  if (!busca) return;
+
+  const encontrado = produtos.find(p =>
+    p.nome?.toLowerCase().includes(busca.toLowerCase())
+  );
+
+  if (encontrado) {
+    setCategoria(encontrado.categoria);
+  }
+}, [busca]);
+
+// 🔥 APP
+useEffect(() => {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("SW registrado"))
+      .catch((err) => console.log("Erro SW:", err));
+  }
+}, []);
+// 🔥 LOGO
+useEffect(() => {
+
+  const unsub = onSnapshot(doc(db, "config", "loja"), (docSnap) => {
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      setLojaAberta(data.aberta);
+      setLogo(data.logo); // 🔥 AQUI
+    }
+
+  });
+
+  return () => unsub();
+
+}, []);
+
+  // 🔥 PRODUTOS FIREBASE
+  useEffect(() => {
+  const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // 🔥 ESSENCIAL
+    lista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+
+    setProdutos(lista);
+  });
+
+  return () => unsub();
+}, []);
+// 🔥 salvar pedido na aba pedidos
+useEffect(() => {
+
+  if (!user) return;
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("cliente.uid", "==", user.uid)
+  );
+
+  const unsub = onSnapshot(q, (snapshot) => {
+
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setPedidos(lista);
+
+  });
+
+  return () => unsub();
+
+}, [user]);
+// 🔥 LOGA ABERTA OU FECHADA
+useEffect(() => {
+
+  const ref = doc(db, "config", "loja");
+
+  const unsub = onSnapshot(ref, (snap) => {
+
+    if (snap.exists()) {
+      setLojaAberta(snap.data().aberta);
+    } else {
+      setLojaAberta(true); // padrão aberto
+    }
+
+  });
+
+  return () => unsub();
+
+}, []);
+
+  // 🔥 CLIENTE
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (u) => {
+
+    console.log("🔥 AUTH USER:", u);
+
+    setUser(u);
+    setAuthReady(true);
+
+    if (!u) {
+      console.log("❌ usuário não logado");
+      return;
+    }
+
+    try {
+
+      const ref = doc(db, "usuarios", u.uid);
+
+      console.log("📂 PATH:", ref.path);
+
+      const snap = await getDoc(ref);
+
+      console.log("📦 EXISTS:", snap.exists());
+      console.log("📊 DADOS:", snap.data());
+
+      if (snap.exists()) {
+        const dados = snap.data();
+
+        setClienteNome(dados.clienteNome || "");
+        setClienteTelefone(dados.clienteTelefone || "");
+        setClienteCpf(dados.clienteCpf || "");
+        setClienteEmail(dados.clienteEmail || "");
+        setClienteEndereco(dados.clienteEndereco || "");
+        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+        setClienteCep(dados.clienteCep || "");
+      }
+
+    } catch (e) {
+      console.log("🔥 ERRO FIRESTORE:", e);
+    }
+
+  });
+
+  return () => unsubscribe();
+}, []);
+
+useEffect(() => {
+  async function carregarCupons() {
+    const snap = await getDocs(collection(db, "cupons"));
+    const lista = [];
+
+    snap.forEach(doc => {
+      lista.push({ id: doc.id, ...doc.data() });
+    });
+
+    setCupons(lista);
+  }
+
+  carregarCupons();
+}, []);
+
+// SALVAR SO NO CLIENTS
+
+useEffect(() => {
+  const saved = localStorage.getItem("carrinho");
+  if (saved) {
+    setCarrinho(JSON.parse(saved));
+  }
+}, []);
+
+// 🔥 CHAMA WHATSAPP AQUI
+
+useEffect(() => {
+  if (!pedidoAtual?.id) return;
+
+  console.log("🔎 Monitorando pedido:", pedidoAtual.id);
+
+  const ref = doc(db, "pedidos", pedidoAtual.id);
+
+  const unsubscribe = onSnapshot(ref, (snap) => {
+    if (!snap.exists()) return;
+
+    const dados = snap.data();
+
+    console.log("🔥 FIREBASE:", dados);
+
+    // ✅ SOMENTE quando for PAGO REAL
+    if (dados.statusPagamento === "pago") {
+
+      console.log("✅ PAGAMENTO REAL CONFIRMADO");
+
+      setPedidoPago({
+        codigo: dados.codigo,
+        total: dados.total,
+        itens: dados.itens,
+        clienteNome: dados.cliente?.nome,
+        clienteTelefone: dados.cliente?.telefone
+      });
+
+    }
+  });
+
+  return () => unsubscribe();
+}, [pedidoAtual]);
  
-
-  // 🔥 CARRINHO
-  const [quantidade, setQuantidade] = useState(1);
-  const [carrinho, setCarrinho] = useState([]);
-  const [notificacoes, setNotificacoes] = useState([]);
-  const [temNotificacao, setTemNotificacao] = useState(false);
-  const [editandoIndex, setEditandoIndex] = useState(null);
-// 🔥 forma de pagamento
-  const [formaPagamento, setFormaPagamento] = useState(null);
-
-  
-  const [statusPagamento, setStatusPagamento] = useState("pendente");
-  const [mostrarPagamento, setMostrarPagamento] = useState(false);
-  const [loadingPedido, setLoadingPedido] = useState(false);
-  const [pedidoPago, setPedidoPago] = useState(null);
-
-   // 🔥 NOVOS STATES DO PIX
-const [loadingPix, setLoadingPix] = useState(false);
-const [qrBase64, setQrBase64] = useState(null);
-const [qrCode, setQrCode] = useState(null);
-const [paymentId, setPaymentId] = useState(null);
-const [pedidoAtual, setPedidoAtual] = useState(null);
-
-
+ if (!mounted) return null;
 
 // criar tela sem o emoje
 function TelaHome() {
@@ -359,6 +636,9 @@ function NotificacaoItem({ n }) {
   }
 
   return (
+
+    
+
     <div
       onClick={marcarUmaComoLida}
       style={{
@@ -542,12 +822,19 @@ await setDoc(doc(db, "pedidos", pedidoId), {
     uid: user.uid
   },
 
-  itens: carrinho.map(item => ({
-    nome: item.produto.nome,
-    imagem: item.produto.imagem,
-    quantidade: item.quantidade,
-    total: item.total,
-    extras: item.extras || []
+   itens: carrinho.map(item => ({ 
+   produtoId: item.produto.id,
+   nome: item.produto.nome,
+   quantidade: item.quantidade,
+   total: item.total,
+
+   extras: item.extras?.map(e => ({
+    nome: e.nome,
+    preco: e.preco,
+    categoria: e.categoria || "Extras"
+    
+    })),
+
   })),
 
   total: Number(totalFinal),
@@ -567,30 +854,7 @@ await setDoc(doc(db, "pedidos", pedidoId), {
   }
 };
 
-  // 🔥 CUPOM
-  const [cupomInput, setCupomInput] = useState("");
-  const [cupomAplicado, setCupomAplicado] = useState(null);
-  const [desconto, setDesconto] = useState(0);
-  const [cupons, setCupons] = useState([]);
 
-  // 🔥 BOTÃO PADRÃO
-  const botaoStyle = {
-    width: "90%",
-    maxWidth: 380,
-    padding: "10px",
-    borderRadius: 14,
-    background: dark
-      ? "linear-gradient(90deg,#9333ea,#c026d3)"
-      : "linear-gradient(90deg,#6a00ff,#ff2aff)",
-    color: "#fff",
-    border: "none",
-    fontWeight: "bold",
-    fontSize: 13,
-    boxShadow: dark
-      ? "0 5px 20px rgba(147,51,234,0.4)"
-      : "0 5px 20px rgba(122,0,255,0.3)",
-    transition: "all 0.2s ease"
-  };
 
 // 🔥 FORMATADOR GLOBAL (COLOCA NO TOPO DO ARQUIVO)
 function formatarReal(valor) {
@@ -626,16 +890,23 @@ const total = Array.isArray(carrinho)
   : 0;
 
 // 🔥 DESCONTO (CENTAVOS)
+
 let descontoCalculado = 0;
 
 if (cupomAplicado) {
+
+  const totalSeguro = Number(total || 0);
+
   if (cupomAplicado.tipo === "porcentagem") {
     descontoCalculado = Math.floor(
-      total * (Number(cupomAplicado.desconto || 0) / 100)
+      totalSeguro * (Number(cupomAplicado.desconto || 0) / 100)
     );
   } else {
     descontoCalculado = Number(cupomAplicado.desconto || 0);
   }
+
+  // 🔥 NÃO DEIXA PASSAR DO TOTAL
+  descontoCalculado = Math.min(descontoCalculado, totalSeguro);
 }
 
 // 🔥 TOTAL FINAL
@@ -664,225 +935,7 @@ const melhorCupom = Array.isArray(cupons)
     }, null)
   : null;
 
-// 🔥 VARIOS CUPONS
-useEffect(() => {
-  const unsub = onSnapshot(collection(db, "cupons"), (snapshot) => {
 
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    setCupons(lista);
-  });
-
-  return () => unsub();
-}, []);
-
-// 🔥 APP instalar
-useEffect(() => {
-  const handler = (e) => {
-    e.preventDefault();
-    setPromptInstall(e);
-  };
-
-  window.addEventListener("beforeinstallprompt", handler);
-
-  return () => window.removeEventListener("beforeinstallprompt", handler);
-}, []);
-
-// 🔥 MUDA ABA
-useEffect(() => {
-  if (!busca) return;
-
-  const encontrado = produtos.find(p =>
-    p.nome?.toLowerCase().includes(busca.toLowerCase())
-  );
-
-  if (encontrado) {
-    setCategoria(encontrado.categoria);
-  }
-}, [busca]);
-
-// 🔥 APP
-useEffect(() => {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js")
-      .then(() => console.log("SW registrado"))
-      .catch((err) => console.log("Erro SW:", err));
-  }
-}, []);
-// 🔥 LOGO
-useEffect(() => {
-
-  const unsub = onSnapshot(doc(db, "config", "loja"), (docSnap) => {
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      setLojaAberta(data.aberta);
-      setLogo(data.logo); // 🔥 AQUI
-    }
-
-  });
-
-  return () => unsub();
-
-}, []);
-
-  // 🔥 PRODUTOS FIREBASE
-  useEffect(() => {
-  const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
-
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    // 🔥 ESSENCIAL
-    lista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
-
-    setProdutos(lista);
-  });
-
-  return () => unsub();
-}, []);
-// 🔥 salvar pedido na aba pedidos
-useEffect(() => {
-
-  if (!user) return;
-
-  const q = query(
-    collection(db, "pedidos"),
-    where("cliente.uid", "==", user.uid)
-  );
-
-  const unsub = onSnapshot(q, (snapshot) => {
-
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    setPedidos(lista);
-
-  });
-
-  return () => unsub();
-
-}, [user]);
-// 🔥 LOGA ABERTA OU FECHADA
-useEffect(() => {
-
-  const ref = doc(db, "config", "loja");
-
-  const unsub = onSnapshot(ref, (snap) => {
-
-    if (snap.exists()) {
-      setLojaAberta(snap.data().aberta);
-    } else {
-      setLojaAberta(true); // padrão aberto
-    }
-
-  });
-
-  return () => unsub();
-
-}, []);
-
-  // 🔥 CLIENTE
- useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (u) => {
-
-    console.log("🔥 AUTH USER:", u);
-
-    setUser(u);
-    setAuthReady(true);
-
-    if (!u) {
-      console.log("❌ usuário não logado");
-      return;
-    }
-
-    try {
-
-      const ref = doc(db, "usuarios", u.uid);
-
-      console.log("📂 PATH:", ref.path);
-
-      const snap = await getDoc(ref);
-
-      console.log("📦 EXISTS:", snap.exists());
-      console.log("📊 DADOS:", snap.data());
-
-      if (snap.exists()) {
-        const dados = snap.data();
-
-        setClienteNome(dados.clienteNome || "");
-        setClienteTelefone(dados.clienteTelefone || "");
-        setClienteCpf(dados.clienteCpf || "");
-        setClienteEmail(dados.clienteEmail || "");
-        setClienteEndereco(dados.clienteEndereco || "");
-        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
-        setClienteCep(dados.clienteCep || "");
-      }
-
-    } catch (e) {
-      console.log("🔥 ERRO FIRESTORE:", e);
-    }
-
-  });
-
-  return () => unsubscribe();
-}, []);
-
-useEffect(() => {
-  const carregar = async () => {
-    const snap = await getDocs(collection(db, "cupons"));
-    const lista = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setCupons(lista);
-  };
-
-  carregar();
-}, []);
-
-// 🔥 CHAMA WHATSAPP AQUI
-
-useEffect(() => {
-  if (!pedidoAtual?.id) return;
-
-  console.log("🔎 Monitorando pedido:", pedidoAtual.id);
-
-  const ref = doc(db, "pedidos", pedidoAtual.id);
-
-  const unsubscribe = onSnapshot(ref, (snap) => {
-    if (!snap.exists()) return;
-
-    const dados = snap.data();
-
-    console.log("🔥 FIREBASE:", dados);
-
-    // ✅ SOMENTE quando for PAGO REAL
-    if (dados.statusPagamento === "pago") {
-
-      console.log("✅ PAGAMENTO REAL CONFIRMADO");
-
-      setPedidoPago({
-        codigo: dados.codigo,
-        total: dados.total,
-        itens: dados.itens,
-        clienteNome: dados.cliente?.nome,
-        clienteTelefone: dados.cliente?.telefone
-      });
-
-    }
-  });
-
-  return () => unsubscribe();
-}, [pedidoAtual]);
 
 // 🔥 app atualiza pagamento
 
@@ -1069,6 +1122,15 @@ function adicionarCarrinho() {
 // 🔥 preço do produto (centavos)
 const precoProduto = Number(produto?.preco || 0);
 
+// precobase do produto
+const precoBase = Number(produto?.preco || 0);
+
+const totalExtras = Object.values(extrasSelecionados)
+  .flat()
+  .reduce((acc, e) => acc + Number(e.preco || 0), 0);
+
+const totalItem = (precoBase + totalExtras) * quantidade;
+
 
   // 🔥 total por unidade
   const totalUnitario = precoProduto + totalExtras;
@@ -1077,12 +1139,14 @@ const precoProduto = Number(produto?.preco || 0);
   const total = totalUnitario * quantidade;
 
  // 🔥 PEGA EXTRAS DO NOVO SISTEMA (CORRETO)
-   const extrasFinal = Object.values(extrasSelecionados)
-  .flat()
-  .map(e => ({
-    nome: e.nome,
-    preco: Number(e.preco || 0)
-  }));
+ const extrasFinal = Object.entries(extrasSelecionados)
+  .flatMap(([categoria, lista]) =>
+    lista.map(e => ({
+      nome: e.nome,
+      preco: Number(e.preco || 0),
+      categoria // 🔥 vem da chave do grupo
+    }))
+  );
 
   const novoItem = {
     produto,
@@ -1207,7 +1271,35 @@ function alterarQuantidade(index, tipo) {
     });
   });
 }
+// valir o cupom antes e depois gerar o pix
+async function validarCupomAntes() {
 
+  if (!cupomAplicado?.id) return true;
+
+  const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
+
+  if (!cpfLimpo || cpfLimpo.length !== 11) {
+    alert("Informe um CPF válido");
+    return false;
+  }
+
+  const ref = doc(db, "cupons", cupomAplicado.id);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    alert("Cupom inválido");
+    return false;
+  }
+
+  const dados = snap.data();
+
+  if (dados.usos && dados.usos[cpfLimpo]) {
+    alert("Você já utilizou esse cupom ❌");
+    return false;
+  }
+
+  return true;
+}
 
 async function aplicarCupom() {
 
@@ -1215,25 +1307,15 @@ async function aplicarCupom() {
 
   const cupomDigitado = (cupomInput || "").trim().toLowerCase();
 
-  const snap = await getDocs(collection(db, "cupons"));
-
   if (cupomAplicado) {
-  alert("Já existe um cupom aplicado");
-  return;
-}
+    alert("Já existe um cupom aplicado");
+    return;
+  }
 
-  let cupomValido = null;
-
-  snap.forEach(doc => {
-    const c = doc.data();
-
-    if (
-      typeof c.codigo === "string" &&
-      c.codigo.trim().toLowerCase() === cupomDigitado
-    ) {
-      cupomValido = { id: doc.id, ...c };
-    }
-  });
+  // 🔥 AQUI ENTRA O CUPOMVALIDO
+  const cupomValido = cupons.find(c =>
+    c.codigo?.trim().toLowerCase() === cupomDigitado
+  );
 
   if (!cupomValido) {
     alert("Cupom inválido");
@@ -1265,15 +1347,17 @@ async function aplicarCupom() {
     return;
   }
 
-  // 🔥 CALCULAR DESCONTO
+  // 🔥 CALCULO CORRETO (CENTAVOS)
   let valorDesconto = 0;
   const totalSeguro = Number(total || 0);
 
   if (cupomValido.tipo === "porcentagem") {
-  valorDesconto = Math.floor(totalSeguro * (cupomValido.desconto / 100));
-} else {
-  valorDesconto = Number(cupomValido.desconto || 0);
-}
+    valorDesconto = Math.floor(totalSeguro * (cupomValido.desconto / 100));
+  } else {
+    valorDesconto = Number(cupomValido.desconto || 0);
+  }
+
+  valorDesconto = Math.min(valorDesconto, totalSeguro);
 
   setDesconto(valorDesconto);
   setCupomAplicado(cupomValido);
@@ -1281,47 +1365,80 @@ async function aplicarCupom() {
   alert("Cupom aplicado!");
 }
 
-function aplicarMelhorCupom() {
+async function aplicarMelhorCupom() {
+
+  // 🔥 1. BLOQUEIA SE CARRINHO VAZIO
+  if (!carrinho.length) {
+    alert("Adicione um produto antes de aplicar cupom");
+    return;
+  }
+
   if (!cupons || !cupons.length) {
     alert("Nenhum cupom disponível");
     return;
   }
 
-  const totalPedido = Math.round(Number(total || 0)); // 🔥 CENTAVOS
+  const totalPedido = Number(total || 0);
+  const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
 
-  const melhor = cupons[0]; // mantém seu fluxo simples
+  const hoje = new Date();
 
-  if (!melhor) {
+  const validos = cupons.filter(c => {
+
+    if (!c.ativo) return false;
+
+    if (c.validade && new Date(c.validade) < hoje) return false;
+
+    // 🔥 mínimo corrigido (centavos)
+    if (totalPedido < Number(c.minimo || 0) * 100) return false;
+
+    // 🔥 NÃO DEIXA USAR SE JÁ USOU
+    if (cpfLimpo && c.usos && c.usos[cpfLimpo]) return false;
+
+    return true;
+  });
+
+  if (!validos.length) {
     alert("Nenhum cupom disponível para esse pedido");
     return;
   }
 
-  let descontoCalculado = 0;
+  let melhor = null;
+  let maiorDesconto = 0;
 
-  if (melhor.tipo === "porcentagem") {
-    descontoCalculado = Math.floor(
-      totalPedido * (Number(melhor.desconto || 0) / 100)
-    );
-  } else {
-    descontoCalculado = Math.round(Number(melhor.desconto || 0));
-  }
+  validos.forEach(c => {
 
-  // 🔥 NÃO PASSA DO TOTAL
-  descontoCalculado = Math.min(descontoCalculado, totalPedido);
+    let descontoTemp = 0;
+
+    if (c.tipo === "porcentagem") {
+      descontoTemp = Math.floor(
+        totalPedido * (Number(c.desconto || 0) / 100)
+      );
+    } else {
+      descontoTemp = Number(c.desconto || 0);
+    }
+
+    if (descontoTemp > maiorDesconto) {
+      maiorDesconto = descontoTemp;
+      melhor = c;
+    }
+  });
+
+  maiorDesconto = Math.min(maiorDesconto, totalPedido);
 
   setCupomAplicado(melhor);
-  setDesconto(descontoCalculado);
+  setDesconto(maiorDesconto);
 }
 
 // marcar notificao
 async function marcarComoLida() {
+  const updates = notificacoes
+    .filter(n => !n.lida)
+    .map(n =>
+      updateDoc(doc(db, "notificacoes", n.id), { lida: true })
+    );
 
-  notificacoes.forEach(async (n) => {
-    await updateDoc(doc(db, "notificacoes", n.id), {
-      lida: true
-    });
-  });
-
+  await Promise.all(updates);
 }
 
 function aplicarCupomDireto(cupom) {
@@ -1379,7 +1496,6 @@ async function finalizarPedido(statusFinalPagamento) {
 
       itens: carrinho.map(item => ({
         nome: item.produto.nome,
-        imagem: item.produto.imagem,
         quantidade: item.quantidade,
         total: item.total,
         extras: item.extras?.map(e => ({
@@ -1403,7 +1519,12 @@ async function finalizarPedido(statusFinalPagamento) {
     // 🔒 CUPOM
     if (cupomAplicado?.id) {
 
-      const cpfLimpo = clienteCpf.replace(/\D/g, "");
+      const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
+
+      if (!cpfLimpo || cpfLimpo.length < 11) {
+      alert("Informe um CPF válido para usar cupom");
+      return;
+      }
 
       await runTransaction(db, async (transaction) => {
 
@@ -1414,48 +1535,83 @@ async function finalizarPedido(statusFinalPagamento) {
 
         const dados = snap.data();
 
-        if (dados.usos && dados.usos[cpfLimpo]) {
-          throw "Cupom já utilizado ❌";
-        }
+      if (dados.usos && cpfLimpo && dados.usos[cpfLimpo]) {
+       throw "Você já utilizou esse cupom ❌";
+       }
 
+        if (cpfLimpo) {
         transaction.update(ref, {
-          [`usos.${cpfLimpo}`]: true
-        });
+       [`usos.${cpfLimpo}`]: true
+     });
+    }
       });
     }
 
     // 💾 SALVA PEDIDO NORMAL (não pix)
     await setDoc(doc(db, "pedidos", Date.now().toString()), pedido);
 
-    // 🔥 WHATSAPP
-    let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
+   // 🔥 WHATSAPP
+let mensagem = ` *Pedido #${codigo}*\n\n`;
 
-    carrinho.forEach((item, i) => {
-      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
-      mensagem += `Qtd: ${item.quantidade}\n`;
+carrinho.forEach((item, i) => {
+  mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+  mensagem += `Qtd: ${item.quantidade}\n`;
 
-      if (item.extras?.length) {
-        mensagem += "Extras:\n";
-        item.extras.forEach(e => {
-          mensagem += `+ ${e.nome}\n`;
-        });
+  // 🔥 EXTRAS AGRUPADOS POR CATEGORIA
+  if (item.extras?.length) {
+
+    const grupos = {};
+
+    item.extras.forEach(e => {
+      const categoria = e.categoria || "Extras";
+
+      if (!grupos[categoria]) {
+        grupos[categoria] = [];
       }
 
-      mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
+      grupos[categoria].push(e.nome);
     });
 
-    mensagem += `Total: R$ ${totalFinalPedido}\n\n`;
-    mensagem += `Pagamento: ${formaPagamento}\n\n`;
-    mensagem += `${clienteNome}\n${clienteTelefone}\n`;
+    mensagem += `Adicionais:\n`;
 
-    const numero = "5581973119512";
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    Object.keys(grupos).forEach(cat => {
+      mensagem += `• ${cat}:\n`;
+      grupos[cat].forEach(nome => {
+        mensagem += `  + ${nome}\n`;
+      });
+    });
+  }
 
-    if (/Android|iPhone/i.test(navigator.userAgent)) {
-      window.location.href = url;
-    } else {
-      window.location.href = url;
-    }
+  // 🔥 VALOR CORRETO (CENTAVOS → REAL)
+  mensagem += `R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
+});
+
+// 🔥 TOTAL CORRETO
+mensagem += ` Total: R$ ${(Number(totalFinalPedido || 0) / 100).toFixed(2)}\n\n`;
+
+// 🔥 PAGAMENTO
+mensagem += ` Pagamento: ${formaPagamento}\n\n`;
+
+// 🔥 CLIENTE COMPLETO
+mensagem += ` Cliente:\n`;
+mensagem += ` ${clienteNome}\n`;
+mensagem += ` ${clienteTelefone}\n`;
+
+if (clienteEndereco) {
+  mensagem += ` ${clienteEndereco}`;
+}
+
+if (clienteNumeroCasa) {
+  mensagem += `, Nº ${clienteNumeroCasa}`;
+}
+
+mensagem += `\n`;
+
+// 🔥 ENVIO
+const numero = "5581973119512";
+const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+
+window.location.href = url;
 
     // 🔥 LIMPA
     setCarrinho([]);
@@ -1463,7 +1619,7 @@ async function finalizarPedido(statusFinalPagamento) {
     setFormaPagamento(null);
     setMostrarPagamento(false);
 
-    alert("Pedido realizado com sucesso! 🚀");
+    alert("Pedido realizado com sucesso! ");
 
   } catch (e) {
     alert(e);
@@ -1474,7 +1630,7 @@ async function finalizarPedido(statusFinalPagamento) {
 
 const enviarWhatsApp = (pedido) => {
 
-  let mensagem = `🛒 *Pedido #${pedido.codigo}*\n\n`;
+  let mensagem = ` *Pedido #${pedido.codigo}*\n\n`;
 
   pedido.itens.forEach((item, i) => {
     mensagem += `*${i + 1}. ${item.nome}*\n`;
@@ -1557,7 +1713,11 @@ return (
 
     {/* ENDEREÇO */}
     <div
-      onClick={() => setStep(4)}
+      onClick={() => {
+        setAba("perfil");
+        setAbaPerfil("dados");
+        setStep(4);
+      }}
       style={{
         cursor: "pointer",
         display: "flex",
@@ -2198,17 +2358,17 @@ return (
   <div style={{
       position: "absolute",
       top: 4,
-      left: 10,
+      left: 6,
       background: "linear-gradient(90deg,#ff0033,#ff5a5a)",
       color: "#fff",
-      padding: "5px 10px",
+      padding: "5px 6px",
       borderRadius: 999,
-      fontSize: 11,
+      fontSize: 9,
       fontWeight: "bold",
       display: "flex",
       alignItems: "center",
       gap: 5,
-      boxShadow: "0 4px 12px rgba(255,0,51,0.4)"
+      boxShadow: "0 4px 6px rgba(255,0,51,0.4)"
     }}>
     🔥 Mais vendido
   </div>
@@ -2443,8 +2603,8 @@ return (
         }}
       >
         {editandoIndex !== null
-          ? `Adicionar ao carrinho ${formatarReal(totalExtras * quantidade)}`
-          : `Adicionar ao carrinho ${formatarReal(totalExtras * quantidade)}`
+          ? `Adicionar ao carrinho ${formatarReal((precoBase + totalExtras )* quantidade)}`
+          : `Adicionar ao carrinho ${formatarReal((precoBase + totalExtras )* quantidade)}`
         }
       </button>
     </div>
@@ -2611,28 +2771,26 @@ return (
         <Tag size={16} /> Cupom
       </strong>
 
-      <button
-        
-  onClick={() => {
-    console.log("CLIQUEI NO BOTAO 🔥");
-    aplicarMelhorCupom();
+    <button
+    onClick={aplicarMelhorCupom}
+    disabled={!carrinho.length}
+    style={{
+    width: "100%",
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    background: carrinho.length
+      ? "linear-gradient(90deg,#6a00ff,#ff2aff)"
+      : "#ccc",
+    color: "#fff",
+    border: "none",
+    fontWeight: "bold",
+    cursor: carrinho.length ? "pointer" : "not-allowed"
   }}
+>
+  Aplicar melhor desconto
+</button>
 
-  
-
-        style={{
-          width: "100%",
-          marginTop: 10,
-          padding: 12,
-          borderRadius: 12,
-          background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-          color: "#fff",
-          border: "none",
-          fontWeight: "bold"
-        }}
-      >
-        Aplicar melhor desconto
-      </button>
     </div>
 
     {/* CUPOM ATIVO */}
@@ -2943,9 +3101,9 @@ return (
           padding: "0 16px"
           }}>
 
-           {/* SALVAR */}
-<button
-  onClick={() => {
+   {/* SALVAR  E VOLTAR PRO MENU*/}
+   <button
+    onClick={() => {
 
     if (!clienteNome || !clienteEndereco || !clienteTelefone) {
       alert("Preencha todos os dados");
@@ -2955,8 +3113,9 @@ return (
     salvarDadosCliente();
 
     // 🔥 CORREÇÃO
-    setAba("pagamentos");
-    setStep(6);
+    setAba("perfil");      // FORMAS CORRETA DE VOLTAR PARA MENU
+    setAbaPerfil("menu");
+    setStep(4);
 
   }}
   style={{
@@ -3263,182 +3422,205 @@ return (
       </p>
     )}
 
-    {[...pedidos].reverse().map((p, i) => (
-      <div key={i} style={{ marginBottom: 15 }}>
+    {[...pedidos].reverse().map((p, i) => {
 
-        {/* DATA */}
-        <p style={{
-          opacity: 0.5,
-          fontSize: 12,
-          marginBottom: 5
-        }}>
-          {new Date(p.data || Date.now()).toLocaleDateString("pt-BR")}
-        </p>
+      const primeiroItem = p.itens?.[0];
 
-        {/* CARD */}
-        <div style={{
-          background: themeAtual.card,
-          padding: 15,
-          borderRadius: 18,
-          boxShadow: "0 6px 25px rgba(0,0,0,0.05)"
-        }}>
+      // 🔥 BUSCA PROFISSIONAL (com fallback)
+      const produtoReal = produtos.find(prod =>
+        prod.id === primeiroItem?.produtoId ||
+        prod.nome === primeiroItem?.nome // fallback só pros antigos
+      );
 
-          {/* TOPO */}
+      return (
+        <div key={i} style={{ marginBottom: 15 }}>
+
+          {/* DATA */}
+          <p style={{
+            opacity: 0.5,
+            fontSize: 12,
+            marginBottom: 5
+          }}>
+            {new Date(p.data || Date.now()).toLocaleDateString("pt-BR")}
+          </p>
+
+          {/* CARD */}
           <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10
+            background: themeAtual.card,
+            padding: 15,
+            borderRadius: 18,
+            boxShadow: "0 6px 25px rgba(0,0,0,0.05)"
           }}>
 
-            <img
-              src={p.itens?.[0]?.imagem || "/acai.png"}
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 14,
-                objectFit: "cover"
-              }}
-            />
+            {/* TOPO */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10
+            }}>
 
-            <div style={{ flex: 1 }}>
+              {/* 🔥 IMAGEM */}
+              <img
+                src={produtoReal?.imagem || "/acai.png"}
+                style={{
+                  width: 70,
+                  height: 70,
+                  borderRadius: 12,
+                  objectFit: "cover"
+                }}
+              />
 
-              <strong style={{ fontSize: 14 }}>
-                {p.itens?.length === 1
-                  ? p.itens[0].nome
-                  : `${p.itens?.[0]?.nome} +${p.itens.length - 1} itens`}
-              </strong>
+              <div style={{ flex: 1 }}>
 
-              <div style={{
-                fontSize: 12,
-                marginTop: 2,
-                color:
-                  p.status === "preparando" ? "#facc15" :
-                  p.status === "saiu para entrega" ? "#60a5fa" :
-                  "#00c853"
-              }}>
-                {p.status}
+                <strong style={{ fontSize: 14 }}>
+                  {p.itens?.length === 1
+                    ? p.itens[0].nome
+                    : `${p.itens?.[0]?.nome} +${p.itens.length - 1} itens`}
+                </strong>
+
+                <div style={{
+                  fontSize: 12,
+                  marginTop: 2,
+                  color:
+                    p.status === "preparando" ? "#facc15" :
+                    p.status === "saiu para entrega" ? "#60a5fa" :
+                    "#00c853"
+                }}>
+                  {p.status}
+                </div>
+
               </div>
+
+            </div>
+
+            {/* ITENS */}
+            <div style={{
+              marginTop: 12,
+              fontSize: 13,
+              opacity: 0.85
+            }}>
+              {p.itens?.map((item, idx) => (
+                <div key={idx} style={{ marginBottom: 6 }}>
+
+                  <div>
+                    {item.quantidade}x {item.nome}
+                  </div>
+
+                  {item.extras?.length > 0 && (
+                    <div style={{
+                      marginLeft: 10,
+                      fontSize: 12,
+                      opacity: 0.7
+                    }}>
+                      {item.extras.map(e => (
+                        <div key={e.nome}>
+                          • {e.nome}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                </div>
+              ))}
+            </div>
+
+            {/* TOTAL */}
+            <div style={{
+              marginTop: 12,
+              fontWeight: "bold",
+              fontSize: 15
+            }}>
+              Total: {formatarReal(p.total)}
+            </div>
+
+            {/* AÇÕES */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 12,
+              borderTop: "1px solid rgba(0,0,0,0.08)",
+              paddingTop: 10
+            }}>
+
+              <button style={{
+                background: "transparent",
+                border: "none",
+                color: "#ea1d2c",
+                fontWeight: "bold",
+                cursor: "pointer"
+              }}>
+                Ajuda
+              </button>
+
+              {/* 🔥 PEDIR NOVAMENTE PROFISSIONAL */}
+              <button
+                onClick={() => {
+
+                  const novosItens = p.itens.map(item => {
+
+                    const produtoBanco = produtos.find(prod =>
+                      prod.id === item.produtoId ||
+                      prod.nome === item.nome
+                    );
+
+                    return {
+                      produto: {
+                        id: produtoBanco?.id,
+                        nome: item.nome,
+                        imagem: produtoBanco?.imagem || "",
+                        preco: produtoBanco?.preco || 0
+                      },
+                      quantidade: item.quantidade || 1,
+                      extras: item.extras || [],
+                      total: item.total
+                    };
+                  });
+
+                  setCarrinho(novosItens);
+
+                  setAba("carrinho");
+                  setStep(3);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#ea1d2c",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                Pedir novamente
+              </button>
 
             </div>
 
           </div>
 
-          {/* ITENS */}
-          <div style={{
-            marginTop: 12,
-            fontSize: 13,
-            opacity: 0.85
-          }}>
-            {p.itens?.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: 6 }}>
-
-                <div>
-                  {item.quantidade}x {item.nome}
-                </div>
-
-                {item.extras?.length > 0 && (
-                  <div style={{
-                    marginLeft: 10,
-                    fontSize: 12,
-                    opacity: 0.7
-                  }}>
-                    {item.extras.map(e => (
-                      <div key={e.nome}>
-                        • {e.nome}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-              </div>
-            ))}
-          </div>
-
-          {/* TOTAL */}
-          <div style={{
-            marginTop: 12,
-            fontWeight: "bold",
-            fontSize: 15
-          }}>
-            Total: {formatarReal(p.total)}
-          </div>
-
-          {/* AÇÕES */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 12,
-            borderTop: "1px solid rgba(0,0,0,0.08)",
-            paddingTop: 10
-          }}>
-
-            <button style={{
-              background: "transparent",
-              border: "none",
-              color: "#ea1d2c",
-              fontWeight: "bold",
-              cursor: "pointer"
-            }}>
-              Ajuda
-            </button>
-
-           <button
-           onClick={() => {
-           setCarrinho(
-           p.itens.map(item => ({
-           produto: {
-           nome: item.nome,
-           imagem: item.imagem
-           },
-           quantidade: item.quantidade,
-           extras: item.extras || [],
-           total: item.total
-           
-           }))
-           );
-           
-           // 🔥 CORREÇÃO
-           setAba("carrinho");
-           setStep(3);
-           }}
-           style={{
-           background: "transparent",
-           border: "none",
-           color: "#ea1d2c",
-           fontWeight: "bold",
-           cursor: "pointer"
-           }}
-           >
-          Pedir novamente
-          </button>
-
-          
-
-          </div>
-
         </div>
-
-      </div>
-    ))}
+      );
+    })}
 
     {/* VOLTAR */}
-    <button
-      onClick={() => setStep(1)}
-      style={{
-        width: "100%",
-        marginTop: 20,
-        padding: 12,
-        borderRadius: 14,
-        border: "none",
-        background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-        color: "#fff",
-        fontWeight: "bold"
-      }}
-    >
-      ← Voltar
-    </button>
+   <button
+    onClick={() => {
+    setAba("home");
+    setStep(1);
+    }}
+    style={{
+    width: "100%",
+    marginTop: 20,
+    padding: 12,
+    borderRadius: 14,
+    border: "none",
+    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    color: "#fff",
+    fontWeight: "bold"
+    }}
+   >
+    ← Voltar
+ </button>
 
-  </div>
+</div>
 )}
 
 {aba === "pagamentos" && step === 6 && (
@@ -3535,7 +3717,15 @@ return (
               fontWeight: "bold",
               cursor: "pointer"
             }}
-            onClick={() => setMostrarPagamento(true)}
+            onClick={async () => {
+
+            const pode = await validarCupomAntes();
+
+           if (!pode) return;
+
+           setMostrarPagamento(true);
+
+          }}
           >
             {formaPagamento
               ? formaPagamento.toUpperCase()
@@ -3666,7 +3856,7 @@ return (
       alignItems: "center",
       marginBottom: 20
     }}>
-      <h2 style={{ margin: 0 }}>🔔 Notificações</h2>
+      <h2 style={{ margin: 0 }}> Notificações</h2>
 
       <button
         onClick={marcarComoLida}
