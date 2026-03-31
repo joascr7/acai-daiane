@@ -2479,7 +2479,7 @@ return (
 
         {/* IMAGEM */}
         <img
-          src={item.produto.imagem || "/acai.png"}
+          src={item.produto?.imagem || item.imagem || "/acai.png"}
           style={{
             width: 70,
             height: 70,
@@ -2943,16 +2943,21 @@ return (
           padding: "0 16px"
           }}>
 
-            {/* SALVAR */}
-            <button
-       onClick={() => {
-      if (!clienteNome || !clienteEndereco || !clienteTelefone) {
-      alert("⚠️ Preencha todos os dados");
+           {/* SALVAR */}
+<button
+  onClick={() => {
+
+    if (!clienteNome || !clienteEndereco || !clienteTelefone) {
+      alert("Preencha todos os dados");
       return;
     }
 
     salvarDadosCliente();
+
+    // 🔥 CORREÇÃO
+    setAba("pagamentos");
     setStep(6);
+
   }}
   style={{
     width: "100%",
@@ -2962,7 +2967,8 @@ return (
     color: "#fff",
     border: "none",
     fontWeight: "bold",
-    fontSize: 16
+    fontSize: 16,
+    cursor: "pointer"
   }}
 >
   Salvar e continuar
@@ -3376,21 +3382,37 @@ return (
               Ajuda
             </button>
 
-            <button
-              onClick={() => {
-                setCarrinho(JSON.parse(JSON.stringify(p.itens)));
-                setStep(3);
-              }}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#ea1d2c",
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}
-            >
-              Pedir novamente
-            </button>
+           <button
+           onClick={() => {
+           setCarrinho(
+           p.itens.map(item => ({
+           produto: {
+           nome: item.nome,
+           imagem: item.imagem
+           },
+           quantidade: item.quantidade,
+           extras: item.extras || [],
+           total: item.total
+           
+           }))
+           );
+           
+           // 🔥 CORREÇÃO
+           setAba("carrinho");
+           setStep(3);
+           }}
+           style={{
+           background: "transparent",
+           border: "none",
+           color: "#ea1d2c",
+           fontWeight: "bold",
+           cursor: "pointer"
+           }}
+           >
+          Pedir novamente
+          </button>
+
+          
 
           </div>
 
@@ -3624,7 +3646,7 @@ return (
      setAba("carrinho");
     setStep(3);
 
-}}>
+     }}>
       ← Voltar ao carrinho
     </button>
 
@@ -3682,26 +3704,30 @@ return (
       </>
     )}
 
-    {/* BOTÃO */}
-    <button
-      onClick={() => setStep(1)}
-      style={{
-        width: "100%",
-        marginTop: 25,
-        padding: 12,
-        borderRadius: 14,
-        border: "none",
-        background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-        color: "#fff",
-        fontWeight: "bold"
-      }}
-    >
-      ← Voltar
-    </button>
+{/* VOLTAR */}
+<button
+  onClick={() => {
+    setAba("home"); // 🔥 ESSENCIAL
+    setStep(1);
+  }}
+  style={{
+    width: "100%",
+    marginTop: 20,
+    padding: 12,
+    borderRadius: 14,
+    border: "none",
+    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer"
+  }}
+>
+  ← Voltar
+  </button>
 
-  </div>
+ </div>
+
 )}
-
 
 {aba === "info" && step === 99 && (
   <div className="fade-slide">
