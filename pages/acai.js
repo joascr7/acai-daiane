@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
 
+
+
 // 🔥 FIREBASE
 import {
   collection,
@@ -16,6 +18,7 @@ import {
   query,
   where,
   runTransaction
+  
 } from "firebase/firestore";
 
 import {
@@ -24,6 +27,25 @@ import {
   browserLocalPersistence,
   onAuthStateChanged
 } from "firebase/auth";
+
+import {
+  Home,
+  FileText,
+  ShoppingCart,
+  User,
+  Bell,
+  ShoppingBag,
+  Tag,
+  MapPin,
+  Heart,
+  ClipboardList,
+  LogOut,
+  Sun,
+  Moon,
+  CreditCard
+} from "lucide-react";
+
+
 
 import { lightTheme, darkTheme } from "../styles/theme";
 
@@ -35,6 +57,8 @@ export default function Acai() {
   const [logo, setLogo] = useState(null);
   const [promptInstall, setPromptInstall] = useState(null);
 
+  const [aba, setAba] = useState("home");
+
   // 🔥 CLIENTE (ANTES DE TUDO)
   const [clienteNome, setClienteNome] = useState("");
   const [clienteCpf, setClienteCpf] = useState("");
@@ -43,6 +67,38 @@ export default function Acai() {
   const [clienteEndereco, setClienteEndereco] = useState("");
   const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
   const [clienteCep, setClienteCep] = useState("");
+  const [abrirPagamento, setAbrirPagamento] = useState(false);
+  const [mostrarPix, setMostrarPix] = useState(false);
+ 
+  
+
+
+
+  const Input = ({ label, value, onChange }) => (
+  <div style={{ marginBottom: 12 }}>
+
+    <small style={{ opacity: 0.6 }}>
+      {label}
+    </small>
+
+    <input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        width: "100%",
+        padding: "12px 14px",
+        borderRadius: 12,
+        border: "1px solid rgba(0,0,0,0.1)",
+        marginTop: 4,
+        outline: "none",
+        fontSize: 14
+      }}
+    />
+
+  </div>
+);
+
+ 
 
 // 🔥 parte do step 4
 const focoInput = (e) => {
@@ -101,11 +157,20 @@ const blurInput = (e) => {
   const [lojaAberta, setLojaAberta] = useState(true);
   const [pedidos, setPedidos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [extrasGlobais, setExtrasGlobais] = useState([]);
 
   // 🔥 PRODUTO
   const [produto, setProduto] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const maisVendido = calcularMaisVendido(pedidos);
+
+  // 🔥 FORMATACAO BRASIL CENTAVOS COM VIRGULA
+  function formatarReal(valor) {
+  return (valor / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
 
 
   // 🔥 NOTIFICACAO
@@ -143,21 +208,59 @@ const blurInput = (e) => {
 
   });
 
+
+  // agrupar notificacoes
+
+function agruparNotificacoes(lista) {
+  const hoje = new Date().toDateString();
+
+  const grupos = {
+    hoje: [],
+    antigas: []
+  };
+
+  lista.forEach(n => {
+    const data = new Date(n.data).toDateString();
+
+    if (data === hoje) {
+      grupos.hoje.push(n);
+    } else {
+      grupos.antigas.push(n);
+    }
+  });
+
+  return grupos;
+}
+
+const notificacoesOrdenadas = [...notificacoes].sort(
+  (a, b) => new Date(b.data) - new Date(a.data)
+);
+
+const grupos = agruparNotificacoes(notificacoesOrdenadas);
+
   return () => unsub();
 
 }, []);
 
   // 🔥 EXTRAS
-  const [extras, setExtras] = useState([]);
-  const adicionais = [
-    { nome: "Leite Condensado", preco: 2 },
-    { nome: "Granola", preco: 2 },
-    { nome: "Morango", preco: 2 },
-    { nome: "Banana", preco: 2 },
-    { nome: "Uva", preco: 2 },
-    { nome: "Jujuba", preco: 2 },
-    { nome: "Amendoim", preco: 2 }
-  ];
+  const [extrasSelecionados, setExtrasSelecionados] = useState({});
+
+  useEffect(() => {
+
+  const unsub = onSnapshot(doc(db, "config", "loja"), (snap) => {
+
+    if (snap.exists()) {
+      console.log("🔥 extras atualizados:", snap.data().extras);
+
+      setExtrasGlobais(snap.data().extras || []);
+    }
+
+  });
+
+  return () => unsub();
+
+}, []);
+ 
 
   // 🔥 CARRINHO
   const [quantidade, setQuantidade] = useState(1);
@@ -167,6 +270,8 @@ const blurInput = (e) => {
   const [editandoIndex, setEditandoIndex] = useState(null);
 // 🔥 forma de pagamento
   const [formaPagamento, setFormaPagamento] = useState(null);
+
+  
   const [statusPagamento, setStatusPagamento] = useState("pendente");
   const [mostrarPagamento, setMostrarPagamento] = useState(false);
   const [loadingPedido, setLoadingPedido] = useState(false);
@@ -180,6 +285,23 @@ const [paymentId, setPaymentId] = useState(null);
 const [pedidoAtual, setPedidoAtual] = useState(null);
 
 
+
+// criar tela sem o emoje
+function TelaHome() {
+  return <div>🏠 Tela Home</div>;
+}
+
+function TelaPedidos() {
+  return <div>📄 Tela Pedidos</div>;
+}
+
+function TelaCarrinho() {
+  return <div>🛒 Tela Carrinho</div>;
+}
+
+function TelaPerfil() {
+  return <div>👤 Tela Perfil</div>;
+}
 
 // agrupar notificacoes
 
@@ -209,6 +331,9 @@ const notificacoesOrdenadas = [...notificacoes].sort(
 );
 
 const grupos = agruparNotificacoes(notificacoesOrdenadas);
+
+
+
 
 // notificar marca lida
 async function marcarUmaComoLida(n) {
@@ -272,21 +397,24 @@ function NotificacaoItem({ n }) {
         <img
           src={n.imagem}
           onClick={(e) => {
-            e.stopPropagation(); // 🔥 evita conflito
+          e.stopPropagation();
 
-            if (n.produtoId && produtos) {
+          if (n.produtoId && produtos) {
 
-              const produtoEncontrado = produtos.find(
-                p => p.id === n.produtoId
-              );
+          const produtoEncontrado = produtos.find(
+          p => p.id === n.produtoId
+          );
 
-              if (produtoEncontrado) {
-                setProduto(produtoEncontrado);
-                setStep(2); // 🔥 abre produto
-              }
+          if (produtoEncontrado) {
+          setProduto(produtoEncontrado);
 
+           // 🔥 ESSAS LINHAS FALTAVAM
+          setAba("home");
+          setStep(2);
             }
-          }}
+          }
+         }}
+
           style={{
             width: "100%",
             height: 130,
@@ -361,6 +489,8 @@ const gerarPix = async () => {
       return;
     }
 
+    const valorPix = totalFinal / 100;
+
     // 🔥 CRIA ID DO PEDIDO
     const pedidoId = Date.now().toString();
 
@@ -383,8 +513,8 @@ const gerarPix = async () => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        total: Number(totalFinal),
-        pedidoId // 🔥 ENVIA PRO BACKEND
+        total: valorPix, // 🔥 CORREÇÃO AQUI
+        pedidoId
       })
     });
 
@@ -462,51 +592,77 @@ await setDoc(doc(db, "pedidos", pedidoId), {
     transition: "all 0.2s ease"
   };
 
-  // 🔥 TOTAL EXTRAS (produto atual)
-  const totalExtras = (extras || []).reduce((acc, e) => {
-    return acc + Number(e.preco || 0);
-  }, 0);
+// 🔥 FORMATADOR GLOBAL (COLOCA NO TOPO DO ARQUIVO)
+function formatarReal(valor) {
+  return (Number(valor || 0) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
 
-  // 🔥 TOTAL DO CARRINHO (OFICIAL)
-  const total = Array.isArray(carrinho)
-    ? carrinho.reduce((acc, item) => {
-        return acc + Number(item.total || 0);
-      }, 0)
-    : 0;
+// 🔥 TOTAL EXTRAS (produto atual)
+const totalExtras = Object.values(extrasSelecionados)
+  .flat()
+  .reduce((acc, e) => acc + Number(e.preco || 0), 0);
 
-  // 🔥 TOTAL FINAL (COM CUPOM)
+  const podeContinuar = extrasGlobais.every(grupo => {
+  const selecionados = extrasSelecionados[grupo.categoria] || [];
+  return selecionados.length >= grupo.min;
   
-const totalFinal = Math.max(
-  0,
-  Number(total || 0) - Number(desconto || 0)
-);
+});
 
+
+const precoBase = Number(produto?.preco || 0);
+
+const totalFinalItem =
+  (precoBase + totalExtras) * quantidade;
+
+// 🔥 TOTAL DO CARRINHO (OFICIAL)
+// 🔥 TOTAL DO CARRINHO (CENTAVOS)
+const total = Array.isArray(carrinho)
+  ? carrinho.reduce((acc, item) => {
+      return acc + Number(item.total || 0);
+    }, 0)
+  : 0;
+
+// 🔥 DESCONTO (CENTAVOS)
+let descontoCalculado = 0;
+
+if (cupomAplicado) {
+  if (cupomAplicado.tipo === "porcentagem") {
+    descontoCalculado = Math.floor(
+      total * (Number(cupomAplicado.desconto || 0) / 100)
+    );
+  } else {
+    descontoCalculado = Number(cupomAplicado.desconto || 0);
+  }
+}
+
+// 🔥 TOTAL FINAL
+const totalFinal = Math.max(0, total - desconto);
+
+// 🔥 MELHOR CUPOM AUTOMÁTICO
 const melhorCupom = Array.isArray(cupons)
   ? cupons.reduce((melhor, atual) => {
 
-      const totalSeguro = Number(total || 0);
+      const totalSeguro = total;
 
       if (!melhor) return atual;
 
-      if (totalSeguro === 0) {
-        return atual.desconto > melhor.desconto ? atual : melhor;
-      }
-
       const descontoAtual =
         atual.tipo === "porcentagem"
-          ? totalSeguro * (atual.desconto / 100)
-          : atual.desconto;
+          ? Math.floor(totalSeguro * (Number(atual.desconto || 0) / 100))
+          : Number(atual.desconto || 0);
 
       const descontoMelhor =
         melhor.tipo === "porcentagem"
-          ? totalSeguro * (melhor.desconto / 100)
-          : melhor.desconto;
+          ? Math.floor(totalSeguro * (Number(melhor.desconto || 0) / 100))
+          : Number(melhor.desconto || 0);
 
       return descontoAtual > descontoMelhor ? atual : melhor;
 
     }, null)
   : null;
-
 
 // 🔥 VARIOS CUPONS
 useEffect(() => {
@@ -769,14 +925,29 @@ async function instalarApp() {
 }
 
   // 🔥 FUNÇÕES
-  function toggleExtra(e) {
-    setExtras(prev => {
-      const existe = prev.find(x => x.nome === e.nome);
-      return existe
-        ? prev.filter(x => x.nome !== e.nome)
-        : [...prev, e];
-    });
-  }
+  function toggleExtra(categoria, extra, max) {
+  setExtrasSelecionados(prev => {
+
+    const atual = prev[categoria] || [];
+
+    const existe = atual.find(e => e.nome === extra.nome);
+
+    if (existe) {
+      return {
+        ...prev,
+        [categoria]: atual.filter(e => e.nome !== extra.nome)
+      };
+    }
+
+    if (atual.length >= max) return prev;
+
+    return {
+      ...prev,
+      [categoria]: [...atual, extra]
+    };
+
+  });
+}
 // SAIR
 async function sair() {
 
@@ -888,24 +1059,41 @@ function formatarTelefone(valor) {
   }
 }
 
+
    // 🔥 FUNÇÕES rempover item carrinho
 function adicionarCarrinho() {
   if (!produto) return;
 
   const nomeProduto = produto.nome;
 
-  const total = ((produto.preco || 0) + totalExtras) * quantidade;
+// 🔥 preço do produto (centavos)
+const precoProduto = Number(produto?.preco || 0);
+
+
+  // 🔥 total por unidade
+  const totalUnitario = precoProduto + totalExtras;
+
+  // 🔥 total final
+  const total = totalUnitario * quantidade;
+
+ // 🔥 PEGA EXTRAS DO NOVO SISTEMA (CORRETO)
+   const extrasFinal = Object.values(extrasSelecionados)
+  .flat()
+  .map(e => ({
+    nome: e.nome,
+    preco: Number(e.preco || 0)
+  }));
 
   const novoItem = {
     produto,
     quantidade,
-    extras,
-    total
+    extras: extrasFinal,
+    total // 🔥 sempre centavos
   };
 
   if (editandoIndex !== null) {
 
-    // 🔥 ATUALIZA ITEM EXISTENTE
+    // 🔥 ATUALIZA ITEM
     setCarrinho(prev => {
       const novo = [...prev];
       novo[editandoIndex] = novoItem;
@@ -916,24 +1104,27 @@ function adicionarCarrinho() {
 
   } else {
 
-    // 🔥 ADICIONA NORMAL
-    setCarrinho(prev => [
-      ...prev,
-      novoItem
-    ]);
+    // 🔥 ADICIONA NOVO
+    setCarrinho(prev => [...prev, novoItem]);
 
   }
 
   // 🔥 RESET
-  setExtras([]);
+  setExtrasSelecionados({});
   setQuantidade(1);
 
+  // 🔥 ESSA LINHA RESOLVE TUDO
+  setAba("carrinho");
+  setStep(3);
+
+
+  // 🔥 FEEDBACK
   setToast({ nome: nomeProduto });
   setTimeout(() => setToast(null), 2500);
 
   setTimeout(() => {
     setStep(3);
-  }, 200)
+  }, 200);
 }
 
 function removerItem(index) {
@@ -941,24 +1132,54 @@ function removerItem(index) {
 }
 
 // 🔥 EDITAR PEDIDO
-  function editarItem(index) {
-
+function editarItem(index) {
   const item = carrinho[index];
+  if (!item) return;
 
-  // 🔥 NÃO REMOVE MAIS
+  // 🔥 SÓ AÇAÍ
+  if (item.produto.categoria !== "acai") return;
 
-  // 🔥 SE FOR BEBIDA → NÃO EDITA
-  if (item.produto.categoria === "bebidas") {
-    return;
-  }
+  // 🔥 CLONA EXTRAS
+  const extrasClonados = (item.extras || []).map(e => ({
+    nome: e.nome,
+    preco: Number(e.preco || 0)
+  }));
 
-  // 🍧 AÇAÍ → CARREGA DADOS
+  // 🔥 ORGANIZA POR CATEGORIA
+  const extrasOrganizados = {};
+
+  extrasClonados.forEach(extra => {
+    extrasGlobais.forEach(grupo => {
+      const existe = (grupo.itens || []).find(i => i.nome === extra.nome);
+
+      if (existe) {
+        if (!extrasOrganizados[grupo.categoria]) {
+          extrasOrganizados[grupo.categoria] = [];
+        }
+
+        extrasOrganizados[grupo.categoria].push(extra);
+      }
+    });
+  });
+
+  // 💥 ESSA PARTE FALTAVA
+
   setProduto(item.produto);
-  setQuantidade(item.quantidade);
-  setExtras(item.extras || []);
+  setQuantidade(item.quantidade || 1);
+  setExtrasSelecionados(extrasOrganizados);
 
-  setEditandoIndex(index); // 🔥 ESSENCIAL
+  setEditandoIndex(index);
 
+  // 🔥 ABRE TELA DE EXTRAS
+  setAba("home");
+  setStep(2);
+
+  // 🔥 CARREGA DADOS
+  setProduto(item.produto);
+  setQuantidade(Number(item.quantidade || 1));
+  setExtrasSelecionados(extrasOrganizados); // ✅ CORRETO
+
+  setEditandoIndex(index);
   setStep(2);
 }
 // 🍧 AÇAÍ → ADICIONAR OU TIRAR
@@ -1025,7 +1246,7 @@ async function aplicarCupom() {
   }
 
   if (Number(total || 0) < Number(cupomValido.minimo || 0)) {
-    alert(`Pedido mínimo: R$ ${cupomValido.minimo}`);
+    alert(`Pedido mínimo: ${formatarReal(cupomValido.minimo)}`);
     return;
   }
 
@@ -1049,9 +1270,9 @@ async function aplicarCupom() {
   const totalSeguro = Number(total || 0);
 
   if (cupomValido.tipo === "porcentagem") {
-  valorDesconto = total * (cupomValido.desconto / 100);
-  } else {
-  valorDesconto = cupomValido.desconto;
+  valorDesconto = Math.floor(totalSeguro * (cupomValido.desconto / 100));
+} else {
+  valorDesconto = Number(cupomValido.desconto || 0);
 }
 
   setDesconto(valorDesconto);
@@ -1061,58 +1282,35 @@ async function aplicarCupom() {
 }
 
 function aplicarMelhorCupom() {
-
-  if (!cupons.length) {
+  if (!cupons || !cupons.length) {
     alert("Nenhum cupom disponível");
     return;
   }
 
-  if (cupomAplicado) {
-  alert("Já existe um cupom aplicado");
-  return;
-}
+  const totalPedido = Math.round(Number(total || 0)); // 🔥 CENTAVOS
 
-  const hoje = new Date();
+  const melhor = cupons[0]; // mantém seu fluxo simples
 
-  const validos = cupons.filter(c => {
-    if (!c.ativo) return false;
-
-    if (new Date(c.validade) < hoje) return false;
-
-    if (Number(total || 0) < Number(c.minimo || 0)) return false;
-
-    return true;
-  });
-  
-
-  if (!validos.length) {
+  if (!melhor) {
     alert("Nenhum cupom disponível para esse pedido");
     return;
   }
 
-  let melhor = null;
-  let maiorDesconto = 0;
+  let descontoCalculado = 0;
 
-  validos.forEach(c => {
+  if (melhor.tipo === "porcentagem") {
+    descontoCalculado = Math.floor(
+      totalPedido * (Number(melhor.desconto || 0) / 100)
+    );
+  } else {
+    descontoCalculado = Math.round(Number(melhor.desconto || 0));
+  }
 
-    let descontoTemp = 0;
-
-    if (c.tipo === "porcentagem") {
-      descontoTemp = total * (c.desconto / 100);
-    } else {
-      descontoTemp = c.desconto;
-    }
-
-    if (descontoTemp > maiorDesconto) {
-      maiorDesconto = descontoTemp;
-      melhor = c;
-    }
-  });
+  // 🔥 NÃO PASSA DO TOTAL
+  descontoCalculado = Math.min(descontoCalculado, totalPedido);
 
   setCupomAplicado(melhor);
-  setDesconto(maiorDesconto);
-
-  alert(`🔥 Melhor cupom aplicado: ${melhor.codigo}`);
+  setDesconto(descontoCalculado);
 }
 
 // marcar notificao
@@ -1166,7 +1364,7 @@ async function finalizarPedido(statusFinalPagamento) {
   try {
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
-    const totalFinalPedido = Number(totalFinal.toFixed(2));
+    const totalFinalPedido = totalFinal;
 
     const pedido = {
       codigo,
@@ -1330,13 +1528,13 @@ return (
 }}>
      
 
-     {/* 🔥 HEADER */}
+    {/* 🔥 HEADER */}
 <div style={{
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
   marginBottom: 20,
-  marginTop: 10 // 🔥 desce o topo
+  marginTop: 10
 }}>
 
   {/* 🔥 ESQUERDA */}
@@ -1347,39 +1545,35 @@ return (
   }}>
 
     {/* LOGO */}
-    {logo && (
-      <img
-        src={logo}
-        style={{
-          width: 45,
-          height: 45,
-          borderRadius: "50%",
-          objectFit: "cover"
-        }}
-      />
-    )}
+    <img
+      src={logo || "/logo.png"}
+      style={{
+        width: 45,
+        height: 45,
+        borderRadius: "50%",
+        objectFit: "cover"
+      }}
+    />
 
-    {/* 📍 ENDEREÇO */}
+    {/* ENDEREÇO */}
     <div
       onClick={() => setStep(4)}
       style={{
         cursor: "pointer",
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
+        lineHeight: "16px"
       }}
     >
       <span style={{
-        fontSize: 12,
-        opacity: 0.6,
-        color: dark ? "#aaa" : "#666"
+        fontSize: 11,
+        opacity: 0.6
       }}>
         Entregar em
       </span>
 
       <strong style={{
-        fontSize: 14,
-        color: dark ? "#ffffffe1" : "#000000", // 🔥 muda cor no dark
-        lineHeight: "16px"
+        fontSize: 13
       }}>
         {clienteEndereco || "Adicionar endereço"} ▼
       </strong>
@@ -1394,247 +1588,521 @@ return (
     gap: 10
   }}>
 
-   {/* 🔔 SININHO */}
-<div
-  onClick={() => {
-  setStep(7);
-  setTemNotificacao(false);
-  marcarComoLida(); // 🔥 ESSENCIAL
-}}
-  style={{
-    width: 40,
-    height: 40,
-    borderRadius: "50%",
-    background: dark ? "#1a1a1a" : "#eee",
+    {/* 🔔 NOTIFICAÇÃO */}
+    <div
+      onClick={() => {
+        setAba("notificacao");
+        setStep(7);
+        setTemNotificacao(false);
+        marcarComoLida();
+      }}
+      style={{
+        width: 38,
+        height: 38,
+        borderRadius: "50%",
+        background: themeAtual.card,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        position: "relative"
+      }}
+    >
+      <Bell size={20} />
+
+      {temNotificacao && (
+        <span style={{
+          position: "absolute",
+          top: 6,
+          right: 6,
+          width: 8,
+          height: 8,
+          background: "#ea1d2c",
+          borderRadius: "50%"
+        }} />
+      )}
+    </div>
+
+    {/* 🔥 COLUNA (SAIR + DARK) */}
+    <div style={{
+  display: "flex",
+  flexDirection: "column",
+  gap: 8
+}}>
+
+  {/* 🔥 SAIR botao */}
+  <div
+    onClick={sair}
+    style={{
+      width: 38,
+      height: 38,
+      borderRadius: "50%",
+      background: "#ea1d2c",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      boxShadow: "0 4px 15px rgba(234,29,44,0.3)",
+      transition: "0.2s"
+    }}
+  >
+    <LogOut size={18} color="#fff" />
+  </div>
+
+       {/* 🔥 DARK MODE  botao */}
+  <div
+    onClick={() => setDark(!dark)}
+    style={{
+      width: 38,
+      height: 38,
+      borderRadius: "50%",
+      background: dark ? "#111" : "#eee",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+      transition: "0.2s"
+    }}
+  >
+    {dark
+      ? <Moon size={18} color="#fff" />
+      : <Sun size={18} color="#111" />
+    }
+  </div>
+ </div>
+
+</div>
+
+</div>
+
+ <div style={{
+  position: "fixed",
+  bottom: 20,
+  left: "50%",
+  transform: "translateX(-50%)",
+  width: "90%",
+  maxWidth: 420,
+  background: themeAtual.card,
+  borderRadius: 20,
+  padding: 10,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+  display: "flex",
+  justifyContent: "space-around",
+  zIndex: 999
+}}>
+
+  <div onClick={() => {
+  setAba("home");
+  setStep(1);
+}}>
+    <Home size={22} color={aba === "home" ? "#ea1d2c" : "#999"} />
+  </div>
+
+  <div onClick={() => {
+  setAba("pedidos");
+  setStep(5);
+}}>
+    <FileText size={22} color={aba === "pedidos" ? "#ea1d2c" : "#999"} />
+  </div>
+
+  <div onClick={() => {
+  setAba("carrinho");
+  setStep(3);
+}}>
+    <ShoppingCart size={22} color={aba === "carrinho" ? "#ea1d2c" : "#999"} />
+  </div>
+
+  <div onClick={() => {
+  setAba("perfil");
+  setStep(4);
+}}>
+    <User size={22} color={aba === "perfil" ? "#ea1d2c" : "#999"} />
+  </div>
+
+</div>
+
+
+ {/* ========================= */}
+    {/* 🔥 MODAL DE PAGAMENTO */}
+    {/* ========================= */}
+    
+{mostrarPagamento && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    cursor: "pointer",
-    position: "relative",
-    boxShadow: dark
-      ? "0 0 10px rgba(0,0,0,0.6)"
-      : "0 0 10px rgba(0,0,0,0.15)"
-  }}
->
-  🔔
-
-  {temNotificacao && (
-    <span style={{
-      position: "absolute",
-      top: 6,
-      right: 6,
-      width: 8,
-      height: 8,
-      background: "#ff0033",
-      borderRadius: "50%"
-    }} />
-  )}
-</div>
-
-    {/* 🔥 COLUNA (SAIR + DARK EMBAIXO) */}
+    zIndex: 9999
+  }}>
     <div style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: 6
+      background: "#fff",
+      padding: 20,
+      borderRadius: 16,
+      width: 350,
+      boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
     }}>
 
-      {/* 🚪 SAIR */}
+      <h3 style={{ marginBottom: 10 }}>💳 Forma de pagamento</h3>
+
+      {/* PIX */}
       <button
-        onClick={sair}
+        onClick={() => {
+          if (loadingPix) return;
+
+          setFormaPagamento("pix");
+
+          setQrBase64(null);
+          setQrCode(null);
+          setPaymentId(null);
+
+          gerarPix();
+        }}
         style={{
-          padding: "6px 12px",
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
           borderRadius: 10,
           border: "none",
-          background: "linear-gradient(90deg,#2500c7,#56007e)",
-          color: "#fff",
-          fontSize: 12,
-          cursor: "pointer"
+          cursor: loadingPix ? "not-allowed" : "pointer",
+          background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "pix" ? "#fff" : "#000",
+          fontWeight: "bold",
+          opacity: loadingPix ? 0.7 : 1
         }}
       >
-        Sair
+        {loadingPix ? "Gerando Pix..." : "⚡ Pix"}
       </button>
 
-      {/* 🌙 / ☀️ */}
+      {/* DINHEIRO */}
       <button
-        onClick={() => setDark(!dark)}
+        onClick={() => setFormaPagamento("dinheiro")}
         style={{
-          padding: "5px 10px",
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
           borderRadius: 10,
           border: "none",
-          background: dark ? "#111" : "#eee",
-          color: dark ? "#fff" : "#111",
-          fontSize: 11,
           cursor: "pointer",
-          transition: "all 0.2s ease"
+          background: formaPagamento === "dinheiro" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "dinheiro" ? "#fff" : "#000",
+          fontWeight: "bold"
         }}
       >
-        {dark ? "🌙 Escuro" : "☀️ Claro"}
+        💵 Dinheiro na entrega
+      </button>
+
+      {/* CARTÃO */}
+      <button
+        onClick={() => setFormaPagamento("cartao")}
+        style={{
+          width: "100%",
+          padding: 12,
+          marginTop: 8,
+          borderRadius: 10,
+          border: "none",
+          cursor: "pointer",
+          background: formaPagamento === "cartao" ? "#6a00ff" : "#eee",
+          color: formaPagamento === "cartao" ? "#fff" : "#000",
+          fontWeight: "bold"
+        }}
+      >
+        💳 Cartão na entrega
+      </button>
+
+      {/* PIX AREA */}
+      {formaPagamento === "pix" && (
+        <div style={{ marginTop: 20, textAlign: "center" }}>
+
+          <p>
+          <strong>
+           Valor: {formatarReal(totalFinal)}
+          </strong>
+          </p>
+
+          {!qrBase64 && (
+            <p style={{ marginTop: 10 }}>Gerando QR Code...</p>
+          )}
+
+          {qrBase64 && (
+            <div style={{
+              background: "#fff",
+              padding: 10,
+              borderRadius: 12,
+              display: "inline-block",
+              marginTop: 10
+            }}>
+              <img
+                src={`data:image/png;base64,${qrBase64}`}
+                style={{ width: 220 }}
+              />
+            </div>
+          )}
+
+          {qrCode && (
+            <>
+              <textarea
+                value={qrCode}
+                readOnly
+                style={{
+                  width: "100%",
+                  marginTop: 12,
+                  padding: 10,
+                  borderRadius: 10,
+                  fontSize: 12,
+                  border: "1px solid #ddd"
+                }}
+              />
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(qrCode);
+                  alert("Pix copiado!");
+                }}
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  padding: 10,
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#6a00ff",
+                  color: "#fff",
+                  fontWeight: "bold"
+                }}
+              >
+                📋 Copiar código Pix
+              </button>
+            </>
+          )}
+
+          <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
+            Após o pagamento, seu pedido será confirmado automaticamente.
+          </p>
+
+        </div>
+      )}
+
+      {/* CONFIRMAR */}
+      <button
+        style={{
+          marginTop: 20,
+          width: "100%",
+          padding: 12,
+          borderRadius: 12,
+          border: "none",
+          background: "linear-gradient(90deg,#00c853,#00e676)",
+          color: "#fff",
+          fontWeight: "bold",
+          cursor: loadingPedido ? "not-allowed" : "pointer",
+          opacity: loadingPedido ? 0.7 : 1
+        }}
+        disabled={loadingPedido}
+        onClick={async () => {
+
+          if (!formaPagamento) {
+            alert("Escolha uma forma de pagamento");
+            return;
+          }
+
+          // 🔥 PIX NÃO FINALIZA PEDIDO
+          if (formaPagamento === "pix") {
+
+            if (!paymentId) {
+              alert("Erro no Pix. Gere novamente.");
+              return;
+            }
+
+            if (!qrBase64) {
+              alert("Aguarde o QR Code gerar");
+              return;
+            }
+
+            alert("Aguardando pagamento do Pix...");
+            return; // 🔥 ESSENCIAL
+          }
+
+          try {
+            setLoadingPedido(true);
+            await finalizarPedido("pendente");
+          } finally {
+            setLoadingPedido(false);
+          }
+        }}
+      >
+        {loadingPedido ? "Processando..." : "Confirmar Pedido"}
+      </button>
+
+      {/* CANCELAR */}
+      <button
+        onClick={() => {
+          setMostrarPagamento(false);
+          setFormaPagamento(null);
+        }}
+        style={{
+          marginTop: 10,
+          background: "transparent",
+          border: "none",
+          color: "#999",
+          cursor: "pointer",
+          width: "100%"
+        }}
+      >
+        Cancelar
       </button>
 
     </div>
-
   </div>
+)}
 
-</div>
-
-      {/* 🔥 MENU INFERIOR */}
-<div style={{
-  position: "fixed",
-  bottom: 10,
-  left: 0,
-  right: 0,
-  display: "flex",
-  justifyContent: "center",
-  zIndex: 9999
-}}>
-
+{/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
+{pedidoPago && (
   <div style={{
-    width: "90%",
-    maxWidth: 420,
-    height: 65,
-    background: themeAtual.card,
-    borderRadius: 20,
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.7)",
     display: "flex",
-    justifyContent: "space-around",
     alignItems: "center",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+    justifyContent: "center",
+    zIndex: 9999
   }}>
-
-    <div onClick={() => setStep(1)} style={{ cursor: "pointer" }}>🏠</div>
-
-    <div onClick={() => setStep(5)} style={{ cursor: "pointer" }}>📄</div>
-
-    <div
-  onClick={() => setStep(3)}
-  style={{
-    position: "relative",
-    cursor: "pointer",
-    fontSize: 22
-  }}
->
-  🛒
-
-  {carrinho.length > 0 && (
-    <span style={{
-      position: "absolute",
-      top: -6,
-      right: -10,
-      background: "#ff0033",
-      color: "#fff",
-      borderRadius: "50%",
-      padding: "2px 6px",
-      fontSize: 10,
-      fontWeight: "bold"
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 16,
+      textAlign: "center"
     }}>
-      {carrinho.reduce((acc, item) => acc + item.quantidade, 0)}
-    </span>
-  )}
-</div>
 
-    <div onClick={() => setStep(4)} style={{ cursor: "pointer" }}>👤</div>
+      <h2>✅ Pagamento confirmado</h2>
 
+      <button
+  onClick={() => {
+
+    enviarWhatsApp(pedidoPago);
+
+    // 🔥 AGORA SIM LIMPA TUDO
+    setCarrinho([]);
+    setFormaPagamento(null);
+    setQrBase64(null);
+    setQrCode(null);
+    setPaymentId(null);
+    setMostrarPagamento(false);
+    setPedidoAtual(null);
+    setPedidoPago(null);
+
+        }}
+        style={{
+          marginTop: 10,
+          padding: 12,
+          borderRadius: 10,
+          border: "none",
+          background: "#00c853",
+          color: "#fff",
+          fontWeight: "bold"
+        }}
+      >
+        📲 Enviar pedido no WhatsApp
+      </button>
+
+    </div>
   </div>
+)}
 
-</div>
-{/* STEP 1
-{toast && (
-  <div
-    onClick={() => setStep(3)}
-    style={{
-      position: "fixed",
-      bottom: 90,
-      left: "50%",
-      transform: "translateX(-50%)",
-      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-      color: "#fff",
-      padding: "4px 6px",
-      borderRadius: 14,
-      fontWeight: "bold",
-      boxShadow: "0 0 25px rgba(122,0,255,0.6)",
-      zIndex: 9999,
-      cursor: "pointer"
-    }}
-  >
-    🛒 {toast.nome} adicionado • Ver carrinho
-  </div>  {/* STEP 1 */}
-
-      
 
       
 {/* STEP 1 */}
-{step === 1 && (
-  <>
-    <h3 style={{ marginBottom: 10 }}> Escolha seu açaí</h3>
+{aba === "home" && step === 1 && (
+  <div className="fade-slide" style={{ padding: 15 }}>
 
-    {/* 🔥 LOJA FECHADA */}
+    <h3 style={{
+      marginBottom: 15,
+      fontSize: 18,
+      fontWeight: "bold"
+    }}>
+      Escolha seu açaí
+    </h3>
+
+    {/* LOJA FECHADA */}
     {!lojaAberta && (
       <div style={{
-        background: "linear-gradient(90deg,#ff0000,#ff4d4d)",
+        background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
         padding: 12,
-        borderRadius: 12,
+        borderRadius: 14,
         marginBottom: 12,
         textAlign: "center",
         fontWeight: "bold",
         color: "#fff"
       }}>
-        🚫 Loja fechada no momento
+        Loja fechada no momento
       </div>
     )}
 
-    {/* 🔍 BUSCA */}
-    <div style={{ marginBottom: 10 }}>
+    {/* BUSCA */}
+    <div style={{ marginBottom: 12 }}>
       <input
-        placeholder="🔍 Buscar produto..."
+        placeholder="Buscar produto..."
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
         style={{
-          width: "100%",
+          width: "92%",
           padding: 12,
-          borderRadius: 12,
+          borderRadius: 14,
           border: "none",
           outline: "none",
           background: themeAtual.card,
-          color: themeAtual.text
+          color: themeAtual.text,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
         }}
       />
     </div>
 
-    {/* 🔥 TABS */}
+    {/* TABS */}
     <div style={{
       display: "flex",
-      gap: 8,
-      overflowX: "auto",
-      marginBottom: 12
-    }}>
-      {["acai","bebidas","teste","teste2","teste3"].map(cat => (
-        <button
-          key={cat}
-          onClick={() => {
-            setCategoria(cat);
-            setProduto(null);
-            setSelectedId(null);
-            setExtras([]);
-            setQuantidade(1);
-            setStep(1);
-          }}
-          style={{
-            padding: "8px 14px",
-            borderRadius: 20,
-            border: "none",
-            cursor: "pointer",
-            background: categoria === cat
-              ? "linear-gradient(90deg,#6a00ff,#ff2aff)"
-              : themeAtual.card,
-            color: categoria === cat ? "#fff" : themeAtual.text,
-            whiteSpace: "nowrap"
-          }}
-        >
-          {cat.toUpperCase()}
-        </button>
-      ))}
-    </div>
+    /*  gap: 8,*/
+    /*  overflowX: "auto", */
+      marginBottom: 10
+  }}>
 
-    {/* 🔥 GRID */}
+  {[
+    { id: "acai", nome: "Açaí" },
+    { id: "bebidas", nome: "Bebidas" },
+    { id: "teste", nome: "Teste" },
+    { id: "teste2", nome: "Teste2" },
+    { id: "teste3", nome: "Teste3" }
+  ].map(cat => (
+
+    <button
+      key={cat.id}
+      onClick={() => {
+        setCategoria(cat.id); // 🔥 usa ID (sem acento)
+        setProduto(null);
+        setSelectedId(null);
+        setExtrasSelecionados({});
+        setQuantidade(1);
+        setStep(1);
+      }}
+
+      style={{
+        padding: "2px 20px",
+        borderRadius: 20,
+        border: "none",
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        background: categoria === cat.id ? "#ea1d2c" : "#eee",
+        color: categoria === cat.id ? "#fff" : "#000",
+        fontWeight: categoria === cat.id ? "bold" : "normal"
+      }}
+    >
+      {cat.nome}
+    </button>
+
+  ))}
+
+</div>
+
+    {/* GRID */}
     <div style={{
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
@@ -1643,74 +2111,89 @@ return (
 
       {produtos
         .filter(p => {
-
           const nome = p.nome?.toLowerCase() || "";
           const termo = busca.toLowerCase();
 
-          const categoriaProduto = String(p.categoria || "")
-            .trim()
-            .toLowerCase();
-
-          const categoriaAtual = String(categoria || "")
-            .trim()
-            .toLowerCase();
+          const categoriaProduto = String(p.categoria || "").trim().toLowerCase();
+          const categoriaAtual = String(categoria || "").trim().toLowerCase();
 
           if (busca) return nome.includes(termo);
-
           return categoriaProduto === categoriaAtual;
         })
         .map(p => {
 
-  return (
-    <div
-      key={p.id}
+          return (
+            <div
+            key={p.id}
+            style={{
+            position: "relative", // 🔥 MUITO IMPORTANTE
+            background: themeAtual.card,
+            borderRadius: 12,
+            padding: 10
+            }}
+              onClick={() => {
 
-      // 🔥 STYLE CORRETO (AQUI FORA)
-      style={{
-        position: "relative",
-        borderRadius: 18,
-        overflow: "hidden",
-        cursor: "pointer",
-        background: themeAtual.card,
-        transition: "all 0.2s ease",
-        boxShadow: "0 5px 15px rgba(0,0,0,0.15)"
-      }}
+                if (!lojaAberta) {
+                  alert("Loja fechada");
+                  return;
+                }
 
-      onClick={(e) => {
+                setProduto(p);
+                setSelectedId(p.id);
+                
 
-        if (!lojaAberta) {
-          alert("🚫 Loja fechada");
-          return;
+                 setProduto(p);
+  setSelectedId(p.id);
+
+  // 🔥categoria  BEBIDAS VAI DIRETO PRO CARRINHO
+  if (p.categoria === "bebidas") {
+
+    const total = Number(p.preco || 0);
+
+    setCarrinho(prev => [
+      ...prev,
+      {
+        produto: p,
+        quantidade: 1,
+        extras: [],
+        total
+      }
+    ]);
+
+    setToast({ nome: p.nome });
+    setTimeout(() => setToast(null), 2000);
+
+    // 🔥 GARANTE QUE MOSTRA O CARRINHO
+    setAba("carrinho");
+    setStep(3);
+
+    return;
+  }
+ // 🔥 categoria acai mostra extras
+
+      if (p.categoria === "acai") {
+     setExtrasSelecionados({});
+     setQuantidade(1);
+     setStep(2);
+      } else {
+      const total = Number(p.preco || 0);
+
+    setCarrinho(prev => [
+      ...prev,
+       {
+      produto: p,
+      quantidade: 1,
+      extras: [],
+      total
+       }
+     ]);
+
+      setStep(3);
         }
+       }}
+     >
 
-        setProduto(p);
-        setSelectedId(p.id);
-
-        if (p.categoria === "bebidas") {
-
-          const total = p.preco || 0;
-
-          setCarrinho(prev => [
-            ...prev,
-            {
-              produto: p,
-              quantidade: 1,
-              extras: [],
-              total
-            }
-          ]);
-
-          setToast({ nome: p.nome });
-          setTimeout(() => setToast(null), 2000);
-
-          return;
-        }
-
-        setStep(2);
-      }}
-    >
-
-  {/* 🔥 MAIS VENDIDO (AGORA NO LUGAR CERTO) */}
+{/* 🔥 MAIS VENDIDO (AGORA NO LUGAR CERTO) */}
     {p.maisVendido && (
   <div style={{
       position: "absolute",
@@ -1731,44 +2214,40 @@ return (
   </div>
 )}
 
-      {/* 🔥 IMAGEM */}
-      <img
-        src={
-          typeof p.imagem === "string" &&
-          p.imagem.startsWith("data:image")
-            ? p.imagem
-            : "/acai.png"
-        }
-        onError={(e) => (e.target.src = "/acai.png")}
-        style={{
-          width: "100%",
-          height: 140,
-          objectFit: "cover"
-        }}
-      />
+              {/* IMAGEM */}
+              <img
+                src={p.imagem || "/acai.png"}
+                style={{
+                  width: "100%",
+                  height: 140,
+                  objectFit: "cover"
+                }}
+              />
 
-              {/* 🔥 INFO */}
+              {/* INFO */}
               <div style={{ padding: 10 }}>
 
                 <p style={{
                   fontWeight: "bold",
-                  margin: 0
+                  margin: 0,
+                  fontSize: 14
                 }}>
                   {p.nome}
                 </p>
 
                 <p style={{
                   fontSize: 12,
-                  opacity: 0.7,
+                  opacity: 0.6,
                   marginTop: 4
                 }}>
                   {p.descricao || "Açaí com complementos"}
                 </p>
 
                 <strong style={{
-                  color: "#6a00ff"
+                  color: "#ea1d2c",
+                  fontSize: 14
                 }}>
-                  R$ {Number(p.preco || 0).toFixed(2)}
+                  {formatarReal(p.preco)}
                 </strong>
 
               </div>
@@ -1778,11 +2257,13 @@ return (
         })}
 
     </div>
-  </>
+
+  </div>
 )}
-        {step === 2 && (
-  <>
-    {/* 🔥 IMAGEM TOPO */}
+{aba === "home" && step === 2 && (
+  <div className="fade-slide">
+
+    {/* IMAGEM */}
     <div style={{
       width: "100%",
       height: 220,
@@ -1800,294 +2281,377 @@ return (
       />
     </div>
 
-    {/* 🔥 INFO PRODUTO */}
+    {/* INFO */}
     <div style={{ padding: 15 }}>
-
-      <h2 style={{ margin: 0 }}>
-        {produto?.nome}
-      </h2>
+      <h2 style={{ margin: 0 }}>{produto?.nome}</h2>
 
       <p style={{ opacity: 0.7, fontSize: 14 }}>
         {produto?.descricao || "Monte seu açaí com complementos"}
       </p>
 
-      <h3 style={{ marginTop: 5 }}>
-        R$ {Number(produto?.preco || 0).toFixed(2)}
-      </h3>
-
-      {/* 🔥 QUANTIDADE */}
+      {/* QUANTIDADE */}
       <div style={{
         display: "flex",
         alignItems: "center",
         gap: 12,
         marginTop: 15
       }}>
-        <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>➖</button>
+        <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>-</button>
         <strong>{quantidade}</strong>
-        <button onClick={() => setQuantidade(q => q + 1)}>➕</button>
+        <button onClick={() => setQuantidade(q => q + 1)}>+</button>
       </div>
-
     </div>
 
-    {/* 🔥 EXTRAS */}
+    {/* EXTRAS */}
     <div style={{ padding: 15 }}>
-
       <h4>Escolha seus adicionais</h4>
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 10,
-        marginTop: 10
-      }}>
+      {extrasGlobais.map(grupo => {
 
-        {adicionais.map(e => {
-          const selected = extras.find(x => x.nome === e.nome);
+        const selecionados = extrasSelecionados[grupo.categoria] || [];
 
-          return (
-            <div
-              key={e.nome}
-              onClick={() => toggleExtra(e)}
-              style={{
-                padding: 12,
-                borderRadius: 14,
-                cursor: "pointer",
-                border: selected
-                  ? "2px solid #6a00ff"
-                  : "1px solid #ddd",
-                background: selected
-                  ? "rgba(122,0,255,0.1)"
-                  : themeAtual.card,
-                transition: "0.2s"
-              }}
-            >
+        return (
+          <div key={grupo.categoria} style={{ marginBottom: 20 }}>
 
-              <div style={{ fontWeight: "bold" }}>
-                {e.nome}
-              </div>
+            {/* TÍTULO */}
+            <h4 style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              {grupo.categoria}
 
-              <div style={{ fontSize: 13, opacity: 0.7 }}>
-                + R$ {Number(e.preco).toFixed(2)}
-              </div>
+              <span style={{
+                fontSize: 11,
+                opacity: 0.6
+              }}>
+                {selecionados.length}/{grupo.max}
+              </span>
+            </h4>
+
+            {/* GRID */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 10,
+              marginTop: 8
+            }}>
+
+              {grupo.itens.map(item => {
+
+                const selected = selecionados.some(e => e.nome === item.nome);
+
+                return (
+                  <div
+                    key={item.nome}
+                    onClick={() => toggleExtra(grupo.categoria, item, grupo.max)}
+                    style={{
+                      padding: 12,
+                      borderRadius: 16,
+                      cursor: "pointer",
+                      border: selected
+                        ? "2px solid #ea1d2c"
+                        : "1px solid rgba(0,0,0,0.08)",
+                      background: selected
+                        ? "rgba(234,29,44,0.08)"
+                        : themeAtual.card,
+                      transform: selected ? "scale(0.98)" : "scale(1)",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <strong>{item.nome}</strong>
+
+                    <div style={{
+                      fontSize: 12,
+                      opacity: 0.6,
+                      marginTop: 4
+                    }}>
+                      {formatarReal(item.preco)}
+                    </div>
+                  </div>
+                );
+              })}
 
             </div>
-          );
-        })}
 
-      </div>
+          </div>
+        );
+      })}
 
     </div>
 
-    {/* 🔥 BOTÃO FIXO (ESTILO IFOOD) */}
+   {/* TOTAL */}
 <div style={{
-  position: "fixed",
-  bottom: 90,
-  left: 0,
-  right: 0,
+  padding: "12px 15px",
+  borderTop: "1px solid rgba(0,0,0,0.1)",
   display: "flex",
-  justifyContent: "center",
-  zIndex: 999
+  justifyContent: "space-between"
 }}>
+  <span style={{ opacity: 0.6 }}>Total</span>
 
-<button
-  onClick={adicionarCarrinho}
-  style={{
-    width: "90%",
-    maxWidth: 420,
-    padding: "12px 16px",
-    borderRadius: 16,
-    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-    color: "#fff",
-    border: "none",
-    fontWeight: "bold",
-    fontSize: 14,
-    boxShadow: "0 5px 20px rgba(122,0,255,0.4)"
-  }}
->
-  {editandoIndex !== null
-    ? `🔄 Atualizar • R$ ${((produto?.preco || 0) + totalExtras).toFixed(2)}`
-    : `🛒 Adicionar • R$ ${((produto?.preco || 0) + totalExtras).toFixed(2)}`
-  }
-</button>
-
+  <strong style={{
+    fontSize: 18,
+    color: "#ea1d2c"
+  }}>
+    {formatarReal(
+      (Number(produto?.preco || 0) + totalExtras) * quantidade
+    )}
+  </strong>
 </div>
 
-    {/* 🔥 ESPAÇO PRA NÃO FICAR ESCONDIDO */}
-    <div style={{ height: 100 }} />
-
-  </>
-)}
- {/* 🔥step 3 */}
-{step === 3 && (
-  <>
-   <h3 style={{ marginBottom: 10 }}>🛒 Sacola</h3>
-  
-{carrinho.map((item, i) => (
-  <div key={i} style={{
-    background: themeAtual.card,
-    padding: 15,
-    borderRadius: 16,
-    marginBottom: 12,
-    display: "flex",
-    gap: 10,
-    alignItems: "center"
-  }}>
-    
-    {/* IMAGEM */}
-    <img
-      src={item.produto.imagem || "/acai.png"}
-      style={{
-        width: 70,
-        height: 70,
-        borderRadius: 12,
-        objectFit: "cover"
-      }}
-    />
-
-    {/* INFO */}
-    <div style={{ flex: 1 }}>
-
-      {/* TOPO */}
+    {/* AVISO */}
+    {!podeContinuar && (
       <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
+        margin: "10px 15px",
+        padding: 10,
+        borderRadius: 12,
+        background: "rgba(255,61,0,0.1)",
+        textAlign: "center",
+        fontSize: 12,
+        color: "#ff3d00",
+        fontWeight: "bold"
       }}>
-        <strong>{item.produto.nome}</strong>
-
-        <button
-          onClick={() => removerItem(i)}
-          style={{
-            background: "rgba(234,29,44,0.1)",
-            color: "#ea1d2c",
-            border: "none",
-            borderRadius: 10,
-            padding: "4px 8px",
-            fontSize: 11,
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}
-        >
-          Remover
-        </button>
+        Selecione os adicionais obrigatórios
       </div>
+    )}
 
-      <p style={{ fontSize: 13, opacity: 0.7 }}>
-        {item.produto.descricao}
-      </p>
-
-
-      {/* EXTRAS */}
-      {item.extras?.length > 0 && (
-  <div style={{
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 6
-  }}>
-    {item.extras.map(e => (
-      <span
-        key={e.nome}
+    {/* BOTÃO */}
+    <div style={{
+      position: "fixed",
+      bottom: 90,
+      left: 0,
+      right: 0,
+      display: "flex",
+      justifyContent: "center"
+    }}>
+      <button
+        onClick={adicionarCarrinho}
+        disabled={!podeContinuar}
         style={{
-          background: "rgba(122,0,255,0.1)",
-          padding: "4px 8px",
-          borderRadius: 999,
-          fontSize: 11
+          width: "90%",
+          maxWidth: 420,
+          padding: 14,
+          borderRadius: 18,
+          background: podeContinuar
+            ? "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
+            : "#ccc",
+          color: "#fff",
+          border: "none",
+          fontWeight: "bold",
+          fontSize: 15,
+          boxShadow: "0 6px 20px rgba(234,29,44,0.3)"
         }}
       >
-        + {e.nome}
-      </span>
-    ))}
-  </div>
-)}
-
-      {item.produto.categoria === "acai" && (
-  <button
-    onClick={() => editarItem(i)}
-    style={{
-      marginTop: 5,
-      background: "rgba(122,0,255,0.08)",
-      border: "none",
-      borderRadius: 10,
-      padding: "6px 10px",
-      fontSize: 12,
-      cursor: "pointer",
-      fontWeight: "bold",
-      color: "#6a00ff"
-    }}
-  >
-    ✏️ Editar adicionais
-  </button>
-)}
-
-      <p style={{ marginTop: 6 }}>
-        R$ {Number(item.total).toFixed(2)}
-      </p>
-
+        {editandoIndex !== null
+          ? `Adicionar ao carrinho ${formatarReal(totalExtras * quantidade)}`
+          : `Adicionar ao carrinho ${formatarReal(totalExtras * quantidade)}`
+        }
+      </button>
     </div>
 
-    {/* QUANTIDADE */}
-    <div style={{
+    <div style={{ height: 110 }} />
+
+  </div>
+)}
+{aba === "carrinho" && step === 3 && (
+  <div className="fade-slide" style={{ padding: 15 }}>
+
+    <h3 style={{
+      marginBottom: 15,
       display: "flex",
-      flexDirection: "column",
       alignItems: "center",
       gap: 6
     }}>
-      <button onClick={() => alterarQuantidade(i, "mais")}>➕</button>
-      <strong>{item.quantidade}</strong>
-      <button onClick={() => alterarQuantidade(i, "menos")}>➖</button>
-    </div>
+      <ShoppingBag size={20} /> Sacola
+    </h3>
 
-  </div>
-))}
+    {carrinho.map((item, i) => (
+      <div key={i} style={{
+        background: themeAtual.card,
+        padding: 15,
+        borderRadius: 18,
+        marginBottom: 12,
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        boxShadow: "0 6px 20px rgba(0,0,0,0.05)"
+      }}>
 
-    {/* 🔥 CUPOM */}
+        {/* IMAGEM */}
+        <img
+          src={item.produto.imagem || "/acai.png"}
+          style={{
+            width: 70,
+            height: 70,
+            borderRadius: 14,
+            objectFit: "cover"
+          }}
+        />
+
+        {/* INFO */}
+        <div style={{ flex: 1 }}>
+
+          {/* TOPO */}
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}>
+            <strong>{item.produto.nome}</strong>
+
+            <button
+              onClick={() => removerItem(i)}
+              style={{
+                background: "rgba(234,29,44,0.1)",
+                color: "#ea1d2c",
+                border: "none",
+                borderRadius: 10,
+                padding: "4px 8px",
+                fontSize: 11,
+                fontWeight: "bold",
+                cursor: "pointer"
+              }}
+            >
+              Remover
+            </button>
+          </div>
+
+          {/* DESCRIÇÃO */}
+          <p style={{ fontSize: 13, opacity: 0.7 }}>
+            {item.produto.descricao}
+          </p>
+
+          {/* EXTRAS */}
+          {item.extras?.length > 0 && (
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+              marginTop: 6
+            }}>
+              {item.extras.map(e => (
+                <span key={e.nome} style={{
+                  background: "rgba(122,0,255,0.1)",
+                  padding: "4px 8px",
+                  borderRadius: 999,
+                  fontSize: 11
+                }}>
+                  + {e.nome} ({formatarReal(e.preco)})
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* EDITAR */}
+          {item.produto.categoria === "acai" && (
+            <button
+              onClick={() => editarItem(i)}
+              style={{
+                marginTop: 6,
+                background: "rgba(122,0,255,0.08)",
+                border: "none",
+                borderRadius: 10,
+                padding: "6px 10px",
+                fontSize: 12,
+                cursor: "pointer",
+                fontWeight: "bold",
+                color: "#6a00ff"
+              }}
+            >
+              Editar adicionais
+            </button>
+          )}
+
+          {/* TOTAL */}
+          <div style={{
+            marginTop: 8,
+            display: "flex",
+            justifyContent: "space-between"
+          }}>
+            <span style={{ fontSize: 12 }}>
+              {item.quantidade}x
+            </span>
+
+            <strong>
+              {formatarReal(item.total)}
+            </strong>
+          </div>
+
+        </div>
+
+        {/* QUANTIDADE */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          background: "rgba(0,0,0,0.05)",
+          padding: "4px 8px",
+          borderRadius: 10
+        }}>
+          <button onClick={() => alterarQuantidade(i, "menos")}>-</button>
+          <strong>{item.quantidade}</strong>
+          <button onClick={() => alterarQuantidade(i, "mais")}>+</button>
+        </div>
+
+      </div>
+    ))}
+
+    {/* CUPOM */}
     <div style={{
       background: themeAtual.card,
       padding: 15,
       borderRadius: 16,
       marginTop: 10
     }}>
-      <strong>🎟️ Cupom</strong>
+      <strong style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }}>
+        <Tag size={16} /> Cupom
+      </strong>
 
       <button
-        onClick={aplicarMelhorCupom}
+        
+  onClick={() => {
+    console.log("CLIQUEI NO BOTAO 🔥");
+    aplicarMelhorCupom();
+  }}
+
+  
+
         style={{
           width: "100%",
           marginTop: 10,
-          padding: 10,
-          borderRadius: 10,
+          padding: 12,
+          borderRadius: 12,
           background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
           color: "#fff",
-          border: "none"
+          border: "none",
+          fontWeight: "bold"
         }}
       >
-        ⚡ Aplicar melhor desconto
+        Aplicar melhor desconto
       </button>
     </div>
 
-    {/* 🔥 CUPOM APLICADO */}
+    {/* CUPOM ATIVO */}
     {cupomAplicado && (
       <div style={{
         marginTop: 10,
         padding: 12,
         borderRadius: 12,
-        background: dark ? "rgba(0,255,136,0.08)" : "rgba(0,255,136,0.1)",
+        background: "rgba(0,255,136,0.1)",
         display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
+        justifyContent: "space-between"
       }}>
         <div>
-          <p style={{
-            color: "#00c853",
-            fontWeight: "bold",
-            margin: 0
-          }}>
-            🎟️ {cupomAplicado.nome}
-          </p>
+          <strong style={{ color: "#00c853" }}>
+            {cupomAplicado.nome}
+          </strong>
 
           <small>
-            💸 Economizou R$ {desconto.toFixed(2)}
+            Economizou {formatarReal(desconto)}
           </small>
         </div>
 
@@ -2095,24 +2659,21 @@ return (
           onClick={() => {
             setCupomAplicado(null);
             setDesconto(0);
-            setCupomInput("");
           }}
           style={{
             background: "#ff0033",
             color: "#fff",
             border: "none",
             borderRadius: 8,
-            padding: "6px 10px",
-            fontSize: 12,
-            cursor: "pointer"
+            padding: "6px 10px"
           }}
         >
-          ❌ Remover
+          X
         </button>
       </div>
     )}
 
-    {/* 🔥 RESUMO */}
+    {/* RESUMO */}
     <div style={{
       background: themeAtual.card,
       padding: 15,
@@ -2123,36 +2684,33 @@ return (
 
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <span>Subtotal</span>
-        <span>R$ {total.toFixed(2)}</span>
+        <span>{formatarReal(total)}</span>
       </div>
 
-      {desconto > 0 && (
+      {descontoCalculado > 0 && (
         <div style={{
           display: "flex",
           justifyContent: "space-between",
           color: "#00c853"
         }}>
           <span>Desconto</span>
-          <span>-R$ {desconto.toFixed(2)}</span>
+          <span>-{formatarReal(descontoCalculado)}</span>
         </div>
       )}
-
-      <hr style={{ margin: "10px 0", opacity: 0.2 }} />
 
       <div style={{
         display: "flex",
         justifyContent: "space-between",
-        fontWeight: "bold"
+        marginTop: 8
       }}>
-        <span>Total</span>
-        <span>R$ {(total - desconto).toFixed(2)}</span>
+        <strong>Total </strong>
+        <strong>{formatarReal(totalFinal)}</strong>
       </div>
     </div>
 
-    {/* ESPAÇO */}
     <div style={{ height: 120 }} />
 
-    {/* BOTÃO FIXO */}
+    {/* BOTÃO */}
     <div style={{
       position: "fixed",
       bottom: 90,
@@ -2162,44 +2720,39 @@ return (
       justifyContent: "center"
     }}>
       <button
-        onClick={() => {
-          if (!clienteNome || !clienteEndereco || !clienteTelefone) {
-            alert("⚠️ Preencha seus dados para continuar");
-            setStep(4);
-            return;
-          }
+       onClick={() => {
+       if (!clienteNome || !clienteEndereco || !clienteTelefone) {
+        alert("Preencha seus dados");
+        setAba("perfil");
+        setStep(4);
+        return;
+         }
 
-          setStep(6);
+       // 🔥 ESSA LINHA QUE FALTAVA
+        setAba("pagamentos");
+        setStep(6);
         }}
         style={{
           width: "90%",
           maxWidth: 380,
-          padding: "12px",
-          borderRadius: 18,
-          background: dark
-            ? "linear-gradient(90deg,#9333ea,#c026d3)"
-            : "linear-gradient(90deg,#ff0033,#ff4d4d)",
+          padding: 14,
+          borderRadius: 20,
+          background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
           color: "#fff",
           border: "none",
           fontWeight: "bold",
-          fontSize: 14,
-          boxShadow: dark
-            ? "0 8px 25px rgba(147,51,234,0.4)"
-            : "0 8px 25px rgba(255,0,51,0.3)",
-          cursor: "pointer"
+          fontSize: 15,
+          boxShadow: "0 8px 25px rgba(234,29,44,0.3)"
         }}
       >
-        🚀 Continuar pedido
+        Continuar pedido
       </button>
     </div>
-  </>
+
+  </div>
 )}
-{/* STEP 4 */}
-{step === 4 && (
-  <div style={{
-    
-    
-  }}>
+{aba === "perfil" && step === 4 && (
+  <div className="fade-slide" style={{ padding: 15 }}>
 
     {/* 🔥 MENU PERFIL */}
     {abaPerfil === "menu" && (
@@ -2219,29 +2772,27 @@ return (
             alignItems: "center",
             justifyContent: "center"
           }}>
-            🙂
+            <User size={24} color="#fff" />
           </div>
 
           <div>
             <strong>{clienteNome || "Cliente"}</strong>
-            <div style={{ color: "#9333ea", fontSize: 13 }}>
-              Deus a cima de tudo !
+            <div style={{ color: "#ea1d2c", fontSize: 13 }}>
+              Bem-vindo 👋
             </div>
           </div>
         </div>
 
         <div style={{
-        background: themeAtual.card,
-        padding: 16,
-        borderRadius: 20,
-        width: "100%",
-        boxSizing: "border-box"
+          background: themeAtual.card,
+          padding: 16,
+          borderRadius: 20
         }}>
           {[
-            { nome: "Dados da conta", acao: () => setAbaPerfil("dados") },
-            { nome: "Cupons" , acao: () => setAbaPerfil("cupons") },
-            { nome: "Informações", acao: () => setAbaPerfil("info") },
-            { nome: "Favoritos" }
+            { nome: "Perfil", icone: <User size={16} />, acao: () => setAbaPerfil("dados") },
+            { nome: "Cupons", icone: <Tag size={16} />, acao: () => setAbaPerfil("cupons") },
+            { nome: "Loja", icone: <MapPin size={16} />, acao: () => setAbaPerfil("info") },
+          {/*  { nome: "Favoritos", icone: <Heart size={16} /> } */}
           ].map((item, i) => (
             <div
               key={i}
@@ -2250,11 +2801,20 @@ return (
                 padding: 14,
                 display: "flex",
                 justifyContent: "space-between",
+                alignItems: "center",
                 borderBottom: "1px solid rgba(0,0,0,0.05)",
                 cursor: "pointer"
               }}
             >
-              <span>{item.nome}</span>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8
+              }}>
+                {item.icone}
+                <span>{item.nome}</span>
+              </div>
+
               <span style={{ opacity: 0.3 }}>›</span>
             </div>
           ))}
@@ -2452,7 +3012,7 @@ return (
   </strong>
 
   <p style={{ margin: "6px 0" }}>
-    💸 Desconto: R$ {c.valor || c.desconto || 0}
+    💸 Desconto: % {c.valor || c.desconto || 0}
   </p>
 
   <small style={{ opacity: 0.6 }}>
@@ -2489,7 +3049,7 @@ return (
           fontSize: 20,
           letterSpacing: -0.5
         }}>
-          Açaí Daiane
+          Informações
         </h2>
 
         <span style={{
@@ -2655,19 +3215,57 @@ return (
   </div>
 )}
 
-{step === 5 && (
-  <>
-    <h3 style={{ marginBottom: 10 }}>📦 Histórico</h3>
+<div>
+
+  {temNotificacao && (
+    <span style={{
+      position: "absolute",
+      top: 6,
+      right: 6,
+      width: 8,
+      height: 8,
+      background: "#ff0033",
+      borderRadius: "50%"
+    }} />
+  )}
+</div>
+
+    {/* 🔥 COLUNA (SAIR + DARK EMBAIXO) */}
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }}></div>
+
+
+
+{aba === "pedidos" && step === 5 && (
+  <div className="fade-slide" style={{ padding: 15 }}>
+
+    <h3 style={{
+      marginBottom: 15,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }}>
+      <ClipboardList size={20} /> Histórico
+    </h3>
 
     {pedidos.length === 0 && (
-      <p>Nenhum pedido ainda</p>
+      <p style={{ opacity: 0.6 }}>
+        Nenhum pedido ainda
+      </p>
     )}
 
-    {pedidos.reverse().map((p, i) => (
+    {[...pedidos].reverse().map((p, i) => (
       <div key={i} style={{ marginBottom: 15 }}>
 
         {/* DATA */}
-        <p style={{ opacity: 0.6, fontSize: 13 }}>
+        <p style={{
+          opacity: 0.5,
+          fontSize: 12,
+          marginBottom: 5
+        }}>
           {new Date(p.data || Date.now()).toLocaleDateString("pt-BR")}
         </p>
 
@@ -2675,8 +3273,8 @@ return (
         <div style={{
           background: themeAtual.card,
           padding: 15,
-          borderRadius: 16,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
+          borderRadius: 18,
+          boxShadow: "0 6px 25px rgba(0,0,0,0.05)"
         }}>
 
           {/* TOPO */}
@@ -2689,24 +3287,24 @@ return (
             <img
               src={p.itens?.[0]?.imagem || "/acai.png"}
               style={{
-                width: 45,
-                height: 45,
-                borderRadius: "50%",
+                width: 50,
+                height: 50,
+                borderRadius: 14,
                 objectFit: "cover"
               }}
             />
 
             <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-               <strong>
-               {p.itens?.length === 1
-               ? p.itens[0].nome
-                : `${p.itens?.[0]?.nome} +${p.itens.length - 1} itens`}
-               </strong>
-              </div>
+
+              <strong style={{ fontSize: 14 }}>
+                {p.itens?.length === 1
+                  ? p.itens[0].nome
+                  : `${p.itens?.[0]?.nome} +${p.itens.length - 1} itens`}
+              </strong>
 
               <div style={{
                 fontSize: 12,
+                marginTop: 2,
                 color:
                   p.status === "preparando" ? "#facc15" :
                   p.status === "saiu para entrega" ? "#60a5fa" :
@@ -2714,50 +3312,49 @@ return (
               }}>
                 {p.status}
               </div>
+
             </div>
 
           </div>
 
           {/* ITENS */}
           <div style={{
-            marginTop: 10,
+            marginTop: 12,
             fontSize: 13,
-            opacity: 0.8
+            opacity: 0.85
           }}>
             {p.itens?.map((item, idx) => (
-  <div key={idx} style={{ marginBottom: 6 }}>
+              <div key={idx} style={{ marginBottom: 6 }}>
 
-    {/* PRODUTO */}
-    <div>
-      {item.quantidade}x {item.nome}
-    </div>
+                <div>
+                  {item.quantidade}x {item.nome}
+                </div>
 
-    {/* EXTRAS */}
-    {item.extras?.length > 0 && (
-      <div style={{
-        marginLeft: 10,
-        fontSize: 12,
-        opacity: 0.7
-      }}>
-        {item.extras.map(e => (
-          <div key={e.nome}>
-            • {e.nome}
-          </div>
-        ))}
-      </div>
-    )}
+                {item.extras?.length > 0 && (
+                  <div style={{
+                    marginLeft: 10,
+                    fontSize: 12,
+                    opacity: 0.7
+                  }}>
+                    {item.extras.map(e => (
+                      <div key={e.nome}>
+                        • {e.nome}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-  </div>
-))}
+              </div>
+            ))}
           </div>
 
           {/* TOTAL */}
           <div style={{
-           marginTop: 10,
-           fontWeight: "bold",
-           fontSize: 15
-           }}>
-           Total: R$ {Number(p.total).toFixed(2)}
+            marginTop: 12,
+            fontWeight: "bold",
+            fontSize: 15
+          }}>
+            Total: {formatarReal(p.total)}
           </div>
 
           {/* AÇÕES */}
@@ -2765,15 +3362,16 @@ return (
             display: "flex",
             justifyContent: "space-between",
             marginTop: 12,
-            borderTop: "1px solid rgba(0,0,0,0.1)",
+            borderTop: "1px solid rgba(0,0,0,0.08)",
             paddingTop: 10
           }}>
 
             <button style={{
               background: "transparent",
               border: "none",
-              color: "#ff0033",
-              fontWeight: "bold"
+              color: "#ea1d2c",
+              fontWeight: "bold",
+              cursor: "pointer"
             }}>
               Ajuda
             </button>
@@ -2786,8 +3384,9 @@ return (
               style={{
                 background: "transparent",
                 border: "none",
-                color: "#ff0033",
-                fontWeight: "bold"
+                color: "#ea1d2c",
+                fontWeight: "bold",
+                cursor: "pointer"
               }}
             >
               Pedir novamente
@@ -2801,17 +3400,38 @@ return (
     ))}
 
     {/* VOLTAR */}
-    <button onClick={() => setStep(1)}>
+    <button
+      onClick={() => setStep(1)}
+      style={{
+        width: "100%",
+        marginTop: 20,
+        padding: 12,
+        borderRadius: 14,
+        border: "none",
+        background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+        color: "#fff",
+        fontWeight: "bold"
+      }}
+    >
       ← Voltar
     </button>
-  </>
+
+  </div>
 )}
 
-{step === 6 && (
-  <>
-    <h3 style={{ marginBottom: 10 }}>💰 Pagamento</h3>
+{aba === "pagamentos" && step === 6 && (
+  <div className="fade-slide">
 
-    {/* 🔥 RESUMO DO PEDIDO */}
+    <h3 style={{
+      marginBottom: 10,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }}>
+      <CreditCard size={20} /> Pagamento
+    </h3>
+
+    {/* 🔥 RESUMO */}
     <div style={{
       background: themeAtual.card,
       padding: 15,
@@ -2819,9 +3439,8 @@ return (
       marginBottom: 10
     }}>
 
-      <h4>🧾 Resumo</h4>
+      <h4 style={{ marginBottom: 10 }}>Resumo do pedido</h4>
 
-      {/* ITENS */}
       {carrinho.map((item, i) => (
         <div key={i} style={{
           display: "flex",
@@ -2830,19 +3449,17 @@ return (
           marginBottom: 4
         }}>
           <span>{item.quantidade}x {item.produto.nome}</span>
-          <span>R$ {Number(item.total).toFixed(2)}</span>
+          <span>{formatarReal(item.total)}</span>
         </div>
       ))}
 
       <hr style={{ margin: "10px 0", opacity: 0.2 }} />
 
-      {/* SUBTOTAL */}
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <span>Subtotal</span>
-        <span>R$ {total.toFixed(2)}</span>
+        <span>{formatarReal(total)}</span>
       </div>
 
-      {/* DESCONTO */}
       {desconto > 0 && (
         <div style={{
           display: "flex",
@@ -2850,13 +3467,12 @@ return (
           color: "#00c853"
         }}>
           <span>Desconto</span>
-          <span>-R$ {desconto.toFixed(2)}</span>
+          <span>-{formatarReal(desconto)}</span>
         </div>
       )}
 
       <hr style={{ margin: "10px 0", opacity: 0.2 }} />
 
-      {/* TOTAL FINAL */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
@@ -2864,7 +3480,7 @@ return (
         fontSize: 16
       }}>
         <span>Total</span>
-        <span>R$ {(total - desconto).toFixed(2)}</span>
+        <span>{formatarReal(total - desconto)}</span>
       </div>
 
     </div>
@@ -2876,24 +3492,106 @@ return (
       borderRadius: 16,
       marginBottom: 10
     }}>
-      <h4>💳 Forma de pagamento</h4>
-
-      <div style={{
-        marginTop: 10,
-        padding: 10,
-        borderRadius: 12,
-        background: dark ? "#111" : "#f5f5f5",
-        textAlign: "center",
-        fontWeight: "bold"
+      <h4 style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6
       }}>
-        PIX 💰
+        <CreditCard size={16} /> Forma de pagamento
+      </h4>
+
+      <div style={{ marginTop: 10 }}>
+
+        {/* FECHADO */}
+        {!abrirPagamento && (
+          <div
+            style={{
+              padding: 12,
+              borderRadius: 14,
+              background: dark ? "#111" : "#f5f5f5",
+              textAlign: "center",
+              fontWeight: "bold",
+              cursor: "pointer"
+            }}
+            onClick={() => setMostrarPagamento(true)}
+          >
+            {formaPagamento
+              ? formaPagamento.toUpperCase()
+              : "Escolher pagamento"}
+          </div>
+        )}
+
+        {/* ABERTO */}
+        {abrirPagamento && (
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8
+          }}>
+
+            <div
+              onClick={() => {
+                setFormaPagamento("pix");
+                setAbrirPagamento(false);
+              }}
+              style={{
+                padding: 12,
+                borderRadius: 14,
+                background: formaPagamento === "pix" ? "#ea1d2c" : "#eee",
+                color: formaPagamento === "pix" ? "#fff" : "#000",
+                textAlign: "center",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              PIX
+            </div>
+
+            <div
+              onClick={() => {
+                setFormaPagamento("cartao");
+                setAbrirPagamento(false);
+              }}
+              style={{
+                padding: 12,
+                borderRadius: 14,
+                background: formaPagamento === "cartao" ? "#ea1d2c" : "#eee",
+                color: formaPagamento === "cartao" ? "#fff" : "#000",
+                textAlign: "center",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              Cartão
+            </div>
+
+            <div
+              onClick={() => {
+                setFormaPagamento("dinheiro");
+                setAbrirPagamento(false);
+              }}
+              style={{
+                padding: 12,
+                borderRadius: 14,
+                background: formaPagamento === "dinheiro" ? "#ea1d2c" : "#eee",
+                color: formaPagamento === "dinheiro" ? "#fff" : "#000",
+                textAlign: "center",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              Dinheiro
+            </div>
+
+          </div>
+        )}
+
       </div>
     </div>
 
-    {/* 🔥 ESPAÇO */}
     <div style={{ height: 120 }} />
 
-    {/* 🔥 BOTÃO FIXO CONFIRMAR */}
+    {/* 🔥 FINALIZAR */}
     <div style={{
       position: "fixed",
       bottom: 90,
@@ -2903,326 +3601,37 @@ return (
       justifyContent: "center",
       zIndex: 999
     }}>
-
-     <button
-  onClick={() => setMostrarPagamento(true)}
-  style={{
-    width: "90%",
-    maxWidth: 380,
-    padding: "12px",
-    borderRadius: 18,
-
-    background: dark
-      ? "linear-gradient(90deg,#9333ea,#c026d3)"
-      : "linear-gradient(90deg,#00c853,#00e676)",
-
-    color: "#fff",
-    border: "none",
-    fontWeight: "bold",
-    fontSize: 14,
-
-    boxShadow: dark
-      ? "0 8px 25px rgba(147,51,234,0.4)"
-      : "0 8px 25px rgba(0,200,83,0.3)",
-
-    cursor: "pointer"
-  }}
->
-  💳 Escolher pagamento
-</button>
-
+      <button
+        onClick={() => finalizarPedido()}
+        style={{
+          width: "90%",
+          maxWidth: 380,
+          padding: "14px",
+          borderRadius: 18,
+          background: "linear-gradient(90deg,#ea1d2c,#ff3d3d)",
+          color: "#fff",
+          border: "none",
+          fontWeight: "bold",
+          fontSize: 14,
+          boxShadow: "0 8px 25px rgba(234,29,44,0.3)"
+        }}
+      >
+        Finalizar pedido
+      </button>
     </div>
 
-    {/* 🔥 VOLTAR */}
-    <button onClick={() => setStep(3)}>
+    <button onClick={() => {
+     setAba("carrinho");
+    setStep(3);
+
+}}>
       ← Voltar ao carrinho
     </button>
-  </>
-)}
 
- {/* ========================= */}
-    {/* 🔥 MODAL DE PAGAMENTO */}
-    {/* ========================= */}
-    
-{mostrarPagamento && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 16,
-      width: 350,
-      boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
-    }}>
-
-      <h3 style={{ marginBottom: 10 }}>💳 Forma de pagamento</h3>
-
-      {/* PIX */}
-      <button
-        onClick={() => {
-          if (loadingPix) return;
-
-          setFormaPagamento("pix");
-
-          setQrBase64(null);
-          setQrCode(null);
-          setPaymentId(null);
-
-          gerarPix();
-        }}
-        style={{
-          width: "100%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
-          border: "none",
-          cursor: loadingPix ? "not-allowed" : "pointer",
-          background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
-          color: formaPagamento === "pix" ? "#fff" : "#000",
-          fontWeight: "bold",
-          opacity: loadingPix ? 0.7 : 1
-        }}
-      >
-        {loadingPix ? "Gerando Pix..." : "⚡ Pix"}
-      </button>
-
-      {/* DINHEIRO */}
-      <button
-        onClick={() => setFormaPagamento("dinheiro")}
-        style={{
-          width: "100%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
-          border: "none",
-          cursor: "pointer",
-          background: formaPagamento === "dinheiro" ? "#6a00ff" : "#eee",
-          color: formaPagamento === "dinheiro" ? "#fff" : "#000",
-          fontWeight: "bold"
-        }}
-      >
-        💵 Dinheiro na entrega
-      </button>
-
-      {/* CARTÃO */}
-      <button
-        onClick={() => setFormaPagamento("cartao")}
-        style={{
-          width: "100%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
-          border: "none",
-          cursor: "pointer",
-          background: formaPagamento === "cartao" ? "#6a00ff" : "#eee",
-          color: formaPagamento === "cartao" ? "#fff" : "#000",
-          fontWeight: "bold"
-        }}
-      >
-        💳 Cartão na entrega
-      </button>
-
-      {/* PIX AREA */}
-      {formaPagamento === "pix" && (
-        <div style={{ marginTop: 20, textAlign: "center" }}>
-
-          <p><strong>Valor: R$ {Number(totalFinal).toFixed(2)}</strong></p>
-
-          {!qrBase64 && (
-            <p style={{ marginTop: 10 }}>Gerando QR Code...</p>
-          )}
-
-          {qrBase64 && (
-            <div style={{
-              background: "#fff",
-              padding: 10,
-              borderRadius: 12,
-              display: "inline-block",
-              marginTop: 10
-            }}>
-              <img
-                src={`data:image/png;base64,${qrBase64}`}
-                style={{ width: 220 }}
-              />
-            </div>
-          )}
-
-          {qrCode && (
-            <>
-              <textarea
-                value={qrCode}
-                readOnly
-                style={{
-                  width: "100%",
-                  marginTop: 12,
-                  padding: 10,
-                  borderRadius: 10,
-                  fontSize: 12,
-                  border: "1px solid #ddd"
-                }}
-              />
-
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(qrCode);
-                  alert("Pix copiado!");
-                }}
-                style={{
-                  marginTop: 10,
-                  width: "100%",
-                  padding: 10,
-                  borderRadius: 10,
-                  border: "none",
-                  background: "#6a00ff",
-                  color: "#fff",
-                  fontWeight: "bold"
-                }}
-              >
-                📋 Copiar código Pix
-              </button>
-            </>
-          )}
-
-          <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
-            Após o pagamento, seu pedido será confirmado automaticamente.
-          </p>
-
-        </div>
-      )}
-
-      {/* CONFIRMAR */}
-      <button
-        style={{
-          marginTop: 20,
-          width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "none",
-          background: "linear-gradient(90deg,#00c853,#00e676)",
-          color: "#fff",
-          fontWeight: "bold",
-          cursor: loadingPedido ? "not-allowed" : "pointer",
-          opacity: loadingPedido ? 0.7 : 1
-        }}
-        disabled={loadingPedido}
-        onClick={async () => {
-
-          if (!formaPagamento) {
-            alert("Escolha uma forma de pagamento");
-            return;
-          }
-
-          // 🔥 PIX NÃO FINALIZA PEDIDO
-          if (formaPagamento === "pix") {
-
-            if (!paymentId) {
-              alert("Erro no Pix. Gere novamente.");
-              return;
-            }
-
-            if (!qrBase64) {
-              alert("Aguarde o QR Code gerar");
-              return;
-            }
-
-            alert("Aguardando pagamento do Pix...");
-            return; // 🔥 ESSENCIAL
-          }
-
-          try {
-            setLoadingPedido(true);
-            await finalizarPedido("pendente");
-          } finally {
-            setLoadingPedido(false);
-          }
-        }}
-      >
-        {loadingPedido ? "Processando..." : "Confirmar Pedido"}
-      </button>
-
-      {/* CANCELAR */}
-      <button
-        onClick={() => {
-          setMostrarPagamento(false);
-          setFormaPagamento(null);
-        }}
-        style={{
-          marginTop: 10,
-          background: "transparent",
-          border: "none",
-          color: "#999",
-          cursor: "pointer",
-          width: "100%"
-        }}
-      >
-        Cancelar
-      </button>
-
-    </div>
   </div>
 )}
 
-{/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
-{pedidoPago && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 16,
-      textAlign: "center"
-    }}>
-
-      <h2>✅ Pagamento confirmado</h2>
-
-      <button
-  onClick={() => {
-
-    enviarWhatsApp(pedidoPago);
-
-    // 🔥 AGORA SIM LIMPA TUDO
-    setCarrinho([]);
-    setFormaPagamento(null);
-    setQrBase64(null);
-    setQrCode(null);
-    setPaymentId(null);
-    setMostrarPagamento(false);
-    setPedidoAtual(null);
-    setPedidoPago(null);
-
-        }}
-        style={{
-          marginTop: 10,
-          padding: 12,
-          borderRadius: 10,
-          border: "none",
-          background: "#00c853",
-          color: "#fff",
-          fontWeight: "bold"
-        }}
-      >
-        📲 Enviar pedido no WhatsApp
-      </button>
-
-    </div>
-  </div>
-)}
-
-{step === 7 && (
+{aba === "notificacao" && step === 7 && (
   <div style={{
     padding: 20,
     animation: "fadeIn 0.3s ease"
@@ -3294,9 +3703,17 @@ return (
 )}
 
 
-{step === 99 && (
-  <>
-    <h3 style={{ marginBottom: 10 }}>📍 Informações da Loja</h3>
+{aba === "info" && step === 99 && (
+  <div className="fade-slide">
+
+    <h3 style={{
+      marginBottom: 10,
+      display: "flex",
+      alignItems: "center",
+      gap: 6
+    }}>
+      <MapPin size={20} /> Informações da Loja
+    </h3>
 
     {/* STATUS */}
     <div style={{
@@ -3319,7 +3736,14 @@ return (
       borderRadius: 16,
       marginBottom: 15
     }}>
-      <h4>⏰ Horário</h4>
+      <h4 style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }}>
+        ⏰ Horário
+      </h4>
+
       <p>Domingo: 18h às 23h20</p>
       <p>Segunda: Fechado</p>
       <p>Terça a Sábado: 18h15 às 23h20</p>
@@ -3332,7 +3756,13 @@ return (
       borderRadius: 16,
       marginBottom: 15
     }}>
-      <h4>💳 Pagamento</h4>
+      <h4 style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }}>
+        💳 Pagamento
+      </h4>
 
       <p>💵 Dinheiro</p>
       <p>💳 Cartão</p>
@@ -3358,7 +3788,14 @@ return (
       borderRadius: 16,
       marginBottom: 10
     }}>
-      <h4>📍 Endereço</h4>
+      <h4 style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }}>
+        <MapPin size={16} /> Endereço
+      </h4>
+
       <p>Rua Seis de Janeiro, 209 - Olinda</p>
     </div>
 
@@ -3377,12 +3814,22 @@ return (
 
     {/* VOLTAR */}
     <button
-      style={{ marginTop: 15 }}
+      style={{
+        marginTop: 15,
+        width: "100%",
+        padding: 12,
+        borderRadius: 12,
+        border: "none",
+        background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+        color: "#fff",
+        fontWeight: "bold"
+      }}
       onClick={() => setStep(1)}
     >
       ← Voltar
     </button>
-  </>
+
+  </div>
 )}
 
 
@@ -3501,7 +3948,7 @@ return (
       margin-top: 10px;
       padding: 10px;
       border-radius: 10px;
-      background: ${dark ? '#111' : '#fff'};
+      background: dark ? '#111' : '#fff',
     }
 
     .selected {
@@ -3513,7 +3960,7 @@ return (
     .history {
       margin-top: 10px;
       padding: 10px;
-      background: ${dark ? '#111' : '#fff'};
+      background: dark ? '#111' : '#fff',
       border-radius: 10px;
     }
 
@@ -3623,8 +4070,19 @@ return (
   }
 }
 
+.fade-slide {
+  animation: fadeSlide 0.3s ease;
+}
 
-
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
   `}</style>
     
     </div>

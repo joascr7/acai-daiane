@@ -8,6 +8,7 @@ import { setDoc } from "firebase/firestore";
 import { authAdmin as auth } from "../services/firebaseDual";
 
 
+
 import {
   collection,
   doc,
@@ -44,6 +45,7 @@ export default function Admin() {
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
+  
 
   const [novaCategoria, setNovaCategoria] = useState("");
   const [categorias, setCategorias] = useState([]);
@@ -73,6 +75,8 @@ export default function Admin() {
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [imagemNotificacao, setImagemNotificacao] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
+  const [novoExtraNome, setNovoExtraNome] = useState("");
+  const [novoExtraPreco, setNovoExtraPreco] = useState("");
   
   // 🔍 CORTA IMAGEM ESTILO INSTA
 const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -80,6 +84,21 @@ const [zoom, setZoom] = useState(1);
 const [imagemTemp, setImagemTemp] = useState(null);
 const [mostrarCrop, setMostrarCrop] = useState(false);
 const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+// entrax no painel 
+const [extras, setExtras] = useState([]);
+const [min, setMin] = useState(0);
+const [max, setMax] = useState(1);
+const [novoItem, setNovoItem] = useState({});
+const [extraNome, setExtraNome] = useState("");
+const [extraPreco, setExtraPreco] = useState("");
+
+function formatarReal(valor) {
+  return (Number(valor || 0) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
 
   // 🔍 BUSCA
   const [buscaCodigo, setBuscaCodigo] = useState("");
@@ -92,6 +111,101 @@ function tocarSom() {
   // const audio = new Audio("/notificacao.mp3");
   // audio.play();
 }
+
+// nova funcao add no painel
+
+function adicionarCategoria() {
+  if (!novaCategoria) return;
+
+  setExtras(prev => [
+    ...prev,
+    {
+      categoria: novaCategoria,
+      min: Number(min),
+      max: Number(max),
+      itens: []
+    }
+  ]);
+
+  setNovaCategoria("");
+  setMin(0);
+  setMax(1);
+}
+
+function adicionarItem(index) {
+  const nome = novoItem[index]?.nome;
+  const preco = Number(novoItem[index]?.preco || 0);
+
+  if (!nome) return;
+
+  setExtras(prev => {
+    const novo = [...prev];
+
+    // 🔥 GARANTE QUE É ARRAY
+    if (!Array.isArray(novo[index].itens)) {
+      novo[index].itens = [];
+    }
+
+    novo[index].itens.push({ nome, preco });
+
+    return novo;
+  });
+
+  setNovoItem(prev => ({
+    ...prev,
+    [index]: { nome: "", preco: "" }
+  }));
+}
+
+function removerItem(catIndex, itemIndex) {
+  setExtras(prev => {
+    const novo = [...prev];
+    novo[catIndex].itens.splice(itemIndex, 1);
+    return novo;
+  });
+}
+
+function removerCategoria(index) {
+  setExtras(prev => prev.filter((_, i) => i !== index));
+}
+
+// moverItem
+function moverItem(catIndex, itemIndex, direcao) {
+  setExtras(prev => {
+    if (!Array.isArray(prev)) return prev;
+
+    const novo = JSON.parse(JSON.stringify(prev)); // 🔥 FORÇA NOVO OBJETO
+
+    const itens = novo[catIndex]?.itens || [];
+
+    const novoIndex = itemIndex + direcao;
+
+    if (novoIndex < 0 || novoIndex >= itens.length) return prev;
+
+    const itemMovido = itens[itemIndex];
+
+    itens.splice(itemIndex, 1);
+    itens.splice(novoIndex, 0, itemMovido);
+
+    return [...novo]; // 🔥 FORÇA RENDER
+  });
+}
+
+ 
+// salvarExtras
+async function salvarExtras() {
+  try {
+    await setDoc(doc(db, "config", "loja"), {
+    extras
+    }, { merge: true });
+
+    alert("Extras salvos com sucesso 🚀");
+  } catch (err) {
+    console.log(err);
+    alert("Erro ao salvar");
+  }
+}
+
 
 
 async function enviarNotificacao(tipo) {
@@ -127,6 +241,16 @@ setImagemNotificacao(""); // 🔥 limpa imagem também
 alert("Notificação enviada 🚀");
 }
 
+// valor em centavos
+function converterParaCentavos(valor) {
+  if (!valor) return 0;
+
+  // aceita: 2 | 2.50 | 2,50
+  const numero = Number(valor.toString().replace(",", "."));
+
+  return Math.round(numero * 100);
+}
+
 
 async function removerNotificacao(id) {
   await deleteDoc(doc(db, "notificacoes", id));
@@ -138,6 +262,27 @@ async function salvarLogo() {
   }, { merge: true });
 
   alert("Logo atualizada 🚀");
+}
+
+// editar item
+function editarItem(catIndex, itemIndex, campo, valor) {
+  setExtras(prev => {
+    const novo = [...prev];
+
+    // 🔥 garante estrutura
+    if (!Array.isArray(novo[catIndex].itens)) {
+      novo[catIndex].itens = [];
+    }
+
+    if (!novo[catIndex].itens[itemIndex]) return prev;
+
+    novo[catIndex].itens[itemIndex] = {
+      ...novo[catIndex].itens[itemIndex],
+      [campo]: campo === "preco" ? Number(valor) : valor
+    };
+
+    return novo;
+  });
 }
 
 // 🔥 excluir produtos
@@ -213,36 +358,6 @@ async function moverProduto(produto, direcao) {
   });
 }
 
-
-// 🔥 salvarproduto
-async function salvarProduto() {
-
-  if (!novoNome || !novoPreco) {
-    alert("Preencha nome e preço");
-    return;
-  }
-
-  await addDoc(collection(db, "produtos"), {
-    nome: novoNome,
-    categoria: categoria,
-    preco: Number(novoPreco),
-    tamanho: novoTamanho,
-    descricao: novaDescricao,
-    imagem: novaImagem, // 🔥 base64 salva direto
-    ativo: true,
-    maisVendido: maisVendido, // 🔥 AQUI
-    ordem: Date.now()
-  });
-
-  // limpar tudo
-  setNovoNome("");
-  setNovoPreco("");
-  setNovoTamanho("");
-  setNovaDescricao("");
-  setNovaImagem("");
-
-  setMostrarModalProduto(false);
-}
 // 🔥 cadastro padrao primeiro
 useEffect(() => {
   if (categorias.length > 0 && !categoria) {
@@ -403,14 +518,18 @@ async function atualizarStatus(id, status) {
 // 🔥 EABRIR EDITACAO
 function abrirEdicao(p) {
   setNovoNome(p.nome || "");
-  setNovoPreco(p.preco || "");
+  setNovoPreco((p.preco || 0) / 100);
   setNovoTamanho(p.tamanho || "");
   setNovaDescricao(p.descricao || "");
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
 
-  setEditandoProduto(p); // 🔥 ativa modo edição
+  // 🔥 CORREÇÃO AQUI (ESSENCIAL)
+  setExtras(p.extras || []);
+
+  setEditandoProduto(p);
   setMostrarModalProduto(true);
+  
 }
 
 // 🔥 EDITAR PRODUTOS
@@ -422,15 +541,15 @@ async function salvarProduto() {
   }
 
   const dados = {
-    nome: novoNome,
-    preco: Number(novoPreco),
-    tamanho: novoTamanho,
-    descricao: novaDescricao,
-    imagem: novaImagem,
-    ativo: true,
-    maisVendido: maisVendido,
-    categoria: categoria
-  };
+  nome: novoNome,
+  preco: converterParaCentavos(novoPreco),
+  tamanho: novoTamanho,
+  descricao: novaDescricao,
+  imagem: novaImagem,
+  ativo: true,
+  maisVendido: maisVendido,
+  categoria: categoria
+};
 
   if (editandoProduto) {
     // 🔥 ATUALIZA
@@ -454,6 +573,7 @@ async function salvarProduto() {
   
 
   setMostrarModalProduto(false);
+  setExtras([]);
 }
 
 async function toggleProduto(produto) {
@@ -502,6 +622,22 @@ async function limparPedidos() {
     alert("Erro ao apagar pedidos");
   }
 }
+
+useEffect(() => {
+  async function carregarExtras() {
+    try {
+      const snap = await getDoc(doc(db, "config", "loja"));
+
+      if (snap.exists()) {
+        setExtras(snap.data().extras || []);
+      }
+    } catch (err) {
+      console.log("Erro ao carregar extras:", err);
+    }
+  }
+
+  carregarExtras();
+}, []);
 
  // 🎟️ CUPONS
 async function carregarCupons() {
@@ -703,7 +839,7 @@ return (
 />
 
 
-// 🔥 CORTE DE IMAGEM UPLOAD
+{/* 🔥 CORTE DE IMAGEM UPLOAD */}
 {mostrarCrop && imagemTemp && (
   <div style={{
     position: "fixed",
@@ -977,7 +1113,7 @@ return (
           color: "#fff",
           fontSize: 32
         }}>
-          R$ {Number(totalFaturado).toFixed(2)}
+         {formatarReal(totalFaturado)}
         </h1>
       </div>
 
@@ -1005,7 +1141,7 @@ return (
         </div>
 
         <span style={{ opacity: 0.7 }}>
-          R$ {Number(vendasPorDia[dia]).toFixed(2)}
+          {formatarReal(vendasPorDia[dia])}
         </span>
 
       </div>
@@ -1149,7 +1285,7 @@ return (
       <input
         placeholder="Preço"
         value={novoPreco}
-        onChange={(e) => setNovoPreco(e.target.value.replace(/\D/g, ""))}
+        onChange={(e) => setNovoPreco(e.target.value)}
         style={{
           width: "100%",
           padding: 12,
@@ -1177,6 +1313,18 @@ return (
         }}
       />
 
+   {extras.map((e, i) => (
+  <div key={i}>
+    {e.nome} - {formatarReal(e.preco)}
+
+    <button onClick={() => {
+      setExtras(prev => prev.filter((_, index) => index !== i));
+    }}>
+      ❌
+    </button>
+  </div>
+))}
+
       {/* 🔥 DESCRIÇÃO */}
       <input
         placeholder="Descrição (ex: banana + granola + leite condensado)"
@@ -1192,6 +1340,40 @@ return (
           color: "#fff"
         }}
       />
+
+      <h4 style={{ marginTop: 10 }}>Extras</h4>
+
+<input
+  placeholder="Nome do extra"
+  value={extraNome}
+  onChange={(e) => setExtraNome(e.target.value)}
+/>
+
+<input
+  placeholder="Preço (ex: 1,50)"
+  value={extraPreco}
+  onChange={(e) => setExtraPreco(e.target.value)}
+/>
+
+<button
+  onClick={() => {
+    if (!extraNome || !extraPreco) return;
+
+    setExtras(prev => [
+      ...prev,
+      {
+        nome: extraNome,
+        preco: converterParaCentavos(extraPreco)
+      }
+    ]);
+
+    setExtraNome("");
+    setExtraPreco("");
+  }}
+>
+  ➕ Adicionar Extra
+</button>
+
 
       {/* 🔥 IMAGEM BASE64 */}
       <input
@@ -1278,6 +1460,182 @@ return (
 <div className="card">
   <h2>🍧 Produtos</h2>
 
+
+
+  {/* 🔥 EXTRAS GLOBAIS */}
+<div style={{
+  marginTop: 30,
+  background: "#1a1a1a",
+  padding: 20,
+  borderRadius: 16
+}}>
+
+<h3>🍧 Extras (Categorias)</h3>
+
+{/* NOVA CATEGORIA */}
+<div style={{ display: "flex", gap: 10 }}>
+  <input
+    placeholder="Categoria"
+    value={novaCategoria}
+    onChange={e => setNovaCategoria(e.target.value)}
+  />
+
+  <input
+    placeholder="Min"
+    type="number"
+    value={min}
+    onChange={e => setMin(e.target.value)}
+  />
+
+  <input
+    placeholder="Max"
+    type="number"
+    value={max}
+    onChange={e => setMax(e.target.value)}
+  />
+
+  <button onClick={adicionarCategoria}>+</button>
+</div>
+
+{/* LISTA */}
+{extras.map((cat, i) => (
+  <div key={i} style={{
+    background: "#1a1a1a",
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 10
+  }}>
+
+    {/* 🔥 HEADER CORRETO */}
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center"
+    }}>
+
+      <strong style={{
+        color: cat.min > 0 ? "#ff3d00" : "#fff"
+      }}>
+        {cat.categoria} {cat.min > 0 && "⚠️ obrigatório"}
+      </strong>
+
+      {/* ❌ BOTÃO REMOVER */}
+      <button
+        onClick={() => removerCategoria(i)}
+        style={{
+          background: "rgba(255,0,0,0.1)",
+          border: "none",
+          borderRadius: 8,
+          padding: "4px 8px",
+          cursor: "pointer",
+          color: "#ff3d00",
+          fontWeight: "bold"
+        }}
+      >
+        ❌
+      </button>
+
+    </div>
+
+    {/* 🔥 PREVIEW (AGORA NO LUGAR CERTO) */}
+    <div style={{
+      marginTop: 10,
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }}>
+      {(cat.itens || []).map((item, j) => (
+        <div key={j} style={{
+          background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+          color: "#fff",
+          padding: "4px 10px",
+          borderRadius: 999,
+          fontSize: 11
+        }}>
+          {item.nome}
+        </div>
+      ))}
+    </div>
+
+
+{(cat.itens || []).map((item, j) => (
+  <div key={j} style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8
+  }}>
+
+    {/* 🔥 NOME */}
+    <input
+      value={item.nome}
+      onChange={e => editarItem(i, j, "nome", e.target.value)}
+      style={{
+        flex: 1,
+        padding: 8,
+        borderRadius: 8
+      }}
+    />
+
+    {/* 💰 PREÇO */}
+    <input
+      type="number"
+      value={item.preco || ""}
+      onChange={e => editarItem(i, j, "preco", e.target.value)}
+      style={{
+        width: 90,
+        padding: 8,
+        borderRadius: 8
+      }}
+    />
+
+    {/* 🔼 */}
+    <button onClick={() => moverItem(i, j, -1)}>⬆️</button>
+
+    {/* 🔽 */}
+    <button onClick={() => moverItem(i, j, 1)}>⬇️</button>
+
+    {/* ❌ */}
+    <button onClick={() => removerItem(i, j)}>❌</button>
+
+  </div>
+))}
+
+    <div style={{ display: "flex", gap: 10 }}>
+      <input
+        placeholder="Nome"
+        value={novoItem[i]?.nome || ""}
+        onChange={e =>
+          setNovoItem(prev => ({
+            ...prev,
+            [i]: { ...prev[i], nome: e.target.value }
+          }))
+        }
+      />
+
+      <input
+        placeholder="Preço (200)"
+        value={novoItem[i]?.preco || ""}
+        onChange={e =>
+          setNovoItem(prev => ({
+            ...prev,
+            [i]: { ...prev[i], preco: e.target.value }
+          }))
+        }
+      />
+
+      <button onClick={() => adicionarItem(i)}>+</button>
+    </div>
+
+  </div>
+))}
+
+<button onClick={salvarExtras}>
+  💾 Salvar Extras
+</button>
+
+</div>
+
   {/* 🔥 BOTÃO NOVO PRODUTO */}
   <button
     onClick={() => setMostrarModalProduto(true)}
@@ -1294,6 +1652,8 @@ return (
   >
     ➕ Novo Produto
   </button>
+
+
 
   {/* 🔥 LISTA */}
 {produtos.length === 0 ? (
@@ -1314,6 +1674,7 @@ return (
         border: p.maisVendido ? "1px solid #ff2aff" : "1px solid transparent"
       }}
     >
+
 
       {/* 🔥 ESQUERDA */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1355,7 +1716,7 @@ return (
           <strong>{p.nome}</strong>
 
           <p style={{ fontSize: 13 }}>
-            R$ {Number(p.preco).toFixed(2)} • {p.tamanho || ""}
+            {formatarReal(p.preco)} • {p.tamanho || ""}
           </p>
 
           <small style={{ opacity: 0.7 }}>
@@ -1545,7 +1906,7 @@ return (
               </p>
 
               <p>
-                Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
+                Total: <strong> {formatarReal(p.total)}</strong>
               </p>
 
               <small>
@@ -1633,7 +1994,7 @@ return (
             ))}
 
             <p>
-              Total: <strong>R$ {Number(p.total || 0).toFixed(2)}</strong>
+              Total: <strong> {formatarReal(p.total)}</strong>
             </p>
 
             <small>
