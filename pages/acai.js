@@ -1667,8 +1667,10 @@ const enviarWhatsApp = (pedido) => {
 }
  
 return (
+
+  // CONTAINER
 <div style={{
-  minHeight: "100vh",
+  minHeight: "100dvh",
   background: themeAtual.background,
   color: themeAtual.text,
   display: "flex",
@@ -1677,7 +1679,9 @@ return (
 
   // 🔥 SAFE AREA GLOBAL (SÓ AQUI)
   paddingTop: "env(safe-area-inset-top)",
-  paddingBottom: "env(safe-area-inset-bottom)"
+  paddingBottom: "env(safe-area-inset-bottom)",
+  paddingLeft: "env(safe-area-inset-left)",
+  paddingRight: "env(safe-area-inset-right)"
 }}>
 
     
@@ -3111,9 +3115,8 @@ return (
           <div style={{
           width: "100%",
           maxWidth: 420,
-          padding: "0 16px",
-          paddingLeft: "calc(16px + env(safe-area-inset-left))",
-          paddingRight: "calc(16px + env(safe-area-inset-right))"
+          padding: "0 16px"
+          
           }}>
 
    {/* SALVAR  E VOLTAR PRO MENU*/}
