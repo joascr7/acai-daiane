@@ -1690,6 +1690,7 @@ return (
   justifyContent: "space-between",
   alignItems: "center",
   marginBottom: 20,
+  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
   marginTop: 10
 }}>
 
@@ -1838,14 +1839,14 @@ return (
 
  <div style={{
   position: "fixed",
-  bottom: 1,
+  bottom: 0,
   left: "50%",
   transform: "translateX(-50%)",
   width: "90%",
   maxWidth: 420,
   background: themeAtual.card,
   borderRadius: 13,
-  padding: 12,
+  padding: 20,
   boxShadow: "0 20px 30px rgba(0,0,0,0.1)",
   display: "flex",
   justifyContent: "space-around",
