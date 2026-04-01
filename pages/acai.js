@@ -1845,7 +1845,7 @@ return (
   bottom: 0,
   left: "50%",
   transform: "translateX(-50%)",
-  width: "90%",
+  width: "100%",
   maxWidth: 560,
   background: themeAtual.card,
   borderRadius: 10,
