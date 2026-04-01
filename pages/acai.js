@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
+import Layout from "./components/Layout";
 
 
 
