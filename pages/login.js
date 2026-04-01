@@ -260,6 +260,10 @@ async function instalarApp() {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: "env(safe-area-inset-top)",
+    paddingBottom: "env(safe-area-inset-bottom)",
+    paddingLeft: "env(safe-area-inset-left)",
+    paddingRight: "env(safe-area-inset-right)",
     padding: 15
   }}
 >
