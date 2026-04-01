@@ -1694,7 +1694,7 @@ return (
   justifyContent: "space-between",
   alignItems: "center",
 
-  marginBottom: 20
+  marginBottom: 0
 }}>
 
   {/* 🔥 ESQUERDA */}
@@ -1842,11 +1842,11 @@ return (
 
  <div style={{
   position: "fixed",
-  bottom: 20,
+  bottom: 0,
   left: "50%",
   transform: "translateX(-50%)",
   width: "90%",
-  maxWidth: 460,
+  maxWidth: 560,
   background: themeAtual.card,
   borderRadius: 10,
   padding: 10,
