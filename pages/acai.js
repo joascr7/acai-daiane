@@ -1474,7 +1474,7 @@ async function finalizarPedido(statusFinalPagamento) {
     return;
   }
 
-  // 🔥 PIX NÃO FINALIZA PEDIDO AQUI
+  // 🔥 PIX NÃO FINALIZA AQUI
   if (formaPagamento === "pix") {
     alert("Aguardando pagamento do Pix...");
     return;
@@ -1484,6 +1484,15 @@ async function finalizarPedido(statusFinalPagamento) {
 
     const codigo = Math.floor(100000 + Math.random() * 900000);
     const totalFinalPedido = totalFinal;
+
+    // 🔥 STATUS CORRETO POR PAGAMENTO
+    let status = "preparando";
+    let statusPagamento = "na_entrega";
+
+    if (formaPagamento === "pix") {
+      status = "aguardando pagamento";
+      statusPagamento = "pendente";
+    }
 
     const pedido = {
       codigo,
@@ -1497,12 +1506,14 @@ async function finalizarPedido(statusFinalPagamento) {
       },
 
       itens: carrinho.map(item => ({
+        produtoId: item.produto.id, // 🔥 IMPORTANTE PRA HISTÓRICO
         nome: item.produto.nome,
         quantidade: item.quantidade,
         total: item.total,
         extras: item.extras?.map(e => ({
           nome: e.nome,
-          preco: e.preco
+          preco: e.preco,
+          categoria: e.categoria || "Extras"
         }))
       })),
 
@@ -1510,11 +1521,10 @@ async function finalizarPedido(statusFinalPagamento) {
 
       // 💳 PAGAMENTO
       formaPagamento,
-      statusPagamento: "pendente",
+      statusPagamento,
+      status,
 
       paymentId: null,
-
-      status: "preparando",
       data: new Date().toISOString()
     };
 
@@ -1524,8 +1534,8 @@ async function finalizarPedido(statusFinalPagamento) {
       const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
 
       if (!cpfLimpo || cpfLimpo.length < 11) {
-      alert("Informe um CPF válido para usar cupom");
-      return;
+        alert("Informe um CPF válido para usar cupom");
+        return;
       }
 
       await runTransaction(db, async (transaction) => {
@@ -1537,83 +1547,76 @@ async function finalizarPedido(statusFinalPagamento) {
 
         const dados = snap.data();
 
-      if (dados.usos && cpfLimpo && dados.usos[cpfLimpo]) {
-       throw "Você já utilizou esse cupom ❌";
-       }
+        if (dados.usos && cpfLimpo && dados.usos[cpfLimpo]) {
+          throw "Você já utilizou esse cupom ❌";
+        }
 
         if (cpfLimpo) {
-        transaction.update(ref, {
-       [`usos.${cpfLimpo}`]: true
-     });
-    }
+          transaction.update(ref, {
+            [`usos.${cpfLimpo}`]: true
+          });
+        }
       });
     }
 
-    // 💾 SALVA PEDIDO NORMAL (não pix)
+    // 💾 SALVA PEDIDO
     await setDoc(doc(db, "pedidos", Date.now().toString()), pedido);
 
-   // 🔥 WHATSAPP
-let mensagem = ` *Pedido #${codigo}*\n\n`;
+    // 🔥 WHATSAPP
+    let mensagem = ` *Pedido #${codigo}*\n\n`;
 
-carrinho.forEach((item, i) => {
-  mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
-  mensagem += `Qtd: ${item.quantidade}\n`;
+    carrinho.forEach((item, i) => {
+      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+      mensagem += `Qtd: ${item.quantidade}\n`;
 
-  // 🔥 EXTRAS AGRUPADOS POR CATEGORIA
-  if (item.extras?.length) {
+      if (item.extras?.length) {
 
-    const grupos = {};
+        const grupos = {};
 
-    item.extras.forEach(e => {
-      const categoria = e.categoria || "Extras";
+        item.extras.forEach(e => {
+          const categoria = e.categoria || "Extras";
 
-      if (!grupos[categoria]) {
-        grupos[categoria] = [];
+          if (!grupos[categoria]) {
+            grupos[categoria] = [];
+          }
+
+          grupos[categoria].push(e.nome);
+        });
+
+        mensagem += `Adicionais:\n`;
+
+        Object.keys(grupos).forEach(cat => {
+          mensagem += `• ${cat}:\n`;
+          grupos[cat].forEach(nome => {
+            mensagem += `  + ${nome}\n`;
+          });
+        });
       }
 
-      grupos[categoria].push(e.nome);
+      mensagem += `R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
     });
 
-    mensagem += `Adicionais:\n`;
+    mensagem += ` Total: R$ ${(Number(totalFinalPedido || 0) / 100).toFixed(2)}\n\n`;
+    mensagem += ` Pagamento: ${formaPagamento}\n\n`;
 
-    Object.keys(grupos).forEach(cat => {
-      mensagem += `• ${cat}:\n`;
-      grupos[cat].forEach(nome => {
-        mensagem += `  + ${nome}\n`;
-      });
-    });
-  }
+    mensagem += ` Cliente:\n`;
+    mensagem += ` ${clienteNome}\n`;
+    mensagem += ` ${clienteTelefone}\n`;
 
-  // 🔥 VALOR CORRETO (CENTAVOS → REAL)
-  mensagem += `R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
-});
+    if (clienteEndereco) {
+      mensagem += ` ${clienteEndereco}`;
+    }
 
-// 🔥 TOTAL CORRETO
-mensagem += ` Total: R$ ${(Number(totalFinalPedido || 0) / 100).toFixed(2)}\n\n`;
+    if (clienteNumeroCasa) {
+      mensagem += `, Nº ${clienteNumeroCasa}`;
+    }
 
-// 🔥 PAGAMENTO
-mensagem += ` Pagamento: ${formaPagamento}\n\n`;
+    mensagem += `\n`;
 
-// 🔥 CLIENTE COMPLETO
-mensagem += ` Cliente:\n`;
-mensagem += ` ${clienteNome}\n`;
-mensagem += ` ${clienteTelefone}\n`;
+    const numero = "5581973119512";
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
 
-if (clienteEndereco) {
-  mensagem += ` ${clienteEndereco}`;
-}
-
-if (clienteNumeroCasa) {
-  mensagem += `, Nº ${clienteNumeroCasa}`;
-}
-
-mensagem += `\n`;
-
-// 🔥 ENVIO
-const numero = "5581973119512";
-const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
-
-window.location.href = url;
+    window.location.href = url;
 
     // 🔥 LIMPA
     setCarrinho([]);
@@ -1621,7 +1624,7 @@ window.location.href = url;
     setFormaPagamento(null);
     setMostrarPagamento(false);
 
-    alert("Pedido realizado com sucesso! ");
+    alert("Pedido realizado com sucesso!");
 
   } catch (e) {
     alert(e);
@@ -3448,11 +3451,28 @@ return (
 
       const primeiroItem = p.itens?.[0];
 
-      // 🔥 BUSCA PROFISSIONAL (com fallback)
       const produtoReal = produtos.find(prod =>
         prod.id === primeiroItem?.produtoId ||
-        prod.nome === primeiroItem?.nome // fallback só pros antigos
+        prod.nome === primeiroItem?.nome
       );
+
+      // 🔥 COR DO STATUS
+      const corStatus =
+        p.status === "preparando" ? "#facc15" :
+        p.status === "saiu" ? "#60a5fa" :
+        "#00c853";
+
+      // 🔥 COR PAGAMENTO
+      const corPagamento =
+        p.formaPagamento === "pix" ? "#a855f7" :
+        p.formaPagamento === "dinheiro" ? "#22c55e" :
+        "#3b82f6";
+
+      // 🔥 NOME BONITO PAGAMENTO
+      const nomePagamento =
+        p.formaPagamento === "pix" ? "Pix" :
+        p.formaPagamento === "dinheiro" ? "Dinheiro na entrega" :
+        "Cartão na entrega";
 
       return (
         <div key={i} style={{ marginBottom: 15 }}>
@@ -3481,7 +3501,6 @@ return (
               gap: 10
             }}>
 
-              {/* 🔥 IMAGEM */}
               <img
                 src={produtoReal?.imagem || "/acai.png"}
                 style={{
@@ -3500,15 +3519,27 @@ return (
                     : `${p.itens?.[0]?.nome} +${p.itens.length - 1} itens`}
                 </strong>
 
+                {/* STATUS */}
                 <div style={{
                   fontSize: 12,
-                  marginTop: 2,
-                  color:
-                    p.status === "preparando" ? "#facc15" :
-                    p.status === "saiu para entrega" ? "#60a5fa" :
-                    "#00c853"
+                  marginTop: 4,
+                  color: corStatus,
+                  fontWeight: "bold"
                 }}>
                   {p.status}
+                </div>
+
+                {/* 💳 PAGAMENTO (NOVO) */}
+                <div style={{ marginTop: 4 }}>
+                  <span style={{
+                    background: corPagamento,
+                    color: "#fff",
+                    padding: "3px 8px",
+                    borderRadius: 8,
+                    fontSize: 11
+                  }}>
+                    {nomePagamento}
+                  </span>
                 </div>
 
               </div>
@@ -3574,7 +3605,6 @@ return (
                 Ajuda
               </button>
 
-              {/* 🔥 PEDIR NOVAMENTE PROFISSIONAL */}
               <button
                 onClick={() => {
 
@@ -3599,7 +3629,6 @@ return (
                   });
 
                   setCarrinho(novosItens);
-
                   setAba("carrinho");
                   setStep(3);
                 }}

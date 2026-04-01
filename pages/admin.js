@@ -1899,11 +1899,31 @@ return (
               )}
 
               <p>
-                Status:
-                <strong style={{ marginLeft: 6, color: cores[status] }}>
-                  {status}
-                </strong>
-              </p>
+  Status:
+  <strong style={{ marginLeft: 6, color: cores[status] }}>
+    {status}
+  </strong>
+</p>
+
+{/* 💳 PAGAMENTO */}
+<p>
+  Pagamento:
+ <span style={{
+  background:
+    p.formaPagamento === "pix" ? "#a855f7" :
+    p.formaPagamento === "dinheiro" ? "#22c55e" :
+    "#3b82f6",
+  color: "#fff",
+  padding: "4px 8px",
+  borderRadius: 8,
+  fontSize: 12,
+  marginLeft: 6
+}}>
+  {p.formaPagamento === "pix" && "Pix"}
+  {p.formaPagamento === "dinheiro" && "Dinheiro"}
+  {p.formaPagamento === "cartao" && "Cartão"}
+</span>
+</p>
 
               <p>
                 Total: <strong> {formatarReal(p.total)}</strong>
