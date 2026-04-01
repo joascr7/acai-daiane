@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
+import { ChevronDown } from "lucide-react";
 import Layout from "../components/layout";
 
 
@@ -151,15 +152,15 @@ const [pedidoAtual, setPedidoAtual] = useState(null);
     padding: "10px",
     borderRadius: 14,
     background: dark
-      ? "linear-gradient(90deg,#9333ea,#c026d3)"
-      : "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      ? "linear-gradient(90deg,#8a0f0f,#8a0f0f)"
+      : "linear-gradient(90deg,#8a0f0f,#ff2aff)",
     color: "#fff",
     border: "none",
     fontWeight: "bold",
     fontSize: 13,
     boxShadow: dark
-      ? "0 5px 20px rgba(147,51,234,0.4)"
-      : "0 5px 20px rgba(122,0,255,0.3)",
+      ? "0 5px 20px rgba(234, 51, 51, 0.9)"
+      : "0 5px 20px rgba(255, 0, 0, 0.33)",
     transition: "all 0.2s ease"
   };
 
@@ -1693,29 +1694,30 @@ return (
 }}>
      
 
-    {/* 🔥 HEADER */}
+{/* 🔥 HEADER PREMIUM FINAL */}
 <div style={{
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  paddingTop: "calc(env(safe-area-inset-top) + 8px)",
+  paddingTop: "calc(env(safe-area-inset-top) + 14px)", // 🔥 desce mais (corrigido)
+  paddingBottom: 14,
 
-  marginBottom: 0
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between"
 }}>
 
   {/* 🔥 ESQUERDA */}
   <div style={{
     display: "flex",
     alignItems: "center",
-    gap: 10
+    gap: 12,
+    flex: 1
   }}>
 
     {/* LOGO */}
     <img
       src={logo || "/logo.png"}
       style={{
-        width: 45,
-        height: 45,
+        width: 42,
+        height: 42,
         borderRadius: "50%",
         objectFit: "cover"
       }}
@@ -1731,22 +1733,35 @@ return (
       style={{
         cursor: "pointer",
         display: "flex",
-        flexDirection: "column",
-        lineHeight: "16px"
+        flexDirection: "column"
       }}
     >
       <span style={{
         fontSize: 11,
-        opacity: 0.6
+        color: "#999"
       }}>
         Entregar em
       </span>
 
-      <strong style={{
-        fontSize: 13
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        marginTop: 2
       }}>
-        {clienteEndereco || "Adicionar endereço"} ▼
-      </strong>
+        <strong style={{
+          fontSize: 15,
+          color: themeAtual.text,
+          maxWidth: 180,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        }}>
+          {clienteEndereco || "Adicionar endereço"}
+        </strong>
+
+        <ChevronDown size={16} color="#999" />
+      </div>
     </div>
 
   </div>
@@ -1767,15 +1782,15 @@ return (
         marcarComoLida();
       }}
       style={{
-        width: 38,
-        height: 38,
+        width: 44,
+        height: 44,
         borderRadius: "50%",
         background: themeAtual.card,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        cursor: "pointer",
-        position: "relative"
+        position: "relative",
+        cursor: "pointer"
       }}
     >
       <Bell size={20} />
@@ -1783,8 +1798,8 @@ return (
       {temNotificacao && (
         <span style={{
           position: "absolute",
-          top: 6,
-          right: 6,
+          top: 8,
+          right: 8,
           width: 8,
           height: 8,
           background: "#ea1d2c",
@@ -1793,56 +1808,45 @@ return (
       )}
     </div>
 
-    {/* 🔥 COLUNA (SAIR + DARK) */}
-    <div style={{
-  display: "flex",
-  flexDirection: "column",
-  gap: 8
-}}>
+    {/* 🌙 DARK MODE */}
+    <div
+      onClick={() => setDark(!dark)}
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: "50%",
+        background: themeAtual.card,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer"
+      }}
+    >
+      {dark
+        ? <Moon size={18} color="#fff" />
+        : <Sun size={18} color="#111" />
+      }
+    </div>
 
-  {/* 🔥 SAIR botao */}
-  <div
-    onClick={sair}
-    style={{
-      width: 38,
-      height: 38,
-      borderRadius: "50%",
-      background: "#ea1d2c",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      boxShadow: "0 4px 15px rgba(234,29,44,0.3)",
-      transition: "0.2s"
-    }}
-  >
-    <LogOut size={18} color="#fff" />
+    {/* 🔥 SAIR PREMIUM */}
+    <div
+      onClick={sair}
+      style={{
+        width: 46,
+        height: 46,
+        borderRadius: "50%",
+        background: "#ea1d2c",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        boxShadow: "0 8px 25px rgba(234,29,44,0.35)"
+      }}
+    >
+      <LogOut size={18} color="#fff" />
+    </div>
+
   </div>
-
-       {/* 🔥 DARK MODE  botao */}
-  <div
-    onClick={() => setDark(!dark)}
-    style={{
-      width: 38,
-      height: 38,
-      borderRadius: "50%",
-      background: dark ? "#111" : "#eee",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      cursor: "pointer",
-      boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-      transition: "0.2s"
-    }}
-  >
-    {dark
-      ? <Moon size={18} color="#fff" />
-      : <Sun size={18} color="#111" />
-    }
-  </div>
- </div>
-
-</div>
 
 </div>
 
@@ -1939,7 +1943,7 @@ return (
           borderRadius: 10,
           border: "none",
           cursor: loadingPix ? "not-allowed" : "pointer",
-          background: formaPagamento === "pix" ? "#6a00ff" : "#eee",
+          background: formaPagamento === "pix" ? "#ff0000" : "#eee",
           color: formaPagamento === "pix" ? "#fff" : "#000",
           fontWeight: "bold",
           opacity: loadingPix ? 0.7 : 1
@@ -1958,7 +1962,7 @@ return (
           borderRadius: 10,
           border: "none",
           cursor: "pointer",
-          background: formaPagamento === "dinheiro" ? "#6a00ff" : "#eee",
+          background: formaPagamento === "dinheiro" ? "#ff0000" : "#eee",
           color: formaPagamento === "dinheiro" ? "#fff" : "#000",
           fontWeight: "bold"
         }}
@@ -1976,7 +1980,7 @@ return (
           borderRadius: 10,
           border: "none",
           cursor: "pointer",
-          background: formaPagamento === "cartao" ? "#6a00ff" : "#eee",
+          background: formaPagamento === "cartao" ? "#ff0000" : "#eee",
           color: formaPagamento === "cartao" ? "#fff" : "#000",
           fontWeight: "bold"
         }}
@@ -2039,7 +2043,7 @@ return (
                   padding: 10,
                   borderRadius: 10,
                   border: "none",
-                  background: "#6a00ff",
+                  background: "#ff0800",
                   color: "#fff",
                   fontWeight: "bold"
                 }}
@@ -2708,7 +2712,7 @@ return (
             }}>
               {item.extras.map(e => (
                 <span key={e.nome} style={{
-                  background: "rgba(122,0,255,0.1)",
+                  background: "rgba(255, 0, 0, 0.1)",
                   padding: "4px 8px",
                   borderRadius: 999,
                   fontSize: 11
@@ -2725,14 +2729,14 @@ return (
               onClick={() => editarItem(i)}
               style={{
                 marginTop: 6,
-                background: "rgba(122,0,255,0.08)",
+                background: "rgba(255, 0, 0, 0.08)",
                 border: "none",
                 borderRadius: 10,
                 padding: "6px 10px",
                 fontSize: 12,
                 cursor: "pointer",
                 fontWeight: "bold",
-                color: "#6a00ff"
+                color: "#ff0000"
               }}
             >
               Editar adicionais
@@ -2797,7 +2801,7 @@ return (
     padding: 12,
     borderRadius: 12,
     background: carrinho.length
-      ? "linear-gradient(90deg,#6a00ff,#ff2aff)"
+      ? "linear-gradient(90deg,#ec5353,#ec5353)"
       : "#ccc",
     color: "#fff",
     border: "none",
@@ -3882,7 +3886,7 @@ return (
           fontSize: 12,
           background: "transparent",
           border: "none",
-          color: "#9333ea",
+          color: "#f72516",
           cursor: "pointer"
         }}
       >

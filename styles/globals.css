@@ -121,7 +121,7 @@ button {
   border: none;
   cursor: pointer;
   color: white;
-  background: linear-gradient(90deg, var(--primary), #9d00ff);
+  background: linear-gradient(90deg, var(--primary), #ff0800);
   transition: all 0.2s ease;
 }
 
@@ -438,6 +438,7 @@ html, body, #__next {
   height: 100%;
   margin: 0;
   padding: 0;
+  background: linear-gradient(90deg, #ff1100, #ff2a2a);
 }
 
 
@@ -486,8 +487,8 @@ html, body, #__next {
 }
 
 .tabs button.activeTab {
-  background: linear-gradient(90deg, #6a00ff, #ff2aff);
-  box-shadow: 0 0 10px rgba(122,0,255,0.4);
+  background: linear-gradient(90deg, #ff2600, #ff2a2a);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
 }
 
 
@@ -516,8 +517,8 @@ html, body, #__next {
 }
 
 .tabs button.activeTab {
-  background: linear-gradient(90deg, #6a00ff, #ff2aff);
-  box-shadow: 0 0 10px rgba(122,0,255,0.4);
+  background: linear-gradient(90deg, #ff0000, #ff2a2a);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
 }
 
 .cardProduto:hover {
