@@ -1838,7 +1838,7 @@ return (
 
  <div style={{
   position: "fixed",
-  bottom: 20,
+  bottom: 0,
   left: "50%",
   transform: "translateX(-50%)",
   width: "90%",
@@ -1849,7 +1849,8 @@ return (
   boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
   display: "flex",
   justifyContent: "space-around",
-  zIndex: 999
+  zIndex: 999,
+  position: "fixed", 
 }}>
 
   <div onClick={() => {
@@ -3851,6 +3852,7 @@ return (
 
     {/* HEADER */}
     <div style={{
+       paddingTop: "calc(env(safe-area-inset-top) + 10px)",
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
