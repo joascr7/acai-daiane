@@ -3387,8 +3387,8 @@ return (
         padding: 12,
         borderRadius: 14,
         border: "none",
-        background: dark ? "#222" : "#f00d0d",
-        color: themeAtual.text,
+        background: dark ? "#f00f0f" : "#f00d0d",
+       
         fontWeight: "bold"
       }}
     >
