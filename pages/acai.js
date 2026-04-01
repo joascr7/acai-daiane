@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
-import Layout from "@/components/layout";
+import Layout from "../components/layout";
 
 
 
@@ -1676,6 +1676,7 @@ return (
   display: "flex",
   justifyContent: "center",
   overflowX: "hidden",
+  
 
   // 🔥 SAFE AREA GLOBAL (SÓ AQUI)
   paddingTop: "env(safe-area-inset-top)",
