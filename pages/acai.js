@@ -1856,7 +1856,7 @@ return (
   maxWidth: 560,
   background: themeAtual.card,
   borderRadius: 10,
-  padding: 10,
+  padding: 20,
   boxShadow: "0 20px 30px rgba(0,0,0,0.1)",
   display: "flex",
   justifyContent: "space-around",
