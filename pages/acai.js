@@ -1686,11 +1686,11 @@ return (
 
     {/* 🔥 HEADER */}
 <div style={{
+  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
   marginBottom: 20,
-  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
   marginTop: 10
 }}>
 
@@ -1843,10 +1843,10 @@ return (
   left: "50%",
   transform: "translateX(-50%)",
   width: "90%",
-  maxWidth: 420,
+  maxWidth: 430,
   background: themeAtual.card,
-  borderRadius: 13,
-  padding: 20,
+  borderRadius: 15,
+  padding: 13,
   boxShadow: "0 20px 30px rgba(0,0,0,0.1)",
   display: "flex",
   justifyContent: "space-around",
@@ -3853,7 +3853,6 @@ return (
 
     {/* HEADER */}
     <div style={{
-       paddingTop: "calc(env(safe-area-inset-top) + 10px)",
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
