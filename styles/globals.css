@@ -434,6 +434,12 @@ input, textarea, select {
   font-size: 16px;
 }
 
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 
 /* 🔥 BOTAO INSTALAR */
 .btnInstall {
@@ -442,7 +448,7 @@ input, textarea, select {
   left: 50%;
   transform: translateX(-50%);
 
-  background: linear-gradient(90deg, #6a00ff, #ff2aff);
+  background: linear-gradient(90deg, #ff1100, #ff2a2a);
   color: white;
 
   border: none;

@@ -278,7 +278,7 @@ async function instalarApp() {
       width: "100%",
       maxWidth: 420,
       color: dark ? "#fff" : "#111",
-      boxShadow: "0 0 30px rgba(122,0,255,0.25)"
+      boxShadow: "0 0 30px rgba(255, 8, 0, 0.7)"
     }}
   >
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}></div>
@@ -305,7 +305,7 @@ async function instalarApp() {
         width: "100%",
         background: dark ? "#1a1a1a" : "#fff",
         color: dark ? "#fff" : "#111",
-        border: "2px solid #8a00ff"
+        border: "2px solid #ff2600"
       }}
     >
       {dark ? "☀️ Modo Claro" : "🌙 Modo Dark"}
@@ -448,7 +448,7 @@ async function instalarApp() {
         className="btn"
         onClick={entrar}
         style={{
-          background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+          background: "linear-gradient(90deg,#ec5353,#ec5353)",
           color: "#fff",
           fontWeight: "bold"
         }}
@@ -538,7 +538,7 @@ async function instalarApp() {
         }
 
         input:focus {
-          box-shadow: 0 0 12px #8a00ff;
+          box-shadow: 0 0 12px #ff0800;
         }
 
         .btn {
@@ -564,7 +564,7 @@ async function instalarApp() {
         }
 
         button:hover {
-          box-shadow: 0 0 20px #8a00ff;
+          box-shadow: 0 0 20px #ff0000;
         }
 
         button:active {
@@ -574,12 +574,12 @@ async function instalarApp() {
         .themeBtn {
           background: ${dark ? '#1a1a1a' : '#fff'};
           color: ${dark ? '#fff' : '#111'};
-          border: 2px solid #8a00ff;
+          border: 2px solid #ff0000;
           margin-top: 10px;
         }
 
         .themeBtn:hover {
-          box-shadow: 0 0 15px #8a00ff;
+          box-shadow: 0 0 15px #ff0000;
         }
 
         .link {
