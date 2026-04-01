@@ -2178,7 +2178,15 @@ return (
       
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
-  <div className="fade-slide" style={{ padding: 15 }}>
+  <div
+  className="fade-slide"
+  style={{
+    paddingTop: "env(safe-area-inset-top)",
+    paddingBottom: "env(safe-area-inset-bottom)",
+    paddingLeft: "env(safe-area-inset-left)",
+    paddingRight: "env(safe-area-inset-right)"
+  }}
+>
 
     <h3 style={{
       marginBottom: 15,
