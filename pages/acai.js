@@ -1671,15 +1671,12 @@ return (
   // CONTAINER
 <div style={{
   minHeight: "100vh",
-  background: "red",
+  background: themeAtual.background,
   color: themeAtual.text,
   display: "flex",
   justifyContent: "center",
   overflowX: "hidden",
-  
 
-  // 🔥 SAFE AREA GLOBAL (SÓ AQUI)
-  paddingTop: "constant(safe-area-inset-top)",
   paddingTop: "env(safe-area-inset-top)",
   paddingBottom: "env(safe-area-inset-bottom)",
   paddingLeft: "env(safe-area-inset-left)",
