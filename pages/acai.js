@@ -667,7 +667,7 @@ function NotificacaoItem({ n }) {
       <div style={{
         fontSize: 12,
         marginBottom: 6,
-        color: n.para === "todos" ? "#9333ea" : "#00c853",
+        color: n.para === "todos" ? "#ea3f33" : "#fa846f3f",
         fontWeight: "bold"
       }}>
         {n.para === "todos" ? "📢 Aviso" : "📦 Pedido"}
@@ -733,7 +733,7 @@ function NotificacaoItem({ n }) {
           right: 12,
           width: 8,
           height: 8,
-          background: "#9333ea",
+          background: "#ea4833",
           borderRadius: "50%"
         }} />
       )}
@@ -1677,6 +1677,10 @@ return (
   justifyContent: "center",
   overflowX: "hidden",
 
+  
+  paddingBottom: "env(safe-area-inset-bottom)",
+  paddingLeft: "env(safe-area-inset-left)",
+  paddingRight: "env(safe-area-inset-right)"
 }}>
 
     
@@ -1695,10 +1699,6 @@ return (
   justifyContent: "space-between",
   alignItems: "center",
   paddingTop: "calc(env(safe-area-inset-top) + 8px)",
-  paddingTop: "env(safe-area-inset-top)",
-  paddingBottom: "env(safe-area-inset-bottom)",
-  paddingLeft: "env(safe-area-inset-left)",
-  paddingRight: "env(safe-area-inset-right)",
 
   marginBottom: 0
 }}>
