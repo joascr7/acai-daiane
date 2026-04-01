@@ -1687,11 +1687,14 @@ return (
     {/* 🔥 HEADER */}
 <div style={{
   paddingTop: "calc(env(safe-area-inset-top) + 10px)",
+  paddingLeft: "env(safe-area-inset-left)",
+  paddingRight: "env(safe-area-inset-right)",
+
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  marginBottom: 20,
-  marginTop: 10
+
+  marginBottom: 20
 }}>
 
   {/* 🔥 ESQUERDA */}
@@ -1839,7 +1842,7 @@ return (
 
  <div style={{
   position: "fixed",
-  bottom: 0,
+  bottom: 20,
   left: "50%",
   transform: "translateX(-50%)",
   width: "90%",
