@@ -1698,6 +1698,7 @@ return (
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
+  paddingTop: "calc(env(safe-area-inset-top) + 8px)",
 
   marginBottom: 0
 }}>
