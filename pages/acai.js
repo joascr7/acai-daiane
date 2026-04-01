@@ -1686,8 +1686,7 @@ return (
   maxWidth: 420,
   margin: "0 auto",
   padding: "0 16px",
-paddingLeft: "calc(16px + env(safe-area-inset-left))",
-paddingRight: "calc(16px + env(safe-area-inset-right))"
+
 }}>
      
 
@@ -3112,7 +3111,9 @@ paddingRight: "calc(16px + env(safe-area-inset-right))"
           <div style={{
           width: "100%",
           maxWidth: 420,
-          padding: "0 16px"
+          padding: "0 16px",
+          paddingLeft: "calc(16px + env(safe-area-inset-left))",
+          paddingRight: "calc(16px + env(safe-area-inset-right))"
           }}>
 
    {/* SALVAR  E VOLTAR PRO MENU*/}
