@@ -422,6 +422,19 @@ button:active {
 }
 
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+input, textarea, select {
+  font-size: 16px;
+}
+
+
 /* 🔥 BOTAO INSTALAR */
 .btnInstall {
   position: fixed;

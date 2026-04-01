@@ -1673,8 +1673,6 @@ return (
     display: "flex",
     justifyContent: "center",
     overflowX: "hidden", // 🔥 ESSA LINHA RESOLVE O CORTE
-    paddingTop: "env(safe-area-inset-top)",
-    paddingBottom: "env(safe-area-inset-bottom)"
   }}>
 
     
@@ -2179,8 +2177,7 @@ return (
   <div
   className="fade-slide"
   style={{
-    paddingTop: "env(safe-area-inset-top)",
-    paddingBottom: "env(safe-area-inset-bottom)",
+    
     paddingLeft: "env(safe-area-inset-left)",
     paddingRight: "env(safe-area-inset-right)"
   }}
