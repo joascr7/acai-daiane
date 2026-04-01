@@ -1677,10 +1677,6 @@ return (
   justifyContent: "center",
   overflowX: "hidden",
 
-  paddingTop: "env(safe-area-inset-top)",
-  paddingBottom: "env(safe-area-inset-bottom)",
-  paddingLeft: "env(safe-area-inset-left)",
-  paddingRight: "env(safe-area-inset-right)"
 }}>
 
     
@@ -1699,6 +1695,10 @@ return (
   justifyContent: "space-between",
   alignItems: "center",
   paddingTop: "calc(env(safe-area-inset-top) + 8px)",
+  paddingTop: "env(safe-area-inset-top)",
+  paddingBottom: "env(safe-area-inset-bottom)",
+  paddingLeft: "env(safe-area-inset-left)",
+  paddingRight: "env(safe-area-inset-right)",
 
   marginBottom: 0
 }}>
