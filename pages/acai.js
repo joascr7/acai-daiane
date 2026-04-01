@@ -1672,7 +1672,9 @@ return (
     color: themeAtual.text,
     display: "flex",
     justifyContent: "center",
-    overflowX: "hidden" // 🔥 ESSA LINHA RESOLVE O CORTE
+    overflowX: "hidden", // 🔥 ESSA LINHA RESOLVE O CORTE
+    paddingTop: "env(safe-area-inset-top)",
+    paddingBottom: "env(safe-area-inset-bottom)"
   }}>
 
     
@@ -1686,10 +1688,6 @@ return (
 
     {/* 🔥 HEADER */}
 <div style={{
-  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
-  paddingLeft: "env(safe-area-inset-left)",
-  paddingRight: "env(safe-area-inset-right)",
-
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
