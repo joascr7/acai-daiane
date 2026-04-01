@@ -3159,7 +3159,7 @@ return (
     height: 46,
     marginTop: 10,
     borderRadius: 23,
-    background: "#6d28d9",
+    background: "#db2525",
     color: "#fff",
     border: "none",
     fontSize: 14
@@ -3387,7 +3387,7 @@ return (
         padding: 12,
         borderRadius: 14,
         border: "none",
-        background: dark ? "#222" : "#8b8b8b",
+        background: dark ? "#222" : "#f00d0d",
         color: themeAtual.text,
         fontWeight: "bold"
       }}
@@ -3630,7 +3630,7 @@ return (
     padding: 12,
     borderRadius: 14,
     border: "none",
-    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    background: "linear-gradient(90deg,#ec5353,#ec5353)",
     color: "#fff",
     fontWeight: "bold"
     }}
@@ -3838,7 +3838,7 @@ return (
           maxWidth: 380,
           padding: "14px",
           borderRadius: 18,
-          background: "linear-gradient(90deg,#ea1d2c,#ff3d3d)",
+          background: "linear-gradient(90deg,#ec5353,#ec5353)",
           color: "#fff",
           border: "none",
           fontWeight: "bold",
@@ -3924,7 +3924,7 @@ return (
     padding: 12,
     borderRadius: 14,
     border: "none",
-    background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+    background: "linear-gradient(90deg,#ec5353,#ec5353)",
     color: "#fff",
     fontWeight: "bold",
     cursor: "pointer"
@@ -4054,7 +4054,7 @@ return (
         padding: 12,
         borderRadius: 12,
         border: "none",
-        background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+        background: "linear-gradient(90deg,#ec5353,#ec5353)",
         color: "#fff",
         fontWeight: "bold"
       }}
@@ -4118,8 +4118,8 @@ return (
     .card:hover .price {
       transform: scale(1.04);
       background: ${dark 
-        ? 'rgba(122,0,255,0.25)' 
-        : 'rgba(122,0,255,0.15)'};
+        ? 'rgba(255, 81, 0, 0.95)' 
+        : 'rgba(255, 51, 0, 0.37)'};
     }
 
     .nome {
@@ -4204,14 +4204,14 @@ return (
       gap: 10px;
       padding: 12px;
       border-radius: 14px;
-      border: 2px solid #7a00ff;
+      border: 2px solid #ff0000;
     }
 
     .cupomAtivo {
       margin-top: 10px;
       padding: 12px;
       border-radius: 12px;
-      background: linear-gradient(90deg,#5a00ff,#8a00ff);
+      background: linear-gradient(90deg,#ec5353,#ec5353);
       color: white;
       display: flex;
       justify-content: space-between;
@@ -4221,7 +4221,7 @@ return (
       margin-top: 10px;
       padding: 14px;
       border-radius: 14px;
-      background: linear-gradient(90deg,#5a00ff,#8a00ff);
+      background: linear-gradient(90deg,#ec5353,#ec5353);
       color: white;
       text-align: center;
       font-size: 20px;
@@ -4232,7 +4232,7 @@ return (
       margin-top: 10px;
       padding: 10px;
       border-radius: 10px;
-      background: linear-gradient(90deg,#5a00ff,#8a00ff);
+      background: linear-gradient(90deg,#ec5353,#ec5353);
       color: white;
       border: none;
       cursor: pointer;
