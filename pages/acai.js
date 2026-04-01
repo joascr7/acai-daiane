@@ -1686,7 +1686,7 @@ return (
 
     {/* 🔥 HEADER */}
 <div style={{
-  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
+  
   paddingLeft: "env(safe-area-inset-left)",
   paddingRight: "env(safe-area-inset-right)",
 
