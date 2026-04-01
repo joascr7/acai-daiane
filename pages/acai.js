@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
-
+import Layout from "@/components/layout";
 
 
 
@@ -1667,21 +1667,27 @@ const enviarWhatsApp = (pedido) => {
 }
  
 return (
-  <div style={{
-    minHeight: "100vh",
-    background: themeAtual.background,
-    color: themeAtual.text,
-    display: "flex",
-    justifyContent: "center",
-    overflowX: "hidden", // 🔥 ESSA LINHA RESOLVE O CORTE
-  }}>
+<div style={{
+  minHeight: "100vh",
+  background: themeAtual.background,
+  color: themeAtual.text,
+  display: "flex",
+  justifyContent: "center",
+  overflowX: "hidden",
+
+  // 🔥 SAFE AREA GLOBAL (SÓ AQUI)
+  paddingTop: "env(safe-area-inset-top)",
+  paddingBottom: "env(safe-area-inset-bottom)"
+}}>
 
     
     <div style={{
   width: "100%",
   maxWidth: 420,
   margin: "0 auto",
-  padding: "0 16px"
+  padding: "0 16px",
+paddingLeft: "calc(16px + env(safe-area-inset-left))",
+paddingRight: "calc(16px + env(safe-area-inset-right))"
 }}>
      
 
@@ -1840,6 +1846,7 @@ return (
  <div style={{
   position: "fixed",
   bottom: 0,
+  paddingBottom: "env(safe-area-inset-bottom)",
   left: "50%",
   transform: "translateX(-50%)",
   width: "100%",
@@ -2178,9 +2185,7 @@ return (
   <div
   className="fade-slide"
   style={{
-    
-    paddingLeft: "env(safe-area-inset-left)",
-    paddingRight: "env(safe-area-inset-right)"
+  
   }}
 >
 

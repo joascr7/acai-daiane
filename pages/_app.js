@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 import { useEffect, useState } from "react";
 import Head from "next/head";
-
+import Layout from "@/components/layout";
 export default function App({ Component, pageProps }) {
 
   // 🔥 DARK MODE
