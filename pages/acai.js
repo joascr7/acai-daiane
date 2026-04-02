@@ -1758,193 +1758,198 @@ return (
   justifyContent: "center",
   overflowX: "hidden",
 
-  
   paddingBottom: "env(safe-area-inset-bottom)",
   paddingLeft: "env(safe-area-inset-left)",
   paddingRight: "env(safe-area-inset-right)"
 }}>
 
-    
-    <div style={{
-  width: "100%",
-  maxWidth: 420,
-  margin: "0 auto",
-  padding: "0 16px",
-
-}}>
-     
-
-{/* 🔥 HEADER PREMIUM FINAL */}
-<div style={{
-  position: "fixed", // 🔥 AQUI É A CORREÇÃO
-  top: 0,
-  left: 0,
-  right: 0,
-
-  paddingTop: "calc(env(safe-area-inset-top) + 14px)",
-  paddingBottom: 14,
-
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-
-  background: "#fff",
-  zIndex: 1000
-}}>
-
- 
-
-  {/* 🔥 ESQUERDA */}
   <div style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    flex: 1
+    width: "100%",
+    maxWidth: 420,
+    margin: "0 auto",
+    padding: "0 16px",
   }}>
 
-    {/* LOGO */}
-    <img
-      src={logo || "/logo.png"}
-      style={{
-        width: 42,
-        height: 42,
-        borderRadius: "50%",
-        objectFit: "cover"
-      }}
-    />
+    {/* 🔥 HEADER FIXO CORRIGIDO */}
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
 
-    {/* ENDEREÇO */}
-    <div
-      onClick={() => {
-        setAba("perfil");
-        setAbaPerfil("dados");
-        setStep(4);
-      }}
-      style={{
-        cursor: "pointer",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
-      <span style={{
-        fontSize: 11,
-        color: "#999"
-      }}>
-        Entregar em
-      </span>
+      paddingTop: "calc(env(safe-area-inset-top) + 14px)",
+      paddingBottom: 14,
 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+
+      background: themeAtual.background,
+      zIndex: 1000
+    }}>
+
+      {/* 🔥 ESQUERDA */}
       <div style={{
         display: "flex",
         alignItems: "center",
-        gap: 4,
-        marginTop: 2
+        gap: 12,
+        flex: 1,
+        paddingLeft: 16 // 🔥 mantém alinhado com container
       }}>
-        <strong style={{
-          fontSize: 15,
-          color: themeAtual.text,
-          maxWidth: 180,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis"
-        }}>
-          {clienteEndereco || "Adicionar endereço"}
-        </strong>
 
-        <ChevronDown size={16} color="#999" />
+        {/* LOGO */}
+        <img
+          src={logo || "/logo.png"}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: "50%",
+            objectFit: "cover"
+          }}
+        />
+
+        {/* ENDEREÇO */}
+        <div
+          onClick={() => {
+            setAba("perfil");
+            setAbaPerfil("dados");
+            setStep(4);
+          }}
+          style={{
+            cursor: "pointer",
+            display: "flex",
+            flexDirection: "column"
+          }}
+        >
+          <span style={{
+            fontSize: 11,
+            color: "#999"
+          }}>
+            Entregar em
+          </span>
+
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginTop: 2
+          }}>
+            <strong style={{
+              fontSize: 15,
+              color: themeAtual.text,
+              maxWidth: 180,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis"
+            }}>
+              {clienteEndereco || "Adicionar endereço"}
+            </strong>
+
+            <ChevronDown size={16} color="#999" />
+          </div>
+        </div>
+
+      </div>
+
+      {/* 🔥 DIREITA */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        paddingRight: 16 // 🔥 alinhamento correto
+      }}>
+
+        {/* 🔔 NOTIFICAÇÃO */}
+        <div
+          onClick={() => {
+            setAba("notificacao");
+            setStep(7);
+            setTemNotificacao(false);
+            marcarComoLida();
+          }}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            background: themeAtual.card,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            cursor: "pointer"
+          }}
+        >
+          <Bell size={20} />
+
+          {temNotificacao && (
+            <span style={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              width: 8,
+              height: 8,
+              background: "#ea1d2c",
+              borderRadius: "50%"
+            }} />
+          )}
+        </div>
+
+        {/* 🌙 DARK MODE */}
+        <div
+          onClick={() => setDark(!dark)}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            background: themeAtual.card,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer"
+          }}
+        >
+          {dark
+            ? <Moon size={18} color="#fff" />
+            : <Sun size={18} color="#111" />
+          }
+        </div>
+
+        {/* LOGIN / SAIR */}
+        <div
+          onClick={() => {
+            if (user) {
+              sair();
+            } else {
+              router.push("/login");
+            }
+          }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 14px",
+            borderRadius: 20,
+            background: "#ea1d2c",
+            color: "#fff",
+            cursor: "pointer",
+            fontWeight: "bold",
+            fontSize: 13,
+            boxShadow: "0 8px 25px rgba(234,29,44,0.35)"
+          }}
+        >
+          <LogOut size={16} />
+          {user ? "Sair" : "Entrar"}
+        </div>
+
       </div>
     </div>
 
-  </div>
+    {/* 🔥 CONTEÚDO (CORREÇÃO DO EMPURRÃO) */}
+    <div style={{
+      paddingTop: "calc(env(safe-area-inset-top) + 90px)" // 🔥 ESSENCIAL
+    }}>
 
-  {/* 🔥 DIREITA */}
-  <div style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 10
-  }}>
-
-    {/* 🔔 NOTIFICAÇÃO */}
-    <div
-      onClick={() => {
-        setAba("notificacao");
-        setStep(7);
-        setTemNotificacao(false);
-        marcarComoLida();
-      }}
-      style={{
-        width: 44,
-        height: 44,
-        borderRadius: "50%",
-        background: themeAtual.card,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-        cursor: "pointer"
-      }}
-    >
-      <Bell size={20} />
-
-      {temNotificacao && (
-        <span style={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          width: 8,
-          height: 8,
-          background: "#ea1d2c",
-          borderRadius: "50%"
-        }} />
-      )}
-    </div>
-
-    {/* 🌙 DARK MODE */}
-    <div
-      onClick={() => setDark(!dark)}
-      style={{
-        width: 44,
-        height: 44,
-        borderRadius: "50%",
-        background: themeAtual.card,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer"
-      }}
-    >
-      {dark
-        ? <Moon size={18} color="#fff" />
-        : <Sun size={18} color="#111" />
-      }
-    </div>
-
-    <div
-  onClick={() => {
-    if (user) {
-      sair();
-    } else {
-      router.push("/login");
-    }
-  }}
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "8px 14px",
-    borderRadius: 20,
-    background: "#ea1d2c",
-    color: "#fff",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: 13,
-    boxShadow: "0 8px 25px rgba(234,29,44,0.35)"
-  }}
->
-  <LogOut size={16} />
-  {user ? "Sair" : "Entrar"}
-</div>
-
-  </div>
+      {/* TODO O RESTO DA SUA TELA AQUI */}
 
 </div>
 
