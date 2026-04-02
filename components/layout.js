@@ -2,7 +2,7 @@ export default function Layout({ children, dark }) {
   return (
     <div
       style={{
-        height: "100vh", // 🔥 VOLTA PRO VH
+        height: "100dvh", // 🔥 VOLTA PRO VH
         width: "100%",   // 🔥 IMPORTANTE
         overflowX: "hidden", // 🔥 evita “alargar”
 
