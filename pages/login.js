@@ -122,53 +122,52 @@ export default function Login() {
   }
 
   return (
-  <div style={{
-    height: "100dvh",
-    width: "100%",
-    position: "relative",
-    overflow: "hidden",
-    background: "#000"
-  }}>
-
-    {/* 🔥 IMAGEM FULL (REAL FULLSCREEN) */}
-    <img
-      src="/bg.png"
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        objectFit: "cover"
-      }}
-    />
-
-    {/* 🔥 OVERLAY */}
     <div style={{
-      position: "absolute",
-      inset: 0,
-      background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
-    }} />
-
-    {/* 🔥 CARD (SAFE AREA SÓ AQUI) */}
-    <div style={{
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-
-      background: "#fff",
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
-
-      padding: 20,
-      paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
-
-      maxHeight: "70vh",
-      overflowY: "auto"
+      height: "100vh", // 🔥 CORRETO PRA NOTCH REAL
+      width: "100%",
+      position: "relative",
+      overflow: "hidden",
+      background: "#000"
     }}>
 
-      {/* conteúdo */}
-  
+      {/* 🔥 IMAGEM FULL */}
+      <img
+        src="/bg.png"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover"
+        }}
+      />
+
+      {/* 🔥 OVERLAY */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
+      }} />
+
+      {/* 🔥 CARD */}
+      <div style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+
+        background: "#fff",
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+
+        padding: 20,
+
+        // 🔥 SAFE AREA REAL (SÓ AQUI)
+        paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+
+        maxHeight: "70vh",
+        overflowY: "auto"
+      }}>
 
         {modo === "inicio" && (
           <>
@@ -212,13 +211,9 @@ export default function Login() {
             <Top voltar={() => setModo("inicio")} titulo="Criar conta" />
 
             <input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} style={input} />
-
             <input placeholder="CPF" value={cpf} onChange={e => setCpf(formatarCPF(e.target.value))} style={input} />
-
             <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={input} />
-
             <input type="password" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} style={input} />
-
             <input type="password" placeholder="Confirmar senha" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)} style={input} />
 
             <button onClick={entrar} style={btnPrimary}>
