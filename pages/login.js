@@ -122,52 +122,53 @@ export default function Login() {
   }
 
   return (
-    <div style={{
-      minHeight: "100dvh",
-      width: "100%",
-      position: "relative",
-      overflow: "hidden",
+  <div style={{
+    height: "100dvh",
+    width: "100%",
+    position: "relative",
+    overflow: "hidden",
+    background: "#000"
+  }}>
 
-      paddingTop: "env(safe-area-inset-top)",
-      paddingBottom: "env(safe-area-inset-bottom)"
-    }}>
-
-      {/* 🔥 IMAGEM FULL */}
-      <img
-        src="/bg.png"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover"
-        }}
-      />
-
-      {/* 🔥 OVERLAY */}
-      <div style={{
+    {/* 🔥 IMAGEM FULL (REAL FULLSCREEN) */}
+    <img
+      src="/bg.png"
+      style={{
         position: "absolute",
         inset: 0,
-        background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
-      }} />
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
 
-      {/* 🔥 CARD */}
-      <div style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
+    {/* 🔥 OVERLAY */}
+    <div style={{
+      position: "absolute",
+      inset: 0,
+      background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
+    }} />
 
-        background: "#fff",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+    {/* 🔥 CARD (SAFE AREA SÓ AQUI) */}
+    <div style={{
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
 
-        padding: 20,
-        paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+      background: "#fff",
+      borderTopLeftRadius: 30,
+      borderTopRightRadius: 30,
 
-        maxHeight: "70vh",
-        overflowY: "auto"
-      }}>
+      padding: 20,
+      paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+
+      maxHeight: "70vh",
+      overflowY: "auto"
+    }}>
+
+      {/* conteúdo */}
+  
 
         {modo === "inicio" && (
           <>
