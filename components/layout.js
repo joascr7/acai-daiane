@@ -1,23 +1,20 @@
 import { useRouter } from "next/router";
 
-export default function Layout({ children, dark }) {
+export default function Layout({ children }) {
 
   const router = useRouter();
-
   const isLogin = router.pathname === "/login";
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        background: dark ? "#111" : "#fff"
+        background: "#fff" // 🔥 SEMPRE BRANCO
       }}
     >
       {isLogin ? (
-        // 🔥 LOGIN FULLSCREEN (SEM SAFE AREA)
         children
       ) : (
-        // 🔥 RESTO DO APP (COM SAFE AREA CONTROLADO)
         <div
           style={{
             paddingTop: "env(safe-area-inset-top)",

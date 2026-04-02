@@ -149,6 +149,53 @@ export default function Login() {
         background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
       }} />
 
+
+      {/* 🔥 HEADER ESTILO IFOOD */}
+<div style={{
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+
+  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
+  paddingLeft: 16,
+  paddingRight: 16,
+
+  zIndex: 5
+}}>
+
+  {/* 🔥 BOTÃO VOLTAR */}
+  <div
+    onClick={() => setModo("inicio")}
+    style={{
+      width: 42,
+      height: 42,
+      borderRadius: "50%",
+      background: "rgba(0,0,0,0.4)",
+      backdropFilter: "blur(10px)",
+
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+
+      color: "#fff",
+      fontSize: 18,
+      cursor: "pointer"
+      
+    }}
+  >
+    ←
+  </div>
+
+  {/* 🔥 ESPAÇO DIREITA (opcional) */}
+  <div style={{ width: 42 }} />
+
+</div>
+
       {/* 🔥 CARD */}
       <div style={{
         position: "absolute",
