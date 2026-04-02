@@ -1794,6 +1794,7 @@ return (
         alignItems: "center",
         gap: 12,
         flex: 1,
+        minWidth: 0, // 🔥 ESSENCIAL PRA NÃO EMPURRAR
         paddingLeft: 16 // 🔥 mantém alinhado com container
       }}>
 
