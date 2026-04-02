@@ -22,7 +22,7 @@ export default function Login() {
 
   const router = useRouter();
 
-  const [modo, setModo] = useState("inicio"); // inicio | login | cadastro
+  const [modo, setModo] = useState("inicio");
   const [loading, setLoading] = useState(false);
 
   const [nome, setNome] = useState("");
@@ -31,7 +31,6 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
-  // 🔥 CPF
   function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, "");
     if (cpf.length !== 11) return false;
@@ -65,7 +64,6 @@ export default function Login() {
       .slice(0, 14);
   }
 
-  // 🔥 LOGIN / CADASTRO
   async function entrar() {
     try {
       setLoading(true);
@@ -110,9 +108,7 @@ export default function Login() {
         });
 
       } else {
-
         await signInWithEmailAndPassword(auth, email, senha);
-
       }
 
       router.push("/acai");
@@ -127,33 +123,52 @@ export default function Login() {
 
   return (
     <div style={{
-      minHeight: "100dvh", // 🔥 iOS FIX
-      background: "#000",
-      display: "flex",
-      flexDirection: "column",
+      minHeight: "100dvh",
+      width: "100%",
+      position: "relative",
+      overflow: "hidden",
+
       paddingTop: "env(safe-area-inset-top)",
       paddingBottom: "env(safe-area-inset-bottom)"
     }}>
 
-      {/* 🔥 IMAGEM */}
+      {/* 🔥 IMAGEM FULL */}
+      <img
+        src="/bg.png"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover"
+        }}
+      />
+
+      {/* 🔥 OVERLAY */}
       <div style={{
-        flex: 1,
-        backgroundImage: "url('/bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center"
+        position: "absolute",
+        inset: 0,
+        background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
       }} />
 
       {/* 🔥 CARD */}
       <div style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+
         background: "#fff",
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
+
         padding: 20,
-        maxHeight: "60vh", // 🔥 teclado não quebra
+        paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
+
+        maxHeight: "70vh",
         overflowY: "auto"
       }}>
 
-        {/* 🔥 INICIO */}
         {modo === "inicio" && (
           <>
             <button onClick={() => setModo("login")} style={btnPrimary}>
@@ -163,14 +178,9 @@ export default function Login() {
             <button onClick={() => setModo("cadastro")} style={btnSecondary}>
               Criar nova conta
             </button>
-
-            <button onClick={() => router.push("/loginTelefone")} style={btnDark}>
-              Entrar com telefone
-            </button>
           </>
         )}
 
-        {/* 🔥 LOGIN */}
         {modo === "login" && (
           <>
             <Top voltar={() => setModo("inicio")} titulo="Entrar" />
@@ -196,7 +206,6 @@ export default function Login() {
           </>
         )}
 
-        {/* 🔥 CADASTRO */}
         {modo === "cadastro" && (
           <>
             <Top voltar={() => setModo("inicio")} titulo="Criar conta" />
@@ -222,7 +231,6 @@ export default function Login() {
   );
 }
 
-/* 🔥 TOPO */
 function Top({ voltar, titulo }) {
   return (
     <div style={{ display: "flex", alignItems: "center", marginBottom: 15 }}>
@@ -231,8 +239,6 @@ function Top({ voltar, titulo }) {
     </div>
   );
 }
-
-/* 🔥 ESTILOS */
 
 const input = {
   width: "100%",
@@ -267,15 +273,6 @@ const btnSecondary = {
   fontWeight: "bold",
   fontSize: 16,
   marginBottom: 12
-};
-
-const btnDark = {
-  width: "100%",
-  padding: 14,
-  borderRadius: 14,
-  border: "none",
-  background: "#111",
-  color: "#fff"
 };
 
 const backBtn = {
