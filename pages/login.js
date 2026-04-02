@@ -285,7 +285,7 @@ function Top({ voltar, titulo }) {
 
 
 const input = {
-  width: "100%",
+  width: "98%",
   padding: 14,
   borderRadius: 14,
   border: "1px solid #eee",
