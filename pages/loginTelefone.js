@@ -2,10 +2,19 @@ export default function LoginTelefone() {
   return (
     <div style={{
       minHeight: "100dvh",
+
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
+
       background: "#fff",
+
+      // 🔥 SAFE AREA iOS (NOTCH)
+      paddingTop: "env(safe-area-inset-top)",
+      paddingBottom: "env(safe-area-inset-bottom)",
+      paddingLeft: "env(safe-area-inset-left)",
+      paddingRight: "env(safe-area-inset-right)",
+
       padding: 20
     }}>
 
