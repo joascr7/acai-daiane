@@ -236,6 +236,7 @@ function Top({ voltar, titulo }) {
   );
 }
 
+
 const input = {
   width: "100%",
   padding: 14,
@@ -279,3 +280,5 @@ const backBtn = {
   height: 40,
   fontSize: 18
 };
+
+Login.noLayout = true;

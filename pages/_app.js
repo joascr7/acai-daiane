@@ -4,14 +4,10 @@ import Head from "next/head";
 import Layout from "@/components/layout";
 import "leaflet/dist/leaflet.css";
 
-import { useRouter } from "next/router";
-
 import { onAuthStateChanged } from "firebase/auth";
 import { authCliente as auth } from "@/services/firebaseDual";
 
 export default function App({ Component, pageProps }) {
-
-  const router = useRouter();
 
   const [dark, setDark] = useState(true);
   const [user, setUser] = useState(null);
@@ -20,7 +16,6 @@ export default function App({ Component, pageProps }) {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u || null);
     });
-
     return () => unsub();
   }, []);
 
@@ -39,10 +34,7 @@ export default function App({ Component, pageProps }) {
     };
 
     window.addEventListener("beforeinstallprompt", handler);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-    };
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   return (
@@ -62,8 +54,8 @@ export default function App({ Component, pageProps }) {
         <link rel="apple-touch-icon" href="/icon.png" />
       </Head>
 
-      {/* 🔥 LOGIN SEM LAYOUT (FULLSCREEN REAL) */}
-      {router.pathname === "/login" ? (
+      {/* 🔥 LAYOUT DINÂMICO */}
+      {Component.noLayout ? (
         <Component {...pageProps} user={user} />
       ) : (
         <Layout dark={dark} setDark={setDark}>
