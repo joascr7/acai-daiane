@@ -1776,11 +1776,20 @@ return (
 
 {/* 🔥 HEADER PREMIUM FINAL */}
 <div style={{
+  position: "fixed", // 🔥 AQUI É A CORREÇÃO
+  top: 0,
+  left: 0,
+  right: 0,
+
   paddingTop: "calc(env(safe-area-inset-top) + 14px)",
   paddingBottom: 14,
+
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between"
+  justifyContent: "space-between",
+
+  background: "#fff",
+  zIndex: 1000
 }}>
 
  
