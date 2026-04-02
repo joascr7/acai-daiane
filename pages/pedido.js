@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '../services/firebase';
-import {
-  collection,
-  query,
-  orderBy,
-  limit,
-  onSnapshot
-} from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Pedido() {
 
@@ -14,16 +8,19 @@ export default function Pedido() {
 
   useEffect(() => {
 
-    // 🔥 fallback seguro (caso não tenha criadoEm)
-    const q = query(
-      collection(db, "pedidos"),
-      orderBy("data", "desc"),
-      limit(1)
-    );
+    const id = localStorage.getItem("pedidoAtual");
 
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs[0]?.data();
-      setPedido(data || null);
+    if (!id) return;
+
+    const ref = doc(db, "pedidos", id);
+
+    const unsub = onSnapshot(ref, (snap) => {
+      if (!snap.exists()) return;
+
+      setPedido({
+        id: snap.id,
+        ...snap.data()
+      });
     });
 
     return () => unsub();
@@ -52,11 +49,12 @@ export default function Pedido() {
     }}>
 
       <h1>📦 Acompanhar Pedido</h1>
-      <p>
-  Código do pedido: <strong>{pedido.codigo}</strong>
-</p>
 
-      {/* 🔥 BARRA DE PROGRESSO */}
+      <p>
+        Código do pedido: <strong>{pedido.codigo}</strong>
+      </p>
+
+      {/* 🔥 PROGRESSO */}
       <div style={{
         height: 6,
         background: "#222",
@@ -83,8 +81,7 @@ export default function Pedido() {
             padding: 12,
             borderRadius: 12,
             background: ativo ? cores[e] : "#111",
-            opacity: ativo ? 1 : 0.4,
-            transition: "0.3s"
+            opacity: ativo ? 1 : 0.4
           }}>
             {ativo ? "✔️ " : "⏳ "}
             {e}
@@ -92,7 +89,6 @@ export default function Pedido() {
         );
       })}
 
-      {/* 🔥 TOTAL */}
       <h2 style={{ marginTop: 20 }}>
         Total: R$ {Number(pedido.total || 0).toFixed(2)}
       </h2>

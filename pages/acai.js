@@ -4,6 +4,7 @@ import { authCliente as auth } from "../services/firebaseDual";
 import { dbCliente as db } from "../services/firebaseDual";
 import { ChevronDown } from "lucide-react";
 import Layout from "../components/layout";
+import { useRouter } from "next/router";
 
 
 
@@ -56,6 +57,8 @@ import {
 import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
+
+  const router = useRouter();
 
 
   // 🔥 TODOS OS STATES PRIMEIRO
@@ -1132,7 +1135,8 @@ async function sair() {
 
   await signOut(auth);
 
-  window.location.href = "/login";
+  // só limpa estado (sem reload)
+  setUser(null);
 }
 
 async function salvarDadosCliente() {
@@ -1579,6 +1583,15 @@ function aplicarCupomDireto(cupom) {
 
 async function finalizarPedido() {
 
+  // 🔥 BLOQUEIO LOGIN (IFOOD STYLE)
+  if (!user) {
+    localStorage.setItem("redirectAfterLogin", "finalizar");
+    router.push("/login");
+    return;
+  }
+
+  if (loadingPedido) return;
+
   if (!carrinho.length) {
     alert("Carrinho vazio!");
     return;
@@ -1595,13 +1608,15 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 PIX NÃO FINALIZA AQUI
+  // 🔥 PIX ABRE MODAL (CORRETO)
   if (formaPagamento === "pix") {
-    alert("Aguardando pagamento do Pix...");
+    setMostrarPagamento(true);
     return;
   }
 
   try {
+
+    setLoadingPedido(true);
 
     const pedidoId = Date.now().toString();
     const codigo = Math.floor(100000 + Math.random() * 900000);
@@ -1617,7 +1632,7 @@ async function finalizarPedido() {
         uid: user?.uid || null
       },
 
-      itens: (carrinho || []).map(item => ({
+      itens: carrinho.map(item => ({
         produtoId: item?.produto?.id || "",
         nome: item?.produto?.nome || "Produto",
         quantidade: item?.quantidade || 1,
@@ -1632,60 +1647,26 @@ async function finalizarPedido() {
 
       total: Number(totalFinal || 0),
 
-      // 💳 PAGAMENTO
-      formaPagamento: formaPagamento, // dinheiro ou cartao
+      formaPagamento,
       statusPagamento: "pendente",
 
-      // 🔥 ESSENCIAL PRA APARECER PRO ENTREGADOR
       status: "preparando",
 
       entrega: {
         aceito: false,
         status: "aguardando",
         entregadorId: null,
-        localizacao: null,
-        horaSaiu: null,
-        horaChegou: null,
-        horaEntregue: null
+        localizacao: null
       },
 
       paymentId: null,
       data: new Date().toISOString()
     };
 
-    // 🔒 CUPOM
-    if (cupomAplicado?.id) {
-
-      const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
-
-      if (!cpfLimpo || cpfLimpo.length < 11) {
-        alert("Informe um CPF válido para usar cupom");
-        return;
-      }
-
-      await runTransaction(db, async (transaction) => {
-
-        const ref = doc(db, "cupons", cupomAplicado.id);
-        const snap = await transaction.get(ref);
-
-        if (!snap.exists()) throw "Cupom inválido";
-
-        const dados = snap.data();
-
-        if (dados.usos && dados.usos[cpfLimpo]) {
-          throw "Você já utilizou esse cupom";
-        }
-
-        transaction.update(ref, {
-          [`usos.${cpfLimpo}`]: true
-        });
-      });
-    }
-
-    // 💾 SALVA PEDIDO
     await setDoc(doc(db, "pedidos", pedidoId), pedido);
 
-    console.log("PEDIDO SALVO (ENTREGA):", pedidoId);
+    // 🔥 SALVA ID LOCAL (IMPORTANTE)
+    localStorage.setItem("pedidoAtual", pedidoId);
 
     // 🔥 WHATSAPP
     let mensagem = `Pedido #${codigo}\n\n`;
@@ -1696,25 +1677,21 @@ async function finalizarPedido() {
 
       if (item.extras?.length) {
         mensagem += `Adicionais:\n`;
-
         item.extras.forEach(e => {
           mensagem += `+ ${e.nome}\n`;
         });
       }
 
-      mensagem += `R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
+      mensagem += `R$ ${(item.total / 100).toFixed(2)}\n\n`;
     });
 
-    mensagem += `Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}\n\n`;
+    mensagem += `Total: R$ ${(totalFinal / 100).toFixed(2)}\n\n`;
     mensagem += `Pagamento: ${formaPagamento}\n\n`;
-    mensagem += `Cliente: ${clienteNome}\n${clienteTelefone}\n`;
+    mensagem += `${clienteNome} - ${clienteTelefone}`;
 
-    const numero = "5581973119512";
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+    window.location.href =
+      `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 
-    window.location.href = url;
-
-    // 🔥 LIMPA
     setCarrinho([]);
     setCupomAplicado(null);
     setFormaPagamento(null);
@@ -1723,9 +1700,11 @@ async function finalizarPedido() {
     alert("Pedido enviado!");
 
   } catch (e) {
-    console.log("ERRO FINAL:", e);
-    alert(e);
+    console.log(e);
+    alert("Erro ao finalizar pedido");
   }
+
+  setLoadingPedido(false);
 }
 
 
@@ -1767,6 +1746,8 @@ const enviarWhatsApp = (pedido) => {
 }
  
 return (
+  
+
 
   // CONTAINER
 <div style={{
@@ -1795,13 +1776,14 @@ return (
 
 {/* 🔥 HEADER PREMIUM FINAL */}
 <div style={{
-  paddingTop: "calc(env(safe-area-inset-top) + 14px)", // 🔥 desce mais (corrigido)
+  paddingTop: "calc(env(safe-area-inset-top) + 14px)",
   paddingBottom: 14,
-
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between"
 }}>
+
+ 
 
   {/* 🔥 ESQUERDA */}
   <div style={{
@@ -1927,23 +1909,31 @@ return (
       }
     </div>
 
-    {/* 🔥 SAIR PREMIUM */}
     <div
-      onClick={sair}
-      style={{
-        width: 46,
-        height: 46,
-        borderRadius: "50%",
-        background: "#ea1d2c",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: "0 8px 25px rgba(234,29,44,0.35)"
-      }}
-    >
-      <LogOut size={18} color="#fff" />
-    </div>
+  onClick={() => {
+    if (user) {
+      sair();
+    } else {
+      router.push("/login");
+    }
+  }}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 14px",
+    borderRadius: 20,
+    background: "#ea1d2c",
+    color: "#fff",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: 13,
+    boxShadow: "0 8px 25px rgba(234,29,44,0.35)"
+  }}
+>
+  <LogOut size={16} />
+  {user ? "Sair" : "Entrar"}
+</div>
 
   </div>
 
@@ -2472,6 +2462,7 @@ return (
         }
        }}
      >
+      
 
 {/* 🔥 MAIS VENDIDO (AGORA NO LUGAR CERTO) */}
     {p.maisVendido && (
@@ -3362,6 +3353,10 @@ return (
 
     </div>
 
+
+
+    
+
     {/* 🔥 CARD PRINCIPAL */}
     <div style={{
       background: themeAtual.card,
@@ -3879,6 +3874,8 @@ return (
               : "Escolher pagamento"}
           </div>
         )}
+
+    {/* RESTO DO SEU APP */}
 
         {/* ABERTO */}
         {abrirPagamento && (

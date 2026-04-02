@@ -4,10 +4,25 @@ import Head from "next/head";
 import Layout from "@/components/layout";
 import "leaflet/dist/leaflet.css";
 
+// 🔥 FIREBASE AUTH
+import { onAuthStateChanged } from "firebase/auth";
+import { authCliente as auth } from "@/services/firebaseDual";
+
 export default function App({ Component, pageProps }) {
 
   // 🌙 DARK MODE
   const [dark, setDark] = useState(true);
+
+  // 🔐 USER GLOBAL (NOVO)
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u || null);
+    });
+
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     if (!dark) {
@@ -21,7 +36,6 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
-      console.log("🔥 Pode instalar o app!");
       window.deferredPrompt = e;
     };
 
@@ -46,7 +60,8 @@ export default function App({ Component, pageProps }) {
 
       {/* 🔥 LAYOUT GLOBAL */}
       <Layout dark={dark} setDark={setDark}>
-        <Component {...pageProps} />
+        {/* 🔥 PASSANDO USER PRA TODAS AS PÁGINAS */}
+        <Component {...pageProps} user={user} />
       </Layout>
     </>
   );

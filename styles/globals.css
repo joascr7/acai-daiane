@@ -33,8 +33,8 @@ body::before {
   --text: #ffffff;
   --subtext: #aaaaaa;
   --input: #1a1a1a;
-  --primary: #6a00ff;
-  --primary2: #ff2aff;
+  --primary: #ffffff;
+  --primary2: #000000;
 }
 
 /* 🌞 LIGHT MODE */
@@ -121,7 +121,7 @@ button {
   border: none;
   cursor: pointer;
   color: white;
-  background: linear-gradient(90deg, var(--primary), #ff0800);
+  background: #ff0800;
   transition: all 0.2s ease;
 }
 

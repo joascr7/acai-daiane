@@ -1,27 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { authCliente as auth } from "../services/firebaseDual";
 import { db } from "../services/firebase";
 
-
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  signInWithEmailAndPassword
 } from "firebase/auth";
 
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { onSnapshot } from "firebase/firestore";
-
+import {
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
 
 export default function Login() {
 
   const router = useRouter();
-  const [logo, setLogo] = useState(null);
 
-  const [modoCadastro, setModoCadastro] = useState(false);
+  const [modo, setModo] = useState("inicio"); // inicio | login | cadastro
   const [loading, setLoading] = useState(false);
 
   const [nome, setNome] = useState("");
@@ -29,69 +30,31 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  const [dark, setDark] = useState(false);
+  // 🔥 CPF
+  function validarCPF(cpf) {
+    cpf = cpf.replace(/\D/g, "");
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1+$/.test(cpf)) return false;
 
-// 🔥 BOTAO INSTALAR
-   const [promptInstall, setPromptInstall] = useState(null);
+    let soma = 0, resto;
 
-// 🔥 CARREGAR logi
-  useEffect(() => {
-  const unsub = onSnapshot(doc(db, "config", "loja"), (docSnap) => {
-    if (docSnap.exists()) {
-      setLogo(docSnap.data().logo);
-    }
-  });
+    for (let i = 1; i <= 9; i++)
+      soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
 
-  return () => unsub();
-}, []);
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
+    if (resto !== parseInt(cpf.substring(9, 10))) return false;
 
-  // 🔥 CARREGAR TEMA
-  useEffect(() => {
-    const temaSalvo = localStorage.getItem("tema");
-    if (temaSalvo === "dark") setDark(true);
-  }, []);
+    soma = 0;
+    for (let i = 1; i <= 10; i++)
+      soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
 
-  // 🔥 BOTAO INSTALAR
-  useEffect(() => {
+    resto = (soma * 10) % 11;
+    if (resto === 10 || resto === 11) resto = 0;
 
-  const handler = (e) => {
-    e.preventDefault();
-    setPromptInstall(e);
-  };
-
-  window.addEventListener("beforeinstallprompt", handler);
-
-  return () => window.removeEventListener("beforeinstallprompt", handler);
-
-}, []);
-
-// 🔥 instalar app
-async function instalarApp() {
-  if (!promptInstall) return;
-
-  promptInstall.prompt();
-
-  const choice = await promptInstall.userChoice;
-
-  if (choice.outcome === "accepted") {
-    console.log("App instalado ✅");
+    return resto === parseInt(cpf.substring(10, 11));
   }
-
-  setPromptInstall(null);
-}
-
-  // 🔥 TOGGLE TEMA
-  function toggleTheme() {
-    setDark(prev => {
-      const novo = !prev;
-      localStorage.setItem("tema", novo ? "dark" : "light");
-      return novo;
-    });
-  }
-
-  const formValido = email && senha && (!modoCadastro || (nome && cpf));
 
   function formatarCPF(valor) {
     return valor
@@ -102,83 +65,15 @@ async function instalarApp() {
       .slice(0, 14);
   }
 
-
-  function validarCPF(cpf) {
-  cpf = cpf.replace(/\D/g, "");
-
-  if (cpf.length !== 11) return false;
-
-  // ❌ bloqueia CPFs iguais (111, 222, etc)
-  if (/^(\d)\1+$/.test(cpf)) return false;
-
-  let soma = 0;
-  let resto;
-
-  for (let i = 1; i <= 9; i++)
-    soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-
-  resto = (soma * 10) % 11;
-
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(9, 10))) return false;
-
-  soma = 0;
-
-  for (let i = 1; i <= 10; i++)
-    soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-
-  resto = (soma * 10) % 11;
-
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.substring(10, 11))) return false;
-
-  return true;
-}
-
-  async function recuperarSenha() {
-
-  if (!email) {
-    alert("Digite seu email");
-    return;
-  }
-
-  try {
-    await sendPasswordResetEmail(auth, email);
-    alert("📩 Email enviado! Verifique sua caixa de entrada.");
-
-  } catch (error) {
-
-    if (error.code === "auth/user-not-found") {
-      alert("Usuário não encontrado");
-    } else if (error.code === "auth/invalid-email") {
-      alert("Email inválido");
-    } else {
-      alert("Erro ao enviar email");
-    }
-
-  }
-}
-
- // 🔥 LOGIN / CADASTRO
+  // 🔥 LOGIN / CADASTRO
   async function entrar() {
-
-    if (!formValido) {
-      alert("Preencha corretamente");
-      return;
-    }
-
     try {
       setLoading(true);
 
-      if (modoCadastro) {
+      if (modo === "cadastro") {
 
         if (!validarCPF(cpf)) {
-          alert("CPF inválido!");
-          return;
-        }
-
-        if (senha.length < 6) {
-          alert("Senha muito curta");
+          alert("CPF inválido");
           return;
         }
 
@@ -187,23 +82,21 @@ async function instalarApp() {
           return;
         }
 
-        // 🔥 VERIFICAR CPF DUPLICADO
         const q = query(
           collection(db, "clientes"),
           where("cpf", "==", cpf)
         );
 
-        const snapCpf = await getDocs(q);
+        const snap = await getDocs(q);
 
-        if (!snapCpf.empty) {
-          alert("CPF já cadastrado!");
+        if (!snap.empty) {
+          alert("CPF já cadastrado");
           return;
         }
 
         const res = await createUserWithEmailAndPassword(auth, email, senha);
         const user = res.user;
 
-        // 🔥 SALVA
         await setDoc(doc(db, "clientes", user.uid), {
           nome,
           email,
@@ -213,385 +106,183 @@ async function instalarApp() {
         await setDoc(doc(db, "usuarios", user.uid), {
           clienteNome: nome,
           clienteEmail: email,
-          clienteCpf: cpf,
-          clienteTelefone: "",
-          clienteEndereco: "",
-          clienteNumeroCasa: "",
-          clienteCep: ""
+          clienteCpf: cpf
         });
 
       } else {
 
-        // 🔥 LOGIN (ERA ISSO QUE FALTAVA)
         await signInWithEmailAndPassword(auth, email, senha);
 
       }
 
-      // 🔥 REDIRECIONA
       router.push("/acai");
 
     } catch (e) {
-
-      if (e.code === "auth/wrong-password") {
-        alert("Senha incorreta");
-      } else if (e.code === "auth/user-not-found") {
-        alert("Usuário não encontrado");
-      } else if (e.code === "auth/email-already-in-use") {
-        alert("Email já cadastrado");
-      } else {
-        alert("Erro: " + e.message);
-      }
-
-    } finally {
-      setLoading(false);
+      console.log(e);
+      alert("Erro: " + e.message);
     }
+
+    setLoading(false);
   }
 
   return (
-    <div
-  className="container"
-  style={{
-    background: dark
-      ? "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('/bg.png')"
-      : "linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.9)), url('/bg.png')",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: "env(safe-area-inset-top)",
-    paddingBottom: "env(safe-area-inset-bottom)",
-    paddingLeft: "env(safe-area-inset-left)",
-    paddingRight: "env(safe-area-inset-right)",
-    padding: 15
-  }}
->
-
-  <div
-    className="content"
-    style={{
-      backdropFilter: "blur(12px)",
-      background: dark ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.75)",
-      padding: 25,
-      borderRadius: 20,
-      width: "100%",
-      maxWidth: 420,
-      color: dark ? "#fff" : "#111",
-      boxShadow: "0 0 30px rgba(255, 8, 0, 0.7)"
-    }}
-  >
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}></div>
-    {logo && (
-  <img
-    src={logo}
-    style={{
-      width: 80,
-      height: 80,
-      borderRadius: "50%",
-      objectFit: "cover",
-      marginBottom: 10
-    }}
-  />
-)}
-
-    <h1 style={{ textAlign: "center" }}> Bem Vindo(a)</h1>
-
-    <button
-      className="themeBtn"
-      onClick={toggleTheme}
-      style={{
-        marginTop: 10,
-        width: "100%",
-        background: dark ? "#1a1a1a" : "#fff",
-        color: dark ? "#fff" : "#111",
-        border: "2px solid #ff2600"
-      }}
-    >
-      {dark ? "☀️ Modo Claro" : "🌙 Modo Dark"}
-    </button>
-
-    <div
-      className="form"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 15,
-        marginTop: 20
-      }}
-    >
-
-      {modoCadastro && (
-  <>
-    <input
-      placeholder="Nome"
-      value={nome}
-      onChange={e => {
-        const valor = e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "");
-        setNome(valor.charAt(0).toUpperCase() + valor.slice(1));
-      }}
-      style={{
-        padding: 14,
-        borderRadius: 12,
-        border: "none",
-        background: dark ? "#111" : "#fff",
-        color: dark ? "#fff" : "#111"
-      }}
-    />
-
-    <input
-      placeholder="CPF"
-      value={cpf}
-      onChange={e => setCpf(formatarCPF(e.target.value))}
-      style={{
-        padding: 14,
-        borderRadius: 12,
-        border: "none",
-        background: dark ? "#111" : "#fff",
-        color: dark ? "#fff" : "#111"
-      }}
-    />
-  </>
-)}
-
-<input
-  placeholder="Email"
-  value={email}
-  onChange={e => setEmail(e.target.value.toLowerCase())}
-  style={{
-    padding: 14,
-    borderRadius: 12,
-    border: "none",
-    background: dark ? "#111" : "#fff",
-    color: dark ? "#fff" : "#111"
-  }}
-/>
-
-{/* 🔥 SENHA */}
-<div style={{ width: "100%" }}>
-  <div style={{
-    display: "flex",
-    alignItems: "center",
-    background: dark ? "#111" : "#fff",
-    borderRadius: 12,
-    padding: "0 10px",
-    height: "40%",
-  }}>
-
-    <input
-      type={mostrarSenha ? "text" : "password"}
-      placeholder="Senha"
-      value={senha}
-      onChange={e => setSenha(e.target.value)}
-      style={{
-        flex: 1,
-        height: "40%",
-        border: "none",
-        outline: "none",
-        background: "transparent",
-        color: dark ? "#fff" : "#111",
-        fontSize: 16
-      }}
-    />
-
-    <button
-      type="button"
-      onClick={() => setMostrarSenha(!mostrarSenha)}
-      style={{
-        background: "transparent",
-        border: "none",
-        cursor: "pointer",
-        fontSize: 18
-      }}
-    >
-      {mostrarSenha ? "🙈" : "👁️"}
-    </button>
-
-  </div>
-</div>
-
-{/* 🔥 CONFIRMAR SENHA */}
-{modoCadastro && (
-  <div style={{ width: "100%" }}>
     <div style={{
+      minHeight: "100dvh", // 🔥 iOS FIX
+      background: "#000",
       display: "flex",
-      alignItems: "center",
-      background: dark ? "#111" : "#fff",
-      borderRadius: 12,
-      padding: "0 10px",
-      height: 50,
-      gap: 8
+      flexDirection: "column",
+      paddingTop: "env(safe-area-inset-top)",
+      paddingBottom: "env(safe-area-inset-bottom)"
     }}>
 
-      <input
-        type={mostrarSenha ? "text" : "password"}
-        placeholder="Confirmar senha" // 🔥 corrigido
-        value={confirmarSenha}        // 🔥 corrigido
-        onChange={e => setConfirmarSenha(e.target.value)} // 🔥 corrigido
-        style={{
-          flex: 1,
-          height: "40%",
-          border: "none",
-          outline: "none",
-          background: "transparent",
-          color: dark ? "#fff" : "#111",
-          fontSize: 16
-        }}
-      />
+      {/* 🔥 IMAGEM */}
+      <div style={{
+        flex: 1,
+        backgroundImage: "url('/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }} />
 
+      {/* 🔥 CARD */}
+      <div style={{
+        background: "#fff",
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        padding: 20,
+        maxHeight: "60vh", // 🔥 teclado não quebra
+        overflowY: "auto"
+      }}>
 
-    </div>
-  </div>
-      )}
+        {/* 🔥 INICIO */}
+        {modo === "inicio" && (
+          <>
+            <button onClick={() => setModo("login")} style={btnPrimary}>
+              Já tenho uma conta
+            </button>
 
-      <button
-        className="btn"
-        onClick={entrar}
-        style={{
-          background: "linear-gradient(90deg,#ec5353,#ec5353)",
-          color: "#fff",
-          fontWeight: "bold"
-        }}
-      >
-        {loading ? "Carregando..." : modoCadastro ? "Cadastrar" : "Entrar"}
-      </button>
+            <button onClick={() => setModo("cadastro")} style={btnSecondary}>
+              Criar nova conta
+            </button>
 
-      {!modoCadastro && (
-        <button
-          className="link"
-          onClick={recuperarSenha}
-          style={{
-            background: "transparent",
-            color: dark ? "#bbb" : "#333"
-          }}
-        >
-          🔑 Esqueci minha senha
-        </button>
-      )}
+            <button onClick={() => router.push("/loginTelefone")} style={btnDark}>
+              Entrar com telefone
+            </button>
+          </>
+        )}
 
-      <button
-        className="link strong"
-        onClick={() => setModoCadastro(!modoCadastro)}
-        style={{
-          background: "transparent",
-          color: dark ? "#fff" : "#000"
-        }}
-      >
-        {modoCadastro ? "Já tenho conta" : "Criar conta"}
-      </button>
+        {/* 🔥 LOGIN */}
+        {modo === "login" && (
+          <>
+            <Top voltar={() => setModo("inicio")} titulo="Entrar" />
 
-    </div>
+            <input
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={input}
+            />
+
+            <input
+              type="password"
+              placeholder="Senha"
+              value={senha}
+              onChange={e => setSenha(e.target.value)}
+              style={input}
+            />
+
+            <button onClick={entrar} style={btnPrimary}>
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
+          </>
+        )}
+
+        {/* 🔥 CADASTRO */}
+        {modo === "cadastro" && (
+          <>
+            <Top voltar={() => setModo("inicio")} titulo="Criar conta" />
+
+            <input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} style={input} />
+
+            <input placeholder="CPF" value={cpf} onChange={e => setCpf(formatarCPF(e.target.value))} style={input} />
+
+            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={input} />
+
+            <input type="password" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} style={input} />
+
+            <input type="password" placeholder="Confirmar senha" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)} style={input} />
+
+            <button onClick={entrar} style={btnPrimary}>
+              {loading ? "Criando..." : "Criar conta"}
+            </button>
+          </>
+        )}
+
       </div>
-
-      {/* 🔥 BOTÃO INSTALAR (COLOCA AQUI 👇) */}
-    {promptInstall && (
-      <button
-        onClick={instalarApp}
-        className="btnInstall"
-      >
-        📲 Instalar App
-      </button>
-    )}
-
- 
-      <style jsx>{`
-        .container {
-  min-height: 100vh;
-
-  background: ${dark
-    ? `
-      linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
-      url('/bg.png')
-    `
-    : `
-      linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.9)),
-      url('/bg.png')
-    `};
-
-  background-size: cover;
-  background-position: center;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-        .content {
-          width: 420px;
-          padding: 25px;
-          color: ${dark ? '#fff' : '#111'};
-        }
-
-        .form {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-          margin-top: 20px;
-        }
-
-        input {
-          padding: 14px;
-          border-radius: 12px;
-          border: none;
-          background: ${dark ? '#111' : '#fff'};
-          color: ${dark ? '#fff' : '#111'};
-        }
-
-        input:focus {
-          box-shadow: 0 0 12px #ff0800;
-        }
-
-        .btn {
-          background: linear-gradient(270deg,#5a00ff,#8a00ff,#5a00ff);
-          background-size: 400% 400%;
-          animation: neon 4s ease infinite;
-        }
-
-        @keyframes neon {
-          0% { background-position: 0% 50% }
-          50% { background-position: 100% 50% }
-          100% { background-position: 0% 50% }
-        }
-
-        button {
-          padding: 14px;
-          border-radius: 14px;
-          border: none;
-          color: white;
-          font-weight: bold;
-          cursor: pointer;
-          transition: 0.2s;
-        }
-
-        button:hover {
-          box-shadow: 0 0 20px #ff0000;
-        }
-
-        button:active {
-          transform: scale(0.95);
-        }
-
-        .themeBtn {
-          background: ${dark ? '#1a1a1a' : '#fff'};
-          color: ${dark ? '#fff' : '#111'};
-          border: 2px solid #ff0000;
-          margin-top: 10px;
-        }
-
-        .themeBtn:hover {
-          box-shadow: 0 0 15px #ff0000;
-        }
-
-        .link {
-          background: transparent;
-          color: ${dark ? '#bbb' : '#333'};
-        }
-
-        .strong {
-          color: ${dark ? '#fff' : '#000'};
-        }
-      `}</style>
-
     </div>
   );
 }
+
+/* 🔥 TOPO */
+function Top({ voltar, titulo }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", marginBottom: 15 }}>
+      <button onClick={voltar} style={backBtn}>←</button>
+      <h3 style={{ marginLeft: 10 }}>{titulo}</h3>
+    </div>
+  );
+}
+
+/* 🔥 ESTILOS */
+
+const input = {
+  width: "100%",
+  padding: 14,
+  borderRadius: 14,
+  border: "1px solid #eee",
+  background: "#f5f5f5",
+  marginBottom: 12,
+  fontSize: 16,
+  color: "#000"
+};
+
+const btnPrimary = {
+  width: "100%",
+  padding: 16,
+  borderRadius: 14,
+  border: "none",
+  background: "#ea1d2c",
+  color: "#fff",
+  fontWeight: "bold",
+  fontSize: 16,
+  marginBottom: 12
+};
+
+const btnSecondary = {
+  width: "100%",
+  padding: 16,
+  borderRadius: 14,
+  border: "2px solid #ea1d2c",
+  background: "#fff",
+  color: "#ea1d2c",
+  fontWeight: "bold",
+  fontSize: 16,
+  marginBottom: 12
+};
+
+const btnDark = {
+  width: "100%",
+  padding: 14,
+  borderRadius: 14,
+  border: "none",
+  background: "#111",
+  color: "#fff"
+};
+
+const backBtn = {
+  background: "#f2f2f2",
+  border: "none",
+  borderRadius: "50%",
+  width: 40,
+  height: 40,
+  fontSize: 18
+};

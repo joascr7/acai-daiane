@@ -5,7 +5,7 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/acai");
+    router.replace("/acai"); // sua tela principal
   }, []);
 
   return null;
