@@ -1776,17 +1776,11 @@ return (
 
 {/* 🔥 HEADER PREMIUM FINAL */}
 <div style={{
-  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
-  paddingBottom: 10,
-
-  paddingLeft: 16,
-  paddingRight: 16,
-
+  paddingTop: "calc(env(safe-area-inset-top) + 14px)",
+  paddingBottom: 14,
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
-
-  background: "#fff"
+  justifyContent: "space-between"
 }}>
 
  
