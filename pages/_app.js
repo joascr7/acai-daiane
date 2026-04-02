@@ -54,7 +54,7 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" href="/favicon.ico?v=2" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon.png" />
-
+         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#7a00ff" />
       </Head>
 
