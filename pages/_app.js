@@ -52,8 +52,8 @@ export default function App({ Component, pageProps }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
 
         <meta
-        name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent"
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
         />
 
         <link rel="icon" href="/favicon.ico?v=2" />
@@ -61,14 +61,10 @@ export default function App({ Component, pageProps }) {
         <link rel="apple-touch-icon" href="/icon.png" />
       </Head>
 
-      {/* 🔥 LAYOUT DINÂMICO */}
-      {Component.noLayout ? (
+      {/* 🔥 VOLTA AO NORMAL (SEM CONDIÇÃO) */}
+      <Layout dark={dark}>
         <Component {...pageProps} user={user} />
-      ) : (
-        <Layout dark={dark} setDark={setDark}>
-          <Component {...pageProps} user={user} />
-        </Layout>
-      )}
+      </Layout>
     </>
   );
 }
