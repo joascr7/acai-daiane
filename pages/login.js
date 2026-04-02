@@ -123,98 +123,98 @@ export default function Login() {
 
   return (
     <div style={{
-      height: "100vh", // 🔥 CORRETO PRA NOTCH REAL
-      width: "100%",
-      position: "relative",
-      overflow: "hidden",
-      background: "#000"
-    }}>
+  position: "fixed", // 🔥 CORREÇÃO PRINCIPAL
+  inset: 0,
+  width: "100%",
+  height: "100%",
 
-      {/* 🔥 IMAGEM FULL */}
-      <img
-        src="/bg.png"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover"
-        }}
-      />
+  overflow: "hidden", // 🔥 evita scroll bug
 
-      {/* 🔥 OVERLAY */}
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
-      }} />
-
-
-      {/* 🔥 HEADER ESTILO IFOOD */}
-<div style={{
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-
-  paddingTop: "calc(env(safe-area-inset-top) + 10px)",
-  paddingLeft: 16,
-  paddingRight: 16,
-
-  zIndex: 5
+  background: "#000"
 }}>
 
-  {/* 🔥 BOTÃO VOLTAR */}
-  <div
-    onClick={() => setModo("inicio")}
+  {/* 🔥 IMAGEM FULL */}
+  <img
+    src="/bg.png"
     style={{
-      width: 42,
-      height: 42,
-      borderRadius: "50%",
-      background: "rgba(0,0,0,0.4)",
-      backdropFilter: "blur(10px)",
-
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-
-      color: "#fff",
-      fontSize: 18,
-      cursor: "pointer"
-      
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover"
     }}
-  >
-    ←
+  />
+
+  {/* 🔥 OVERLAY */}
+  <div style={{
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
+  }} />
+
+  {/* 🔥 HEADER ESTILO IFOOD */}
+  <div style={{
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+
+    paddingTop: "calc(env(safe-area-inset-top) + 10px)",
+    paddingLeft: 16,
+    paddingRight: 16,
+
+    zIndex: 5
+  }}>
+
+    {/* 🔥 BOTÃO VOLTAR */}
+    <div
+      onClick={() => setModo("inicio")}
+      style={{
+        width: 42,
+        height: 42,
+        borderRadius: "50%",
+        background: "rgba(0,0,0,0.4)",
+        backdropFilter: "blur(10px)",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        color: "#fff",
+        fontSize: 18,
+        cursor: "pointer"
+      }}
+    >
+      ←
+    </div>
+
+    <div style={{ width: 42 }} />
+
   </div>
 
-  {/* 🔥 ESPAÇO DIREITA (opcional) */}
-  <div style={{ width: 42 }} />
+  {/* 🔥 CARD */}
+  <div style={{
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
 
-</div>
+    background: "#fff",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
 
-      {/* 🔥 CARD */}
-      <div style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
+    padding: 20,
+    paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
 
-        background: "#fff",
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+    maxHeight: "75%", // 🔥 CORREÇÃO
+    overflowY: "auto"
+  }}>
 
-        padding: 20,
-
-        // 🔥 SAFE AREA REAL (SÓ AQUI)
-        paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
-
-        maxHeight: "70vh",
-        overflowY: "auto"
-      }}>
+    {/* SEU CONTEÚDO AQUI */}
 
         {modo === "inicio" && (
           <>
