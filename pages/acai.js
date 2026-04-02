@@ -1836,9 +1836,9 @@ return (
             marginTop: 2
           }}>
             <strong style={{
-              fontSize: 15,
+              fontSize: 13,
               color: themeAtual.text,
-              maxWidth: 180,
+              maxWidth: 140,
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis"
