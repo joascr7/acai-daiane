@@ -8,6 +8,7 @@ import Layout from "../components/layout";
 
 
 
+
 // 🔥 FIREBASE
 import {
   collection,
@@ -72,6 +73,8 @@ useEffect(() => {
   const [promptInstall, setPromptInstall] = useState(null);
 
   const [aba, setAba] = useState("home");
+// 🔥 STATUS DO PEDIDO
+  const ultimoStatus = useRef(null);
 
   // 🔥 CLIENTE (ANTES DE TUDO)
   const [clienteNome, setClienteNome] = useState("");
@@ -225,6 +228,94 @@ const blurInput = (e) => {
   boxSizing: "border-box"
 };
 
+// 🔥MAPA EM TEMPO REAL
+useEffect(() => {
+  const paymentId = localStorage.getItem("paymentId");
+
+  if (!paymentId) {
+    console.log("SEM PAYMENT ID");
+    return;
+  }
+
+  console.log("BUSCANDO PEDIDO COM:", paymentId);
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("paymentId", "==", paymentId)
+  );
+
+  const unsub = onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      console.log("PEDIDO NÃO ENCONTRADO AINDA...");
+      return;
+    }
+
+    const docSnap = snapshot.docs[0];
+    const pedido = docSnap.data();
+
+    console.log("PEDIDO ENCONTRADO:", pedido);
+
+    // 🔥 PAGAMENTO
+    if (pedido.statusPagamento === "pago") {
+      console.log("PAGAMENTO CONFIRMADO");
+    }
+
+    // 🔥 LOCALIZAÇÃO
+    if (pedido.entrega?.localizacao) {
+      console.log("LOCAL:", pedido.entrega.localizacao);
+    }
+
+    // 🔥 STATUS
+    if (pedido.status === "saiu") {
+      alert("Seu pedido saiu para entrega");
+    }
+
+    if (pedido.status === "chegou") {
+      alert("Entregador chegou");
+    }
+
+    if (pedido.status === "entregue") {
+      alert("Pedido entregue");
+    }
+  });
+
+  return () => unsub();
+}, []);
+
+
+// 🔥 INTEGRAÇÃO COM ENTREGADOR (SEPARADO)
+useEffect(() => {
+  const pedidoId = localStorage.getItem("pedidoId");
+
+  if (!pedidoId) return;
+
+  const unsubscribe = onSnapshot(
+    doc(db, "pedidos", pedidoId),
+    (docSnap) => {
+      if (!docSnap.exists()) return;
+
+      const pedido = docSnap.data();
+
+      if (pedido.status === ultimoStatus.current) return;
+
+      ultimoStatus.current = pedido.status;
+
+      if (pedido.status === "saiu") {
+        alert("🚀 Seu pedido saiu para entrega!");
+      }
+
+      if (pedido.status === "chegou") {
+        alert("📍 O entregador chegou!");
+      }
+
+      if (pedido.status === "entregue") {
+        alert("✅ Pedido entregue!");
+      }
+    }
+  );
+
+  return () => unsubscribe();
+}, []);
 
 
   // 🔥 NOTIFICACAO
@@ -261,6 +352,9 @@ const blurInput = (e) => {
     }
 
   });
+
+  
+// 🔥 ENTEGRACAO DO USER ENTREGADOR
 
 
   // 🔥 FORMATACAO BRASIL CENTAVOS COM VIRGULA
@@ -765,94 +859,121 @@ async function marcarComoLida() {
 
 const gerarPix = async () => {
   try {
-
+    // 🔒 VALIDAÇÃO
     if (!totalFinal || totalFinal <= 0) {
       alert("Carrinho vazio!");
       return;
     }
 
-    const valorPix = totalFinal / 100;
+    if (!clienteNome || !clienteTelefone) {
+      alert("Preencha seus dados!");
+      return;
+    }
 
-    // 🔥 CRIA ID DO PEDIDO
+    const valorPix = Number(totalFinal) / 100;
+
+    // 🔥 ID ÚNICO
     const pedidoId = Date.now().toString();
 
-    // 🔥 SALVA AQUI (ESSENCIAL)
-      setPedidoAtual({
-      id: pedidoId,
-      ativo: true // 🔥 força o React atualizar
-      });
+    console.log("INICIANDO PEDIDO:", pedidoId);
 
-    // 🔥 LIMPA PIX ANTIGO
+    // 🔥 LIMPA ESTADOS
     setQrBase64(null);
     setQrCode(null);
     setPaymentId(null);
     setPedidoPago(null);
 
-  
+    // 🔥 CHAMA API PIX
     const res = await fetch("/api/pix", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        total: valorPix, // 🔥 CORREÇÃO AQUI
+        total: valorPix,
         pedidoId
       })
     });
 
     const data = await res.json();
-    
 
-    if (!data.payment_id) {
+    if (!data?.payment_id) {
       alert("Erro ao gerar Pix");
       return;
     }
 
-    setQrBase64(data.qr_code_base64);
-    setQrCode(data.qr_code);
+    // 🔥 QR CODE
+    setQrBase64(data.qr_code_base64 || null);
+    setQrCode(data.qr_code || null);
     setPaymentId(data.payment_id);
 
-    // 🔥 CRIA PEDIDO NO FIREBASE (ANTES DE PAGAR)
-await setDoc(doc(db, "pedidos", pedidoId), {
-  codigo: Math.floor(100000 + Math.random() * 900000),
+    // 🔥 SALVA paymentId
+    localStorage.setItem("paymentId", String(data.payment_id));
 
-  cliente: {
-    nome: clienteNome,
-    telefone: clienteTelefone,
-    endereco: clienteEndereco,
-    numero: clienteNumeroCasa,
-    uid: user.uid
-  },
+    console.log("PIX GERADO");
 
-   itens: carrinho.map(item => ({ 
-   produtoId: item.produto.id,
-   nome: item.produto.nome,
-   quantidade: item.quantidade,
-   total: item.total,
+    // 🔥 CRIA PEDIDO (BLOQUEADO)
+    await setDoc(doc(db, "pedidos", pedidoId), {
+      codigo: Math.floor(100000 + Math.random() * 900000),
 
-   extras: item.extras?.map(e => ({
-    nome: e.nome,
-    preco: e.preco,
-    categoria: e.categoria || "Extras"
-    
-    })),
+      cliente: {
+        nome: clienteNome || "Cliente",
+        telefone: clienteTelefone || "",
+        endereco: clienteEndereco || "",
+        numero: clienteNumeroCasa || "",
+        uid: user?.uid || null
+      },
 
-  })),
+      itens: (carrinho || []).map(item => ({
+        produtoId: item?.produto?.id || "",
+        nome: item?.produto?.nome || "Produto",
+        quantidade: item?.quantidade || 1,
+        total: Number(item?.total || 0),
 
-  total: Number(totalFinal),
+        extras: (item?.extras || []).map(e => ({
+          nome: e?.nome || "",
+          preco: Number(e?.preco || 0),
+          categoria: e?.categoria || "Extras"
+        }))
+      })),
 
-  formaPagamento: "pix",
-  statusPagamento: "aguardando_pagamento",
-  status: "aguardando_pagamento",
+      total: Number(totalFinal || 0),
 
-  paymentId: String(data.payment_id),
+      // 🔥 PIX BLOQUEADO
+      formaPagamento: "pix",
+      statusPagamento: "aguardando_pagamento",
+      status: "aguardando_pagamento",
 
-  data: new Date().toISOString()
-});
+      entrega: {
+        aceito: false,
+        status: "aguardando",
+        entregadorId: null,
+        localizacao: null,
+        horaSaiu: null,
+        horaChegou: null,
+        horaEntregue: null
+      },
+
+      paymentId: String(data.payment_id),
+      data: new Date().toISOString()
+    });
+
+    console.log("PEDIDO PIX SALVO (AGUARDANDO PAGAMENTO)");
+
+    // 🔥 SALVA ID LOCAL
+    localStorage.setItem("pedidoId", pedidoId);
+
+    // 🔥 ATUALIZA UI
+    setPedidoAtual({
+      id: pedidoId,
+      ativo: true
+    });
+
+    alert("PIX gerado! Pague para liberar o pedido.");
 
   } catch (e) {
+    console.log("ERRO GERAL:", e);
     alert("Erro ao gerar Pix");
-    console.log(e);
   }
 };
 
@@ -1456,7 +1577,7 @@ function aplicarCupomDireto(cupom) {
   setDesconto(valorDesconto);
 }
 
-async function finalizarPedido(statusFinalPagamento) {
+async function finalizarPedido() {
 
   if (!carrinho.length) {
     alert("Carrinho vazio!");
@@ -1482,47 +1603,51 @@ async function finalizarPedido(statusFinalPagamento) {
 
   try {
 
+    const pedidoId = Date.now().toString();
     const codigo = Math.floor(100000 + Math.random() * 900000);
-    const totalFinalPedido = totalFinal;
-
-    // 🔥 STATUS CORRETO POR PAGAMENTO
-    let status = "preparando";
-    let statusPagamento = "na_entrega";
-
-    if (formaPagamento === "pix") {
-      status = "aguardando pagamento";
-      statusPagamento = "pendente";
-    }
 
     const pedido = {
       codigo,
 
       cliente: {
-        nome: clienteNome,
-        telefone: clienteTelefone,
-        endereco: clienteEndereco,
-        numero: clienteNumeroCasa,
-        uid: user.uid
+        nome: clienteNome || "Cliente",
+        telefone: clienteTelefone || "",
+        endereco: clienteEndereco || "",
+        numero: clienteNumeroCasa || "",
+        uid: user?.uid || null
       },
 
-      itens: carrinho.map(item => ({
-        produtoId: item.produto.id, // 🔥 IMPORTANTE PRA HISTÓRICO
-        nome: item.produto.nome,
-        quantidade: item.quantidade,
-        total: item.total,
-        extras: item.extras?.map(e => ({
-          nome: e.nome,
-          preco: e.preco,
-          categoria: e.categoria || "Extras"
+      itens: (carrinho || []).map(item => ({
+        produtoId: item?.produto?.id || "",
+        nome: item?.produto?.nome || "Produto",
+        quantidade: item?.quantidade || 1,
+        total: Number(item?.total || 0),
+
+        extras: (item?.extras || []).map(e => ({
+          nome: e?.nome || "",
+          preco: Number(e?.preco || 0),
+          categoria: e?.categoria || "Extras"
         }))
       })),
 
-      total: totalFinalPedido,
+      total: Number(totalFinal || 0),
 
       // 💳 PAGAMENTO
-      formaPagamento,
-      statusPagamento,
-      status,
+      formaPagamento: formaPagamento, // dinheiro ou cartao
+      statusPagamento: "pendente",
+
+      // 🔥 ESSENCIAL PRA APARECER PRO ENTREGADOR
+      status: "preparando",
+
+      entrega: {
+        aceito: false,
+        status: "aguardando",
+        entregadorId: null,
+        localizacao: null,
+        horaSaiu: null,
+        horaChegou: null,
+        horaEntregue: null
+      },
 
       paymentId: null,
       data: new Date().toISOString()
@@ -1543,75 +1668,46 @@ async function finalizarPedido(statusFinalPagamento) {
         const ref = doc(db, "cupons", cupomAplicado.id);
         const snap = await transaction.get(ref);
 
-        if (!snap.exists()) throw "Cupom inválido ❌";
+        if (!snap.exists()) throw "Cupom inválido";
 
         const dados = snap.data();
 
-        if (dados.usos && cpfLimpo && dados.usos[cpfLimpo]) {
-          throw "Você já utilizou esse cupom ❌";
+        if (dados.usos && dados.usos[cpfLimpo]) {
+          throw "Você já utilizou esse cupom";
         }
 
-        if (cpfLimpo) {
-          transaction.update(ref, {
-            [`usos.${cpfLimpo}`]: true
-          });
-        }
+        transaction.update(ref, {
+          [`usos.${cpfLimpo}`]: true
+        });
       });
     }
 
     // 💾 SALVA PEDIDO
-    await setDoc(doc(db, "pedidos", Date.now().toString()), pedido);
+    await setDoc(doc(db, "pedidos", pedidoId), pedido);
+
+    console.log("PEDIDO SALVO (ENTREGA):", pedidoId);
 
     // 🔥 WHATSAPP
-    let mensagem = ` *Pedido #${codigo}*\n\n`;
+    let mensagem = `Pedido #${codigo}\n\n`;
 
     carrinho.forEach((item, i) => {
-      mensagem += `*${i + 1}. ${item.produto.nome}*\n`;
+      mensagem += `${i + 1}. ${item.produto.nome}\n`;
       mensagem += `Qtd: ${item.quantidade}\n`;
 
       if (item.extras?.length) {
-
-        const grupos = {};
-
-        item.extras.forEach(e => {
-          const categoria = e.categoria || "Extras";
-
-          if (!grupos[categoria]) {
-            grupos[categoria] = [];
-          }
-
-          grupos[categoria].push(e.nome);
-        });
-
         mensagem += `Adicionais:\n`;
 
-        Object.keys(grupos).forEach(cat => {
-          mensagem += `• ${cat}:\n`;
-          grupos[cat].forEach(nome => {
-            mensagem += `  + ${nome}\n`;
-          });
+        item.extras.forEach(e => {
+          mensagem += `+ ${e.nome}\n`;
         });
       }
 
       mensagem += `R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
     });
 
-    mensagem += ` Total: R$ ${(Number(totalFinalPedido || 0) / 100).toFixed(2)}\n\n`;
-    mensagem += ` Pagamento: ${formaPagamento}\n\n`;
-
-    mensagem += ` Cliente:\n`;
-    mensagem += ` ${clienteNome}\n`;
-    mensagem += ` ${clienteTelefone}\n`;
-
-    if (clienteEndereco) {
-      mensagem += ` ${clienteEndereco}`;
-    }
-
-    if (clienteNumeroCasa) {
-      mensagem += `, Nº ${clienteNumeroCasa}`;
-    }
-
-    mensagem += `\n`;
+    mensagem += `Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}\n\n`;
+    mensagem += `Pagamento: ${formaPagamento}\n\n`;
+    mensagem += `Cliente: ${clienteNome}\n${clienteTelefone}\n`;
 
     const numero = "5581973119512";
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
@@ -1624,11 +1720,11 @@ async function finalizarPedido(statusFinalPagamento) {
     setFormaPagamento(null);
     setMostrarPagamento(false);
 
-    alert("Pedido realizado com sucesso!");
+    alert("Pedido enviado!");
 
   } catch (e) {
-    alert(e);
     console.log("ERRO FINAL:", e);
+    alert(e);
   }
 }
 

@@ -2,9 +2,11 @@ import "@/styles/globals.css";
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import Layout from "@/components/layout";
+import "leaflet/dist/leaflet.css";
+
 export default function App({ Component, pageProps }) {
 
-  // 🔥 DARK MODE
+  // 🌙 DARK MODE
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
@@ -15,13 +17,19 @@ export default function App({ Component, pageProps }) {
     }
   }, [dark]);
 
-  // 🔥 PWA INSTALL
+  // 📲 PWA INSTALL
   useEffect(() => {
-    window.addEventListener("beforeinstallprompt", (e) => {
+    const handler = (e) => {
       e.preventDefault();
       console.log("🔥 Pode instalar o app!");
       window.deferredPrompt = e;
-    });
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
   }, []);
 
   return (
@@ -36,7 +44,10 @@ export default function App({ Component, pageProps }) {
         <meta name="theme-color" content="#7a00ff" />
       </Head>
 
-      <Component {...pageProps} />
+      {/* 🔥 LAYOUT GLOBAL */}
+      <Layout dark={dark} setDark={setDark}>
+        <Component {...pageProps} />
+      </Layout>
     </>
   );
 }
