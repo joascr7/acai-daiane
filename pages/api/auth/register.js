@@ -20,19 +20,21 @@ export default async function handler(req, res) {
 
     const ref = dbAdmin.collection("entregadores");
 
-    // 🔒 VERIFICA CPF
-    const cpfSnap = await ref.where("cpf", "==", cpf).get();
+    const snap = await ref.get();
 
-    if (!cpfSnap.empty) {
-      return res.status(400).json({ erro: "CPF já cadastrado" });
-    }
+let duplicado = false;
 
-    // 🔒 VERIFICA EMAIL
-    const emailSnap = await ref.where("email", "==", email).get();
+snap.forEach(doc => {
+  const data = doc.data();
 
-    if (!emailSnap.empty) {
-      return res.status(400).json({ erro: "Email já cadastrado" });
-    }
+  if (data.cpf === cpf || data.email === email) {
+    duplicado = true;
+  }
+});
+
+if (duplicado) {
+  return res.status(400).json({ erro: "CPF ou Email já cadastrado" });
+}
 
     // 🔐 CRIPTOGRAFIA
     const senhaHash = await bcrypt.hash(senha, 10);

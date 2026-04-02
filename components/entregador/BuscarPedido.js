@@ -29,8 +29,9 @@ export default function BuscarPedido({ setPedido }) {
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        alert("❌ Pedido não encontrado");
-        return;
+      alert("❌ Pedido não encontrado");
+       setPedido(null);
+       return;
       }
 
       const docData = snap.docs[0];

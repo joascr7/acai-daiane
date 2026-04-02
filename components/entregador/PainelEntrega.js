@@ -27,16 +27,27 @@ import {
 } from "lucide-react";
 
 export default function PainelEntrega({ pedido, user }) {
-  const [pedidoAtual, setPedidoAtual] = useState(pedido);
+  const [pedidoAtual, setPedidoAtual] = useState(
+    pedido?.id ? pedido : null
+  );
   const [loading, setLoading] = useState(false);
   const watchIdRef = useRef(null);
   const router = useRouter();
 
-  // 🔥 TEMPO REAL
+  // 🔥 ATUALIZA ESTADO QUANDO RECEBE PEDIDO
   useEffect(() => {
-    if (!pedido?.id) return;
+    if (pedido?.id) {
+      setPedidoAtual(pedido);
+    }
+  }, [pedido]);
 
-    const unsub = onSnapshot(doc(db, "pedidos", pedido.id), (snap) => {
+  // 🔥 TEMPO REAL (CORRIGIDO)
+  useEffect(() => {
+    if (!pedidoAtual?.id) return;
+
+    const ref = doc(db, "pedidos", pedidoAtual.id);
+
+    const unsub = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         setPedidoAtual({
           id: snap.id,
@@ -46,40 +57,37 @@ export default function PainelEntrega({ pedido, user }) {
     });
 
     return () => unsub();
-  }, [pedido]);
+  }, [pedidoAtual?.id]);
 
-  
-// restaurar pedido do entregador
-useEffect(() => {
-  const id = localStorage.getItem("corridaAtiva");
+  // 🔥 RESTAURAR CORRIDA
+  useEffect(() => {
+    const id = localStorage.getItem("corridaAtiva");
 
-  if (!id) return;
+    if (!id) return;
 
-  const ref = doc(db, "pedidos", id);
+    const ref = doc(db, "pedidos", id);
 
-  const unsub = onSnapshot(ref, (snap) => {
-    if (!snap.exists()) return;
+    const unsub = onSnapshot(ref, (snap) => {
+      if (!snap.exists()) return;
 
-    const data = snap.data();
-
-    setPedidoAtual({
-      id,
-      ...data
+      setPedidoAtual({
+        id,
+        ...snap.data()
+      });
     });
-  });
 
-  return () => unsub();
-}, []);
-
+    return () => unsub();
+  }, []);
 
   // 🔥 GPS
   function iniciarLocalizacao() {
     if (!navigator.geolocation) return;
-
     if (watchIdRef.current) return;
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       async (pos) => {
+        if (!pedidoAtual?.id) return;
+
         await updateDoc(doc(db, "pedidos", pedidoAtual.id), {
           "entrega.localizacao": {
             lat: pos.coords.latitude,
@@ -98,68 +106,88 @@ useEffect(() => {
   }
 
   // 🔥 ACEITAR CORRIDA
- async function aceitarCorrida() {
-  const ref = doc(db, "pedidos", pedidoAtual.id);
+  async function aceitarCorrida() {
+    if (!pedidoAtual?.id) {
+      alert("Pedido inválido");
+      return;
+    }
 
-  try {
-    await runTransaction(db, async (transaction) => {
-      const snap = await transaction.get(ref);
+    const ref = doc(db, "pedidos", pedidoAtual.id);
 
-      if (!snap.exists()) return;
+    try {
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(ref);
 
-      const dados = snap.data();
+        if (!snap.exists()) return;
 
-      // 🔥 1. BLOQUEIA SE NÃO ESTIVER PRONTO
-      if (dados.status !== "preparando") {
-        alert("Pedido ainda não foi pago!");
-        return;
-      }
+        const dados = snap.data();
 
-      // 🔥 2. BLOQUEIA SE JÁ FOI ACEITO
-      if (dados.entrega?.aceito) {
-        alert("Pedido já aceito por outro entregador");
-        return;
-      }
+        // 🔥 BLOQUEIO PAGAMENTO
+        if (dados.status !== "preparando") {
+          alert("Pedido ainda não foi pago!");
+          return;
+        }
 
-      // 🔥 3. ACEITA CORRETA
-      transaction.update(ref, {
-        "entrega.aceito": true,
-        "entrega.entregadorId": user.id,
-        status: "saiu"
-        
+        // 🔥 BLOQUEIO DUPLO ENTREGADOR
+        if (dados.entrega?.aceito) {
+          alert("Pedido já aceito por outro entregador");
+          return;
+        }
+
+        // 🔥 ACEITA CORRIDA
+        transaction.update(ref, {
+          "entrega.aceito": true,
+          "entrega.entregadorId": user?.id || null,
+          status: "saiu"
+        });
+
+        localStorage.setItem("corridaAtiva", pedidoAtual.id);
       });
-      localStorage.setItem("corridaAtiva", pedidoAtual.id);
-    });
 
-    console.log("CORRIDA ACEITA");
+      console.log("CORRIDA ACEITA");
 
-  } catch (e) {
-    console.log(e);
-    alert("Erro ao aceitar corrida");
+    } catch (e) {
+      console.log(e);
+      alert("Erro ao aceitar corrida");
+    }
   }
-}
 
+  // 🔥 ATUALIZAR STATUS
   async function atualizar(status) {
+    if (!pedidoAtual?.id) return;
+
     setLoading(true);
 
-    await updateDoc(doc(db, "pedidos", pedidoAtual.id), {
-      status,
-      "entrega.status": status
-    });
+    try {
+      await updateDoc(doc(db, "pedidos", pedidoAtual.id), {
+        status,
+        "entrega.status": status
+      });
 
-    if (status === "entregue") {
-      pararLocalizacao();
+      if (status === "entregue") {
+        pararLocalizacao();
+        localStorage.removeItem("corridaAtiva");
+      }
+
+    } catch (e) {
+      console.log(e);
+      alert("Erro ao atualizar status");
     }
 
     setLoading(false);
   }
 
+  // 🔥 ROTA
   function abrirRota() {
-    const endereco = `${pedidoAtual?.cliente?.endereco}, ${pedidoAtual?.cliente?.numero}`;
+    if (!pedidoAtual?.cliente) return;
+
+    const endereco = `${pedidoAtual.cliente.endereco}, ${pedidoAtual.cliente.numero}`;
     window.open(`https://www.google.com/maps?q=${encodeURIComponent(endereco)}`);
   }
 
   const status = pedidoAtual?.status;
+
+ 
 
 // func mostra forma de pagamento efetuada
 function BadgePagamento({ pedido }) {

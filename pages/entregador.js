@@ -102,9 +102,8 @@ export default function EntregadorPage() {
         {/* 🚚 CORRIDA ATIVA */}
         {pedidoSelecionado ? (
           <PainelEntrega
-            pedidoAtual={pedidoSelecionado}
-            setPedidoAtual={setPedidoSelecionado}
-            user={user}
+          pedido={pedidoSelecionado}
+          user={user}
           />
         ) : (
           /* 📋 LISTA */
