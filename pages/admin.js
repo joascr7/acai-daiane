@@ -6,6 +6,7 @@ import Cropper from "react-easy-crop";
 import { db } from '../services/firebase';
 import { setDoc } from "firebase/firestore";
 import { authAdmin as auth } from "../services/firebaseDual";
+import Head from "next/head";
 
 
 
@@ -99,6 +100,12 @@ function formatarReal(valor) {
     currency: "BRL"
   });
 }
+
+
+<Head>
+  <link rel="manifest" href="/manifest-admin.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+</Head>
 
   // 🔍 BUSCA
   const [buscaCodigo, setBuscaCodigo] = useState("");

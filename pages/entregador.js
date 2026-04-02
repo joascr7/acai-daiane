@@ -24,6 +24,11 @@ export default function EntregadorPage() {
     return <LoginEntregador setUser={setUser} />;
   }
 
+  <Head>
+  <link rel="manifest" href="/manifest-entregador.json" />
+  <meta name="theme-color" content="#000000" />
+</Head>
+
   return (
     <>
       {/* 🔥 HEADER PREMIUM */}

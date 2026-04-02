@@ -58,6 +58,8 @@ import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
 
+  
+
   const router = useRouter();
 
 
@@ -74,6 +76,7 @@ useEffect(() => {
   const [authReady, setAuthReady] = useState(false);
   const [logo, setLogo] = useState(null);
   const [promptInstall, setPromptInstall] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [aba, setAba] = useState("home");
 // 🔥 STATUS DO PEDIDO
@@ -426,6 +429,14 @@ const grupos = agruparNotificacoes(notificacoesOrdenadas);
 
   return () => unsub();
 
+}, []);
+
+
+useEffect(() => {
+  const check = () => setIsMobile(window.innerWidth <= 768);
+  check();
+  window.addEventListener("resize", check);
+  return () => window.removeEventListener("resize", check);
 }, []);
 
 
@@ -1750,6 +1761,7 @@ return (
 
 
   // CONTAINER
+// CONTAINER
 <div style={{
   minHeight: "100vh",
   background: themeAtual.background,
@@ -1758,24 +1770,27 @@ return (
   justifyContent: "center",
   overflowX: "hidden",
 
-  paddingBottom: "env(safe-area-inset-bottom)",
-  paddingLeft: "env(safe-area-inset-left)",
-  paddingRight: "env(safe-area-inset-right)"
+  paddingBottom: "env(safe-area-inset-bottom)"
 }}>
 
   <div style={{
     width: "100%",
-    maxWidth: 420,
+    maxWidth: isMobile ? 420 : 1000, // 🔥 AJUSTADO
     margin: "0 auto",
     padding: "0 16px",
   }}>
 
-    {/* 🔥 HEADER FIXO CORRIGIDO */}
+    {/* 🔥 HEADER FIXO */}
     <div style={{
       position: "fixed",
       top: 0,
-      left: 0,
-      right: 0,
+
+      // 🔥 CENTRALIZA SEM ERRO (MOBILE + WEB)
+      left: "50%",
+      transform: "translateX(-50%)",
+
+      width: "100%",
+      maxWidth: isMobile ? 420 : 1000, // 🔥 AJUSTADO
 
       paddingTop: "calc(env(safe-area-inset-top) + 14px)",
       paddingBottom: 14,
@@ -1794,11 +1809,10 @@ return (
         alignItems: "center",
         gap: 12,
         flex: 1,
-        minWidth: 0, // 🔥 ESSENCIAL PRA NÃO EMPURRAR
-        paddingLeft: 16 // 🔥 mantém alinhado com container
+        minWidth: 0,
+        paddingLeft: 16
       }}>
 
-        {/* LOGO */}
         <img
           src={logo || "/logo.png"}
           style={{
@@ -1809,7 +1823,6 @@ return (
           }}
         />
 
-        {/* ENDEREÇO */}
         <div
           onClick={() => {
             setAba("perfil");
@@ -1819,26 +1832,25 @@ return (
           style={{
             cursor: "pointer",
             display: "flex",
-            flexDirection: "column"
+            flexDirection: "column",
+            flex: 1,
+            minWidth: 0
           }}
         >
-          <span style={{
-            fontSize: 11,
-            color: "#999"
-          }}>
+          <span style={{ fontSize: 11, color: "#999" }}>
             Entregar em
           </span>
 
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: 4,
-            marginTop: 2
+            gap: 4
           }}>
             <strong style={{
               fontSize: 13,
               color: themeAtual.text,
-              maxWidth: 140,
+              flex: 1,
+              minWidth: 0,
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis"
@@ -1849,7 +1861,6 @@ return (
             <ChevronDown size={16} color="#999" />
           </div>
         </div>
-
       </div>
 
       {/* 🔥 DIREITA */}
@@ -1857,10 +1868,9 @@ return (
         display: "flex",
         alignItems: "center",
         gap: 10,
-        paddingRight: 16 // 🔥 alinhamento correto
+        paddingRight: 16
       }}>
 
-        {/* 🔔 NOTIFICAÇÃO */}
         <div
           onClick={() => {
             setAba("notificacao");
@@ -1881,21 +1891,8 @@ return (
           }}
         >
           <Bell size={20} />
-
-          {temNotificacao && (
-            <span style={{
-              position: "absolute",
-              top: 8,
-              right: 8,
-              width: 8,
-              height: 8,
-              background: "#ea1d2c",
-              borderRadius: "50%"
-            }} />
-          )}
         </div>
 
-        {/* 🌙 DARK MODE */}
         <div
           onClick={() => setDark(!dark)}
           style={{
@@ -1915,14 +1912,10 @@ return (
           }
         </div>
 
-        {/* LOGIN / SAIR */}
         <div
           onClick={() => {
-            if (user) {
-              sair();
-            } else {
-              router.push("/login");
-            }
+            if (user) sair();
+            else router.push("/login");
           }}
           style={{
             display: "flex",
@@ -1934,8 +1927,7 @@ return (
             color: "#fff",
             cursor: "pointer",
             fontWeight: "bold",
-            fontSize: 13,
-            boxShadow: "0 8px 25px rgba(234,29,44,0.35)"
+            fontSize: 13
           }}
         >
           <LogOut size={16} />
@@ -1945,12 +1937,11 @@ return (
       </div>
     </div>
 
-    {/* 🔥 CONTEÚDO (CORREÇÃO DO EMPURRÃO) */}
+    {/* 🔥 CONTEÚDO */}
     <div style={{
-      paddingTop: "calc(env(safe-area-inset-top) + 90px)" // 🔥 ESSENCIAL
+      paddingTop: "calc(env(safe-area-inset-top) + 90px)"
     }}>
 
-      {/* TODO O RESTO DA SUA TELA AQUI */}
 
 </div>
 
@@ -2388,157 +2379,160 @@ return (
 </div>
 
     {/* GRID */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 12
-    }}>
+<div style={{
+  display: "grid",
+  gridTemplateColumns: isMobile
+    ? "1fr 1fr"
+    : "repeat(3, 1fr)",
+  gap: isMobile ? 12 : 20
+}}>
 
-      {produtos
-        .filter(p => {
-          const nome = p.nome?.toLowerCase() || "";
-          const termo = busca.toLowerCase();
+{produtos
+  .filter(p => {
+    const nome = p.nome?.toLowerCase() || "";
+    const termo = busca.toLowerCase();
 
-          const categoriaProduto = String(p.categoria || "").trim().toLowerCase();
-          const categoriaAtual = String(categoria || "").trim().toLowerCase();
+    const categoriaProduto = String(p.categoria || "").trim().toLowerCase();
+    const categoriaAtual = String(categoria || "").trim().toLowerCase();
 
-          if (busca) return nome.includes(termo);
-          return categoriaProduto === categoriaAtual;
-        })
-        .map(p => {
+    if (busca) return nome.includes(termo);
+    return categoriaProduto === categoriaAtual;
+  })
+  .map(p => {
 
-          return (
-            <div
-            key={p.id}
-            style={{
-            position: "relative", // 🔥 MUITO IMPORTANTE
-            background: themeAtual.card,
-            borderRadius: 12,
-            padding: 10
-            }}
-              onClick={() => {
+    return (
+      <div
+        key={p.id}
+        style={{
+          position: "relative",
+          background: "#fff",
+          borderRadius: 18,
+          overflow: "hidden",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+          cursor: "pointer",
+          transition: "0.2s"
+        }}
 
-                if (!lojaAberta) {
-                  alert("Loja fechada");
-                  return;
-                }
+        onClick={() => {
 
-                setProduto(p);
-                setSelectedId(p.id);
-                
+          if (!lojaAberta) {
+            alert("Loja fechada");
+            return;
+          }
 
-                 setProduto(p);
-  setSelectedId(p.id);
+          setProduto(p);
+          setSelectedId(p.id);
 
-  // 🔥categoria  BEBIDAS VAI DIRETO PRO CARRINHO
-  if (p.categoria === "bebidas") {
+          // 🔥 BEBIDAS DIRETO PRO CARRINHO
+          if (p.categoria === "bebidas") {
 
-    const total = Number(p.preco || 0);
+            const total = Number(p.preco || 0);
 
-    setCarrinho(prev => [
-      ...prev,
-      {
-        produto: p,
-        quantidade: 1,
-        extras: [],
-        total
-      }
-    ]);
+            setCarrinho(prev => [
+              ...prev,
+              {
+                produto: p,
+                quantidade: 1,
+                extras: [],
+                total
+              }
+            ]);
 
-    setToast({ nome: p.nome });
-    setTimeout(() => setToast(null), 2000);
+            setToast({ nome: p.nome });
+            setTimeout(() => setToast(null), 2000);
 
-    // 🔥 GARANTE QUE MOSTRA O CARRINHO
-    setAba("carrinho");
-    setStep(3);
+            setAba("carrinho");
+            setStep(3);
 
-    return;
-  }
- // 🔥 categoria acai mostra extras
+            return;
+          }
 
-      if (p.categoria === "acai") {
-     setExtrasSelecionados({});
-     setQuantidade(1);
-     setStep(2);
-      } else {
-      const total = Number(p.preco || 0);
+          if (p.categoria === "acai") {
+            setExtrasSelecionados({});
+            setQuantidade(1);
+            setStep(2);
+          } else {
 
-    setCarrinho(prev => [
-      ...prev,
-       {
-      produto: p,
-      quantidade: 1,
-      extras: [],
-      total
-       }
-     ]);
+            const total = Number(p.preco || 0);
 
-      setStep(3);
-        }
-       }}
-     >
-      
+            setCarrinho(prev => [
+              ...prev,
+              {
+                produto: p,
+                quantidade: 1,
+                extras: [],
+                total
+              }
+            ]);
 
-{/* 🔥 MAIS VENDIDO (AGORA NO LUGAR CERTO) */}
-    {p.maisVendido && (
-  <div style={{
-      position: "absolute",
-      top: 4,
-      left: 6,
-      background: "linear-gradient(90deg,#ff0033,#ff5a5a)",
-      color: "#fff",
-      padding: "5px 6px",
-      borderRadius: 999,
-      fontSize: 9,
-      fontWeight: "bold",
-      display: "flex",
-      alignItems: "center",
-      gap: 5,
-      boxShadow: "0 4px 6px rgba(255,0,51,0.4)"
-    }}>
-    🔥 Mais vendido
-  </div>
-)}
+            setStep(3);
+          }
+        }}
 
-              {/* IMAGEM */}
-              <img
-                src={p.imagem || "/acai.png"}
-                style={{
-                  width: "100%",
-                  height: 140,
-                  objectFit: "cover"
-                }}
-              />
+        onMouseEnter={(e) => {
+          if (!isMobile) e.currentTarget.style.transform = "scale(1.02)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
+      >
 
-              {/* INFO */}
-              <div style={{ padding: 10 }}>
+        {/* 🔥 MAIS VENDIDO */}
+        {p.maisVendido && (
+          <div style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            background: "#ea1d2c",
+            color: "#fff",
+            padding: "4px 8px",
+            borderRadius: 8,
+            fontSize: 10,
+            fontWeight: "bold"
+          }}>
+            🔥 Mais vendido
+          </div>
+        )}
 
-                <p style={{
-                  fontWeight: "bold",
-                  margin: 0,
-                  fontSize: 14
-                }}>
-                  {p.nome}
-                </p>
+        {/* 🔥 IMAGEM */}
+        <img
+          src={p.imagem || "/acai.png"}
+          style={{
+            width: "100%",
+            height: isMobile ? 120 : 160,
+            objectFit: "cover"
+          }}
+        />
 
-                <p style={{
-                  fontSize: 12,
-                  opacity: 0.6,
-                  marginTop: 4
-                }}>
-                  {p.descricao || "Açaí com complementos"}
-                </p>
+        {/* 🔥 CONTEÚDO */}
+        <div style={{ padding: 12 }}>
 
-                <strong style={{
-                  color: "#ea1d2c",
-                  fontSize: 14
-                }}>
-                  {formatarReal(p.preco)}
-                </strong>
+          <p style={{
+            fontWeight: "bold",
+            margin: 0,
+            fontSize: 14
+          }}>
+            {p.nome}
+          </p>
 
-              </div>
+          <p style={{
+            fontSize: 12,
+            opacity: 0.6,
+            marginTop: 4
+          }}>
+            {p.descricao || "Açaí com complementos"}
+          </p>
 
-            </div>
+          <strong style={{
+            color: "#ea1d2c",
+            fontSize: 14
+          }}>
+            {formatarReal(p.preco)}
+          </strong>
+
+        </div>
+
+      </div>
           );
         })}
 
