@@ -58,6 +58,73 @@ import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
 
+
+  const btnMais = {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  border: "none",
+  background: "#ea1d2c",
+  color: "#fff",
+  cursor: "pointer"
+};
+
+const btnMenos = {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  border: "1px solid #ccc",
+  background: "#fff",
+  cursor: "pointer"
+};
+
+
+const btnCounterPrimary = {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  background: "#ea1d2c",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer"
+};
+
+const btnCounterLight = {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  background: "#fff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  border: "1px solid #ddd"
+};
+
+const line = {
+  width: 10,
+  height: 2,
+  background: "#333"
+};
+
+const plusIcon = {
+  width: 12,
+  height: 2,
+  background: "#fff",
+  position: "relative"
+};
+
+plusIcon["::after"] = {
+  content: '""',
+  position: "absolute",
+  width: 2,
+  height: 10,
+  background: "#fff",
+  top: -4,
+  left: 4
+};
+
   
 
   const router = useRouter();
@@ -77,6 +144,10 @@ useEffect(() => {
   const [logo, setLogo] = useState(null);
   const [promptInstall, setPromptInstall] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [pedidoAberto, setPedidoAberto] = useState(null);
+  const [extrasGlobais, setExtrasGlobais] = useState([]);
+
+  const [bloqueado, setBloqueado] = useState(false);
 
   const [aba, setAba] = useState("home");
 // 🔥 STATUS DO PEDIDO
@@ -119,12 +190,18 @@ useEffect(() => {
   const [lojaAberta, setLojaAberta] = useState(true);
   const [pedidos, setPedidos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const [extrasGlobais, setExtrasGlobais] = useState([]);
+  
+  
 
   // 🔥 PRODUTO
   const [produto, setProduto] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const maisVendido = calcularMaisVendido(pedidos);
+  const extrasDoProduto =
+  produto?.extras?.length
+    ? produto.extras
+    : extrasGlobais;
+  
 
     // 🔥 CARRINHO
   const [quantidade, setQuantidade] = useState(1);
@@ -153,6 +230,7 @@ const [pedidoAtual, setPedidoAtual] = useState(null);
   const [cupomAplicado, setCupomAplicado] = useState(null);
   const [desconto, setDesconto] = useState(0);
   const [cupons, setCupons] = useState([]);
+  
 
   // 🔥 BOTÃO PADRÃO
   const botaoStyle = {
@@ -363,13 +441,6 @@ useEffect(() => {
 // 🔥 ENTEGRACAO DO USER ENTREGADOR
 
 
-  // 🔥 FORMATACAO BRASIL CENTAVOS COM VIRGULA
-  function formatarReal(valor) {
-  return (valor / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  });
-}
 
 // funct voltar para aba ex:  onClick={() => voltarPara("home", 1)}
 
@@ -415,14 +486,18 @@ const grupos = agruparNotificacoes(notificacoesOrdenadas);
   // 🔥 EXTRAS
   const [extrasSelecionados, setExtrasSelecionados] = useState({});
 
-  useEffect(() => {
+ useEffect(() => {
 
   const unsub = onSnapshot(doc(db, "config", "loja"), (snap) => {
 
     if (snap.exists()) {
-      console.log("🔥 extras atualizados:", snap.data().extras);
 
-      setExtrasGlobais(snap.data().extras || []);
+      const data = snap.data();
+
+      console.log("🔥 extras globais:", data.extras);
+
+      setExtrasGlobais(data.extras || []);
+
     }
 
   });
@@ -433,10 +508,12 @@ const grupos = agruparNotificacoes(notificacoesOrdenadas);
 
 
 useEffect(() => {
-  const check = () => setIsMobile(window.innerWidth <= 768);
-  check();
-  window.addEventListener("resize", check);
-  return () => window.removeEventListener("resize", check);
+  if (typeof window !== "undefined") {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }
 }, []);
 
 
@@ -1004,16 +1081,15 @@ function formatarReal(valor) {
 // 🔥 TOTAL EXTRAS (produto atual)
 const totalExtras = Object.values(extrasSelecionados)
   .flat()
-  .reduce((acc, e) => acc + Number(e.preco || 0), 0);
+  .reduce((acc, e) => acc + (Number(e.preco || 0) * (e.qtd || 1)), 0);
 
-  const podeContinuar = extrasGlobais.every(grupo => {
+ const podeContinuar = extrasDoProduto.every(grupo => {
   const selecionados = extrasSelecionados[grupo.categoria] || [];
   return selecionados.length >= grupo.min;
-  
 });
 
 
-const precoBase = Number(produto?.preco || 0);
+const precoBase = Math.round(Number(produto?.preco || 0));
 
 const totalFinalItem =
   (precoBase + totalExtras) * quantidade;
@@ -1047,7 +1123,7 @@ if (cupomAplicado) {
 }
 
 // 🔥 TOTAL FINAL
-const totalFinal = Math.max(0, total - desconto);
+const totalFinal = Math.max(0, total - descontoCalculado);
 
 // 🔥 MELHOR CUPOM AUTOMÁTICO
 const melhorCupom = Array.isArray(cupons)
@@ -1074,7 +1150,17 @@ const melhorCupom = Array.isArray(cupons)
 
 
 
-// 🔥 app atualiza pagamento
+// 🔥 calcular total
+
+function calcularTotalItem(produto, quantidade, extras) {
+  let total = Number(produto.preco || 0);
+
+  (extras || []).forEach(e => {
+    total += Number(e.preco || 0);
+  });
+
+  return Number(total * quantidade);
+}
 
 
 // 🔥 mais vendido
@@ -1097,12 +1183,6 @@ function calcularMaisVendido(pedidos) {
   return ordenado[0]?.[0];
 }
 
-// 🔥 remover do carrinho
-function removerItem(index) {
-  const novoCarrinho = [...carrinho];
-  novoCarrinho.splice(index, 1);
-  setCarrinho(novoCarrinho);
-}
 
  // 🔥 instalar app
 async function instalarApp() {
@@ -1115,27 +1195,35 @@ async function instalarApp() {
 }
 
   // 🔥 FUNÇÕES
-  function toggleExtra(categoria, extra, max) {
+  function toggleExtra(categoria, item, max) {
   setExtrasSelecionados(prev => {
 
     const atual = prev[categoria] || [];
 
-    const existe = atual.find(e => e.nome === extra.nome);
+    const existe = atual.find(e => e.nome === item.nome);
+
+    let novos;
 
     if (existe) {
-      return {
-        ...prev,
-        [categoria]: atual.filter(e => e.nome !== extra.nome)
-      };
-    }
+      novos = atual.filter(e => e.nome !== item.nome);
+    } else {
 
-    if (atual.length >= max) return prev;
+      if (atual.length >= max) return prev;
+
+      novos = [
+        ...atual,
+        {
+          nome: item.nome,
+          preco: item.preco,
+          categoria: categoria // 🔥 AQUI É A CORREÇÃO
+        }
+      ];
+    }
 
     return {
       ...prev,
-      [categoria]: [...atual, extra]
+      [categoria]: novos
     };
-
   });
 }
 // SAIR
@@ -1257,45 +1345,32 @@ function adicionarCarrinho() {
 
   const nomeProduto = produto.nome;
 
-// 🔥 preço do produto (centavos)
-const precoProduto = Number(produto?.preco || 0);
+  // 🔥 GARANTE CENTAVOS
+  const precoBase = Math.round(Number(produto?.preco || 0));
 
-// precobase do produto
-const precoBase = Number(produto?.preco || 0);
+  const totalExtras = Object.values(extrasSelecionados)
+    .flat()
+    .reduce((acc, e) => acc + Math.round(Number(e.preco || 0)), 0);
 
-const totalExtras = Object.values(extrasSelecionados)
-  .flat()
-  .reduce((acc, e) => acc + Number(e.preco || 0), 0);
+  const totalItem = Math.round((precoBase + totalExtras) * quantidade);
 
-const totalItem = (precoBase + totalExtras) * quantidade;
-
-
-  // 🔥 total por unidade
-  const totalUnitario = precoProduto + totalExtras;
-
-  // 🔥 total final
-  const total = totalUnitario * quantidade;
-
- // 🔥 PEGA EXTRAS DO NOVO SISTEMA (CORRETO)
- const extrasFinal = Object.entries(extrasSelecionados)
-  .flatMap(([categoria, lista]) =>
-    lista.map(e => ({
-      nome: e.nome,
-      preco: Number(e.preco || 0),
-      categoria // 🔥 vem da chave do grupo
-    }))
-  );
+  const extrasFinal = Object.entries(extrasSelecionados)
+    .flatMap(([categoria, lista]) =>
+      lista.map(e => ({
+        nome: e.nome,
+        preco: Math.round(Number(e.preco || 0)),
+        categoria
+      }))
+    );
 
   const novoItem = {
     produto,
     quantidade,
     extras: extrasFinal,
-    total // 🔥 sempre centavos
+    total: totalItem // 🔥 CENTAVOS GARANTIDO
   };
 
   if (editandoIndex !== null) {
-
-    // 🔥 ATUALIZA ITEM
     setCarrinho(prev => {
       const novo = [...prev];
       novo[editandoIndex] = novoItem;
@@ -1303,30 +1378,18 @@ const totalItem = (precoBase + totalExtras) * quantidade;
     });
 
     setEditandoIndex(null);
-
   } else {
-
-    // 🔥 ADICIONA NOVO
     setCarrinho(prev => [...prev, novoItem]);
-
   }
 
-  // 🔥 RESET
   setExtrasSelecionados({});
   setQuantidade(1);
 
-  // 🔥 ESSA LINHA RESOLVE TUDO
   setAba("carrinho");
   setStep(3);
 
-
-  // 🔥 FEEDBACK
   setToast({ nome: nomeProduto });
   setTimeout(() => setToast(null), 2500);
-
-  setTimeout(() => {
-    setStep(3);
-  }, 200);
 }
 
 function removerItem(index) {
@@ -1351,7 +1414,7 @@ function editarItem(index) {
   const extrasOrganizados = {};
 
   extrasClonados.forEach(extra => {
-    extrasGlobais.forEach(grupo => {
+    extrasDoProduto.forEach(grupo => {
       const existe = (grupo.itens || []).find(i => i.nome === extra.nome);
 
       if (existe) {
@@ -1579,6 +1642,46 @@ async function marcarComoLida() {
   await Promise.all(updates);
 }
 
+function alterarExtra(categoria, item, delta) {
+  setExtrasSelecionados(prev => {
+
+    const lista = prev[categoria] || [];
+
+    const index = lista.findIndex(e => e.nome === item.nome);
+
+    let novaLista = [...lista];
+
+    if (index >= 0) {
+
+      const atual = novaLista[index];
+      const novaQtd = (atual.qtd || 0) + delta;
+
+      if (novaQtd <= 0) {
+        novaLista.splice(index, 1);
+      } else {
+        novaLista[index] = {
+          ...atual,
+          qtd: novaQtd
+        };
+      }
+
+    } else if (delta > 0) {
+
+      novaLista.push({
+        ...item,
+        qtd: 1
+      });
+
+    }
+
+    return {
+      ...prev,
+      [categoria]: novaLista
+    };
+  });
+}
+
+
 function aplicarCupomDireto(cupom) {
   let valorDesconto = 0;
 
@@ -1594,7 +1697,6 @@ function aplicarCupomDireto(cupom) {
 
 async function finalizarPedido() {
 
-  // 🔥 BLOQUEIO LOGIN (IFOOD STYLE)
   if (!user) {
     localStorage.setItem("redirectAfterLogin", "finalizar");
     router.push("/login");
@@ -1619,7 +1721,6 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 PIX ABRE MODAL (CORRETO)
   if (formaPagamento === "pix") {
     setMostrarPagamento(true);
     return;
@@ -1634,79 +1735,76 @@ async function finalizarPedido() {
 
     const pedido = {
       codigo,
-
       cliente: {
-        nome: clienteNome || "Cliente",
-        telefone: clienteTelefone || "",
-        endereco: clienteEndereco || "",
-        numero: clienteNumeroCasa || "",
+        nome: clienteNome,
+        telefone: clienteTelefone,
+        endereco: clienteEndereco,
+        numero: clienteNumeroCasa,
         uid: user?.uid || null
       },
-
-      itens: carrinho.map(item => ({
-        produtoId: item?.produto?.id || "",
-        nome: item?.produto?.nome || "Produto",
-        quantidade: item?.quantidade || 1,
-        total: Number(item?.total || 0),
-
-        extras: (item?.extras || []).map(e => ({
-          nome: e?.nome || "",
-          preco: Number(e?.preco || 0),
-          categoria: e?.categoria || "Extras"
-        }))
-      })),
-
-      total: Number(totalFinal || 0),
-
+      itens: carrinho,
+      total: Math.round(Number(totalFinal || 0)), // 🔥 CENTAVOS
       formaPagamento,
-      statusPagamento: "pendente",
-
       status: "preparando",
-
-      entrega: {
-        aceito: false,
-        status: "aguardando",
-        entregadorId: null,
-        localizacao: null
-      },
-
-      paymentId: null,
       data: new Date().toISOString()
     };
 
     await setDoc(doc(db, "pedidos", pedidoId), pedido);
 
-    // 🔥 SALVA ID LOCAL (IMPORTANTE)
     localStorage.setItem("pedidoAtual", pedidoId);
 
-    // 🔥 WHATSAPP
-    let mensagem = `Pedido #${codigo}\n\n`;
+    // 🔥 WHATSAPP PROFISSIONAL
+    let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
 
     carrinho.forEach((item, i) => {
-      mensagem += `${i + 1}. ${item.produto.nome}\n`;
-      mensagem += `Qtd: ${item.quantidade}\n`;
 
-      if (item.extras?.length) {
-        mensagem += `Adicionais:\n`;
-        item.extras.forEach(e => {
-          mensagem += `+ ${e.nome}\n`;
-        });
+  mensagem += `*${i + 1}. ${item.produto?.nome || item.nome || "Produto"}*\n`;
+  mensagem += `Qtd: ${item.quantidade}\n`;
+
+  if (item.extras?.length) {
+
+    const extrasPorCategoria = {};
+
+    (item.extras || []).forEach(e => {
+      const cat = e.categoria || "Extras";
+
+      if (!extrasPorCategoria[cat]) {
+        extrasPorCategoria[cat] = [];
       }
 
-      mensagem += `R$ ${(item.total / 100).toFixed(2)}\n\n`;
+      extrasPorCategoria[cat].push(e.nome);
     });
 
-    mensagem += `Total: R$ ${(totalFinal / 100).toFixed(2)}\n\n`;
-    mensagem += `Pagamento: ${formaPagamento}\n\n`;
-    mensagem += `${clienteNome} - ${clienteTelefone}`;
+    Object.keys(extrasPorCategoria).forEach(cat => {
+      mensagem += `\n• ${cat}:\n`;
+
+      extrasPorCategoria[cat].forEach(nome => {
+        mensagem += `  + ${nome}\n`;
+      });
+    });
+  }
+
+  mensagem += `\n💰 R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
+});
+
+    mensagem += `━━━━━━━━━━━━━━━\n`;
+
+    // 🔥 CORREÇÃO AQUI
+    mensagem += `💵 *Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
+
+    mensagem += `💳 Pagamento: ${formaPagamento}\n\n`;
+
+    mensagem += `📍 *Endereço:*\n`;
+    mensagem += `${clienteEndereco}, Nº ${clienteNumeroCasa}\n\n`;
+
+    mensagem += `👤 *Cliente:*\n`;
+    mensagem += `${clienteNome}\n📞 ${clienteTelefone}`;
 
     window.location.href =
       `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 
     setCarrinho([]);
-    setCupomAplicado(null);
     setFormaPagamento(null);
-    setMostrarPagamento(false);
 
     alert("Pedido enviado!");
 
@@ -1721,49 +1819,63 @@ async function finalizarPedido() {
 
 const enviarWhatsApp = (pedido) => {
 
-  let mensagem = ` *Pedido #${pedido.codigo}*\n\n`;
+  let mensagem = `🛒 *Pedido #${pedido.codigo}*\n\n`;
 
   pedido.itens.forEach((item, i) => {
+
     mensagem += `*${i + 1}. ${item.nome}*\n`;
     mensagem += `Qtd: ${item.quantidade}\n`;
-    mensagem += `R$ ${Number(item.total).toFixed(2)}\n\n`;
+
+    if (item.extras?.length) {
+
+      const extrasPorCategoria = {};
+
+      item.extras.forEach(e => {
+        const cat = e.categoria || "Extras";
+
+        if (!extrasPorCategoria[cat]) {
+          extrasPorCategoria[cat] = [];
+        }
+
+        extrasPorCategoria[cat].push(e.nome);
+      });
+
+      Object.keys(extrasPorCategoria).forEach(cat => {
+        mensagem += `\n• ${cat}:\n`;
+
+        extrasPorCategoria[cat].forEach(nome => {
+          mensagem += `  + ${nome}\n`;
+        });
+      });
+    }
+
+    // 🔥 CORREÇÃO AQUI
+    mensagem += `\n💰 R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
   });
 
-  mensagem += `Total: R$ ${pedido.total}\n\n`;
-  mensagem += `Pagamento confirmado via Pix ✅\n\n`;
-  mensagem += `${pedido.clienteNome}\n${pedido.clienteTelefone}\n`;
+  mensagem += `━━━━━━━━━━━━━━━\n`;
 
-  const numero = "5581973119512";
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+  // 🔥 CORREÇÃO AQUI
+  mensagem += `💵 *Total: R$ ${(Number(pedido.total || 0) / 100).toFixed(2)}*\n\n`;
 
-  // 🔥 REDIRECIONA DIRETO (NÃO BLOQUEIA)
-  window.location.href = url;
+  mensagem += `💳 Pagamento confirmado via Pix ✅\n\n`;
+
+  mensagem += `📍 ${pedido.cliente?.endereco}, Nº ${pedido.cliente?.numero}\n\n`;
+
+  mensagem += `👤 ${pedido.cliente?.nome}\n📞 ${pedido.cliente?.telefone}`;
+
+  window.location.href =
+    `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 };
-  // 🔥  2 grades
-  function ripple(e) {
-  const circle = document.createElement("span");
-  circle.style.position = "absolute";
-  circle.style.background = "rgba(255,255,255,0.4)";
-  circle.style.borderRadius = "50%";
-  circle.style.width = "100px";
-  circle.style.height = "100px";
-  circle.style.left = `${e.nativeEvent.offsetX - 50}px`;
-  circle.style.top = `${e.nativeEvent.offsetY - 50}px`;
-  circle.style.pointerEvents = "none";
-
-  e.currentTarget.appendChild(circle);
-
-  setTimeout(() => circle.remove(), 400);
-}
  
 return (
   
 
 
-  // CONTAINER
+  
 // CONTAINER
 <div style={{
-  minHeight: "100vh",
+  minHeight: "100dvh",
   background: themeAtual.background,
   color: themeAtual.text,
   display: "flex",
@@ -1788,6 +1900,7 @@ return (
       // 🔥 CENTRALIZA SEM ERRO (MOBILE + WEB)
       left: "50%",
       transform: "translateX(-50%)",
+      boxSizing: "border-box",
 
       width: "100%",
       maxWidth: isMobile ? 420 : 1000, // 🔥 AJUSTADO
@@ -1891,7 +2004,7 @@ return (
           }}
         >
           <Bell size={20} />
-        </div>
+       {/* </div>
 
         <div
           onClick={() => setDark(!dark)}
@@ -1908,9 +2021,9 @@ return (
         >
           {dark
             ? <Moon size={18} color="#fff" />
-            : <Sun size={18} color="#111" />
-          }
-        </div>
+            : <Sun size={18} color="#111" /> */}
+          
+        </div> 
 
         <div
           onClick={() => {
@@ -1920,14 +2033,14 @@ return (
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            padding: "8px 14px",
-            borderRadius: 20,
-            background: "#ea1d2c",
+            gap: 1,
+            padding: "4px 14px",
+            borderRadius: 70,
+            background: "#080202",
             color: "#fff",
             cursor: "pointer",
             fontWeight: "bold",
-            fontSize: 13
+            fontSize: 8
           }}
         >
           <LogOut size={16} />
@@ -2389,6 +2502,10 @@ return (
 
 {produtos
   .filter(p => {
+
+    // 🔥 NOVA LINHA (ESSENCIAL)
+    if (p.ativo === false) return false;
+
     const nome = p.nome?.toLowerCase() || "";
     const termo = busca.toLowerCase();
 
@@ -2396,6 +2513,7 @@ return (
     const categoriaAtual = String(categoria || "").trim().toLowerCase();
 
     if (busca) return nome.includes(termo);
+
     return categoriaProduto === categoriaAtual;
   })
   .map(p => {
@@ -2481,13 +2599,13 @@ return (
         {p.maisVendido && (
           <div style={{
             position: "absolute",
-            top: 8,
-            left: 8,
-            background: "#ea1d2c",
+            top: 4,
+            left: 4,
+            background: "#f16615",
             color: "#fff",
-            padding: "4px 8px",
+            padding: "2px 2px",
             borderRadius: 8,
-            fontSize: 10,
+            fontSize: 6,
             fontWeight: "bold"
           }}>
             🔥 Mais vendido
@@ -2565,7 +2683,7 @@ return (
     <div style={{ padding: 15 }}>
       <h2 style={{ margin: 0 }}>{produto?.nome}</h2>
 
-      <p style={{ opacity: 0.7, fontSize: 14 }}>
+      <p style={{ color: "#666", fontSize: 14 }}>
         {produto?.descricao || "Monte seu açaí com complementos"}
       </p>
 
@@ -2576,89 +2694,160 @@ return (
         gap: 12,
         marginTop: 15
       }}>
-        <button onClick={() => setQuantidade(q => Math.max(1, q - 1))}>-</button>
+
+        {/* MENOS */}
+        <div
+          onClick={() => setQuantidade(q => Math.max(1, q - 1))}
+          style={btnCounterLight}
+        >
+          <div style={line} />
+        </div>
+
         <strong>{quantidade}</strong>
-        <button onClick={() => setQuantidade(q => q + 1)}>+</button>
+
+        {/* MAIS */}
+        <div
+          onClick={() => setQuantidade(q => q + 1)}
+          style={btnCounterPrimary}
+        >
+          <div style={plusIcon}>
+          <div style={{
+           position: "absolute",
+           width: 2,
+            height: 12,
+           background: "#fff",
+           top: -5,
+          left: 5
+          }} />
+           </div>
+        </div>
+
       </div>
     </div>
 
-    {/* EXTRAS */}
-    <div style={{ padding: 15 }}>
-      <h4>Escolha seus adicionais</h4>
+    {/* 🔥 EXTRAS COM CONTADOR (CORRIGIDO) */}
+<div style={{ padding: 15 }}>
 
-      {extrasGlobais.map(grupo => {
+  {extrasDoProduto.map(grupo => {
 
-        const selecionados = extrasSelecionados[grupo.categoria] || [];
+    const selecionados = extrasSelecionados[grupo.categoria] || [];
 
-        return (
-          <div key={grupo.categoria} style={{ marginBottom: 20 }}>
+    const totalSelecionado = selecionados.reduce(
+      (acc, e) => acc + (e.qtd || 0),
+      0
+    );
 
-            {/* TÍTULO */}
-            <h4 style={{
+    return (
+      <div key={grupo.categoria} style={{ marginBottom: 22 }}>
+
+        {/* HEADER */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 10
+        }}>
+          <strong>{grupo.categoria}</strong>
+
+          <span style={{ fontSize: 12, color: "#666" }}>
+            {totalSelecionado}/{grupo.max}
+          </span>
+        </div>
+
+        {/* ITENS */}
+        {grupo.itens.map(item => {
+
+          const itemSelecionado = selecionados.find(e => e.nome === item.nome);
+          const qtd = itemSelecionado?.qtd || 0;
+
+          const podeAdicionar = totalSelecionado < grupo.max;
+
+          return (
+            <div key={item.nome} style={{
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center"
+              alignItems: "center",
+              padding: 12,
+              borderRadius: 14,
+              background: "#fff",
+              marginBottom: 8,
+              border: "1px solid #eee"
             }}>
-              {grupo.categoria}
 
-              <span style={{
-                fontSize: 11,
-                opacity: 0.6
+              {/* NOME */}
+              <div>
+                <strong>{item.nome}</strong>
+                <div style={{ fontSize: 12, color: "#666" }}>
+                  + {formatarReal(item.preco)}
+                </div>
+              </div>
+
+              {/* CONTADOR PREMIUM */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "#f1f1f1",
+                borderRadius: 30,
+                padding: "4px 6px"
               }}>
-                {selecionados.length}/{grupo.max}
-              </span>
-            </h4>
 
-            {/* GRID */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-              marginTop: 8
-            }}>
+                {/* MENOS */}
+                <div
+                  onClick={() => {
+                    if (qtd <= 0) return;
 
-              {grupo.itens.map(item => {
+                    alterarExtra(grupo.categoria, item, -1);
+                  }}
+                  style={{
+                    ...btnCounterLight,
+                    opacity: qtd === 0 ? 0.3 : 1
+                  }}
+                >
+                  <div style={line} />
+                </div>
 
-                const selected = selecionados.some(e => e.nome === item.nome);
+                <strong style={{
+                  minWidth: 20,
+                  textAlign: "center"
+                }}>
+                  {qtd}
+                </strong>
 
-                return (
-                  <div
-                    key={item.nome}
-                    onClick={() => toggleExtra(grupo.categoria, item, grupo.max)}
-                    style={{
-                      padding: 12,
-                      borderRadius: 16,
-                      cursor: "pointer",
-                      border: selected
-                        ? "2px solid #ea1d2c"
-                        : "1px solid rgba(0,0,0,0.08)",
-                      background: selected
-                        ? "rgba(234,29,44,0.08)"
-                        : themeAtual.card,
-                      transform: selected ? "scale(0.98)" : "scale(1)",
-                      transition: "all 0.15s ease"
-                    }}
-                  >
-                    <strong>{item.nome}</strong>
+                {/* MAIS */}
+                <div
+                  onClick={() => {
+                    if (!podeAdicionar) return;
 
-                    <div style={{
-                      fontSize: 12,
-                      opacity: 0.6,
-                      marginTop: 4
-                    }}>
-                      {formatarReal(item.preco)}
-                    </div>
-                  </div>
-                );
-              })}
+                    alterarExtra(grupo.categoria, item, 1);
+                  }}
+                  style={{
+                    ...btnCounterPrimary,
+                    opacity: podeAdicionar ? 1 : 0.4
+                  }}
+                >
+                  <div style={plusIcon}>
+                 <div style={{
+                 position: "absolute",
+                 width: 2,
+                 height: 12,
+                 background: "#fff",
+                 top: -5,
+                 left: 5
+                }} />
+               </div>
+                </div>
+
+              </div>
 
             </div>
+          );
+        })}
 
-          </div>
-        );
-      })}
+      </div>
+    );
+  })}
 
-    </div>
+</div>
 
    {/* TOTAL */}
 <div style={{
@@ -3549,33 +3738,35 @@ return (
 
     {[...pedidos].reverse().map((p, i) => {
 
-      const primeiroItem = p.itens?.[0];
+      const primeiroItem = p.itens?.[0] || {};
+
+      const nomePrincipal =
+        primeiroItem?.produto?.nome ||
+        primeiroItem?.nome ||
+        "Pedido";
 
       const produtoReal = produtos.find(prod =>
         prod.id === primeiroItem?.produtoId ||
-        prod.nome === primeiroItem?.nome
+        prod.nome === nomePrincipal
       );
 
-      // 🔥 COR DO STATUS
       const corStatus =
         p.status === "preparando" ? "#facc15" :
         p.status === "saiu" ? "#60a5fa" :
         "#00c853";
 
-      // 🔥 COR PAGAMENTO
       const corPagamento =
         p.formaPagamento === "pix" ? "#a855f7" :
         p.formaPagamento === "dinheiro" ? "#22c55e" :
         "#3b82f6";
 
-      // 🔥 NOME BONITO PAGAMENTO
       const nomePagamento =
         p.formaPagamento === "pix" ? "Pix" :
         p.formaPagamento === "dinheiro" ? "Dinheiro na entrega" :
         "Cartão na entrega";
 
       return (
-        <div key={i} style={{ marginBottom: 15 }}>
+        <div key={i}>
 
           {/* DATA */}
           <p style={{
@@ -3586,123 +3777,114 @@ return (
             {new Date(p.data || Date.now()).toLocaleDateString("pt-BR")}
           </p>
 
-          {/* CARD */}
+          {/* CARD PREMIUM */}
           <div style={{
             background: themeAtual.card,
-            padding: 15,
-            borderRadius: 18,
-            boxShadow: "0 6px 25px rgba(0,0,0,0.05)"
+            padding: 16,
+            borderRadius: 20,
+            marginBottom: 15,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.06)"
           }}>
 
             {/* TOPO */}
             <div style={{
               display: "flex",
               alignItems: "center",
-              gap: 10
+              gap: 12
             }}>
 
               <img
                 src={produtoReal?.imagem || "/acai.png"}
                 style={{
-                  width: 70,
-                  height: 70,
-                  borderRadius: 12,
+                  width: 60,
+                  height: 60,
+                  borderRadius: 14,
                   objectFit: "cover"
                 }}
               />
 
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
 
-                <strong style={{ fontSize: 14 }}>
-                  {p.itens?.length === 1
-                    ? p.itens[0].nome
-                    : `${p.itens?.[0]?.nome} +${p.itens.length - 1} itens`}
-                </strong>
-
-                {/* STATUS */}
+                {/* CÓDIGO */}
                 <div style={{
                   fontSize: 12,
-                  marginTop: 4,
-                  color: corStatus,
-                  fontWeight: "bold"
+                  opacity: 0.6
                 }}>
-                  {p.status}
+                  Pedido #{p.codigo || "—"}
                 </div>
 
-                {/* 💳 PAGAMENTO (NOVO) */}
-                <div style={{ marginTop: 4 }}>
+                {/* NOME */}
+                <strong style={{
+                  fontSize: 15,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}>
+                  {p.itens?.length === 1
+                    ? nomePrincipal
+                    : `${nomePrincipal} +${p.itens.length - 1} itens`}
+                </strong>
+
+                {/* STATUS + PAGAMENTO */}
+                <div style={{
+                  display: "flex",
+                  gap: 8,
+                  marginTop: 6
+                }}>
+
+                  <span style={{
+                    background: corStatus,
+                    padding: "4px 10px",
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: "bold"
+                  }}>
+                    {p.status}
+                  </span>
+
                   <span style={{
                     background: corPagamento,
                     color: "#fff",
-                    padding: "3px 8px",
-                    borderRadius: 8,
+                    padding: "4px 10px",
+                    borderRadius: 999,
                     fontSize: 11
                   }}>
                     {nomePagamento}
                   </span>
+
                 </div>
 
               </div>
 
             </div>
 
-            {/* ITENS */}
-            <div style={{
-              marginTop: 12,
-              fontSize: 13,
-              opacity: 0.85
-            }}>
-              {p.itens?.map((item, idx) => (
-                <div key={idx} style={{ marginBottom: 6 }}>
-
-                  <div>
-                    {item.quantidade}x {item.nome}
-                  </div>
-
-                  {item.extras?.length > 0 && (
-                    <div style={{
-                      marginLeft: 10,
-                      fontSize: 12,
-                      opacity: 0.7
-                    }}>
-                      {item.extras.map(e => (
-                        <div key={e.nome}>
-                          • {e.nome}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-              ))}
-            </div>
-
             {/* TOTAL */}
             <div style={{
               marginTop: 12,
-              fontWeight: "bold",
-              fontSize: 15
+              fontSize: 18,
+              fontWeight: "bold"
             }}>
-              Total: {formatarReal(p.total)}
+              {formatarReal(p.total)}
             </div>
 
-            {/* AÇÕES */}
+            {/* BOTÕES */}
             <div style={{
               display: "flex",
               justifyContent: "space-between",
-              marginTop: 12,
-              borderTop: "1px solid rgba(0,0,0,0.08)",
-              paddingTop: 10
+              marginTop: 10
             }}>
 
-              <button style={{
-                background: "transparent",
-                border: "none",
-                color: "#ea1d2c",
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}>
-                Ajuda
+              <button
+                onClick={() => setPedidoAberto(pedidoAberto === i ? null : i)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#555",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+              >
+                {pedidoAberto === i ? "Ocultar detalhes" : "Ver detalhes"}
               </button>
 
               <button
@@ -3718,7 +3900,7 @@ return (
                     return {
                       produto: {
                         id: produtoBanco?.id,
-                        nome: item.nome,
+                        nome: item.produto?.nome || item.nome,
                         imagem: produtoBanco?.imagem || "",
                         preco: produtoBanco?.preco || 0
                       },
@@ -3733,9 +3915,11 @@ return (
                   setStep(3);
                 }}
                 style={{
-                  background: "transparent",
+                  background: "#ea1d2c",
                   border: "none",
-                  color: "#ea1d2c",
+                  color: "#fff",
+                  padding: "8px 14px",
+                  borderRadius: 12,
                   fontWeight: "bold",
                   cursor: "pointer"
                 }}
@@ -3745,11 +3929,44 @@ return (
 
             </div>
 
+            {/* DETALHES EXPANDIDOS */}
+            {pedidoAberto === i && (
+              <div style={{
+                marginTop: 15,
+                borderTop: "1px solid rgba(0,0,0,0.08)",
+                paddingTop: 10
+              }}>
+
+                {p.itens.map((item, idx) => (
+                  <div key={idx} style={{ marginBottom: 10 }}>
+
+                    <div>
+                      {item.quantidade}x {item.produto?.nome || item.nome}
+                    </div>
+
+                    {(item.extras || []).map(e => (
+                      <div key={e.nome} style={{
+                        fontSize: 12,
+                        opacity: 0.7,
+                        marginLeft: 10
+                      }}>
+                        • {e.nome}
+                      </div>
+                    ))}
+
+                  </div>
+                ))}
+
+              </div>
+            )}
+
           </div>
 
         </div>
       );
     })}
+  
+
 
     {/* VOLTAR */}
    <button

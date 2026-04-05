@@ -35,6 +35,48 @@ import {
 
 export default function Admin() {
 
+
+   const inputStyle = {
+    width: "100%",
+    padding: 12,
+    borderRadius: 12,
+    border: "none",
+    background: "#222",
+    color: "#fff",
+    marginBottom: 10
+  };
+
+  const btnPrimary = {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    border: "none",
+    background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+    color: "#fff",
+    cursor: "pointer"
+  };
+
+  const btnCancel = {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    border: "none",
+    background: "#333",
+    color: "#fff",
+    cursor: "pointer"
+  };
+
+  const btnAction = (bg) => ({
+  background: bg,
+  border: "none",
+  color: "#fff",
+  padding: "6px 10px",
+  borderRadius: 10,
+  cursor: "pointer",
+  fontSize: 12
+});
+
+
   const router = useRouter();
 
   const [pedidos, setPedidos] = useState([]);
@@ -202,9 +244,7 @@ function moverItem(catIndex, itemIndex, direcao) {
 // salvarExtras
 async function salvarExtras() {
   try {
-    await setDoc(doc(db, "config", "loja"), {
-    extras
-    }, { merge: true });
+    
 
     alert("Extras salvos com sucesso 🚀");
   } catch (err) {
@@ -524,69 +564,58 @@ async function atualizarStatus(id, status) {
 }
 // 🔥 EABRIR EDITACAO
 function abrirEdicao(p) {
-  setNovoNome(p.nome || "");
-  setNovoPreco((p.preco || 0) / 100);
+  setNovoNome(p.nome);
+  setNovoPreco((p.preco / 100).toFixed(2));
   setNovoTamanho(p.tamanho || "");
   setNovaDescricao(p.descricao || "");
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
+  setCategoria(p.categoria || "");
 
-  // 🔥 CORREÇÃO AQUI (ESSENCIAL)
-  setExtras(p.extras || []);
+  setExtras(p.extras || []); // 🔥 ESSENCIAL
 
-  setEditandoProduto(p);
   setMostrarModalProduto(true);
-  
 }
 
 // 🔥 EDITAR PRODUTOS
 async function salvarProduto() {
-
-  if (!novoNome || !novoPreco) {
-    alert("Preencha nome e preço");
-    return;
-  }
+  if (!novoNome || !novoPreco) return alert("Preencha os campos");
 
   const dados = {
-  nome: novoNome,
-  preco: converterParaCentavos(novoPreco),
-  tamanho: novoTamanho,
-  descricao: novaDescricao,
-  imagem: novaImagem,
-  ativo: true,
-  maisVendido: maisVendido,
-  categoria: categoria
-};
+    nome: novoNome,
+    preco: converterParaCentavos(novoPreco),
+    tamanho: novoTamanho,
+    descricao: novaDescricao,
+    imagem: novaImagem,
+    ativo: true,
+    maisVendido,
+    categoria,
 
-  if (editandoProduto) {
-    // 🔥 ATUALIZA
-    await updateDoc(doc(db, "produtos", editandoProduto.id), dados);
-  } else {
-    // 🔥 CRIA NOVO
-    await addDoc(collection(db, "produtos"), {
-      ...dados,
-      ordem: Date.now()
-    });
-  }
+    // 🔥 EXTRA CORRETO
+    extras: extras
+  };
 
-  // 🔥 RESET
-  setNovoNome("");
-  setNovoPreco("");
-  setNovoTamanho("");
-  setNovaDescricao("");
-  setNovaImagem("");
-  setMaisVendido(false);
-  setEditandoProduto(null);
-  
+  await addDoc(collection(db, "produtos"), dados);
 
   setMostrarModalProduto(false);
-  setExtras([]);
 }
 
-async function toggleProduto(produto) {
-  await updateDoc(doc(db, "produtos", produto.id), {
-    ativo: !produto.ativo
-  });
+
+
+async function toggleProduto(p) {
+  try {
+
+    const ref = doc(db, "produtos", p.id);
+
+    await updateDoc(ref, {
+      ativo: !p.ativo
+    });
+
+    console.log("🔥 status atualizado:", !p.ativo);
+
+  } catch (e) {
+    console.log("❌ erro ao atualizar:", e);
+  }
 }
 
 
@@ -629,22 +658,6 @@ async function limparPedidos() {
     alert("Erro ao apagar pedidos");
   }
 }
-
-useEffect(() => {
-  async function carregarExtras() {
-    try {
-      const snap = await getDoc(doc(db, "config", "loja"));
-
-      if (snap.exists()) {
-        setExtras(snap.data().extras || []);
-      }
-    } catch (err) {
-      console.log("Erro ao carregar extras:", err);
-    }
-  }
-
-  carregarExtras();
-}, []);
 
  // 🎟️ CUPONS
 async function carregarCupons() {
@@ -1228,571 +1241,292 @@ return (
 ))}
 </div>
 
+
 {/* 💰 MODAL PRODUTO */}
 {mostrarModalProduto && (
   <div style={{
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.6)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(0,0,0,0.75)",
+    backdropFilter: "blur(10px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999
   }}>
     <div style={{
-      background: "#111",
-      padding: 25,
-      borderRadius: 20,
-      width: 320,
-      boxShadow: "0 0 25px rgba(122,0,255,0.4)"
+      background: "#0f0f0f",
+      padding: 20,
+      borderRadius: 24,
+      width: 380,
+      maxHeight: "90vh",
+      overflowY: "auto"
     }}>
 
-      <h3 style={{ marginBottom: 15 }}>🍧 Novo Produto</h3>
+      <h3>🍧 Produto</h3>
 
-      {/* 🔥 NOME */}
+      {/* NOME */}
       <input
         placeholder="Nome"
         value={novoNome}
         onChange={(e) => setNovoNome(e.target.value)}
-        style={{
-          width: "100%",
-          padding: 12,
-          borderRadius: 10,
-          border: "none",
-          marginBottom: 10,
-          background: "#222",
-          color: "#fff"
-        }}
+        style={inputStyle}
       />
-{/* 🔥 nova categoria */}
-      <select
-       value={categoria}
-       onChange={(e) => setCategoria(e.target.value)}
-       >
-      {categorias.map(c => (
-      <option key={c.slug} value={c.slug}>
-      {c.nome}
-      </option>
-       ))}
+
+      {/* CATEGORIA */}
+      <select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}>
+        {categorias.map(c => (
+          <option key={c.slug} value={c.slug}>{c.nome}</option>
+        ))}
       </select>
 
-      {/* 🔥 nova categoria */}
+      {/* PREÇO */}
       <input
-  placeholder="Nova categoria (ex: Açaí)"
-  value={novaCategoria}
-  onChange={(e) => setNovaCategoria(e.target.value)}
-/>
-
-<button onClick={criarCategoria}>
-  ➕ Criar Categoria
-</button>
-
-      {/* 🔥 PREÇO */}
-      <input
-        placeholder="Preço"
+        placeholder="Preço (ex: 12.90)"
         value={novoPreco}
         onChange={(e) => setNovoPreco(e.target.value)}
-        style={{
-          width: "100%",
-          padding: 12,
-          borderRadius: 10,
-          border: "none",
-          marginBottom: 10,
-          background: "#222",
-          color: "#fff"
-        }}
+        style={inputStyle}
       />
 
-      {/* 🔥 TAMANHO */}
+      {/* TAMANHO */}
       <input
-        placeholder="Tamanho (ex: 500ml)"
+        placeholder="Tamanho"
         value={novoTamanho}
         onChange={(e) => setNovoTamanho(e.target.value)}
-        style={{
-          width: "100%",
-          padding: 12,
-          borderRadius: 10,
-          border: "none",
-          marginBottom: 10,
-          background: "#222",
-          color: "#fff"
-        }}
+        style={inputStyle}
       />
 
-   {extras.map((e, i) => (
-  <div key={i}>
-    {e.nome} - {formatarReal(e.preco)}
-
-    <button onClick={() => {
-      setExtras(prev => prev.filter((_, index) => index !== i));
-    }}>
-      ❌
-    </button>
-  </div>
-))}
-
-      {/* 🔥 DESCRIÇÃO */}
+      {/* DESCRIÇÃO */}
       <input
-        placeholder="Descrição (ex: banana + granola + leite condensado)"
+        placeholder="Descrição"
         value={novaDescricao}
         onChange={(e) => setNovaDescricao(e.target.value)}
-        style={{
-          width: "100%",
+        style={inputStyle}
+      />
+
+      {/* 🔥 EXTRAS PROFISSIONAL */}
+      <h3>⚙️ Extras</h3>
+
+      {/* ADD CATEGORIA */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <input
+          placeholder="Categoria (ex: Complementos)"
+          value={novaCategoria}
+          onChange={e => setNovaCategoria(e.target.value)}
+          style={{ ...inputStyle, flex: 1 }}
+        />
+
+        <button onClick={() => {
+          if (!novaCategoria) return;
+
+          setExtras(prev => [
+            ...prev,
+            {
+              categoria: novaCategoria,
+              min: 0,
+              max: 5,
+              itens: []
+            }
+          ]);
+
+          setNovaCategoria("");
+        }}>
+          ➕
+        </button>
+      </div>
+
+      {/* LISTA DE GRUPOS */}
+      {extras.map((grupo, i) => (
+        <div key={i} style={{
+          background: "#1a1a1a",
           padding: 12,
-          borderRadius: 10,
-          border: "none",
-          marginBottom: 10,
-          background: "#222",
-          color: "#fff"
-        }}
-      />
+          borderRadius: 16,
+          marginTop: 12
+        }}>
 
-      <h4 style={{ marginTop: 10 }}>Extras</h4>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between"
+          }}>
+            <strong>{grupo.categoria}</strong>
 
-<input
-  placeholder="Nome do extra"
-  value={extraNome}
-  onChange={(e) => setExtraNome(e.target.value)}
-/>
+            <button onClick={() => {
+              setExtras(prev => prev.filter((_, index) => index !== i));
+            }}>❌</button>
+          </div>
 
-<input
-  placeholder="Preço (ex: 1,50)"
-  value={extraPreco}
-  onChange={(e) => setExtraPreco(e.target.value)}
-/>
+          {/* ITENS */}
+          {(grupo.itens || []).map((item, j) => (
+            <div key={j} style={{
+              display: "flex",
+              gap: 6,
+              marginTop: 6
+            }}>
+              <input
+                placeholder="Nome"
+                value={item.nome}
+                onChange={(e) => {
+                  const novo = [...extras];
+                  novo[i].itens[j].nome = e.target.value;
+                  setExtras(novo);
+                }}
+                style={{ ...inputStyle, flex: 1 }}
+              />
 
-<button
-  onClick={() => {
-    if (!extraNome || !extraPreco) return;
+              <input
+                type="number"
+                placeholder="R$"
+                value={item.preco / 100}
+                onChange={(e) => {
+                  const novo = [...extras];
+                  novo[i].itens[j].preco = Math.round(Number(e.target.value) * 100);
+                  setExtras(novo);
+                }}
+                style={{ width: 70 }}
+              />
 
-    setExtras(prev => [
-      ...prev,
-      {
-        nome: extraNome,
-        preco: converterParaCentavos(extraPreco)
-      }
-    ]);
+              <button onClick={() => {
+                const novo = [...extras];
+                novo[i].itens.splice(j, 1);
+                setExtras(novo);
+              }}>❌</button>
+            </div>
+          ))}
 
-    setExtraNome("");
-    setExtraPreco("");
-  }}
->
-  ➕ Adicionar Extra
-</button>
+          <button onClick={() => {
+            const novo = [...extras];
+            novo[i].itens.push({ nome: "", preco: 0 });
+            setExtras(novo);
+          }}>
+            ➕ Item
+          </button>
 
+        </div>
+      ))}
 
-      {/* 🔥 IMAGEM BASE64 */}
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files[0];
+      {/* IMAGEM */}
+      <input type="file" accept="image/*" onChange={(e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-          if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => setNovaImagem(reader.result);
+        reader.readAsDataURL(file);
+      }} />
 
-          if (file.size > 500000) {
-            alert("Imagem muito grande (máx 500kb)");
-            return;
-          }
+      {/* MAIS VENDIDO */}
+      <label style={{ color: "#fff" }}>
+        <input
+          type="checkbox"
+          checked={maisVendido}
+          onChange={(e) => setMaisVendido(e.target.checked)}
+        />
+        🔥 Mais vendido
+      </label>
 
-          const reader = new FileReader();
-
-          reader.onloadend = () => {
-            setNovaImagem(reader.result); // ✅ CORRETO
-          };
-
-          reader.readAsDataURL(file);
-        }}
-        style={{ marginBottom: 10 }}
-      />
-
-      {/* 🔥 MAIS VENDIDO */}
-<label style={{
-  color: "#fff",
-  display: "flex",
-  alignItems: "center",
-  gap: 6,
-  marginBottom: 12
-}}>
-  <input
-    type="checkbox"
-    checked={maisVendido}
-    onChange={(e) => setMaisVendido(e.target.checked)}
-  />
-  🔥 Marcar como mais vendido
-</label>
-
-      {/* 🔥 BOTÕES */}
+      {/* BOTÕES */}
       <div style={{ display: "flex", gap: 10 }}>
-
-        <button
-          onClick={salvarProduto}
-          style={{
-            flex: 1,
-            padding: 12,
-            borderRadius: 10,
-            border: "none",
-            background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-            color: "#fff",
-            cursor: "pointer"
-          }}
-        >
-          💾 Salvar
-        </button>
-
-        <button
-          onClick={() => setMostrarModalProduto(false)}
-          style={{
-            flex: 1,
-            padding: 12,
-            borderRadius: 10,
-            border: "none",
-            background: "#333",
-            color: "#fff",
-            cursor: "pointer"
-          }}
-        >
-          ❌ Cancelar
-        </button>
-
+        <button onClick={salvarProduto} style={btnPrimary}>💾 Salvar</button>
+        <button onClick={() => setMostrarModalProduto(false)} style={btnCancel}>Cancelar</button>
       </div>
 
     </div>
   </div>
 )}
 
-
-{/* 🍧 CARD PRODUTOS */}
+{/* 🔥 PRODUTOS */}
 <div className="card">
   <h2>🍧 Produtos</h2>
 
-
-
-  {/* 🔥 EXTRAS GLOBAIS */}
-<div style={{
-  marginTop: 30,
-  background: "#1a1a1a",
-  padding: 20,
-  borderRadius: 16
-}}>
-
-<h3>🍧 Extras (Categorias)</h3>
-
-{/* NOVA CATEGORIA */}
-<div style={{ display: "flex", gap: 10 }}>
-  <input
-    placeholder="Categoria"
-    value={novaCategoria}
-    onChange={e => setNovaCategoria(e.target.value)}
-  />
-
-  <input
-    placeholder="Min"
-    type="number"
-    value={min}
-    onChange={e => setMin(e.target.value)}
-  />
-
-  <input
-    placeholder="Max"
-    type="number"
-    value={max}
-    onChange={e => setMax(e.target.value)}
-  />
-
-  <button onClick={adicionarCategoria}>+</button>
-</div>
-
-{/* LISTA */}
-{extras.map((cat, i) => (
-  <div key={i} style={{
-    background: "#1a1a1a",
-    padding: 15,
-    borderRadius: 12,
-    marginTop: 10
-  }}>
-
-    {/* 🔥 HEADER CORRETO */}
-    <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }}>
-
-      <strong style={{
-        color: cat.min > 0 ? "#ff3d00" : "#fff"
-      }}>
-        {cat.categoria} {cat.min > 0 && "⚠️ obrigatório"}
-      </strong>
-
-      {/* ❌ BOTÃO REMOVER */}
-      <button
-        onClick={() => removerCategoria(i)}
-        style={{
-          background: "rgba(255,0,0,0.1)",
-          border: "none",
-          borderRadius: 8,
-          padding: "4px 8px",
-          cursor: "pointer",
-          color: "#ff3d00",
-          fontWeight: "bold"
-        }}
-      >
-        ❌
-      </button>
-
-    </div>
-
-    {/* 🔥 PREVIEW (AGORA NO LUGAR CERTO) */}
-    <div style={{
-      marginTop: 10,
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 6
-    }}>
-      {(cat.itens || []).map((item, j) => (
-        <div key={j} style={{
-          background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
-          color: "#fff",
-          padding: "4px 10px",
-          borderRadius: 999,
-          fontSize: 11
-        }}>
-          {item.nome}
-        </div>
-      ))}
-    </div>
-
-
-{(cat.itens || []).map((item, j) => (
-  <div key={j} style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 8
-  }}>
-
-    {/* 🔥 NOME */}
-    <input
-      value={item.nome}
-      onChange={e => editarItem(i, j, "nome", e.target.value)}
-      style={{
-        flex: 1,
-        padding: 8,
-        borderRadius: 8
-      }}
-    />
-
-    {/* 💰 PREÇO */}
-    <input
-      type="number"
-      value={item.preco || ""}
-      onChange={e => editarItem(i, j, "preco", e.target.value)}
-      style={{
-        width: 90,
-        padding: 8,
-        borderRadius: 8
-      }}
-    />
-
-    {/* 🔼 */}
-    <button onClick={() => moverItem(i, j, -1)}>⬆️</button>
-
-    {/* 🔽 */}
-    <button onClick={() => moverItem(i, j, 1)}>⬇️</button>
-
-    {/* ❌ */}
-    <button onClick={() => removerItem(i, j)}>❌</button>
-
-  </div>
-))}
-
-    <div style={{ display: "flex", gap: 10 }}>
-      <input
-        placeholder="Nome"
-        value={novoItem[i]?.nome || ""}
-        onChange={e =>
-          setNovoItem(prev => ({
-            ...prev,
-            [i]: { ...prev[i], nome: e.target.value }
-          }))
-        }
-      />
-
-      <input
-        placeholder="Preço (200)"
-        value={novoItem[i]?.preco || ""}
-        onChange={e =>
-          setNovoItem(prev => ({
-            ...prev,
-            [i]: { ...prev[i], preco: e.target.value }
-          }))
-        }
-      />
-
-      <button onClick={() => adicionarItem(i)}>+</button>
-    </div>
-
-  </div>
-))}
-
-<button onClick={salvarExtras}>
-  💾 Salvar Extras
-</button>
-
-</div>
-
-  {/* 🔥 BOTÃO NOVO PRODUTO */}
+  {/* NOVO PRODUTO */}
   <button
     onClick={() => setMostrarModalProduto(true)}
     style={{
       marginBottom: 10,
-      padding: 12,
-      borderRadius: 12,
-      background: "linear-gradient(90deg,#6a00ff,#ff2aff)",
+      padding: 14,
+      borderRadius: 14,
+      background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
       color: "#fff",
       border: "none",
       cursor: "pointer",
-      width: "100%"
+      width: "100%",
+      fontWeight: "bold",
+      fontSize: 15,
+      boxShadow: "0 6px 20px rgba(234,29,44,0.3)"
     }}
   >
     ➕ Novo Produto
   </button>
 
+  {/* LISTA */}
+  {produtos.length === 0 ? (
+    <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
+  ) : (
+    produtos.map(p => (
+      <div
+        key={p.id}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: 14,
+          borderRadius: 16,
+          background: "rgba(255,255,255,0.04)",
+          marginBottom: 12,
+          border: p.maisVendido ? "1px solid #ea1d2c" : "1px solid rgba(255,255,255,0.05)"
+        }}
+      >
 
+        {/* ESQUERDA */}
+        <div style={{ display: "flex", gap: 12 }}>
 
-  {/* 🔥 LISTA */}
-{produtos.length === 0 ? (
-  <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
-) : (
-  produtos.map(p => (
-    <div
-      key={p.id}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: 12,
-        borderRadius: 14,
-        background: "rgba(255,255,255,0.05)",
-        marginBottom: 10,
-        gap: 10,
-        border: p.maisVendido ? "1px solid #ff2aff" : "1px solid transparent"
-      }}
-    >
-
-
-      {/* 🔥 ESQUERDA */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-
-        {/* 🔥 ORDEM */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <button onClick={() => moverProduto(p, -1)}>⬆️</button>
-          <button onClick={() => moverProduto(p, 1)}>⬇️</button>
-        </div>
-
-        {/* 🔥 IMAGEM */}
-        {p.imagem ? (
           <img
-            src={p.imagem}
-            onError={(e) => (e.target.src = "/acai.png")}
+            src={p.imagem || "/acai.png"}
             style={{
-              width: 50,
-              height: 50,
-              borderRadius: 10,
+              width: 55,
+              height: 55,
+              borderRadius: 12,
               objectFit: "cover"
             }}
           />
-        ) : (
-          <div style={{
-            width: 50,
-            height: 50,
-            borderRadius: 10,
-            background: "#222",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}>
-            🍧
+
+          <div>
+            <strong>{p.nome}</strong>
+
+            <p style={{ fontSize: 13 }}>
+              {formatarReal(p.preco)} • {p.tamanho || ""}
+            </p>
+
+            <small style={{ opacity: 0.7 }}>
+              {p.ativo ? "🟢 Ativo" : "🔴 Inativo"}
+            </small>
+
+            {/* 🔥 MOSTRAR EXTRAS */}
+            {p.extras?.length > 0 && (
+              <div style={{
+                fontSize: 11,
+                marginTop: 4,
+                opacity: 0.6
+              }}>
+                ⚙️ {p.extras.length} categorias de extras
+              </div>
+            )}
+
           </div>
-        )}
 
-        {/* 🔥 INFO */}
-        <div>
-          <strong>{p.nome}</strong>
-
-          <p style={{ fontSize: 13 }}>
-            {formatarReal(p.preco)} • {p.tamanho || ""}
-          </p>
-
-          <small style={{ opacity: 0.7 }}>
-            {p.ativo ? "🟢 Ativo" : "🔴 Inativo"}
-          </small>
-
-          {/* 🔥 BADGE */}
-          {p.maisVendido && (
-            <div style={{
-              fontSize: 10,
-              color: "#ff2aff",
-              marginTop: 2
-            }}>
-              🔥 Mais vendido
-            </div>
-          )}
         </div>
 
-      </div>
+        {/* AÇÕES */}
+        <div style={{ display: "flex", gap: 6 }}>
 
-      {/* 🔥 DIREITA (AÇÕES) */}
-      <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => abrirEdicao(p)}>✏️</button>
 
-        {/* ✏️ EDITAR */}
-        <button
-          onClick={() => abrirEdicao(p)}
-          style={{
-            background: "#6a00ff",
-            border: "none",
-            color: "#fff",
-            padding: "6px 10px",
-            borderRadius: 8,
-            cursor: "pointer"
-          }}
-        >
-          ✏️
-        </button>
+          <button onClick={() => toggleProduto(p)}>
+            {p.ativo ? "🚫" : "✅"}
+          </button>
 
-        {/* ATIVAR/DESATIVAR */}
-        <button
-          onClick={() => toggleProduto(p)}
-          style={{
-            background: p.ativo ? "#444" : "#00c853",
-            border: "none",
-            color: "#fff",
-            padding: "6px 10px",
-            borderRadius: 8,
-            cursor: "pointer"
-          }}
-        >
-          {p.ativo ? "🚫" : "✅"}
-        </button>
+          <button onClick={() => excluirProduto(p)}>🗑️</button>
 
-        {/* EXCLUIR */}
-        <button
-          onClick={() => excluirProduto(p)}
-          style={{
-            background: "#ff4444",
-            border: "none",
-            color: "#fff",
-            padding: "6px 10px",
-            borderRadius: 8,
-            cursor: "pointer"
-          }}
-        >
-          🗑️
-        </button>
-
-      </div>
+        </div>
 
     </div>
   ))
@@ -2030,6 +1764,7 @@ return (
 
           </div>
         ))}
+        
 
   </div>
 
