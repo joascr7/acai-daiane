@@ -2575,7 +2575,7 @@ return (
       justifyContent: "center"
     }}>
       <img
-        src="/icones.png"
+        src="/icones1.png"
         style={{
           width: 560, // 🔥 REDUZI (ANTES ESTAVA GRANDE)
           maxWidth: "85%",
@@ -2586,7 +2586,7 @@ return (
 
     {/* 🔥 CONTAINER */}
     <div style={{
-      marginTop: -80,
+      marginTop: -30,
       background: "#fff",
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
