@@ -2366,6 +2366,7 @@ return (
 
 
 
+{/* 🔥 HEADER PADRÃO COM NOTCH */}
 {!(aba === "home" && step === 1) && (
   <div style={{
     position: "fixed",
@@ -2374,16 +2375,22 @@ return (
     transform: "translateX(-50%)",
     width: "100%",
     maxWidth: isMobile ? 420 : 1000,
-    height: 70,
+
+    // 🔥 NOTCH AQUI
+    paddingTop: "env(safe-area-inset-top)",
+    height: "calc(60px + env(safe-area-inset-top))",
+
     background: "#ea1d2c",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0px",
+    paddingLeft: 16,
+    paddingRight: 16,
+
     zIndex: 9999
   }}>
 
-    {/* 🔥 MENU (IGUAL IFOOD) */}
+    {/* MENU */}
     <div
       onClick={() => setMenuAberto(true)}
       style={{
@@ -2398,16 +2405,16 @@ return (
       <Menu size={24} color="#fff" />
     </div>
 
-    {/* 🔥 LOGO CENTRAL */}
+    {/* LOGO CENTRAL */}
     <img
       src="/logo.jpg"
       style={{
-        height: 32,
+        height: 28,
         objectFit: "contain"
       }}
     />
 
-    {/* 🔥 CARRINHO PADRÃO */}
+    {/* CARRINHO */}
     <div
       onClick={() => {
         setAba("carrinho");
@@ -2439,8 +2446,7 @@ return (
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontWeight: "bold",
-          padding: "0 4px"
+          fontWeight: "bold"
         }}>
           {carrinho.length}
         </div>
@@ -2569,7 +2575,7 @@ return (
       justifyContent: "center"
     }}>
       <img
-        src="/icones.png"
+        
         style={{
           width: 560, // 🔥 REDUZI (ANTES ESTAVA GRANDE)
           maxWidth: "85%",
