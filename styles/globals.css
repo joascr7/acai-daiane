@@ -557,3 +557,18 @@ button:active {
   }
 }
 
+
+.container {
+  background: #0f0f0f;
+  min-height: 100vh;
+  padding: 20px;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+}
+
+.wrapper {
+  width: 100%;
+  max-width: 1200px;
+}

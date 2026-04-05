@@ -45,17 +45,7 @@ export default function Admin() {
     color: "#fff",
     marginBottom: 10
   };
-
-  const btnPrimary = {
-    flex: 1,
-    padding: 12,
-    borderRadius: 14,
-    border: "none",
-    background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
-    color: "#fff",
-    cursor: "pointer"
-  };
-
+  
   const btnCancel = {
     flex: 1,
     padding: 12,
@@ -76,6 +66,85 @@ export default function Admin() {
   fontSize: 12
 });
 
+const cardDash = {
+  background: "#1a1a1a",
+  padding: 16,
+  borderRadius: 16,
+  display: "flex",
+  flexDirection: "column",
+  gap: 6
+};
+
+const btnSecondary = {
+  flex: 1,
+  padding: 14,
+  borderRadius: 14,
+  border: "1px solid #ddd",
+  background: "#fff",
+  cursor: "pointer"
+};
+
+
+const card = {
+  background: "#ffffff",
+  borderRadius: 20,
+  padding: 20,
+  marginBottom: 20,
+  boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
+};
+
+const input = {
+  width: "100%",
+  padding: "14px 16px",
+  borderRadius: 14,
+  border: "1px solid #eee",
+  fontSize: 14,
+  boxSizing: "border-box",
+  background: "#fff",
+  color: "#111",
+  outline: "none"
+};
+
+const btnPrimary = {
+  padding: 14,
+  borderRadius: 14,
+  border: "none",
+  background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+  color: "#fff",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
+
+const btnSuccess = {
+  flex: 1,
+  padding: 12,
+  borderRadius: 12,
+  border: "none",
+  background: "#00c853",
+  color: "#fff",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
+
+const btnDanger = {
+  flex: 1,
+  padding: 12,
+  borderRadius: 12,
+  border: "none",
+  background: "#ff3b30",
+  color: "#fff",
+  fontWeight: "bold",
+  cursor: "pointer"
+};
+
+const btnDangerSmall = {
+  padding: "6px 10px",
+  borderRadius: 10,
+  border: "none",
+  background: "#ff3b30",
+  color: "#fff",
+  cursor: "pointer"
+};
 
   const router = useRouter();
 
@@ -765,229 +834,240 @@ if (loadingAuth) {
 // 🔥 RENDER
 return (
   <div className="container">
-    <div className="wrapper">
+  <div className="wrapper">
 
-      <div className="header">
-        <h1>Painel Admin</h1>
-        <button onClick={logout}>Sair</button>
-      </div>
+    {/* 🔥 HEADER */}
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20
+    }}>
+      <h1 style={{ margin: 0 }}>Painel Admin</h1>
 
-      <button 
-  onClick={limparPedidos}
-  style={{
-    background: "red",
-    color: "white",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10
-  }}
->
-  🗑️ Limpar pedidos
-</button>
-
-
-<div style={{
-  background: "#111",
-  padding: 20,
-  borderRadius: 16,
-  marginTop: 20
-}}>
-
-
-  <select
-  value={clienteSelecionado}
-  onChange={(e) => setClienteSelecionado(e.target.value)}
-  style={{
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10
-  }}
->
-
-  <option value="">Selecionar cliente</option>
-
-  {clientes.map(c => (
-    <option key={c.id} value={c.id}>
-      {c.clienteNome || "Sem nome"} - {c.clienteTelefone || ""}
-    </option>
-  ))}
-
-</select>
-
-  <h3 style={{ marginBottom: 10 }}>🔔 Enviar notificação</h3>
-
-  {/* INPUT */}
-  <input
-    placeholder="Digite a notificação..."
-    value={textoNotificacao}
-    onChange={(e) => setTextoNotificacao(e.target.value)}
-    style={{
-      width: "100%",
-      padding: 10,
-      borderRadius: 10,
-      border: "none",
-      marginBottom: 10
-    }}
-  />
-
-  <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      setImagemTemp(reader.result); // 🔥 salva temporária
-      setMostrarCrop(true);         // 🔥 abre modal
-    };
-
-    reader.readAsDataURL(file);
-  }}
-  style={{
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
-    background: "#222",
-    color: "#fff"
-  }}
-/>
-
-
-{/* 🔥 CORTE DE IMAGEM UPLOAD */}
-{mostrarCrop && imagemTemp && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.9)",
-    zIndex: 9999,
-    display: "flex",
-    flexDirection: "column"
-  }}>
-
-    <div style={{ flex: 1, position: "relative" }}>
-      <Cropper
-        image={imagemTemp}
-        crop={crop}
-        zoom={zoom}
-        aspect={2 / 1}
-        onCropChange={setCrop}
-        onZoomChange={setZoom}
-        onCropComplete={(croppedArea, croppedPixels) => {
-          setCroppedAreaPixels(croppedPixels);
-        }}
-      />
+      <button onClick={logout} style={btnPrimary}>
+        Sair
+      </button>
     </div>
 
-    <div style={{ padding: 20, background: "#111" }}>
+    {/* 🔥 LIMPAR PEDIDOS */}
+    <button 
+      onClick={limparPedidos}
+      style={{
+        background: "#ff3b30",
+        color: "#fff",
+        padding: 12,
+        borderRadius: 12,
+        border: "none",
+        width: "100%",
+        marginBottom: 20,
+        fontWeight: "bold",
+        cursor: "pointer"
+      }}
+    >
+      Limpar pedidos
+    </button>
 
+    {/* 🔥 CARD */}
+    <div style={{
+      background: "#ffffff",
+      padding: 20,
+      borderRadius: 20,
+      boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
+    }}>
+
+      {/* SELECT */}
+      <select
+        value={clienteSelecionado}
+        onChange={(e) => setClienteSelecionado(e.target.value)}
+        style={input}
+      >
+        <option value="">Selecionar cliente</option>
+
+        {clientes.map(c => (
+          <option key={c.id} value={c.id}>
+            {c.clienteNome || "Sem nome"} - {c.clienteTelefone || ""}
+          </option>
+        ))}
+      </select>
+
+      <h3 style={{ marginBottom: 10 }}>Enviar notificação</h3>
+
+      {/* INPUT TEXTO */}
       <input
-        type="range"
-        min={1}
-        max={3}
-        step={0.1}
-        value={zoom}
-        onChange={(e) => setZoom(e.target.value)}
-        style={{ width: "100%" }}
+        placeholder="Digite a notificação..."
+        value={textoNotificacao}
+        onChange={(e) => setTextoNotificacao(e.target.value)}
+        style={input}
       />
 
-      <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+      {/* UPLOAD */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
 
-        <button onClick={() => setMostrarCrop(false)}>
-          ❌ Cancelar
-        </button>
+          const file = e.target.files[0];
+          if (!file) return;
 
-        <button
-          onClick={async () => {
+          const reader = new FileReader();
 
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
+          reader.onload = () => {
+            setImagemTemp(reader.result);
+            setMostrarCrop(true);
+          };
 
-            const img = new Image();
-            img.src = imagemTemp;
+          reader.readAsDataURL(file);
+        }}
+        style={{
+          ...input,
+          background: "#f7f7f7",
+          cursor: "pointer"
+        }}
+      />
 
-            await new Promise(resolve => img.onload = resolve);
+      {/* 🔥 CROP */}
+      {mostrarCrop && imagemTemp && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.9)",
+          zIndex: 9999,
+          display: "flex",
+          flexDirection: "column"
+        }}>
 
-            canvas.width = croppedAreaPixels.width;
-            canvas.height = croppedAreaPixels.height;
+          <div style={{ flex: 1, position: "relative" }}>
+            <Cropper
+              image={imagemTemp}
+              crop={crop}
+              zoom={zoom}
+              aspect={2 / 1}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(croppedArea, croppedPixels) => {
+                setCroppedAreaPixels(croppedPixels);
+              }}
+            />
+          </div>
 
-            ctx.drawImage(
-              img,
-              croppedAreaPixels.x,
-              croppedAreaPixels.y,
-              croppedAreaPixels.width,
-              croppedAreaPixels.height,
-              0,
-              0,
-              croppedAreaPixels.width,
-              croppedAreaPixels.height
-            );
+          <div style={{
+            padding: 20,
+            background: "#fff"
+          }}>
 
-            const base64 = canvas.toDataURL("image/jpeg", 0.8);
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(e.target.value)}
+              style={{ width: "100%" }}
+            />
 
-            setImagemNotificacao(base64); // 🔥 salva FINAL
-            setMostrarCrop(false);
+            <div style={{
+              display: "flex",
+              gap: 10,
+              marginTop: 10
+            }}>
 
-          }}
-        >
-          💾 Salvar
-        </button>
+              <button onClick={() => setMostrarCrop(false)} style={btnSecondary}>
+                Cancelar
+              </button>
 
-      </div>
+              <button
+                onClick={async () => {
 
+                  const canvas = document.createElement("canvas");
+                  const ctx = canvas.getContext("2d");
+
+                  const img = new Image();
+                  img.src = imagemTemp;
+
+                  await new Promise(resolve => img.onload = resolve);
+
+                  canvas.width = croppedAreaPixels.width;
+                  canvas.height = croppedAreaPixels.height;
+
+                  ctx.drawImage(
+                    img,
+                    croppedAreaPixels.x,
+                    croppedAreaPixels.y,
+                    croppedAreaPixels.width,
+                    croppedAreaPixels.height,
+                    0,
+                    0,
+                    croppedAreaPixels.width,
+                    croppedAreaPixels.height
+                  );
+
+                  const base64 = canvas.toDataURL("image/jpeg", 0.8);
+
+                  setImagemNotificacao(base64);
+                  setMostrarCrop(false);
+
+                }}
+                style={btnPrimary}
+              >
+                Salvar
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+  
+{/* 🔥 PREVIEW IMAGEM */}
+{imagemNotificacao && (
+  <div style={{
+    position: "relative",
+    marginBottom: 12
+  }}>
+
+    <img
+      src={imagemNotificacao}
+      style={{
+        width: "100%",
+        height: 140,
+        objectFit: "cover",
+        borderRadius: 16
+      }}
+    />
+
+    {/* BOTÃO REMOVER (FLUTUANTE) */}
+    <div
+      onClick={() => setImagemNotificacao("")}
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        width: 32,
+        height: 32,
+        borderRadius: "50%",
+        background: "rgba(0,0,0,0.6)",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        fontSize: 14
+      }}
+    >
+      ✕
     </div>
 
   </div>
 )}
 
-{/* 🔥 AQUI (PREVIEW) */}
-{imagemNotificacao && (
-  <img
-    src={imagemNotificacao}
-    style={{
-      width: "100%",
-      height: 130,
-      objectFit: "cover",
-      borderRadius: 12,
-      marginBottom: 10,
-      boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
-    }}
-  />
-)}
-
-{imagemNotificacao && (
-  <button
-    onClick={() => setImagemNotificacao("")}
-    style={{
-      width: "100%",
-      padding: 10,
-      borderRadius: 10,
-      border: "none",
-      background: "#ff0033",
-      color: "#fff",
-      marginBottom: 10,
-      cursor: "pointer"
-    }}
-  >
-    ❌ Remover imagem
-  </button>
-)}
-
-{/* 🔥 AQUI ENTRA O SELECT */}
+{/* 🔥 SELECT PRODUTO */}
 <select
   value={produtoSelecionado}
   onChange={(e) => setProdutoSelecionado(e.target.value)}
-  style={{
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10
-  }}
+  style={input}
 >
   <option value="">Selecionar produto (opcional)</option>
 
@@ -996,96 +1076,81 @@ return (
       {p.nome}
     </option>
   ))}
-
 </select>
 
-  {/* BOTÕES */}
-  <div style={{ display: "flex", gap: 10 }}>
+{/* 🔥 BOTÕES */}
+<div style={{
+  display: "flex",
+  gap: 10,
+  marginTop: 10
+}}>
 
-    <button
-      onClick={() => enviarNotificacao("todos")}
-      style={{
-        flex: 1,
-        padding: 10,
-        borderRadius: 10,
-        border: "none",
-        background: "#6a00ff",
-        color: "#fff",
-        fontWeight: "bold"
-      }}
-    >
-      📢 Enviar para TODOS
-    </button>
+  <button
+    onClick={() => enviarNotificacao("todos")}
+    style={btnPrimary}
+  >
+    Enviar para todos
+  </button>
 
-    <button
-  onClick={() => enviarNotificacao("usuario")}
-  style={{
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    background: "#00c853",
-    color: "#fff",
-    fontWeight: "bold"
-  }}
->
-  👤 Enviar para cliente
-</button>
-
-  </div>
+  <button
+    onClick={() => enviarNotificacao("usuario")}
+    style={btnSuccess}
+  >
+    Enviar para cliente
+  </button>
 
 </div>
 
-<div style={{ marginTop: 20 }}>
+{/* 🔥 LISTA */}
+<div style={{ marginTop: 25 }}>
 
-  <h3>📩 Notificações enviadas</h3>
+  <h3 style={{ marginBottom: 10 }}>Notificações enviadas</h3>
 
   {notificacoes.length === 0 && (
-    <p>Nenhuma notificação</p>
+    <p style={{ color: "#666" }}>Nenhuma notificação</p>
   )}
 
   {notificacoes.map((n) => (
 
     <div key={n.id} style={{
-      background: "#1a1a1a",
-      padding: 15,
-      borderRadius: 12,
+      background: "#fff",
+      padding: 14,
+      borderRadius: 16,
       marginBottom: 10,
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      gap: 10
+      gap: 10,
+      boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
     }}>
 
       <div style={{ flex: 1 }}>
 
         {/* TEXTO */}
-        <div style={{ fontSize: 14 }}>
+        <div style={{
+          fontSize: 14,
+          color: "#111",
+          marginBottom: 4
+        }}>
           {n.texto}
         </div>
 
         {/* DATA */}
         <div style={{
           fontSize: 11,
-          opacity: 0.6
+          color: "#888"
         }}>
           {n.data ? new Date(n.data).toLocaleString() : ""}
         </div>
 
       </div>
 
-      {/* 🗑️ REMOVER */}
+      {/* REMOVER */}
       <button
         onClick={() => removerNotificacao(n.id)}
-        style={{
-          background: "#ff0033",
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          padding: "6px 10px",
-          cursor: "pointer"
-        }}
+        style={btnDangerSmall}
       >
-        🗑️
+        Remover
       </button>
 
     </div>
@@ -1093,152 +1158,169 @@ return (
   ))}
 
 </div>
+</div>
 
-      {/* 🔥 STATUS LOJA */}
-      <div className="card">
-        <h2>Status da Loja</h2>
+      
+{/* 🔥 STATUS LOJA */}
+<div style={card}>
 
-        <div style={{
-          marginBottom: 10,
-          padding: 10,
-          borderRadius: 10,
-          background: lojaAberta ? "#002a00" : "#2a0000",
-          color: lojaAberta ? "#00ff88" : "#ff4d4d",
-          fontWeight: "bold",
-          textAlign: "center"
-        }}>
-          {lojaAberta === null
-            ? "⏳ Carregando..."
-            : lojaAberta
-              ? "🟢 Loja aberta"
-              : "🔴 Loja fechada"}
-        </div>
+  <h2>Status da loja</h2>
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => toggleLoja(true)} disabled={loadingLoja}>
-            🟢 Abrir
-          </button>
+  <div style={{
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 14,
+    background: lojaAberta ? "#e6fff1" : "#ffecec",
+    color: lojaAberta ? "#00a650" : "#d32f2f",
+    fontWeight: "bold",
+    textAlign: "center"
+  }}>
+    {lojaAberta === null
+      ? "Carregando..."
+      : lojaAberta
+        ? "Loja aberta"
+        : "Loja fechada"}
+  </div>
 
-          <button onClick={() => toggleLoja(false)} disabled={loadingLoja}>
-            🔴 Fechar
-          </button>
-        </div>
-      </div>
+  <div style={{ display: "flex", gap: 10 }}>
 
-      {/* 💰 FATURAMENTO */}
-      <div className="card">
-        <h2>Total faturado</h2>
+    <button onClick={() => toggleLoja(true)} style={btnSuccess}>
+      Abrir
+    </button>
 
-        <h1 style={{
-          color: "#fff",
-          fontSize: 32
-        }}>
-         {formatarReal(totalFaturado)}
-        </h1>
-      </div>
+    <button onClick={() => toggleLoja(false)} style={btnDanger}>
+      Fechar
+    </button>
+
+  </div>
+
+</div>
 
 
-      {/* GRÁFICO */}
-<div className="card">
+{/* 💰 FATURAMENTO */}
+<div style={card}>
+
+  <h2>Total faturado</h2>
+
+  <h1 style={{
+    color: "#111",
+    fontSize: 32,
+    marginTop: 10
+  }}>
+    {formatarReal(totalFaturado)}
+  </h1>
+
+</div>
+
+
+{/* 📊 GRÁFICO */}
+<div style={card}>
+
   <h2>Vendas por dia</h2>
 
   {Object.keys(vendasPorDia)
     .sort((a, b) => new Date(b) - new Date(a))
     .map(dia => (
-      <div key={dia} className="graficoItem">
 
-        <span style={{ fontWeight: 'bold' }}>
-          {dia}
-        </span>
+      <div key={dia} style={{
+        marginBottom: 10
+      }}>
 
-        <div className="graficoBox">
-          <div
-            className="barra"
-            style={{
-              width: `${(vendasPorDia[dia] / maxVenda) * 100}%`
-            }}
-          />
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 13,
+          marginBottom: 4
+        }}>
+          <strong>{dia}</strong>
+          <span style={{ color: "#666" }}>
+            {formatarReal(vendasPorDia[dia])}
+          </span>
         </div>
 
-        <span style={{ opacity: 0.7 }}>
-          {formatarReal(vendasPorDia[dia])}
-        </span>
+        <div style={{
+          width: "100%",
+          height: 10,
+          borderRadius: 10,
+          background: "#eee"
+        }}>
+          <div style={{
+            width: `${(vendasPorDia[dia] / maxVenda) * 100}%`,
+            height: "100%",
+            borderRadius: 10,
+            background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
+          }} />
+        </div>
 
       </div>
+
     ))}
+
 </div>
 
-      {/* CUPONS */}
-<div className="card">
-  <h2>Criar Cupom</h2>
 
-  <div className="cupomForm">
-    <input
-      placeholder="Código"
-      value={codigo}
-      onChange={e => setCodigo(e.target.value)}
-    />
+{/* 🎟️ CUPONS */}
+<div style={card}>
 
-    <input
-  placeholder="Desconto (%)"
-  type="number"
-  value={desconto}
-  onChange={e => setDesconto(e.target.value)}
-/>
+  <h2>Criar cupom</h2>
 
-    <input
-      type="date"
-      value={validade}
-      onChange={e => setValidade(e.target.value)}
-    />
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 
-    <input
-      placeholder="Limite"
-      type="number"
-      value={limite}
-      onChange={e => setLimite(e.target.value)}
-    />
+    <input placeholder="Código" value={codigo} onChange={e => setCodigo(e.target.value)} style={input} />
 
-    <button onClick={criarCupom}>
-      🚀 Criar
+    <input placeholder="Desconto (%)" type="number" value={desconto} onChange={e => setDesconto(e.target.value)} style={input} />
+
+    <input type="date" value={validade} onChange={e => setValidade(e.target.value)} style={input} />
+
+    <input placeholder="Limite" type="number" value={limite} onChange={e => setLimite(e.target.value)} style={input} />
+
+    <button onClick={criarCupom} style={btnPrimary}>
+      Criar cupom
     </button>
+
   </div>
 
   <h3 style={{ marginTop: 20 }}>Cupons criados</h3>
 
   {cupons.map((c) => (
-  <div key={c.id} className="cupomItem">
 
-    <div>
-  <strong>{c.codigo}</strong>
+    <div key={c.id} style={{
+      background: "#fff",
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 10,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+    }}>
 
-  <p>{c.desconto}% OFF</p>
+      <div>
 
-  {/* 🔥 USO CORRETO */}
-  <p>
-    Uso: {c.usos ? Object.keys(c.usos).length : 0}/{c.limite || "∞"}
-  </p>
+        <strong>{c.codigo}</strong>
 
-  {/* 🔥 EXTRA (AQUI 👇) */}
-  {c.usos && (
-    <div style={{ marginTop: 5 }}>
-      {Object.keys(c.usos).map((cpf, i) => (
-        <small key={i} style={{ display: "block", opacity: 0.7 }}>
-          CPF: {cpf}
-        </small>
-      ))}
+        <div style={{ fontSize: 13, color: "#666" }}>
+          {c.desconto}% OFF
+        </div>
+
+        <div style={{ fontSize: 12, color: "#999" }}>
+          Uso: {c.usos ? Object.keys(c.usos).length : 0}/{c.limite || "∞"}
+        </div>
+
+        <div style={{ fontSize: 11, color: "#aaa" }}>
+          Validade: {c.validade}
+        </div>
+
+      </div>
+
+      <button onClick={() => deletarCupom(c.id)} style={btnDangerSmall}>
+        Remover
+      </button>
+
     </div>
-  )}
 
-  <small>Validade: {c.validade}</small>
-</div>
+  ))}
 
-    <div className="cupomBtns">
-      <button onClick={() => deletarCupom(c.id)}>🗑️</button>
-    </div>
-
-  </div>
-))}
 </div>
 
 
