@@ -1999,11 +1999,9 @@ return (
 <div style={{
   minHeight: "100dvh",
   background: themeAtual.background,
-  color: themeAtual.text,
   display: "flex",
   justifyContent: "center",
-  overflowX: "hidden",
-  paddingBottom: "env(safe-area-inset-bottom)"
+  overflowX: "hidden"
 }}>
 
   <div style={{
@@ -2366,76 +2364,86 @@ return (
 
 
 
-{!(aba === "home" && step === 1) && (
-  <div style={{
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
+{/* 🔥 HEADER GLOBAL (USAR EM TODAS AS ABAS) */}
+<div style={{
+  position: "fixed",
+  top: 0,
+  left: "50%",
+  transform: "translateX(-50%)",
 
-    paddingTop: "env(safe-area-inset-top)",
-    height: "calc(60px + env(safe-area-inset-top))",
+  width: "100%",
+  maxWidth: isMobile ? 420 : 1000,
 
-    background: "#ea1d2c",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 16px",
+  zIndex: 9999,
 
-    zIndex: 9999
-  }}>
+  paddingTop: "env(safe-area-inset-top)",
+  height: "calc(70px + env(safe-area-inset-top))",
 
-    {/* MENU */}
-    <div onClick={() => setMenuAberto(true)}>
-      <Menu size={24} color="#fff" />
-    </div>
+  display: "flex",
+  alignItems: "flex-end",
+  justifyContent: "space-between",
 
-    {/* LOGO */}
-    <img
-      src="/logo.jpg"
-      style={{ height: 26 }}
-    />
+  padding: "0 16px 10px 16px",
 
-    {/* CARRINHO */}
-    <div
-      onClick={() => {
-        setAba("carrinho");
-        setStep(3);
-      }}
-      style={{ position: "relative" }}
-    >
-      <ShoppingCart size={24} color="#fff" />
+  background: "#ea1d2c"
+}}>
 
-      {carrinho.length > 0 && (
-        <div style={{
-          position: "absolute",
-          top: -4,
-          right: -6,
-          background: "#fff",
-          color: "#ea1d2c",
-          borderRadius: "50%",
-          minWidth: 18,
-          height: 18,
-          fontSize: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: "bold"
-        }}>
-          {carrinho.length}
-        </div>
-      )}
-    </div>
-
+  {/* MENU */}
+  <div onClick={() => setMenuAberto(true)}>
+    <Menu size={26} color="#fff" />
   </div>
-)}
+
+  {/* LOGO CENTRAL */}
+  <img
+    src="/logo.jpg"
+    style={{
+      position: "absolute",
+      left: "50%",
+      transform: "translateX(-50%)",
+      height: 22
+    }}
+  />
+
+  {/* CARRINHO */}
+  <div
+    onClick={() => {
+      setAba("carrinho");
+      setStep(3);
+    }}
+    style={{ position: "relative" }}
+  >
+    <ShoppingCart size={26} color="#fff" strokeWidth={2.5} />
+
+    {carrinho.length > 0 && (
+      <div style={{
+        position: "absolute",
+        top: -6,
+        right: -6,
+        background: "#fff",
+        color: "#ea1d2c",
+        borderRadius: "50%",
+        minWidth: 18,
+        height: 18,
+        fontSize: 10,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold"
+      }}>
+        {carrinho.length}
+      </div>
+    )}
+  </div>
+
+</div>
+
+<div style={{ height: "calc(70px + env(safe-area-inset-top))" }} />
 
       
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
   <>
 
-    {/* 🔥 HEADER FIXO (IFOOD STYLE) */}
   {/* 🔥 HEADER FIXO CENTRALIZADO (CORRETO) */}
 <div style={{
   position: "fixed",
