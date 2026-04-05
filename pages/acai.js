@@ -2433,212 +2433,179 @@ return (
       
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
-  <div className={`fade-slide ${animacao}`} style={{
-    background: "#f5f5f5",
-    minHeight: "100vh"
-  }}>
+  <>
 
-    {/* 🔥 HEADER + BANNER */}
-    <div style={{
-      position: "relative",
-      height: "calc(360px + env(safe-area-inset-top))",
-      overflow: "hidden",
-      borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30
-    }}>
+    {/* 🔥 HEADER FIXO (IFOOD STYLE) */}
+  {/* 🔥 HEADER FIXO CENTRALIZADO (CORRETO) */}
+<div style={{
+  position: "fixed",
+  top: 0,
+  left: "50%",
+  transform: "translateX(-50%)",
 
-      {/* 🔥 HEADER COM NOTCH */}
+  width: "100%",
+  maxWidth: isMobile ? 420 : 1000,
+
+  zIndex: 999,
+
+  paddingTop: "env(safe-area-inset-top)",
+  height: "calc(70px + env(safe-area-inset-top))",
+
+  display: "flex",
+  alignItems: "flex-end",
+  justifyContent: "space-between",
+
+  paddingLeft: 16,
+  paddingRight: 16,
+  paddingBottom: 10,
+
+  background: "#ea1d2c"
+}}>
+
+  {/* MENU */}
+  <div onClick={() => setMenuAberto(true)}>
+    <Menu size={26} color="#fff" />
+  </div>
+
+  {/* 🔥 LOGO CENTRAL REAL */}
+  <img
+    src="/logo.jpg"
+    style={{
+      position: "absolute",
+      left: "50%",
+      transform: "translateX(-50%)",
+      height: 24
+    }}
+  />
+
+  {/* CARRINHO */}
+  <div
+    onClick={() => {
+      setAba("carrinho");
+      setStep(3);
+    }}
+    style={{ position: "relative" }}
+  >
+    <ShoppingCart size={26} color="#fff" strokeWidth={2.5} />
+
+    {carrinho.length > 0 && (
       <div style={{
         position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10,
-
-        paddingTop: "env(safe-area-inset-top)",
-        height: "calc(60px + env(safe-area-inset-top))",
-
+        top: -6,
+        right: -6,
+        background: "#fff",
+        color: "#ea1d2c",
+        borderRadius: "50%",
+        minWidth: 18,
+        height: 18,
+        fontSize: 10,
         display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        paddingLeft: 16,
-        paddingRight: 16,
-        paddingBottom: 10,
-        color: "#fff"
+        alignItems: "center",
+        justifyContent: "center",
+        fontWeight: "bold"
       }}>
-
-        {/* MENU */}
-        <div
-          onClick={() => setMenuAberto(true)}
-          style={{ cursor: "pointer" }}
-        >
-          <Menu size={26} color="#fff" />
-        </div>
-
-        {/* CARRINHO */}
-        <div
-          onClick={() => {
-            setAba("carrinho");
-            setStep(3);
-          }}
-          style={{
-            position: "relative",
-            cursor: "pointer"
-          }}
-        >
-          <ShoppingCart size={26} color="#fff" strokeWidth={2.5} />
-
-          {carrinho.length > 0 && (
-            <div style={{
-              position: "absolute",
-              top: -6,
-              right: -6,
-              background: "#ea1d2c",
-              color: "#fff",
-              borderRadius: "50%",
-              minWidth: 18,
-              height: 18,
-              fontSize: 10,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: "bold",
-              padding: "0 4px"
-            }}>
-              {carrinho.length}
-            </div>
-          )}
-        </div>
-
+        {carrinho.length}
       </div>
+    )}
+  </div>
 
-      {/* 🔥 BANNER */}
+</div>
+
+    {/* 🔥 ESPAÇO DO HEADER (EVITA BUG) */}
+    <div style={{ height: "calc(70px + env(safe-area-inset-top))" }} />
+
+    {/* 🔥 BANNER */}
+    <div style={{
+      height: 260,
+      overflow: "hidden",
+      borderBottomLeftRadius: 30,
+      borderBottomRightRadius: 30,
+      position: "relative"
+    }}>
       <img
-        src="/logo.jpg"
+        src="/banner-top.png"
         style={{
           width: "100%",
           height: "100%",
-          objectFit: "cover",
-          objectPosition: "center"
+          objectFit: "cover"
         }}
       />
-
-      {/* 🔥 FADE */}
-      <div style={{
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 100,
-        background: "linear-gradient(to bottom, transparent, #f5f5f5)"
-      }} />
-
     </div>
 
-    {/* 🔥 ÍCONES */}
+    {/* 🔥 BENEFÍCIOS */}
     <div style={{
-      position: "relative",
-      marginTop: -140,
-      zIndex: 5,
       display: "flex",
-      justifyContent: "center"
+      justifyContent: "center",
+      gap: 14,
+      marginTop: -35,
+      marginBottom: 20
     }}>
-      <img
-        src="/icones1.png"
-        style={{
-          width: 300,
-          maxWidth: "85%"
-        }}
-      />
+      {["sabor.png", "qualidade.png", "cremosidade.png", "entrega.png"].map((img, i) => (
+        <img
+          key={i}
+          src={"/" + img}
+          style={{
+            width: 55,
+            height: 55,
+            objectFit: "contain"
+          }}
+        />
+      ))}
     </div>
 
     {/* 🔥 CONTEÚDO */}
     <div style={{
-      marginTop: -20,
-      background: "#fff",
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
+      background: themeAtual.card,
+      borderRadius: 20,
       padding: 16,
-      position: "relative",
-      zIndex: 2,
-      boxShadow: "0 -10px 30px rgba(0,0,0,0.08)"
+      marginTop: 10
     }}>
 
-      {/* TÍTULO */}
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{
-          margin: 0,
-          fontSize: 20,
-          fontWeight: "bold",
-          color: "#ea1d2c"
-        }}>
-          Peça seu açaí
-        </h2>
+      <h2 style={{
+        color: "#ea1d2c",
+        fontSize: 18,
+        marginBottom: 4
+      }}>
+        Peça seu açaí
+      </h2>
 
-        <p style={{
-          marginTop: 2,
-          fontSize: 13,
-          color: "#666"
-        }}>
-          Monte do seu jeito
-        </p>
-      </div>
+      <span style={{
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Monte do seu jeito
+      </span>
 
       {/* BUSCA */}
-      <div style={{ marginBottom: 12 }}>
-        <input
-          placeholder="Buscar produto..."
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 20,
-            border: "none",
-            background: "#f1f1f1",
-            fontSize: 14
-          }}
-        />
+      <div style={{
+        marginTop: 12,
+        background: "#eee",
+        borderRadius: 20,
+        padding: "10px 14px",
+        fontSize: 14,
+        color: "#999"
+      }}>
+        Buscar produto...
       </div>
 
-      {/* GRID */}
+      {/* PRODUTOS */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: 14
+        gap: 14,
+        marginTop: 16
       }}>
 
-        {produtos.map(p => (
-          <div
-            key={p.id}
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              overflow: "hidden",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              display: "flex",
-              flexDirection: "column"
-            }}
+        {produtos.map((p, i) => (
+          <div key={i} style={{
+            background: "#fff",
+            borderRadius: 16,
+            overflow: "hidden",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+          }}>
 
-            onClick={() => {
-              if (!lojaAberta) {
-                alert("Loja fechada");
-                return;
-              }
-
-              setProduto(p);
-              setAnimacao("slide-enter");
-
-              setTimeout(() => {
-                setStep(2);
-              }, 50);
-            }}
-          >
-
-            {/* IMAGEM */}
             <img
-              src={p.imagem || "/acai.png"}
+              src={p.imagem}
               style={{
                 width: "100%",
                 height: 120,
@@ -2646,52 +2613,37 @@ return (
               }}
             />
 
-            {/* CONTEÚDO */}
-            <div style={{
-              padding: 12,
-              display: "flex",
-              flexDirection: "column",
-              flex: 1
-            }}>
-
-              <p style={{
-                fontWeight: "600",
-                fontSize: 13,
-                margin: 0,
-                marginBottom: 4
-              }}>
-                {p.nome}
-              </p>
+            <div style={{ padding: 10 }}>
 
               <strong style={{
-                color: "#ea1d2c",
-                fontSize: 15,
-                marginBottom: 8
+                fontSize: 13,
+                display: "block"
               }}>
-                {formatarReal(p.preco)}
+                {p.nome}
               </strong>
 
-              {/* BOTÃO */}
+              <span style={{
+                color: "#ea1d2c",
+                fontWeight: "bold",
+                fontSize: 14
+              }}>
+                R$ {p.preco}
+              </span>
+
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-
+                onClick={() => {
                   setProduto(p);
-                  setAnimacao("slide-enter");
-
-                  setTimeout(() => {
-                    setStep(2);
-                  }, 50);
+                  setStep(2);
                 }}
                 style={{
-                  marginTop: "auto",
+                  marginTop: 8,
                   width: "100%",
-                  padding: 10,
-                  borderRadius: 12,
+                  background: "#f7b500",
                   border: "none",
-                  background: "linear-gradient(180deg,#ffcc00,#ffaa00)",
+                  borderRadius: 20,
+                  padding: 10,
                   fontWeight: "bold",
-                  fontSize: 12,
+                  color: "#fff",
                   cursor: "pointer"
                 }}
               >
@@ -2699,7 +2651,6 @@ return (
               </button>
 
             </div>
-
           </div>
         ))}
 
@@ -2707,7 +2658,7 @@ return (
 
     </div>
 
-  </div>
+  </>
 )}
 
 
