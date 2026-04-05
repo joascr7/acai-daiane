@@ -2545,7 +2545,7 @@ return (
 
       {/* 🔥 BANNER */}
       <img
-        src="/banner-top.png"
+        src="/logo.jpg"
         style={{
           width: "100%",
           height: "100%",
@@ -2575,7 +2575,7 @@ return (
       justifyContent: "center"
     }}>
       <img
-        
+        src="/icones.png"
         style={{
           width: 560, // 🔥 REDUZI (ANTES ESTAVA GRANDE)
           maxWidth: "85%",
@@ -2586,7 +2586,7 @@ return (
 
     {/* 🔥 CONTAINER */}
     <div style={{
-      marginTop: 140,
+      marginTop: -80,
       background: "#fff",
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
