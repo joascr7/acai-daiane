@@ -1971,7 +1971,7 @@ return (
               {clienteEndereco || "Adicionar endereço"}
             </strong>
 
-            <ChevronDown size={16} color="#999" />
+            <ChevronDown size={18} color="#999" />
           </div>
         </div>
       </div>
@@ -1992,8 +1992,8 @@ return (
             marcarComoLida();
           }}
           style={{
-            width: 44,
-            height: 44,
+            width: 24,
+            height: 24,
             borderRadius: "50%",
             background: themeAtual.card,
             display: "flex",
@@ -2036,7 +2036,7 @@ return (
             gap: 1,
             padding: "4px 14px",
             borderRadius: 70,
-            background: "#080202",
+            background: "#575757",
             color: "#fff",
             cursor: "pointer",
             fontWeight: "bold",
