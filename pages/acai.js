@@ -2438,16 +2438,16 @@ return (
     minHeight: "100vh"
   }}>
 
-    {/* 🔥 HEADER + BANNER COM NOTCH */}
+    {/* 🔥 HEADER + BANNER */}
     <div style={{
       position: "relative",
-      height: "calc(340px + env(safe-area-inset-top))",
+      height: "calc(360px + env(safe-area-inset-top))",
       overflow: "hidden",
       borderBottomLeftRadius: 30,
       borderBottomRightRadius: 30
     }}>
 
-      {/* 🔥 HEADER IGUAL APP (COM NOTCH) */}
+      {/* 🔥 HEADER COM NOTCH */}
       <div style={{
         position: "absolute",
         top: 0,
@@ -2459,22 +2459,18 @@ return (
         height: "calc(60px + env(safe-area-inset-top))",
 
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-end",
         justifyContent: "space-between",
         paddingLeft: 16,
         paddingRight: 16,
+        paddingBottom: 10,
         color: "#fff"
       }}>
 
         {/* MENU */}
         <div
           onClick={() => setMenuAberto(true)}
-          style={{
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
+          style={{ cursor: "pointer" }}
         >
           <Menu size={26} color="#fff" />
         </div>
@@ -2487,13 +2483,10 @@ return (
           }}
           style={{
             position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
             cursor: "pointer"
           }}
         >
-          <ShoppingCart size={26} strokeWidth={2.5} color="#fff" />
+          <ShoppingCart size={26} color="#fff" strokeWidth={2.5} />
 
           {carrinho.length > 0 && (
             <div style={{
@@ -2510,8 +2503,7 @@ return (
               alignItems: "center",
               justifyContent: "center",
               fontWeight: "bold",
-              padding: "0 4px",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
+              padding: "0 4px"
             }}>
               {carrinho.length}
             </div>
@@ -2527,7 +2519,7 @@ return (
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition: "top"
+          objectPosition: "center"
         }}
       />
 
@@ -2537,7 +2529,7 @@ return (
         bottom: 0,
         left: 0,
         right: 0,
-        height: 90,
+        height: 100,
         background: "linear-gradient(to bottom, transparent, #f5f5f5)"
       }} />
 
@@ -2554,15 +2546,15 @@ return (
       <img
         src="/icones1.png"
         style={{
-          width: 320,
+          width: 300,
           maxWidth: "85%"
         }}
       />
     </div>
 
-    {/* 🔥 CONTAINER */}
+    {/* 🔥 CONTEÚDO */}
     <div style={{
-      marginTop: -30,
+      marginTop: -20,
       background: "#fff",
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
