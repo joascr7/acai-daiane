@@ -288,11 +288,7 @@ const backBtn = {
 
           <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputPremium} />
           
-          <input
-          style={inputPremium}
-          placeholder="Email"
-          />
-
+        
           <input type="password" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} style={inputPremium} />
 
           <button onClick={entrar} style={btnPrimary}>
