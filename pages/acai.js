@@ -2366,17 +2366,13 @@ return (
 
 
 
-{/* 🔥 HEADER PADRÃO COM NOTCH */}
 {!(aba === "home" && step === 1) && (
   <div style={{
     position: "fixed",
     top: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
+    left: 0,
     width: "100%",
-    maxWidth: isMobile ? 420 : 1000,
 
-    // 🔥 NOTCH AQUI
     paddingTop: "env(safe-area-inset-top)",
     height: "calc(60px + env(safe-area-inset-top))",
 
@@ -2384,34 +2380,20 @@ return (
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingLeft: 16,
-    paddingRight: 16,
+    padding: "0 16px",
 
     zIndex: 9999
   }}>
 
     {/* MENU */}
-    <div
-      onClick={() => setMenuAberto(true)}
-      style={{
-        width: 40,
-        height: 40,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer"
-      }}
-    >
+    <div onClick={() => setMenuAberto(true)}>
       <Menu size={24} color="#fff" />
     </div>
 
-    {/* LOGO CENTRAL */}
+    {/* LOGO */}
     <img
       src="/logo.jpg"
-      style={{
-        height: 28,
-        objectFit: "contain"
-      }}
+      style={{ height: 26 }}
     />
 
     {/* CARRINHO */}
@@ -2420,29 +2402,21 @@ return (
         setAba("carrinho");
         setStep(3);
       }}
-      style={{
-        position: "relative",
-        width: 40,
-        height: 40,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer"
-      }}
+      style={{ position: "relative" }}
     >
       <ShoppingCart size={24} color="#fff" />
 
       {carrinho.length > 0 && (
         <div style={{
           position: "absolute",
-          top: 4,
-          right: 4,
+          top: -4,
+          right: -6,
           background: "#fff",
           color: "#ea1d2c",
           borderRadius: "50%",
           minWidth: 18,
           height: 18,
-          fontSize: 11,
+          fontSize: 10,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -2464,82 +2438,85 @@ return (
     minHeight: "100vh"
   }}>
 
-    {/* 🔥 HEADER + BANNER */}
+    {/* 🔥 HEADER + BANNER COM NOTCH */}
     <div style={{
-     position: "relative",
-  height: 340,
-  overflow: "hidden",
-  borderBottomLeftRadius: 30,
-  borderBottomRightRadius: 30,
-  marginTop: 0
+      position: "relative",
+      height: "calc(340px + env(safe-area-inset-top))",
+      overflow: "hidden",
+      borderBottomLeftRadius: 30,
+      borderBottomRightRadius: 30
     }}>
 
-      {/* 🔥 HEADER IGUAL APP */}
+      {/* 🔥 HEADER IGUAL APP (COM NOTCH) */}
       <div style={{
         position: "absolute",
         top: 0,
         left: 0,
         right: 0,
         zIndex: 10,
-        height: 60,
+
+        paddingTop: "env(safe-area-inset-top)",
+        height: "calc(60px + env(safe-area-inset-top))",
+
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "0 16px",
+        paddingLeft: 16,
+        paddingRight: 16,
         color: "#fff"
       }}>
 
         {/* MENU */}
         <div
-          onClick={() => setMenuAberto(true)} // 🔥 AGORA FUNCIONA
+          onClick={() => setMenuAberto(true)}
           style={{
-            fontSize: 24,
-            cursor: "pointer"
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
           }}
         >
-          ☰
+          <Menu size={26} color="#fff" />
         </div>
 
         {/* CARRINHO */}
-<div
-  onClick={() => {
-    setAba("carrinho");
-    setStep(3);
-  }}
-  style={{
-    position: "relative",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  }}
->
-  {/* 🔥 ÍCONE PROFISSIONAL */}
-  <ShoppingCart size={24} strokeWidth={2.5} color="#fff" />
+        <div
+          onClick={() => {
+            setAba("carrinho");
+            setStep(3);
+          }}
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer"
+          }}
+        >
+          <ShoppingCart size={26} strokeWidth={2.5} color="#fff" />
 
-  {/* 🔴 BADGE */}
-  {carrinho.length > 0 && (
-    <div style={{
-      position: "absolute",
-      top: -6,
-      right: -6,
-      background: "#ea1d2c",
-      color: "#fff",
-      borderRadius: "50%",
-      minWidth: 18,
-      height: 18,
-      fontSize: 10,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontWeight: "bold",
-      padding: "0 4px",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
-    }}>
-      {carrinho.length}
-    </div>
-  )}
-</div>
+          {carrinho.length > 0 && (
+            <div style={{
+              position: "absolute",
+              top: -6,
+              right: -6,
+              background: "#ea1d2c",
+              color: "#fff",
+              borderRadius: "50%",
+              minWidth: 18,
+              height: 18,
+              fontSize: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+              padding: "0 4px",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
+            }}>
+              {carrinho.length}
+            </div>
+          )}
+        </div>
 
       </div>
 
@@ -2560,7 +2537,7 @@ return (
         bottom: 0,
         left: 0,
         right: 0,
-        height: 80,
+        height: 90,
         background: "linear-gradient(to bottom, transparent, #f5f5f5)"
       }} />
 
@@ -2569,7 +2546,7 @@ return (
     {/* 🔥 ÍCONES */}
     <div style={{
       position: "relative",
-      marginTop: -170,
+      marginTop: -140,
       zIndex: 5,
       display: "flex",
       justifyContent: "center"
@@ -2577,9 +2554,8 @@ return (
       <img
         src="/icones1.png"
         style={{
-          width: 560, // 🔥 REDUZI (ANTES ESTAVA GRANDE)
-          maxWidth: "85%",
-          display: "block"
+          width: 320,
+          maxWidth: "85%"
         }}
       />
     </div>
@@ -2633,102 +2609,103 @@ return (
         />
       </div>
 
-{/* GRID NIVEL IFOOD */}
-<div style={{
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 14
-}}>
-
-  {produtos.map(p => (
-    <div
-      key={p.id}
-      style={{
-        background: "#fff",
-        borderRadius: 18,
-        overflow: "hidden",
-        boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-        cursor: "pointer",
-        display: "flex",
-        flexDirection: "column"
-      }}
-
-      onClick={() => {
-        if (!lojaAberta) {
-          alert("Loja fechada");
-          return;
-        }
-
-        setProduto(p);
-        setAnimacao("slide-enter");
-
-        setTimeout(() => {
-          setStep(2);
-        }, 50);
-      }}
-    >
-
-      {/* 🔥 IMAGEM MAIS BONITA */}
-      <img
-        src={p.imagem || "/acai.png"}
-        style={{
-          width: "100%",
-          height: 110,
-          objectFit: "cover"
-        }}
-      />
-
-      {/* 🔥 CONTEUDO */}
+      {/* GRID */}
       <div style={{
-        padding: 12,
-        display: "flex",
-        flexDirection: "column",
-        flex: 1
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 14
       }}>
 
-        <p style={{
-          fontWeight: "600",
-          fontSize: 13,
-          margin: 0,
-          marginBottom: 4
-        }}>
-          {p.nome}
-        </p>
+        {produtos.map(p => (
+          <div
+            key={p.id}
+            style={{
+              background: "#fff",
+              borderRadius: 18,
+              overflow: "hidden",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column"
+            }}
 
-        <strong style={{
-          color: "#ea1d2c",
-          fontSize: 15,
-          marginBottom: 8
-        }}>
-          {formatarReal(p.preco)}
-        </strong>
+            onClick={() => {
+              if (!lojaAberta) {
+                alert("Loja fechada");
+                return;
+              }
 
-        {/* 🔥 BOTÃO IGUAL APP */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // 🔥 IMPORTANTE (não abrir produto)
-            
-            setProduto(p);
-            setAnimacao("slide-enter");
+              setProduto(p);
+              setAnimacao("slide-enter");
 
-            setTimeout(() => {
-              setStep(2);
-            }, 50);
-          }}
-          style={{
-            marginTop: "auto",
-            width: "100%",
-            padding: 10,
-            borderRadius: 12,
-            border: "none",
-            background: "linear-gradient(180deg,#ffcc00,#ffaa00)",
-            fontWeight: "bold",
-            fontSize: 12,
-            cursor: "pointer"
-          }}
-        >
-          ESCOLHER
-        </button>
+              setTimeout(() => {
+                setStep(2);
+              }, 50);
+            }}
+          >
+
+            {/* IMAGEM */}
+            <img
+              src={p.imagem || "/acai.png"}
+              style={{
+                width: "100%",
+                height: 120,
+                objectFit: "cover"
+              }}
+            />
+
+            {/* CONTEÚDO */}
+            <div style={{
+              padding: 12,
+              display: "flex",
+              flexDirection: "column",
+              flex: 1
+            }}>
+
+              <p style={{
+                fontWeight: "600",
+                fontSize: 13,
+                margin: 0,
+                marginBottom: 4
+              }}>
+                {p.nome}
+              </p>
+
+              <strong style={{
+                color: "#ea1d2c",
+                fontSize: 15,
+                marginBottom: 8
+              }}>
+                {formatarReal(p.preco)}
+              </strong>
+
+              {/* BOTÃO */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  setProduto(p);
+                  setAnimacao("slide-enter");
+
+                  setTimeout(() => {
+                    setStep(2);
+                  }, 50);
+                }}
+                style={{
+                  marginTop: "auto",
+                  width: "100%",
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "linear-gradient(180deg,#ffcc00,#ffaa00)",
+                  fontWeight: "bold",
+                  fontSize: 12,
+                  cursor: "pointer"
+                }}
+              >
+                ESCOLHER
+              </button>
+
             </div>
 
           </div>
