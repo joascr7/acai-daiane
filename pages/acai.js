@@ -2383,7 +2383,7 @@ return (
 
     {/* 🔥 IMAGEM COMEÇA DO TOPO REAL (PEGA O NOTCH) */}
     <img
-      src="/logo.jpg"
+      src="/banner-acai.jpg"
       style={{
         position: "absolute",
         top: "calc(-1 * env(safe-area-inset-top))", // 🔥 SEGREDO
