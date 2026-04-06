@@ -2367,73 +2367,55 @@ return (
 
 
 {/* 🔥 HEADER GLOBAL REAL (ESTILO IFOOD) */}
+{/* 🔥 HEADER GRANDE ESTILO IFOOD (COM NOTCH REAL) */}
 <div style={{
-  position: "sticky", // 🔥 FIXO IGUAL APP
+  position: "sticky",
   top: 0,
   zIndex: 999,
 
   background: "#ea1d2c",
 
-  paddingTop: "env(safe-area-inset-top)", // ✅ NOTCH REAL
+  paddingTop: "env(safe-area-inset-top)", // ✅ notch real
+
+  borderBottomLeftRadius: 25,
+  borderBottomRightRadius: 25,
+
+  overflow: "hidden"
 }}>
 
+  {/* 🔥 IMAGEM GRANDE (LOGO COMO BANNER) */}
+  <img
+    src="/logo.jpg"
+    style={{
+      width: "100%",
+      height: 140, // 🔥 AQUI QUE FAZ FICAR IGUAL APP
+      objectFit: "cover"
+    }}
+  />
+
+  {/* MENU */}
   <div style={{
-    height: 64, // 🔥 altura padrão app
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 16px",
-    position: "relative"
-  }}>
+    position: "absolute",
+    top: "calc(env(safe-area-inset-top) + 12px)",
+    left: 16
+  }}
+  onClick={() => setMenuAberto(true)}
+  >
+    <Menu size={26} color="#fff" />
+  </div>
 
-    {/* MENU */}
-    <div onClick={() => setMenuAberto(true)}>
-      <Menu size={26} color="#fff" />
-    </div>
-
-    {/* LOGO CENTRAL (CORRIGIDA) */}
-    <img
-      src="/logo.jpg"
-      style={{
-        position: "absolute",
-        left: "50%",
-        transform: "translateX(-50%)",
-        height: 42, // 🔥 AUMENTEI (antes tava minúscula)
-        objectFit: "contain"
-      }}
-    />
-
-    {/* CARRINHO */}
-    <div onClick={() => {
-      setAba("carrinho");
-      setStep(3);
-    }} style={{ position: "relative" }}>
-
-      <ShoppingCart size={26} color="#fff" />
-
-      {/* BADGE */}
-      {carrinho.length > 0 && (
-        <div style={{
-          position: "absolute",
-          top: -6,
-          right: -6,
-          background: "#fff",
-          color: "#ea1d2c",
-          borderRadius: "50%",
-          minWidth: 18,
-          height: 18,
-          fontSize: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontWeight: "bold"
-        }}>
-          {carrinho.length}
-        </div>
-      )}
-
-    </div>
-
+  {/* CARRINHO */}
+  <div style={{
+    position: "absolute",
+    top: "calc(env(safe-area-inset-top) + 12px)",
+    right: 16
+  }}
+  onClick={() => {
+    setAba("carrinho");
+    setStep(3);
+  }}
+  >
+    <ShoppingCart size={26} color="#fff" />
   </div>
 
 </div>
