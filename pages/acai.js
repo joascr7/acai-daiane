@@ -2366,33 +2366,26 @@ return (
 
 
 
-{/* 🔥 HEADER GLOBAL (USAR EM TODAS AS ABAS) */}
+{/* 🔥 HEADER SIMPLES GLOBAL */}
 <div style={{
-  position: "fixed",
+  position: "sticky",
   top: 0,
-  left: "50%",
-  transform: "translateX(-50%)",
-
-  width: "100%",
-  maxWidth: isMobile ? 420 : 1000,
-
-  zIndex: 9999,
+  zIndex: 999,
 
   paddingTop: "env(safe-area-inset-top)",
-  height: "calc(70px + env(safe-area-inset-top))",
+  height: "calc(60px + env(safe-area-inset-top))",
 
   display: "flex",
-  alignItems: "flex-end",
+  alignItems: "center",
   justifyContent: "space-between",
 
-  padding: "0 16px 10px 16px",
-
+  padding: "0 16px",
   background: "#ea1d2c"
 }}>
 
   {/* MENU */}
   <div onClick={() => setMenuAberto(true)}>
-    <Menu size={26} color="#fff" />
+    <Menu size={24} color="#fff" />
   </div>
 
   {/* LOGO CENTRAL */}
@@ -2414,7 +2407,7 @@ return (
     }}
     style={{ position: "relative" }}
   >
-    <ShoppingCart size={26} color="#fff" strokeWidth={2.5} />
+    <ShoppingCart size={24} color="#fff" />
 
     {carrinho.length > 0 && (
       <div style={{
@@ -2424,8 +2417,8 @@ return (
         background: "#fff",
         color: "#ea1d2c",
         borderRadius: "50%",
-        minWidth: 18,
-        height: 18,
+        minWidth: 16,
+        height: 16,
         fontSize: 10,
         display: "flex",
         alignItems: "center",
@@ -2446,91 +2439,12 @@ return (
 {aba === "home" && step === 1 && (
   <>
 
-  {/* 🔥 HEADER FIXO CENTRALIZADO (CORRETO) */}
-<div style={{
-  position: "fixed",
-  top: 0,
-  left: "50%",
-  transform: "translateX(-50%)",
-
-  width: "100%",
-  maxWidth: isMobile ? 420 : 1000,
-
-  zIndex: 999,
-
-  paddingTop: "env(safe-area-inset-top)",
-  height: "calc(70px + env(safe-area-inset-top))",
-
-  display: "flex",
-  alignItems: "flex-end",
-  justifyContent: "space-between",
-
-  paddingLeft: 16,
-  paddingRight: 16,
-  paddingBottom: 10,
-
-  background: "#ea1d2c"
-}}>
-
-  {/* MENU */}
-  <div onClick={() => setMenuAberto(true)}>
-    <Menu size={26} color="#fff" />
-  </div>
-
-  {/* 🔥 LOGO CENTRAL REAL */}
-  <img
-    src="/logo.jpg"
-    style={{
-      position: "absolute",
-      left: "50%",
-      transform: "translateX(-50%)",
-      height: 24
-    }}
-  />
-
-  {/* CARRINHO */}
-  <div
-    onClick={() => {
-      setAba("carrinho");
-      setStep(3);
-    }}
-    style={{ position: "relative" }}
-  >
-    <ShoppingCart size={26} color="#fff" strokeWidth={2.5} />
-
-    {carrinho.length > 0 && (
-      <div style={{
-        position: "absolute",
-        top: -6,
-        right: -6,
-        background: "#fff",
-        color: "#ea1d2c",
-        borderRadius: "50%",
-        minWidth: 18,
-        height: 18,
-        fontSize: 10,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: "bold"
-      }}>
-        {carrinho.length}
-      </div>
-    )}
-  </div>
-
-</div>
-
-    {/* 🔥 ESPAÇO DO HEADER (EVITA BUG) */}
-    <div style={{ height: "calc(70px + env(safe-area-inset-top))" }} />
-
     {/* 🔥 BANNER */}
     <div style={{
       height: 260,
       overflow: "hidden",
       borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30,
-      position: "relative"
+      borderBottomRightRadius: 30
     }}>
       <img
         src="/banner-top.png"
@@ -2571,6 +2485,7 @@ return (
       marginTop: 10
     }}>
 
+      {/* TÍTULO */}
       <h2 style={{
         color: "#ea1d2c",
         fontSize: 18,
@@ -2614,6 +2529,7 @@ return (
             boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
           }}>
 
+            {/* IMAGEM */}
             <img
               src={p.imagem}
               style={{
@@ -2623,6 +2539,7 @@ return (
               }}
             />
 
+            {/* INFO */}
             <div style={{ padding: 10 }}>
 
               <strong style={{
@@ -2632,14 +2549,16 @@ return (
                 {p.nome}
               </strong>
 
+              {/* 🔥 PREÇO CORRIGIDO */}
               <span style={{
                 color: "#ea1d2c",
                 fontWeight: "bold",
                 fontSize: 14
               }}>
-                R$ {p.preco}
+                R$ {Number(p.preco).toFixed(2).replace(".", ",")}
               </span>
 
+              {/* BOTÃO */}
               <button
                 onClick={() => {
                   setProduto(p);
