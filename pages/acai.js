@@ -2384,13 +2384,14 @@ return (
 
           {/* IMAGEM */}
           <img
-            src="/logo.jpg"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover"
-            }}
-          />
+  src="/logo.jpg"
+  style={{
+    width: "100%",
+    height: "100%",
+    objectFit: "contain", // 🔥 não corta mais
+    background: "#ea1d2c" // 🔥 preenche lateral
+  }}
+/>
 
           {/* MENU */}
           <div
