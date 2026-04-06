@@ -2365,7 +2365,8 @@ return (
 )}
 
 
-{/* 🔥 TOPO ESTILO IFOOD REAL */}
+
+{/* 🔥 TOPO COM NOTCH REAL */}
 <div style={{
   position: "relative",
   width: "100%",
@@ -2374,8 +2375,8 @@ return (
 
   background: "#ea1d2c",
 
-  paddingTop: "env(safe-area-inset-top)", // ✅ NOTCH REAL
-  paddingBottom: 18,
+  paddingTop: "env(safe-area-inset-top)", // ✅ REAL
+  height: "calc(140px + env(safe-area-inset-top))", // 🔥 controla altura total
 
   borderBottomLeftRadius: 30,
   borderBottomRightRadius: 30,
@@ -2383,12 +2384,12 @@ return (
   overflow: "hidden"
 }}>
 
-  {/* LOGO */}
+  {/* LOGO / BANNER */}
   <img
     src="/logo.jpg"
     style={{
       width: "100%",
-      height: 140,
+      height: "100%",
       objectFit: "cover"
     }}
   />
@@ -2396,8 +2397,9 @@ return (
   {/* MENU */}
   <div style={{
     position: "absolute",
-    top: "calc(env(safe-area-inset-top) + 10px)",
-    left: 16
+    top: "env(safe-area-inset-top)",
+    left: 16,
+    marginTop: 12 // 🔥 usa margem, não calc
   }}>
     <Menu size={26} color="#fff" />
   </div>
@@ -2405,17 +2407,15 @@ return (
   {/* CARRINHO */}
   <div style={{
     position: "absolute",
-    top: "calc(env(safe-area-inset-top) + 10px)",
-    right: 16
+    top: "env(safe-area-inset-top)",
+    right: 16,
+    marginTop: 12
   }}>
     <ShoppingCart size={26} color="#fff" />
   </div>
 
 </div>
 
-<div style={{
-  marginTop: -30 // 🔥 sobe levemente igual app
-}}></div>
 
 
 {aba === "home" && step === 1 && (
