@@ -2358,77 +2358,74 @@ return (
 
 {/* 🔥 HEADER COM IMAGEM + NOTCH REAL */}
 <div style={{
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  zIndex: 9999,
-  overflow: "hidden"
-}}>
-
-  <div style={{
-    paddingTop: "env(safe-area-inset-top)", // notch real
-    background: "transparent" // 🔥 remove faixa vermelha
-  }}>
-
-    <div style={{
-      position: "relative",
-      height: 120
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      zIndex: 9999,
+      overflow: "hidden"
     }}>
 
-      {/* IMAGEM */}
-      <img
-        src="/logo.jpg"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover"
-        }}
-      />
+      <div style={{
+        paddingTop: "env(safe-area-inset-top)", // ✅ notch real
+        background: "transparent" // 🔥 NÃO usa vermelho aqui
+      }}>
 
-      {/* MENU */}
-      <div
-        onClick={() => setMenuAberto(true)}
-        style={{
-          position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 10px)",
-          left: 16,
-          zIndex: 2
-        }}
-      >
-        <Menu size={26} color="#fff" />
-      </div>
+        <div style={{
+          position: "relative",
+          height: 120
+        }}>
 
-      {/* CARRINHO */}
-      <div
-        onClick={() => {
-          setAba("carrinho");
-          setStep(3);
-        }}
-        style={{
-          position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 10px)",
-          right: 16,
-          zIndex: 2
-        }}
-      >
-        <ShoppingCart size={26} color="#fff" />
+          {/* IMAGEM COBRINDO O TOPO */}
+          <img
+            src="/logo.jpg"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover"
+            }}
+          />
+
+          {/* MENU */}
+          <div
+            onClick={() => setMenuAberto(true)}
+            style={{
+              position: "absolute",
+              top: "calc(env(safe-area-inset-top) + 10px)",
+              left: 16
+            }}
+          >
+            <Menu size={26} color="#fff" />
+          </div>
+
+          {/* CARRINHO */}
+          <div
+            onClick={() => {
+              setAba("carrinho");
+              setStep(3);
+            }}
+            style={{
+              position: "absolute",
+              top: "calc(env(safe-area-inset-top) + 10px)",
+              right: 16
+            }}
+          >
+            <ShoppingCart size={26} color="#fff" />
+          </div>
+
+        </div>
+
       </div>
 
     </div>
 
-  </div>
-
-</div>
-
-{/* 🔥 ESPAÇO DO HEADER (ESSENCIAL) */}
-<div style={{
-  height: "calc(120px + env(safe-area-inset-top))"
-}} />
-
-
+    {/* 🔥 ESPAÇO DO HEADER (ESSENCIAL) */}
+    <div style={{
+      height: "calc(120px + env(safe-area-inset-top))"
+    }} />
+ 
 
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
