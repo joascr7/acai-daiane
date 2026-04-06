@@ -438,7 +438,7 @@ html, body, #__next {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: linear-gradient(90deg, #ff1100, #ff2a2a);
+  background: var(--bg);
 }
 
 

@@ -2369,36 +2369,32 @@ return (
 {/* 🔥 TOPO COM NOTCH REAL */}
 <div style={{
   background: "#ea1d2c",
-  paddingTop: "env(safe-area-inset-top)", // ✅ notch real
-  paddingBottom: 10
+  paddingTop: "env(safe-area-inset-top)", // notch real
 }}>
 
   <div style={{
-    position: "relative",
     height: 60,
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0 16px"
+    padding: "0 16px",
+    position: "relative"
   }}>
 
-    {/* MENU */}
     <div onClick={() => setMenuAberto(true)}>
       <Menu size={24} color="#fff" />
     </div>
 
-    {/* LOGO CENTRAL */}
     <img
       src="/logo.jpg"
       style={{
         position: "absolute",
         left: "50%",
         transform: "translateX(-50%)",
-        height: 40
+        height: 36
       }}
     />
 
-    {/* CARRINHO */}
     <div onClick={() => {
       setAba("carrinho");
       setStep(3);
@@ -2413,118 +2409,94 @@ return (
 
 
 {aba === "home" && step === 1 && (
-  <>
 
+  <div style={{
+    background: themeAtual.card,
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 10
+  }}>
+
+    <h2 style={{ color: "#ea1d2c" }}>
+      Peça seu açaí
+    </h2>
+
+    <span style={{ color: "#666" }}>
+      Monte do seu jeito
+    </span>
+
+    {/* BUSCA */}
     <div style={{
-      background: themeAtual.card,
+      marginTop: 12,
+      background: "#eee",
       borderRadius: 20,
-      padding: 16,
-      marginTop: 10
+      padding: "10px 14px",
+      color: "#999"
+    }}>
+      Buscar produto...
+    </div>
+
+    {/* PRODUTOS */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 14,
+      marginTop: 16
     }}>
 
-      <h2 style={{
-        color: "#ea1d2c",
-        fontSize: 18,
-        marginBottom: 4
-      }}>
-        Peça seu açaí
-      </h2>
+      {produtos.map((p, i) => (
+        <div key={i} style={{
+          background: "#fff",
+          borderRadius: 16,
+          overflow: "hidden"
+        }}>
 
-      <span style={{
-        fontSize: 13,
-        color: "#666"
-      }}>
-        Monte do seu jeito
-      </span>
+          <img
+            src={p.imagem}
+            style={{
+              width: "100%",
+              height: 120,
+              objectFit: "cover"
+            }}
+          />
 
-      {/* BUSCA */}
-      <div style={{
-        marginTop: 12,
-        background: "#eee",
-        borderRadius: 20,
-        padding: "10px 14px",
-        fontSize: 14,
-        color: "#999"
-      }}>
-        Buscar produto...
-      </div>
+          <div style={{ padding: 10 }}>
 
-      {/* PRODUTOS */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 14,
-        marginTop: 16
-      }}>
+            <strong>{p.nome}</strong>
 
-        {produtos.map((p, i) => (
-          <div key={i} style={{
-            background: "#fff",
-            borderRadius: 16,
-            overflow: "hidden",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-          }}>
+            {/* ✅ PREÇO CORRETO */}
+            <span style={{
+              color: "#ea1d2c",
+              fontWeight: "bold"
+            }}>
+              R$ {parseFloat(p.preco).toFixed(2).replace(".", ",")}
+            </span>
 
-            <img
-              src={p.imagem}
-              style={{
-                width: "100%",
-                height: 120,
-                objectFit: "cover"
+            <button
+              onClick={() => {
+                setProduto(p);
+                setStep(2);
               }}
-            />
+              style={{
+                marginTop: 8,
+                width: "100%",
+                background: "#f7b500",
+                borderRadius: 20,
+                padding: 10,
+                color: "#fff",
+                fontWeight: "bold"
+              }}
+            >
+              ESCOLHER
+            </button>
 
-            <div style={{ padding: 10 }}>
-
-              <strong style={{
-                fontSize: 13,
-                display: "block"
-              }}>
-                {p.nome}
-              </strong>
-
-              {/* 🔥 PREÇO 100% CORRIGIDO */}
-              <span style={{
-                color: "#ea1d2c",
-                fontWeight: "bold",
-                fontSize: 14
-              }}>
-                R$ {(
-                  Number(p.preco) > 100
-                    ? Number(p.preco) / 100
-                    : Number(p.preco)
-                ).toFixed(2).replace(".", ",")}
-              </span>
-
-              <button
-                onClick={() => {
-                  setProduto(p);
-                  setStep(2);
-                }}
-                style={{
-                  marginTop: 8,
-                  width: "100%",
-                  background: "#f7b500",
-                  border: "none",
-                  borderRadius: 20,
-                  padding: 10,
-                  fontWeight: "bold",
-                  color: "#fff",
-                  cursor: "pointer"
-                }}
-              >
-                ESCOLHER
-              </button>
-
-            </div>
           </div>
-        ))}
-
-      </div>
+        </div>
+      ))}
 
     </div>
 
-  </>
+  </div>
 )}
 
 
