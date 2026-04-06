@@ -2368,50 +2368,44 @@ return (
 
 {/* 🔥 TOPO COM NOTCH REAL */}
 <div style={{
-  position: "relative",
-  width: "100%",
-  maxWidth: isMobile ? 420 : 1000,
-  margin: "0 auto",
-
   background: "#ea1d2c",
-
-  paddingTop: "env(safe-area-inset-top)", // ✅ REAL
-  height: "calc(140px + env(safe-area-inset-top))", // 🔥 controla altura total
-
-  borderBottomLeftRadius: 30,
-  borderBottomRightRadius: 30,
-
-  overflow: "hidden"
+  paddingTop: "env(safe-area-inset-top)", // ✅ notch real
+  paddingBottom: 10
 }}>
 
-  {/* LOGO / BANNER */}
-  <img
-    src="/logo.jpg"
-    style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "cover"
-    }}
-  />
-
-  {/* MENU */}
   <div style={{
-    position: "absolute",
-    top: "env(safe-area-inset-top)",
-    left: 16,
-    marginTop: 12 // 🔥 usa margem, não calc
+    position: "relative",
+    height: 60,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 16px"
   }}>
-    <Menu size={26} color="#fff" />
-  </div>
 
-  {/* CARRINHO */}
-  <div style={{
-    position: "absolute",
-    top: "env(safe-area-inset-top)",
-    right: 16,
-    marginTop: 12
-  }}>
-    <ShoppingCart size={26} color="#fff" />
+    {/* MENU */}
+    <div onClick={() => setMenuAberto(true)}>
+      <Menu size={24} color="#fff" />
+    </div>
+
+    {/* LOGO CENTRAL */}
+    <img
+      src="/logo.jpg"
+      style={{
+        position: "absolute",
+        left: "50%",
+        transform: "translateX(-50%)",
+        height: 30
+      }}
+    />
+
+    {/* CARRINHO */}
+    <div onClick={() => {
+      setAba("carrinho");
+      setStep(3);
+    }}>
+      <ShoppingCart size={24} color="#fff" />
+    </div>
+
   </div>
 
 </div>
