@@ -2386,7 +2386,7 @@ return (
 
   {/* 🔥 BANNER */}
   <img
-    src="/banner-top.png"
+    src="/logo.jpg"
     style={{
       width: "100%",
       height: 200,
@@ -2424,7 +2424,7 @@ return (
 
   {/* 🔥 LOGO GRANDE CENTRAL */}
   <img
-    src="/logo.jpg"
+    
     style={{
       position: "absolute",
       top: "calc(env(safe-area-inset-top) + 40px)",
