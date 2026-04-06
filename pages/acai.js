@@ -2357,31 +2357,34 @@ return (
 
 
 {/* 🔥 HEADER COM IMAGEM + NOTCH REAL */}
-<div style={{
+ <div style={{
       position: "fixed",
       top: 0,
       left: 0,
       width: "100%",
-      zIndex: 9999,
-      overflow: "hidden"
+      zIndex: 9999
     }}>
 
+      {/* 🔥 CENTRALIZA IGUAL APP */}
       <div style={{
-        paddingTop: "env(safe-area-inset-top)", // ✅ notch real
-        background: "transparent" // 🔥 NÃO usa vermelho aqui
+        maxWidth: 420,
+        margin: "0 auto",
+        width: "100%"
       }}>
 
         <div style={{
           position: "relative",
-          height: 120
+          height: "calc(120px + env(safe-area-inset-top))", // 🔥 inclui notch
+          overflow: "hidden"
         }}>
 
-          {/* IMAGEM COBRINDO O TOPO */}
+          {/* IMAGEM COBRINDO NOTCH */}
           <img
             src="/logo.jpg"
             style={{
               position: "absolute",
-              inset: 0,
+              top: 0,
+              left: 0,
               width: "100%",
               height: "100%",
               objectFit: "cover"
@@ -2418,14 +2421,12 @@ return (
         </div>
 
       </div>
-
     </div>
 
-    {/* 🔥 ESPAÇO DO HEADER (ESSENCIAL) */}
+    {/* 🔥 ESPAÇO CORRETO */}
     <div style={{
       height: "calc(120px + env(safe-area-inset-top))"
     }} />
- 
 
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
