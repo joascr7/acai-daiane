@@ -2017,7 +2017,7 @@ return (
 
     {/* 🔥 ESPAÇO HEADER (SÓ QUANDO EXISTE HEADER) */}
     {!(aba === "home" && step === 1) && (
-      <div style={{ height: 80 }} />
+      <div style={{ height: 0 }} />
     )}
 
 
@@ -2432,7 +2432,6 @@ return (
 
 </div>
 
-<div style={{ height: "calc(70px + env(safe-area-inset-top))" }} />
 
       
 {/* STEP 1 */}
@@ -2441,13 +2440,13 @@ return (
 
     {/* 🔥 BANNER */}
     <div style={{
-      height: 260,
+      height: 240,
       overflow: "hidden",
       borderBottomLeftRadius: 30,
       borderBottomRightRadius: 30
     }}>
       <img
-        src="/banner-top.png"
+        src="/logo.jpg"
         style={{
           width: "100%",
           height: "100%",
@@ -2456,36 +2455,14 @@ return (
       />
     </div>
 
-    {/* 🔥 BENEFÍCIOS */}
-    <div style={{
-      display: "flex",
-      justifyContent: "center",
-      gap: 14,
-      marginTop: -35,
-      marginBottom: 20
-    }}>
-      {["sabor.png", "qualidade.png", "cremosidade.png", "entrega.png"].map((img, i) => (
-        <img
-          key={i}
-          src={"/" + img}
-          style={{
-            width: 55,
-            height: 55,
-            objectFit: "contain"
-          }}
-        />
-      ))}
-    </div>
-
     {/* 🔥 CONTEÚDO */}
     <div style={{
       background: themeAtual.card,
       borderRadius: 20,
       padding: 16,
-      marginTop: 10
+      marginTop: -20
     }}>
 
-      {/* TÍTULO */}
       <h2 style={{
         color: "#ea1d2c",
         fontSize: 18,
@@ -2513,7 +2490,7 @@ return (
         Buscar produto...
       </div>
 
-      {/* PRODUTOS */}
+      {/* 🔥 PRODUTOS */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -2549,7 +2526,7 @@ return (
                 {p.nome}
               </strong>
 
-              {/* 🔥 PREÇO CORRIGIDO */}
+              {/* 🔥 VALOR CORRIGIDO */}
               <span style={{
                 color: "#ea1d2c",
                 fontWeight: "bold",
