@@ -2385,7 +2385,7 @@ return (
 
     {/* 🔥 IMAGEM OCUPANDO TUDO (INCLUSIVE NOTCH) */}
     <img
-      src="/logo.jpg"
+      src="/banner-top.png"
       style={{
         position: "absolute",
         top: 0,
