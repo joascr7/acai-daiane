@@ -2374,42 +2374,29 @@ return (
 
   background: "#ea1d2c",
 
-  borderBottomLeftRadius: 30,
-  borderBottomRightRadius: 30,
-
-  paddingTop: "max(35px, env(safe-area-inset-top))",
+  paddingTop: "env(safe-area-inset-top)", // ✅ NOTCH REAL
   paddingBottom: 18,
 
-  boxShadow: "0 8px 25px rgba(0,0,0,0.15)", // 🔥 PROFUNDIDADE
+  borderBottomLeftRadius: 30,
+  borderBottomRightRadius: 30,
 
   overflow: "hidden"
 }}>
 
-  {/* 🔥 LOGO */}
+  {/* LOGO */}
   <img
     src="/logo.jpg"
     style={{
       width: "100%",
       height: 140,
-      objectFit: "cover",
-      opacity: 0.95
+      objectFit: "cover"
     }}
   />
-
-  {/* 🔥 GRADIENTE (efeito iFood) */}
-  <div style={{
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 40,
-    background: "linear-gradient(to top, rgba(0,0,0,0.15), transparent)"
-  }} />
 
   {/* MENU */}
   <div style={{
     position: "absolute",
-    top: 20,
+    top: "calc(env(safe-area-inset-top) + 10px)",
     left: 16
   }}>
     <Menu size={26} color="#fff" />
@@ -2418,7 +2405,7 @@ return (
   {/* CARRINHO */}
   <div style={{
     position: "absolute",
-    top: 20,
+    top: "calc(env(safe-area-inset-top) + 10px)",
     right: 16
   }}>
     <ShoppingCart size={26} color="#fff" />
