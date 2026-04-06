@@ -2365,83 +2365,86 @@ return (
 )}
 
 
-{/* 🔥 HEADER GLOBAL FIXO */}
+{/* 🔥 TOPO ESTILO IFOOD REAL */}
 <div style={{
-  position: "sticky",
-  top: 0,
-  zIndex: 999,
+  position: "relative",
+  width: "100%",
+  maxWidth: isMobile ? 420 : 1000,
+  margin: "0 auto",
 
-  paddingTop: "env(safe-area-inset-top)",
-  height: "calc(56px + env(safe-area-inset-top))",
+  background: "#ea1d2c",
+  borderBottomLeftRadius: 30,
+  borderBottomRightRadius: 30,
 
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-
-  padding: "0 16px",
-  background: "#ea1d2c"
+  overflow: "hidden"
 }}>
 
-  {/* MENU */}
-  <div onClick={() => setMenuAberto(true)}>
-    <Menu size={22} color="#fff" />
+  {/* 🔥 NOTCH */}
+  <div style={{
+    height: "env(safe-area-inset-top)"
+  }} />
+
+  {/* 🔥 BANNER */}
+  <img
+    src="/banner-top.png"
+    style={{
+      width: "100%",
+      height: 200,
+      objectFit: "cover",
+      opacity: 0.9
+    }}
+  />
+
+  {/* 🔥 MENU */}
+  <div
+    onClick={() => setMenuAberto(true)}
+    style={{
+      position: "absolute",
+      top: "calc(env(safe-area-inset-top) + 10px)",
+      left: 16
+    }}
+  >
+    <Menu size={26} color="#fff" />
   </div>
 
-  {/* LOGO CENTRAL */}
-  <img
-  src="/logo.jpg"
-  style={{
-    position: "absolute",
-    left: "50%",
-    transform: "translateX(-50%)",
-    height: 32 // 🔥 AQUI (antes 22)
-  }}
-/>
-
-  {/* CARRINHO */}
+  {/* 🔥 CARRINHO */}
   <div
     onClick={() => {
       setAba("carrinho");
       setStep(3);
     }}
-    style={{ position: "relative" }}
+    style={{
+      position: "absolute",
+      top: "calc(env(safe-area-inset-top) + 10px)",
+      right: 16
+    }}
   >
-    <ShoppingCart size={22} color="#fff" />
-
-    {carrinho.length > 0 && (
-      <div style={{
-        position: "absolute",
-        top: -5,
-        right: -5,
-        background: "#fff",
-        color: "#ea1d2c",
-        borderRadius: "50%",
-        minWidth: 16,
-        height: 16,
-        fontSize: 10,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontWeight: "bold"
-      }}>
-        {carrinho.length}
-      </div>
-    )}
+    <ShoppingCart size={26} color="#fff" />
   </div>
 
-</div>
+  {/* 🔥 LOGO GRANDE CENTRAL */}
+  <img
+    src="/logo.jpg"
+    style={{
+      position: "absolute",
+      top: "calc(env(safe-area-inset-top) + 40px)",
+      left: "50%",
+      transform: "translateX(-50%)",
+      height: 50
+    }}
+  />
 
+</div>
 
 
 {aba === "home" && step === 1 && (
   <>
 
-    {/* 🔥 CONTEÚDO DIRETO (SEM BANNER) */}
     <div style={{
       background: themeAtual.card,
       borderRadius: 20,
       padding: 16,
-      marginTop: 10 // 🔥 sem negativo pra não bugar
+      marginTop: 10
     }}>
 
       <h2 style={{
@@ -2459,7 +2462,7 @@ return (
         Monte do seu jeito
       </span>
 
-      {/* 🔍 BUSCA */}
+      {/* BUSCA */}
       <div style={{
         marginTop: 12,
         background: "#eee",
@@ -2471,7 +2474,7 @@ return (
         Buscar produto...
       </div>
 
-      {/* 🛒 PRODUTOS */}
+      {/* PRODUTOS */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -2487,7 +2490,6 @@ return (
             boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
           }}>
 
-            {/* IMAGEM */}
             <img
               src={p.imagem}
               style={{
@@ -2497,7 +2499,6 @@ return (
               }}
             />
 
-            {/* INFO */}
             <div style={{ padding: 10 }}>
 
               <strong style={{
@@ -2507,16 +2508,19 @@ return (
                 {p.nome}
               </strong>
 
-              {/* 💰 PREÇO CORRIGIDO (SEM BUG) */}
+              {/* 🔥 PREÇO 100% CORRIGIDO */}
               <span style={{
                 color: "#ea1d2c",
                 fontWeight: "bold",
                 fontSize: 14
               }}>
-                R$ {(Number(p.preco) / 100).toFixed(2).replace(".", ",")}
+                R$ {(
+                  Number(p.preco) > 100
+                    ? Number(p.preco) / 100
+                    : Number(p.preco)
+                ).toFixed(2).replace(".", ",")}
               </span>
 
-              {/* BOTÃO */}
               <button
                 onClick={() => {
                   setProduto(p);
