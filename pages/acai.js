@@ -2357,62 +2357,68 @@ return (
 
 
 {/* 🔥 HEADER REAL COM IMAGEM NO NOTCH */}
-<div style={{
-  position: "sticky",
-  top: 0,
-  zIndex: 999,
-  overflow: "hidden"
-}}>
-
+{aba === "home" && step === 1 && (
   <div style={{
-    position: "relative",
-    width: "100%",
-    height: 180, // 🔥 altura total visível
+    position: "sticky",
+    top: 0,
+    zIndex: 999,
+
+    background: "#ea1d2c", // 🔥 mantém status bar padrão iOS
+
+    paddingTop: "env(safe-area-inset-top)", // ✅ notch real
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    overflow: "hidden"
   }}>
 
-    {/* 🔥 IMAGEM COMEÇA DO TOPO REAL (PEGA O NOTCH) */}
-    <img
-      src="/banner-acai.jpg"
-      style={{
-        position: "absolute",
-        top: "calc(-1 * env(safe-area-inset-top))", // 🔥 SEGREDO
-        left: 0,
-        width: "100%",
-        height: "calc(100% + env(safe-area-inset-top))", // 🔥 cobre o notch
-        objectFit: "cover"
-      }}
-    />
+    <div style={{
+      position: "relative",
+      width: "100%",
+      height: 130 // 🔥 altura equilibrada (sem exagero)
+    }}>
 
-    {/* MENU */}
-    <div
-      onClick={() => setMenuAberto(true)}
-      style={{
-        position: "absolute",
-        top: "calc(env(safe-area-inset-top) + 10px)",
-        left: 16
-      }}
-    >
-      <Menu size={26} color="#fff" />
-    </div>
+      {/* 🔥 IMAGEM SEM CORTAR */}
+      <img
+        src="/logo.jpg"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain", // ✅ mostra TODA imagem
+          background: "#ea1d2c" // 🔥 evita borda branca
+        }}
+      />
 
-    {/* CARRINHO */}
-    <div
-      onClick={() => {
-        setAba("carrinho");
-        setStep(3);
-      }}
-      style={{
-        position: "absolute",
-        top: "calc(env(safe-area-inset-top) + 10px)",
-        right: 16
-      }}
-    >
-      <ShoppingCart size={26} color="#fff" />
+      {/* MENU */}
+      <div
+        onClick={() => setMenuAberto(true)}
+        style={{
+          position: "absolute",
+          top: "calc(env(safe-area-inset-top) + 10px)",
+          left: 16
+        }}
+      >
+        <Menu size={24} color="#fff" />
+      </div>
+
+      {/* CARRINHO */}
+      <div
+        onClick={() => {
+          setAba("carrinho");
+          setStep(3);
+        }}
+        style={{
+          position: "absolute",
+          top: "calc(env(safe-area-inset-top) + 10px)",
+          right: 16
+        }}
+      >
+        <ShoppingCart size={24} color="#fff" />
+      </div>
+
     </div>
 
   </div>
-
-</div>
+)}
 
 
 
