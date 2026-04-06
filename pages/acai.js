@@ -1937,8 +1937,12 @@ const enviarWhatsApp = (pedido) => {
     `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 };
 
+
  
 return (
+
+
+  
   
 
 
@@ -3126,11 +3130,11 @@ return (
         <button
           onClick={() => setStep(1)}
           style={{
-            background: "#f2f2f2",
+            
             border: "none",
             borderRadius: "50%",
-            width: 32,
-            height: 32,
+            width: 25,
+            height: 25,
             cursor: "pointer"
           }}
         >
@@ -3457,11 +3461,11 @@ return (
         <button
           onClick={() => setAba("home")}
           style={{
-            background: "#f2f2f2",
+            
             border: "none",
             borderRadius: "50%",
-            width: 32,
-            height: 32,
+            width: 25,
+            height: 25,
             cursor: "pointer"
           }}
         >
@@ -3563,24 +3567,47 @@ return (
           </div>
 
           {/* LOGOUT */}
-          <button
-            onClick={() => {
-              setUser(null)
-              setAba("home")
-            }}
-            style={{
-              marginTop: 20,
-              width: "93%",
-              background: "#fff",
-              color: "#ea1d2c",
-              border: "2px solid #ea1d2c",
-              borderRadius: 25,
-              padding: 12,
-              fontWeight: "bold"
-            }}
-          >
-            Sair da conta
-          </button>
+{user ? (
+  // 🔴 LOGADO
+  <button
+    onClick={() => {
+      setUser(null);
+      setCarrinho([]);
+    }}
+    style={{
+      marginTop: 20,
+      width: "93%",
+      background: "#fff",
+      color: "#ea1d2c",
+      border: "2px solid #ea1d2c",
+      borderRadius: 25,
+      padding: 12,
+      fontWeight: "bold"
+    }}
+  >
+    Sair da conta
+  </button>
+) : (
+  // 🟢 DESLOGADO
+  <button
+    onClick={() => {
+      setAba("login");
+      setStep(0);
+    }}
+    style={{
+      marginTop: 20,
+      width: "93%",
+      background: "#ea1d2c",
+      color: "#fff",
+      border: "none",
+      borderRadius: 25,
+      padding: 12,
+      fontWeight: "bold"
+    }}
+  >
+    Fazer login
+  </button>
+)}
         </>
       )}
 
@@ -3807,11 +3834,11 @@ return (
             }, 50);
           }}
           style={{
-            background: "#f2f2f2",
+            
             border: "none",
             borderRadius: "50%",
-            width: 32,
-            height: 32,
+            width: 25,
+            height: 25,
             cursor: "pointer"
           }}
         >
