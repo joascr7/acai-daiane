@@ -2366,14 +2366,19 @@ return (
 
 
 
-{/* 🔥 TOPO COM NOTCH REAL */}
+{/* 🔥 HEADER GLOBAL REAL (ESTILO IFOOD) */}
 <div style={{
+  position: "sticky", // 🔥 FIXO IGUAL APP
+  top: 0,
+  zIndex: 999,
+
   background: "#ea1d2c",
-  paddingTop: "env(safe-area-inset-top)", // notch real
+
+  paddingTop: "env(safe-area-inset-top)", // ✅ NOTCH REAL
 }}>
 
   <div style={{
-    height: 60,
+    height: 64, // 🔥 altura padrão app
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -2381,25 +2386,52 @@ return (
     position: "relative"
   }}>
 
+    {/* MENU */}
     <div onClick={() => setMenuAberto(true)}>
-      <Menu size={24} color="#fff" />
+      <Menu size={26} color="#fff" />
     </div>
 
+    {/* LOGO CENTRAL (CORRIGIDA) */}
     <img
       src="/logo.jpg"
       style={{
         position: "absolute",
         left: "50%",
         transform: "translateX(-50%)",
-        height: 36
+        height: 42, // 🔥 AUMENTEI (antes tava minúscula)
+        objectFit: "contain"
       }}
     />
 
+    {/* CARRINHO */}
     <div onClick={() => {
       setAba("carrinho");
       setStep(3);
-    }}>
-      <ShoppingCart size={24} color="#fff" />
+    }} style={{ position: "relative" }}>
+
+      <ShoppingCart size={26} color="#fff" />
+
+      {/* BADGE */}
+      {carrinho.length > 0 && (
+        <div style={{
+          position: "absolute",
+          top: -6,
+          right: -6,
+          background: "#fff",
+          color: "#ea1d2c",
+          borderRadius: "50%",
+          minWidth: 18,
+          height: 18,
+          fontSize: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold"
+        }}>
+          {carrinho.length}
+        </div>
+      )}
+
     </div>
 
   </div>
@@ -2408,20 +2440,29 @@ return (
 
 
 
+{/* STEP 1 */}
 {aba === "home" && step === 1 && (
 
   <div style={{
     background: themeAtual.card,
     borderRadius: 20,
     padding: 16,
-    marginTop: 10
+    marginTop: 12 // 🔥 seguro (sem negativo)
   }}>
 
-    <h2 style={{ color: "#ea1d2c" }}>
+    {/* TITULO */}
+    <h2 style={{
+      color: "#ea1d2c",
+      fontSize: 18,
+      marginBottom: 4
+    }}>
       Peça seu açaí
     </h2>
 
-    <span style={{ color: "#666" }}>
+    <span style={{
+      fontSize: 13,
+      color: "#666"
+    }}>
       Monte do seu jeito
     </span>
 
@@ -2431,6 +2472,7 @@ return (
       background: "#eee",
       borderRadius: 20,
       padding: "10px 14px",
+      fontSize: 14,
       color: "#999"
     }}>
       Buscar produto...
@@ -2444,55 +2486,79 @@ return (
       marginTop: 16
     }}>
 
-      {produtos.map((p, i) => (
-        <div key={i} style={{
-          background: "#fff",
-          borderRadius: 16,
-          overflow: "hidden"
-        }}>
+      {produtos.map((p, i) => {
 
-          <img
-            src={p.imagem}
-            style={{
-              width: "100%",
-              height: 120,
-              objectFit: "cover"
-            }}
-          />
+        // 🔥 CORREÇÃO DEFINITIVA DO PREÇO
+        const precoFinal =
+          Number(p.preco) > 100
+            ? Number(p.preco) / 100
+            : Number(p.preco);
 
-          <div style={{ padding: 10 }}>
+        return (
+          <div key={i} style={{
+            background: "#fff",
+            borderRadius: 16,
+            overflow: "hidden",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+          }}>
 
-            <strong>{p.nome}</strong>
-
-            {/* ✅ PREÇO CORRETO */}
-            <span style={{
-              color: "#ea1d2c",
-              fontWeight: "bold"
-            }}>
-              R$ {parseFloat(p.preco).toFixed(2).replace(".", ",")}
-            </span>
-
-            <button
-              onClick={() => {
-                setProduto(p);
-                setStep(2);
-              }}
+            {/* IMAGEM */}
+            <img
+              src={p.imagem}
               style={{
-                marginTop: 8,
                 width: "100%",
-                background: "#f7b500",
-                borderRadius: 20,
-                padding: 10,
-                color: "#fff",
-                fontWeight: "bold"
+                height: 120,
+                objectFit: "cover"
               }}
-            >
-              ESCOLHER
-            </button>
+            />
+
+            {/* INFO */}
+            <div style={{ padding: 10 }}>
+
+              <strong style={{
+                fontSize: 13,
+                display: "block"
+              }}>
+                {p.nome}
+              </strong>
+
+              {/* 💰 PREÇO CORRETO */}
+              <span style={{
+                color: "#ea1d2c",
+                fontWeight: "bold",
+                fontSize: 14,
+                display: "block",
+                marginTop: 4
+              }}>
+                R$ {precoFinal.toFixed(2).replace(".", ",")}
+              </span>
+
+              {/* BOTÃO */}
+              <button
+                onClick={() => {
+                  setProduto(p);
+                  setStep(2);
+                }}
+                style={{
+                  marginTop: 8,
+                  width: "100%",
+                  background: "#f7b500",
+                  border: "none",
+                  borderRadius: 20,
+                  padding: 10,
+                  fontWeight: "bold",
+                  color: "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                ESCOLHER
+              </button>
+
+            </div>
 
           </div>
-        </div>
-      ))}
+        );
+      })}
 
     </div>
 
