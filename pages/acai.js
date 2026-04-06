@@ -2367,55 +2367,71 @@ return (
 
 
 {/* 🔥 HEADER GLOBAL REAL (ESTILO IFOOD) */}
-{/* 🔥 HEADER GRANDE ESTILO IFOOD (COM NOTCH REAL) */}
+{/* 🔥 TOPO REAL: LOGO VIRANDO HEADER + NOTCH */}
 <div style={{
   position: "sticky",
   top: 0,
   zIndex: 999,
 
-  background: "#ea1d2c",
+  width: "100%",
+  maxWidth: isMobile ? 420 : 1000,
+  margin: "0 auto",
 
-  paddingTop: "env(safe-area-inset-top)", // ✅ notch real
-
+  overflow: "hidden",
   borderBottomLeftRadius: 25,
-  borderBottomRightRadius: 25,
-
-  overflow: "hidden"
+  borderBottomRightRadius: 25
 }}>
 
-  {/* 🔥 IMAGEM GRANDE (LOGO COMO BANNER) */}
-  <img
-    src="/logo.jpg"
-    style={{
-      width: "100%",
-      height: 140, // 🔥 AQUI QUE FAZ FICAR IGUAL APP
-      objectFit: "cover"
-    }}
-  />
-
-  {/* MENU */}
+  {/* 🔥 IMAGEM COM NOTCH REAL */}
   <div style={{
-    position: "absolute",
-    top: "calc(env(safe-area-inset-top) + 12px)",
-    left: 16
-  }}
-  onClick={() => setMenuAberto(true)}
-  >
-    <Menu size={26} color="#fff" />
-  </div>
+    paddingTop: "env(safe-area-inset-top)", // ✅ notch real
+    background: "#ea1d2c"
+  }}>
 
-  {/* CARRINHO */}
-  <div style={{
-    position: "absolute",
-    top: "calc(env(safe-area-inset-top) + 12px)",
-    right: 16
-  }}
-  onClick={() => {
-    setAba("carrinho");
-    setStep(3);
-  }}
-  >
-    <ShoppingCart size={26} color="#fff" />
+    <div style={{
+      position: "relative",
+      height: 150 // 🔥 altura de app real
+    }}>
+
+      {/* LOGO GRANDE */}
+      <img
+        src="/logo.jpg"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover"
+        }}
+      />
+
+      {/* MENU */}
+      <div
+        onClick={() => setMenuAberto(true)}
+        style={{
+          position: "absolute",
+          top: 14,
+          left: 16
+        }}
+      >
+        <Menu size={26} color="#fff" />
+      </div>
+
+      {/* CARRINHO */}
+      <div
+        onClick={() => {
+          setAba("carrinho");
+          setStep(3);
+        }}
+        style={{
+          position: "absolute",
+          top: 14,
+          right: 16
+        }}
+      >
+        <ShoppingCart size={26} color="#fff" />
+      </div>
+
+    </div>
+
   </div>
 
 </div>
