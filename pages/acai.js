@@ -2380,14 +2380,14 @@ return (
       overflow: "hidden"
     }}>
 
-      <img
+   {/*   <img
         src="/logo1.png"
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover"
         }}
-      />
+      /> */}
 
       {/* MENU */}
       <div style={{
