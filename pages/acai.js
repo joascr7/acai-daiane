@@ -1999,9 +1999,11 @@ return (
 <div style={{
   minHeight: "100dvh",
   background: themeAtual.background,
+  color: themeAtual.text,
   display: "flex",
   justifyContent: "center",
-  overflowX: "hidden"
+  overflowX: "hidden",
+  paddingBottom: "env(safe-area-inset-bottom)"
 }}>
 
   <div style={{
@@ -2677,19 +2679,16 @@ return (
       position: "fixed",
       inset: 0,
       background: "rgba(0,0,0,0.4)",
-      zIndex: 2000
+      zIndex: 9998
     }}
   >
-
     <div
       onClick={(e) => e.stopPropagation()}
       style={{
         width: 260,
         height: "100%",
         background: "#fff",
-        padding: 20,
-        borderTopRightRadius: 20,
-        borderBottomRightRadius: 20
+        padding: 20
       }}
     >
 
