@@ -2356,35 +2356,35 @@ return (
 )}
 
 
-{/* 🔥 HEADER REAL COM IMAGEM NO NOTCH */}
-{aba === "home" && step === 1 && (
+{/* 🔥 HEADER COM IMAGEM + NOTCH REAL */}
+<div style={{
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  zIndex: 9999,
+  overflow: "hidden"
+}}>
+
   <div style={{
-    position: "sticky",
-    top: 0,
-    zIndex: 999,
-
-    background: "#ea1d2c", // 🔥 mantém status bar padrão iOS
-
-    paddingTop: "env(safe-area-inset-top)", // ✅ notch real
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    overflow: "hidden"
+    paddingTop: "env(safe-area-inset-top)", // notch real
+    background: "transparent" // 🔥 remove faixa vermelha
   }}>
 
     <div style={{
       position: "relative",
-      width: "100%",
-      height: 130 // 🔥 altura equilibrada (sem exagero)
+      height: 120
     }}>
 
-      {/* 🔥 IMAGEM SEM CORTAR */}
+      {/* IMAGEM */}
       <img
         src="/logo.jpg"
         style={{
+          position: "absolute",
+          inset: 0,
           width: "100%",
           height: "100%",
-          objectFit: "contain", // ✅ mostra TODA imagem
-          background: "#ea1d2c" // 🔥 evita borda branca
+          objectFit: "cover"
         }}
       />
 
@@ -2394,10 +2394,11 @@ return (
         style={{
           position: "absolute",
           top: "calc(env(safe-area-inset-top) + 10px)",
-          left: 16
+          left: 16,
+          zIndex: 2
         }}
       >
-        <Menu size={24} color="#fff" />
+        <Menu size={26} color="#fff" />
       </div>
 
       {/* CARRINHO */}
@@ -2409,16 +2410,23 @@ return (
         style={{
           position: "absolute",
           top: "calc(env(safe-area-inset-top) + 10px)",
-          right: 16
+          right: 16,
+          zIndex: 2
         }}
       >
-        <ShoppingCart size={24} color="#fff" />
+        <ShoppingCart size={26} color="#fff" />
       </div>
 
     </div>
 
   </div>
-)}
+
+</div>
+
+{/* 🔥 ESPAÇO DO HEADER (ESSENCIAL) */}
+<div style={{
+  height: "calc(120px + env(safe-area-inset-top))"
+}} />
 
 
 
@@ -2429,7 +2437,7 @@ return (
     background: themeAtual.card,
     borderRadius: 20,
     padding: 16,
-    marginTop: 12 // 🔥 seguro (sem negativo)
+    marginTop: 12
   }}>
 
     {/* TITULO */}
@@ -2470,7 +2478,6 @@ return (
 
       {produtos.map((p, i) => {
 
-        // 🔥 CORREÇÃO DEFINITIVA DO PREÇO
         const precoFinal =
           Number(p.preco) > 100
             ? Number(p.preco) / 100
@@ -2504,7 +2511,7 @@ return (
                 {p.nome}
               </strong>
 
-              {/* 💰 PREÇO CORRETO */}
+              {/* PREÇO */}
               <span style={{
                 color: "#ea1d2c",
                 fontWeight: "bold",
