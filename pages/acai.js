@@ -2356,16 +2356,19 @@ return (
 )}
 
 
-{/* 🔥 HEADER COM IMAGEM + NOTCH REAL */}
- <div style={{
+{/* STEP 1 */}
+{aba === "home" && step === 1 && (
+  <>
+
+    {/* 🔥 HEADER CORRETO */}
+    <div style={{
       position: "fixed",
       top: 0,
       left: 0,
       width: "100%",
-      zIndex: 9999
+      zIndex: 10 // 🔥 baixo pra não cobrir menu
     }}>
 
-      {/* 🔥 CENTRALIZA IGUAL APP */}
       <div style={{
         maxWidth: 420,
         margin: "0 auto",
@@ -2374,17 +2377,15 @@ return (
 
         <div style={{
           position: "relative",
-          height: "calc(120px + env(safe-area-inset-top))", // 🔥 inclui notch
-          overflow: "hidden"
+          height: "calc(120px + env(safe-area-inset-top))",
+          overflow: "hidden",
+          background: "#ea1d2c"
         }}>
 
-          {/* IMAGEM COBRINDO NOTCH */}
+          {/* IMAGEM */}
           <img
             src="/logo.jpg"
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
               width: "100%",
               height: "100%",
               objectFit: "cover"
@@ -2423,135 +2424,131 @@ return (
       </div>
     </div>
 
-    {/* 🔥 ESPAÇO CORRETO */}
+    {/* 🔥 ESPAÇO (ESSENCIAL PRO SCROLL NÃO BUGAR) */}
     <div style={{
       height: "calc(120px + env(safe-area-inset-top))"
     }} />
 
-{/* STEP 1 */}
-{aba === "home" && step === 1 && (
 
-  <div style={{
-    background: themeAtual.card,
-    borderRadius: 20,
-    padding: 16,
-    marginTop: 12
-  }}>
 
-    {/* TITULO */}
-    <h2 style={{
-      color: "#ea1d2c",
-      fontSize: 18,
-      marginBottom: 4
-    }}>
-      Peça seu açaí
-    </h2>
-
-    <span style={{
-      fontSize: 13,
-      color: "#666"
-    }}>
-      Monte do seu jeito
-    </span>
-
-    {/* BUSCA */}
+    {/* 🔥 CONTEÚDO */}
     <div style={{
-      marginTop: 12,
-      background: "#eee",
+      background: themeAtual.card,
       borderRadius: 20,
-      padding: "10px 14px",
-      fontSize: 14,
-      color: "#999"
-    }}>
-      Buscar produto...
-    </div>
-
-    {/* PRODUTOS */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 14,
-      marginTop: 16
+      padding: 16,
+      marginTop: 12
     }}>
 
-      {produtos.map((p, i) => {
+      <h2 style={{
+        color: "#ea1d2c",
+        fontSize: 18,
+        marginBottom: 4
+      }}>
+        Peça seu açaí
+      </h2>
 
-        const precoFinal =
-          Number(p.preco) > 100
-            ? Number(p.preco) / 100
-            : Number(p.preco);
+      <span style={{
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Monte do seu jeito
+      </span>
 
-        return (
-          <div key={i} style={{
-            background: "#fff",
-            borderRadius: 16,
-            overflow: "hidden",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-          }}>
+      {/* BUSCA */}
+      <div style={{
+        marginTop: 12,
+        background: "#eee",
+        borderRadius: 20,
+        padding: "10px 14px",
+        fontSize: 14,
+        color: "#999"
+      }}>
+        Buscar produto...
+      </div>
 
-            {/* IMAGEM */}
-            <img
-              src={p.imagem}
-              style={{
-                width: "100%",
-                height: 120,
-                objectFit: "cover"
-              }}
-            />
+      {/* PRODUTOS */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 14,
+        marginTop: 16
+      }}>
 
-            {/* INFO */}
-            <div style={{ padding: 10 }}>
+        {produtos.map((p, i) => {
 
-              <strong style={{
-                fontSize: 13,
-                display: "block"
-              }}>
-                {p.nome}
-              </strong>
+          const precoFinal =
+            Number(p.preco) > 100
+              ? Number(p.preco) / 100
+              : Number(p.preco);
 
-              {/* PREÇO */}
-              <span style={{
-                color: "#ea1d2c",
-                fontWeight: "bold",
-                fontSize: 14,
-                display: "block",
-                marginTop: 4
-              }}>
-                R$ {precoFinal.toFixed(2).replace(".", ",")}
-              </span>
+          return (
+            <div key={i} style={{
+              background: "#fff",
+              borderRadius: 16,
+              overflow: "hidden",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            }}>
 
-              {/* BOTÃO */}
-              <button
-                onClick={() => {
-                  setProduto(p);
-                  setStep(2);
-                }}
+              <img
+                src={p.imagem}
                 style={{
-                  marginTop: 8,
                   width: "100%",
-                  background: "#f7b500",
-                  border: "none",
-                  borderRadius: 20,
-                  padding: 10,
-                  fontWeight: "bold",
-                  color: "#fff",
-                  cursor: "pointer"
+                  height: 120,
+                  objectFit: "cover"
                 }}
-              >
-                ESCOLHER
-              </button>
+              />
+
+              <div style={{ padding: 10 }}>
+
+                <strong style={{
+                  fontSize: 13,
+                  display: "block"
+                }}>
+                  {p.nome}
+                </strong>
+
+                <span style={{
+                  color: "#ea1d2c",
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  display: "block",
+                  marginTop: 4
+                }}>
+                  R$ {precoFinal.toFixed(2).replace(".", ",")}
+                </span>
+
+                <button
+                  onClick={() => {
+                    setProduto(p);
+                    setStep(2);
+                  }}
+                  style={{
+                    marginTop: 8,
+                    width: "100%",
+                    background: "#f7b500",
+                    border: "none",
+                    borderRadius: 20,
+                    padding: 10,
+                    fontWeight: "bold",
+                    color: "#fff",
+                    cursor: "pointer"
+                  }}
+                >
+                  ESCOLHER
+                </button>
+
+              </div>
 
             </div>
+          );
+        })}
 
-          </div>
-        );
-      })}
+      </div>
 
     </div>
 
-  </div>
+  </>
 )}
-
 
 {menuAberto && (
   <div
