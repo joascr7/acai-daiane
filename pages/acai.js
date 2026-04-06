@@ -2376,38 +2376,35 @@ return (
   borderBottomLeftRadius: 30,
   borderBottomRightRadius: 30,
 
+  paddingTop: "max(30px, env(safe-area-inset-top))", // 🔥 AQUI É O SEGREDO
+  paddingBottom: 20,
+
   overflow: "hidden"
 }}>
 
-  {/* 🔥 NOTCH */}
-  <div style={{
-    height: "env(safe-area-inset-top)"
-  }} />
-
-  {/* 🔥 BANNER */}
+  {/* 🔥 LOGO GRANDE */}
   <img
     src="/logo.jpg"
     style={{
       width: "100%",
-      height: 200,
-      objectFit: "cover",
-      opacity: 0.9
+      height: 140,
+      objectFit: "cover"
     }}
   />
 
-  {/* 🔥 MENU */}
+  {/* MENU */}
   <div
     onClick={() => setMenuAberto(true)}
     style={{
       position: "absolute",
-      top: "calc(env(safe-area-inset-top) + 10px)",
+      top: 20,
       left: 16
     }}
   >
     <Menu size={26} color="#fff" />
   </div>
 
-  {/* 🔥 CARRINHO */}
+  {/* CARRINHO */}
   <div
     onClick={() => {
       setAba("carrinho");
@@ -2415,26 +2412,18 @@ return (
     }}
     style={{
       position: "absolute",
-      top: "calc(env(safe-area-inset-top) + 10px)",
+      top: 20,
       right: 16
     }}
   >
     <ShoppingCart size={26} color="#fff" />
   </div>
 
-  {/* 🔥 LOGO GRANDE CENTRAL */}
-  <img
-    
-    style={{
-      position: "absolute",
-      top: "calc(env(safe-area-inset-top) + 40px)",
-      left: "50%",
-      transform: "translateX(-50%)",
-      height: 50
-    }}
-  />
-
 </div>
+
+<div style={{
+  marginTop: -20 // 🔥 sobe levemente igual app
+}}></div>
 
 
 {aba === "home" && step === 1 && (
