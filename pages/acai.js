@@ -2373,56 +2373,61 @@ return (
   margin: "0 auto",
 
   background: "#ea1d2c",
+
   borderBottomLeftRadius: 30,
   borderBottomRightRadius: 30,
 
-  paddingTop: "max(30px, env(safe-area-inset-top))", // 🔥 AQUI É O SEGREDO
-  paddingBottom: 20,
+  paddingTop: "max(35px, env(safe-area-inset-top))",
+  paddingBottom: 18,
+
+  boxShadow: "0 8px 25px rgba(0,0,0,0.15)", // 🔥 PROFUNDIDADE
 
   overflow: "hidden"
 }}>
 
-  {/* 🔥 LOGO GRANDE */}
+  {/* 🔥 LOGO */}
   <img
     src="/logo.jpg"
     style={{
       width: "100%",
       height: 140,
-      objectFit: "cover"
+      objectFit: "cover",
+      opacity: 0.95
     }}
   />
 
+  {/* 🔥 GRADIENTE (efeito iFood) */}
+  <div style={{
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 40,
+    background: "linear-gradient(to top, rgba(0,0,0,0.15), transparent)"
+  }} />
+
   {/* MENU */}
-  <div
-    onClick={() => setMenuAberto(true)}
-    style={{
-      position: "absolute",
-      top: 20,
-      left: 16
-    }}
-  >
+  <div style={{
+    position: "absolute",
+    top: 20,
+    left: 16
+  }}>
     <Menu size={26} color="#fff" />
   </div>
 
   {/* CARRINHO */}
-  <div
-    onClick={() => {
-      setAba("carrinho");
-      setStep(3);
-    }}
-    style={{
-      position: "absolute",
-      top: 20,
-      right: 16
-    }}
-  >
+  <div style={{
+    position: "absolute",
+    top: 20,
+    right: 16
+  }}>
     <ShoppingCart size={26} color="#fff" />
   </div>
 
 </div>
 
 <div style={{
-  marginTop: -20 // 🔥 sobe levemente igual app
+  marginTop: -30 // 🔥 sobe levemente igual app
 }}></div>
 
 
