@@ -2362,75 +2362,74 @@ return (
 
     {/* 🔥 HEADER CORRETO */}
     <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      zIndex: 10 // 🔥 baixo pra não cobrir menu
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  zIndex: 9999
+}}>
+
+  <div style={{
+    maxWidth: 420,
+    margin: "0 auto",
+    width: "100%"
+  }}>
+
+    <div style={{
+      position: "relative",
+      height: "calc(140px + env(safe-area-inset-top))",
+      overflow: "hidden"
     }}>
 
-      <div style={{
-        maxWidth: 420,
-        margin: "0 auto",
-        width: "100%"
-      }}>
+      {/* 🔥 IMAGEM COBRINDO TUDO (SEM FUNDO) */}
+      <img
+        src="/logo1.png"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover" // 🔥 aqui resolve tudo
+        }}
+      />
 
-        <div style={{
-          position: "relative",
-          height: "calc(120px + env(safe-area-inset-top))",
-          overflow: "hidden",
-          background: "#ea1d2c"
-        }}>
-
-          {/* IMAGEM */}
-          <img
-  src="/logo.jpg"
-  style={{
-    width: "100%",
-    height: "100%",
-    objectFit: "contain", // 🔥 não corta mais
-    background: "#ea1d2c" // 🔥 preenche lateral
-  }}
-/>
-
-          {/* MENU */}
-          <div
-            onClick={() => setMenuAberto(true)}
-            style={{
-              position: "absolute",
-              top: "calc(env(safe-area-inset-top) + 10px)",
-              left: 16
-            }}
-          >
-            <Menu size={26} color="#fff" />
-          </div>
-
-          {/* CARRINHO */}
-          <div
-            onClick={() => {
-              setAba("carrinho");
-              setStep(3);
-            }}
-            style={{
-              position: "absolute",
-              top: "calc(env(safe-area-inset-top) + 10px)",
-              right: 16
-            }}
-          >
-            <ShoppingCart size={26} color="#fff" />
-          </div>
-
-        </div>
-
+      {/* MENU */}
+      <div
+        onClick={() => setMenuAberto(true)}
+        style={{
+          position: "absolute",
+          top: "calc(env(safe-area-inset-top) + 10px)",
+          left: 16
+        }}
+      >
+        <Menu size={26} color="#fff" />
       </div>
+
+      {/* CARRINHO */}
+      <div
+        onClick={() => {
+          setAba("carrinho");
+          setStep(3);
+        }}
+        style={{
+          position: "absolute",
+          top: "calc(env(safe-area-inset-top) + 10px)",
+          right: 16
+        }}
+      >
+        <ShoppingCart size={26} color="#fff" />
+      </div>
+
     </div>
 
-    {/* 🔥 ESPAÇO (ESSENCIAL PRO SCROLL NÃO BUGAR) */}
-    <div style={{
-      height: "calc(120px + env(safe-area-inset-top))"
-    }} />
+  </div>
+</div>
 
-
+{/* 🔥 ESPAÇO PARA NÃO QUEBRAR LAYOUT */}
+<div style={{
+  height: "calc(140px + env(safe-area-inset-top))"
+}} />
 
     {/* 🔥 CONTEÚDO */}
     <div style={{
