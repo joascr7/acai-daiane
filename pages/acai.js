@@ -2367,31 +2367,29 @@ return (
 
 
 {/* 🔥 HEADER GLOBAL REAL (ESTILO IFOOD) */}
-{/* 🔥 TOPO REAL (SEM BARRA VERMELHA NO NOTCH) */}
+{/* 🔥 HEADER REAL COM IMAGEM NO NOTCH */}
 <div style={{
   position: "sticky",
   top: 0,
   zIndex: 999,
-  overflow: "hidden",
-
-  borderBottomLeftRadius: 25,
-  borderBottomRightRadius: 25
+  overflow: "hidden"
 }}>
 
   <div style={{
     position: "relative",
-    height: "calc(150px + env(safe-area-inset-top))" // 🔥 aqui é o segredo
+    width: "100%",
+    height: 180, // 🔥 altura total visível
   }}>
 
-    {/* 🔥 IMAGEM OCUPANDO TUDO (INCLUSIVE NOTCH) */}
+    {/* 🔥 IMAGEM COMEÇA DO TOPO REAL (PEGA O NOTCH) */}
     <img
-      src="/banner-top.png"
+      src="/logo.jpg"
       style={{
         position: "absolute",
-        top: 0,
+        top: "calc(-1 * env(safe-area-inset-top))", // 🔥 SEGREDO
         left: 0,
         width: "100%",
-        height: "100%",
+        height: "calc(100% + env(safe-area-inset-top))", // 🔥 cobre o notch
         objectFit: "cover"
       }}
     />
