@@ -2394,7 +2394,7 @@ return (
         position: "absolute",
         left: "50%",
         transform: "translateX(-50%)",
-        height: 30
+        height: 40
       }}
     />
 
