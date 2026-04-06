@@ -78,8 +78,7 @@ input, textarea, select {
 /* ============================= */
 
 input {
-  background: var(--input);
-  color: var(--text);
+  
   padding: 10px;
   border-radius: 10px;
   border: none;

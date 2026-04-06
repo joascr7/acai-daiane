@@ -1951,7 +1951,8 @@ return (
   <div style={{
     width: "100%",
     maxWidth: 420,
-    margin: "0 auto"
+    margin: "0 auto",
+    paddingBottom: 90
   }}>
 
 
@@ -3569,7 +3570,7 @@ return (
             }}
             style={{
               marginTop: 20,
-              width: "100%",
+              width: "93%",
               background: "#fff",
               color: "#ea1d2c",
               border: "2px solid #ea1d2c",
@@ -3630,7 +3631,7 @@ return (
             bottom: 0,
             left: 0,
             right: 0,
-            background: "#fff",
+            
             padding: 16,
             borderTop: "1px solid #eee"
           }}>
@@ -3645,8 +3646,8 @@ return (
                 setAbaPerfil("menu");
               }}
               style={{
-                width: "100%",
-                height: 52,
+                width: "95%",
+                height: 42,
                 borderRadius: 16,
                 background: "#ea1d2c",
                 color: "#fff",
@@ -3660,11 +3661,11 @@ return (
             <button
               onClick={() => setAbaPerfil("menu")}
               style={{
-                width: "100%",
+                width: "95%",
                 marginTop: 10,
-                height: 46,
+                height: 36,
                 borderRadius: 16,
-                background: "#eee",
+                background: "#000000",
                 border: "none"
               }}
             >
@@ -3699,7 +3700,7 @@ return (
             onClick={() => setAbaPerfil("menu")}
             style={{
               marginTop: 10,
-              width: "100%",
+              width: "94%",
               padding: 12,
               borderRadius: 14,
               border: "none",
@@ -3734,7 +3735,7 @@ return (
             onClick={() => setAbaPerfil("menu")}
             style={{
               marginTop: 15,
-              width: "100%",
+              width: "94%",
               padding: 12,
               borderRadius: 14,
               border: "none",
@@ -4770,6 +4771,119 @@ return (
 
   </div>
 )}
+
+
+{/* 🔥 NAVBAR FIXA */}
+<div style={{
+  position: "fixed",
+  bottom: 0,
+  left: "50%",
+  transform: "translateX(-50%)",
+  width: "100%",
+  maxWidth: 420,
+  background: "#fff",
+  borderTop: "1px solid #eee",
+  padding: "8px 0",
+  display: "flex",
+  justifyContent: "space-around",
+  boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
+  zIndex: 999
+}}>
+
+  {/* INICIO */}
+  <div
+    onClick={() => {
+      setAba("home");
+      setStep(1);
+    }}
+    style={{ textAlign: "center", cursor: "pointer" }}
+  >
+    <Home size={22} color={aba === "home" ? "#ea1d2c" : "#999"} />
+    <div style={{
+      fontSize: 11,
+      marginTop: 2,
+      color: aba === "home" ? "#ea1d2c" : "#999"
+    }}>
+      Início
+    </div>
+  </div>
+
+  {/* PEDIDOS */}
+  <div
+    onClick={() => {
+      setAba("pedidos");
+      setStep(5);
+    }}
+    style={{ textAlign: "center", cursor: "pointer" }}
+  >
+    <FileText size={22} color={aba === "pedidos" ? "#ea1d2c" : "#999"} />
+    <div style={{
+      fontSize: 11,
+      marginTop: 2,
+      color: aba === "pedidos" ? "#ea1d2c" : "#999"
+    }}>
+      Pedidos
+    </div>
+  </div>
+
+  {/* CARRINHO */}
+  <div
+    onClick={() => {
+      setAba("carrinho");
+      setStep(3);
+    }}
+    style={{ textAlign: "center", cursor: "pointer", position: "relative" }}
+  >
+    <ShoppingCart size={22} color={aba === "carrinho" ? "#ea1d2c" : "#999"} />
+
+    {/* 🔥 BOLINHA QUANTIDADE */}
+    {carrinho.length > 0 && (
+      <div style={{
+        position: "absolute",
+        top: -4,
+        right: -10,
+        background: "#ea1d2c",
+        color: "#fff",
+        borderRadius: "50%",
+        fontSize: 10,
+        width: 16,
+        height: 16,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}>
+        {carrinho.length}
+      </div>
+    )}
+
+    <div style={{
+      fontSize: 11,
+      marginTop: 2,
+      color: aba === "carrinho" ? "#ea1d2c" : "#999"
+    }}>
+      Carrinho
+    </div>
+  </div>
+
+  {/* PERFIL */}
+  <div
+    onClick={() => {
+      setAba("perfil");
+      setStep(4);
+    }}
+    style={{ textAlign: "center", cursor: "pointer" }}
+  >
+    <User size={22} color={aba === "perfil" ? "#ea1d2c" : "#999"} />
+    <div style={{
+      fontSize: 11,
+      marginTop: 2,
+      color: aba === "perfil" ? "#ea1d2c" : "#999"
+    }}>
+      Perfil
+    </div>
+  </div>
+
+</div>
 
 
 {/* 🔥 STYLES */}
