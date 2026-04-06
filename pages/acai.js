@@ -2014,19 +2014,10 @@ return (
   }}>
 
     
-
-    {/* 🔥 ESPAÇO HEADER (SÓ QUANDO EXISTE HEADER) */}
-    {!(aba === "home" && step === 1) && (
-      <div style={{ height: 0 }} />
-    )}
-
-
     {/* 🔥 CONTEÚDO */}
     <div style={{
-      paddingTop: "calc(env(safe-area-inset-top) + 0px)"
-    }}>
-
-
+      
+ }}>
 </div>
 
  <div style={{
@@ -2365,8 +2356,6 @@ return (
 )}
 
 
-
-{/* 🔥 HEADER GLOBAL REAL (ESTILO IFOOD) */}
 {/* 🔥 HEADER REAL COM IMAGEM NO NOTCH */}
 <div style={{
   position: "sticky",
