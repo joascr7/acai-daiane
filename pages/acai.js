@@ -2365,8 +2365,6 @@ return (
 )}
 
 
-
-{/* 🔥 HEADER SIMPLES GLOBAL */}
 <div style={{
   position: "sticky",
   top: 0,
@@ -2383,12 +2381,10 @@ return (
   background: "#ea1d2c"
 }}>
 
-  {/* MENU */}
   <div onClick={() => setMenuAberto(true)}>
     <Menu size={24} color="#fff" />
   </div>
 
-  {/* LOGO CENTRAL */}
   <img
     src="/logo.jpg"
     style={{
@@ -2399,7 +2395,6 @@ return (
     }}
   />
 
-  {/* CARRINHO */}
   <div
     onClick={() => {
       setAba("carrinho");
@@ -2433,20 +2428,19 @@ return (
 </div>
 
 
-      
-{/* STEP 1 */}
+
 {aba === "home" && step === 1 && (
   <>
 
-    {/* 🔥 BANNER */}
+    {/* 🔥 BANNER CORRETO */}
     <div style={{
-      height: 240,
+      height: 200,
       overflow: "hidden",
       borderBottomLeftRadius: 30,
       borderBottomRightRadius: 30
     }}>
       <img
-        src="/logo.jpg"
+        src="/banner-top.png" // ⚠️ NÃO usar logo aqui
         style={{
           width: "100%",
           height: "100%",
@@ -2460,7 +2454,7 @@ return (
       background: themeAtual.card,
       borderRadius: 20,
       padding: 16,
-      marginTop: -20
+      marginTop: -30
     }}>
 
       <h2 style={{
@@ -2506,7 +2500,6 @@ return (
             boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
           }}>
 
-            {/* IMAGEM */}
             <img
               src={p.imagem}
               style={{
@@ -2516,7 +2509,6 @@ return (
               }}
             />
 
-            {/* INFO */}
             <div style={{ padding: 10 }}>
 
               <strong style={{
@@ -2526,16 +2518,15 @@ return (
                 {p.nome}
               </strong>
 
-              {/* 🔥 VALOR CORRIGIDO */}
+              {/* 💰 PREÇO CORRIGIDO DE VERDADE */}
               <span style={{
                 color: "#ea1d2c",
                 fontWeight: "bold",
                 fontSize: 14
               }}>
-                R$ {Number(p.preco).toFixed(2).replace(".", ",")}
+                R$ {(Number(p.preco) / 100).toFixed(2).replace(".", ",")}
               </span>
 
-              {/* BOTÃO */}
               <button
                 onClick={() => {
                   setProduto(p);
@@ -2566,7 +2557,7 @@ return (
 
   </>
 )}
-
+<div style={{ height: "calc(60px + env(safe-area-inset-top))" }} />
 
 {menuAberto && (
   <div
