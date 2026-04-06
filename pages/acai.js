@@ -2365,13 +2365,14 @@ return (
 )}
 
 
+{/* 🔥 HEADER GLOBAL FIXO */}
 <div style={{
   position: "sticky",
   top: 0,
   zIndex: 999,
 
   paddingTop: "env(safe-area-inset-top)",
-  height: "calc(60px + env(safe-area-inset-top))",
+  height: "calc(56px + env(safe-area-inset-top))",
 
   display: "flex",
   alignItems: "center",
@@ -2381,20 +2382,23 @@ return (
   background: "#ea1d2c"
 }}>
 
+  {/* MENU */}
   <div onClick={() => setMenuAberto(true)}>
-    <Menu size={24} color="#fff" />
+    <Menu size={22} color="#fff" />
   </div>
 
+  {/* LOGO CENTRAL */}
   <img
-    src="/logo.jpg"
-    style={{
-      position: "absolute",
-      left: "50%",
-      transform: "translateX(-50%)",
-      height: 22
-    }}
-  />
+  src="/logo.jpg"
+  style={{
+    position: "absolute",
+    left: "50%",
+    transform: "translateX(-50%)",
+    height: 32 // 🔥 AQUI (antes 22)
+  }}
+/>
 
+  {/* CARRINHO */}
   <div
     onClick={() => {
       setAba("carrinho");
@@ -2402,13 +2406,13 @@ return (
     }}
     style={{ position: "relative" }}
   >
-    <ShoppingCart size={24} color="#fff" />
+    <ShoppingCart size={22} color="#fff" />
 
     {carrinho.length > 0 && (
       <div style={{
         position: "absolute",
-        top: -6,
-        right: -6,
+        top: -5,
+        right: -5,
         background: "#fff",
         color: "#ea1d2c",
         borderRadius: "50%",
@@ -2432,29 +2436,12 @@ return (
 {aba === "home" && step === 1 && (
   <>
 
-    {/* 🔥 BANNER CORRETO */}
-    <div style={{
-      height: 200,
-      overflow: "hidden",
-      borderBottomLeftRadius: 30,
-      borderBottomRightRadius: 30
-    }}>
-      <img
-        src="/banner-top.png" // ⚠️ NÃO usar logo aqui
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover"
-        }}
-      />
-    </div>
-
-    {/* 🔥 CONTEÚDO */}
+    {/* 🔥 CONTEÚDO DIRETO (SEM BANNER) */}
     <div style={{
       background: themeAtual.card,
       borderRadius: 20,
       padding: 16,
-      marginTop: -30
+      marginTop: 10 // 🔥 sem negativo pra não bugar
     }}>
 
       <h2 style={{
@@ -2472,7 +2459,7 @@ return (
         Monte do seu jeito
       </span>
 
-      {/* BUSCA */}
+      {/* 🔍 BUSCA */}
       <div style={{
         marginTop: 12,
         background: "#eee",
@@ -2484,7 +2471,7 @@ return (
         Buscar produto...
       </div>
 
-      {/* 🔥 PRODUTOS */}
+      {/* 🛒 PRODUTOS */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -2500,6 +2487,7 @@ return (
             boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
           }}>
 
+            {/* IMAGEM */}
             <img
               src={p.imagem}
               style={{
@@ -2509,6 +2497,7 @@ return (
               }}
             />
 
+            {/* INFO */}
             <div style={{ padding: 10 }}>
 
               <strong style={{
@@ -2518,7 +2507,7 @@ return (
                 {p.nome}
               </strong>
 
-              {/* 💰 PREÇO CORRIGIDO DE VERDADE */}
+              {/* 💰 PREÇO CORRIGIDO (SEM BUG) */}
               <span style={{
                 color: "#ea1d2c",
                 fontWeight: "bold",
@@ -2527,6 +2516,7 @@ return (
                 R$ {(Number(p.preco) / 100).toFixed(2).replace(".", ",")}
               </span>
 
+              {/* BOTÃO */}
               <button
                 onClick={() => {
                   setProduto(p);
@@ -2557,7 +2547,7 @@ return (
 
   </>
 )}
-<div style={{ height: "calc(60px + env(safe-area-inset-top))" }} />
+
 
 {menuAberto && (
   <div
