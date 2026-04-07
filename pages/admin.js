@@ -380,6 +380,7 @@ setImagemNotificacao(""); // 🔥 limpa imagem também
 alert("Notificação enviada 🚀");
 }
 
+
 // valor em centavos
 function converterParaCentavos(valor) {
   if (!valor) return 0;
@@ -1698,17 +1699,21 @@ return (
         </div>
 
         {/* AÇÕES */}
-        <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ display: "flex", gap: 6, flexDirection: "column" }}>
 
-          <button onClick={() => abrirEdicao(p)}>✏️</button>
+  <button onClick={() => abrirEdicao(p)}>✏️</button>
 
-          <button onClick={() => toggleProduto(p)}>
-            {p.ativo ? "🚫" : "✅"}
-          </button>
+  <button onClick={() => toggleProduto(p)}>
+    {p.ativo ? "🚫" : "✅"}
+  </button>
 
-          <button onClick={() => excluirProduto(p)}>🗑️</button>
+  <button onClick={() => excluirProduto(p)}>🗑️</button>
 
-        </div>
+  {/* 🔥 NOVOS BOTÕES */}
+  <button onClick={() => moverProduto(p, -1)}>⬆️</button>
+  <button onClick={() => moverProduto(p, 1)}>⬇️</button>
+
+</div>
 
     </div>
   ))

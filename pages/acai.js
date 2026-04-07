@@ -74,6 +74,8 @@ export default function Acai() {
 
 
 const NAVBAR = 60;
+const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
+const BOTTOM_SPACE = `calc(${NAVBAR}px + ${SAFE_BOTTOM})`;
 
   const btnMais = {
   width: 28,
@@ -322,7 +324,7 @@ useEffect(() => {
   
 
     // 🔥 PERFIL
-  const [abaPerfil, setAbaPerfil] = useState("menu");
+  const [abaPerfil, setAbaPerfil] = useState("dados");
 
   // ❌ REMOVIDO useEffect BUGADO
 
@@ -342,8 +344,11 @@ useEffect(() => {
   // 🔥 STEPS
   const [step, setStep] = useState(1);
   useEffect(() => {
-  setAbaPerfil("menu");
-}, [step]);
+  if (aba === "perfil" && step === 4) {
+    setAbaPerfil(prev => prev || "dados");
+  }
+}, [aba, step]);
+
   const [lojaAberta, setLojaAberta] = useState(true);
   const [pedidos, setPedidos] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -366,10 +371,18 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   const [produto, setProduto] = useState(null);
   const [produtos, setProdutos] = useState([]);
   const maisVendido = calcularMaisVendido(pedidos);
-  const extrasDoProduto =
-  produto?.extras?.length
-    ? produto.extras
-    : extrasGlobais;
+  const extrasDoProduto = Array.isArray(produto?.extras) && produto.extras.length
+  ? produto.extras
+  : Array.isArray(extrasGlobais)
+    ? extrasGlobais
+    : [];
+
+
+
+  function irPara(abaDestino, stepDestino) {
+  setAba(abaDestino);
+  setStep(stepDestino);
+}
   
 
     // 🔥 CARRINHO
@@ -402,39 +415,49 @@ const [pedidoAtual, setPedidoAtual] = useState(null);
   const [animacao, setAnimacao] = useState("slide-enter");
   const [loadingCupons, setLoadingCupons] = useState(false);
 
+  const produtosCategoria = produtos.filter(
+  p => p.categoria === categoriaSelecionada && p.ativo !== false
+);
 
-  function adicionarPorCategoria(categoria) {
 
-  const produto = produtos.find(p => p.categoria === categoria);
+function adicionarPorCategoria(categoria) {
+  const produto = produtos.find(
+    p => p.categoria === categoria && p.ativo !== false
+  );
 
   if (!produto) {
-    alert("Nenhum produto disponível");
+    alert("Nenhum produto disponível nessa categoria");
     return;
   }
 
-  // 🍧 AÇAÍ → abre montagem
-  if (categoria === "acai") {
+  if (!validarLojaAberta()) return;
+
+  if (categoriaTemExtras(categoria)) {
     setProduto(produto);
-    setStep(2);
     setAba("home");
+    setStep(2);
     return;
   }
 
-  // 🛒 OUTROS → adiciona direto
-  const total = produto.preco || 0;
+  if (categoriaVaiDiretoCarrinho(categoria)) {
+    const total = Number(produto.preco || 0);
 
-  setCarrinho(prev => [
-    ...prev,
-    {
-      produto,
-      quantidade: 1,
-      extras: [],
-      total
-    }
-  ]);
+    setCarrinho(prev => [
+      ...prev,
+      {
+        produto,
+        quantidade: 1,
+        extras: [],
+        total
+      }
+    ]);
 
-  setAba("carrinho");
-  setStep(3);
+    setAba("carrinho");
+    setStep(3);
+    return;
+  }
+
+  alert("Categoria sem regra definida");
 }
   
 
@@ -812,22 +835,31 @@ useEffect(() => {
 }, []);
 
   // 🔥 PRODUTOS FIREBASE
-  useEffect(() => {
+ useEffect(() => {
   const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
-
     const lista = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
-    // 🔥 ESSENCIAL
-    lista.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+    const listaAtiva = lista
+      .filter(p => p.ativo !== false)
+      .sort((a, b) => {
+        const ordemA = Number(a.ordem ?? 999999);
+        const ordemB = Number(b.ordem ?? 999999);
 
-    setProdutos(lista);
+        if (ordemA !== ordemB) return ordemA - ordemB;
+
+        return (a.nome || "").localeCompare(b.nome || "");
+      });
+
+    setProdutos(listaAtiva);
   });
 
   return () => unsub();
 }, []);
+
+
 // 🔥 salvar pedido na aba pedidos
 useEffect(() => {
 
@@ -1189,10 +1221,14 @@ const gerarPix = async () => {
       return;
     }
 
+
     if (!clienteNome || !clienteTelefone) {
       alert("Preencha seus dados!");
       return;
     }
+
+    const cupomValidoAgora = await validarCupomAntes();
+if (!cupomValidoAgora) return;
 
     const valorPix = Number(totalFinal) / 100;
 
@@ -1278,6 +1314,15 @@ const gerarPix = async () => {
         horaEntregue: null
       },
 
+      cupom: cupomAplicado
+      ? {
+      id: cupomAplicado.id,
+      codigo: cupomAplicado.codigo || "",
+      tipo: cupomAplicado.tipo || "",
+      desconto: Number(descontoCalculado || 0)
+    }
+  : null,
+
       paymentId: String(data.payment_id),
       data: new Date().toISOString()
     });
@@ -1300,6 +1345,8 @@ const gerarPix = async () => {
     alert("Erro ao gerar Pix");
   }
 };
+
+
 
 
 
@@ -1575,33 +1622,36 @@ function formatarTelefone(valor) {
 
    // 🔥 FUNÇÕES rempover item carrinho
 function adicionarCarrinho() {
+  if (!validarLojaAberta()) return;
   if (!produto) return;
 
   const nomeProduto = produto.nome;
 
-  // 🔥 GARANTE CENTAVOS
   const precoBase = Math.round(Number(produto?.preco || 0));
 
   const totalExtras = Object.values(extrasSelecionados)
-    .flat()
-    .reduce((acc, e) => acc + Math.round(Number(e.preco || 0)), 0);
+  .flat()
+  .reduce((acc, e) => {
+    return acc + (Math.round(Number(e.preco || 0)) * Number(e.qtd || 1));
+  }, 0);
 
   const totalItem = Math.round((precoBase + totalExtras) * quantidade);
 
   const extrasFinal = Object.entries(extrasSelecionados)
-    .flatMap(([categoria, lista]) =>
-      lista.map(e => ({
-        nome: e.nome,
-        preco: Math.round(Number(e.preco || 0)),
-        categoria
-      }))
-    );
+  .flatMap(([categoria, lista]) =>
+    lista.map(e => ({
+      nome: e.nome,
+      preco: Math.round(Number(e.preco || 0)),
+      categoria,
+      qtd: Number(e.qtd || 1)
+    }))
+  );
 
   const novoItem = {
     produto,
     quantidade,
     extras: extrasFinal,
-    total: totalItem // 🔥 CENTAVOS GARANTIDO
+    total: totalItem
   };
 
   if (editandoIndex !== null) {
@@ -1635,50 +1685,38 @@ function editarItem(index) {
   const item = carrinho[index];
   if (!item) return;
 
-  // 🔥 SÓ AÇAÍ
-  if (item.produto.categoria !== "acai") return;
+  if (!categoriaTemExtras(item.produto.categoria)) return;
 
-  // 🔥 CLONA EXTRAS
-  const extrasClonados = (item.extras || []).map(e => ({
-    nome: e.nome,
-    preco: Number(e.preco || 0)
-  }));
+  const produtoBase = item.produto;
 
-  // 🔥 ORGANIZA POR CATEGORIA
+  const gruposDoProduto =
+    produtoBase?.extras?.length
+      ? produtoBase.extras
+      : extrasGlobais;
+
   const extrasOrganizados = {};
 
-  extrasClonados.forEach(extra => {
-    extrasDoProduto.forEach(grupo => {
-      const existe = (grupo.itens || []).find(i => i.nome === extra.nome);
+  (item.extras || []).forEach(extra => {
+    const categoriaExtra = extra.categoria || "Extras";
 
-      if (existe) {
-        if (!extrasOrganizados[grupo.categoria]) {
-          extrasOrganizados[grupo.categoria] = [];
-        }
+    if (!extrasOrganizados[categoriaExtra]) {
+      extrasOrganizados[categoriaExtra] = [];
+    }
 
-        extrasOrganizados[grupo.categoria].push(extra);
-      }
+    extrasOrganizados[categoriaExtra].push({
+      nome: extra.nome,
+      preco: Number(extra.preco || 0),
+      categoria: categoriaExtra,
+      qtd: Number(extra.qtd || 1)
     });
   });
 
-  // 💥 ESSA PARTE FALTAVA
-
-  setProduto(item.produto);
-  setQuantidade(item.quantidade || 1);
-  setExtrasSelecionados(extrasOrganizados);
-
-  setEditandoIndex(index);
-
-  // 🔥 ABRE TELA DE EXTRAS
-  setAba("home");
-  setStep(2);
-
-  // 🔥 CARREGA DADOS
-  setProduto(item.produto);
+  setProduto(produtoBase);
   setQuantidade(Number(item.quantidade || 1));
-  setExtrasSelecionados(extrasOrganizados); // ✅ CORRETO
-
+  setExtrasSelecionados(extrasOrganizados);
   setEditandoIndex(index);
+
+  setAba("home");
   setStep(2);
 }
 // 🍧 AÇAÍ → ADICIONAR OU TIRAR
@@ -1694,9 +1732,9 @@ function alterarQuantidade(index, tipo) {
 
       const preco = item.produto.preco || 0;
       const extrasTotal = (item.extras || []).reduce(
-        (acc, e) => acc + e.preco,
-        0
-      );
+  (acc, e) => acc + (Number(e.preco || 0) * Number(e.qtd || 1)),
+    0
+   );
 
       return {
         ...item,
@@ -1706,9 +1744,19 @@ function alterarQuantidade(index, tipo) {
     });
   });
 }
+
+function validarLojaAberta() {
+  if (!lojaAberta) {
+    alert("🚫 Loja fechada no momento");
+    return false;
+  }
+
+  return true;
+}
+
+
 // valir o cupom antes e depois gerar o pix
 async function validarCupomAntes() {
-
   if (!cupomAplicado?.id) return true;
 
   const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
@@ -1727,6 +1775,21 @@ async function validarCupomAntes() {
   }
 
   const dados = snap.data();
+
+  if (!dados.ativo) {
+    alert("Cupom desativado");
+    return false;
+  }
+
+  if (dados.validade && new Date(dados.validade) < new Date()) {
+    alert("Cupom expirado");
+    return false;
+  }
+
+  if (Number(total || 0) < Number(dados.minimo || 0)) {
+    alert("Pedido mínimo para esse cupom não atingido");
+    return false;
+  }
 
   if (dados.usos && dados.usos[cpfLimpo]) {
     alert("Você já utilizou esse cupom ❌");
@@ -1800,9 +1863,32 @@ async function aplicarCupom() {
   alert("Cupom aplicado!");
 }
 
-async function aplicarMelhorCupom() {
 
-  // 🔥 1. BLOQUEIA SE CARRINHO VAZIO
+async function registrarUsoCupom() {
+  if (!cupomAplicado?.id) return true;
+
+  const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
+
+  if (!cpfLimpo || cpfLimpo.length !== 11) {
+    alert("Informe um CPF válido para usar cupom");
+    return false;
+  }
+
+  try {
+    await updateDoc(doc(db, "cupons", cupomAplicado.id), {
+      [`usos.${cpfLimpo}`]: true
+    });
+
+    return true;
+  } catch (e) {
+    console.log("Erro ao registrar uso do cupom:", e);
+    alert("Erro ao registrar uso do cupom");
+    return false;
+  }
+}
+
+
+async function aplicarMelhorCupom() {
   if (!carrinho.length) {
     alert("Adicione um produto antes de aplicar cupom");
     return;
@@ -1815,19 +1901,16 @@ async function aplicarMelhorCupom() {
 
   const totalPedido = Number(total || 0);
   const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
-
   const hoje = new Date();
 
   const validos = cupons.filter(c => {
-
     if (!c.ativo) return false;
 
     if (c.validade && new Date(c.validade) < hoje) return false;
 
-    // 🔥 mínimo corrigido (centavos)
-    if (totalPedido < Number(c.minimo || 0) * 100) return false;
+    // 🔥 minimo no mesmo padrão do resto do app
+    if (totalPedido < Number(c.minimo || 0)) return false;
 
-    // 🔥 NÃO DEIXA USAR SE JÁ USOU
     if (cpfLimpo && c.usos && c.usos[cpfLimpo]) return false;
 
     return true;
@@ -1842,7 +1925,6 @@ async function aplicarMelhorCupom() {
   let maiorDesconto = 0;
 
   validos.forEach(c => {
-
     let descontoTemp = 0;
 
     if (c.tipo === "porcentagem") {
@@ -1863,6 +1945,8 @@ async function aplicarMelhorCupom() {
 
   setCupomAplicado(melhor);
   setDesconto(maiorDesconto);
+
+  alert(`Cupom aplicado: ${melhor.codigo || melhor.nome || "desconto"}`);
 }
 
 // marcar notificao
@@ -1876,17 +1960,29 @@ async function marcarComoLida() {
   await Promise.all(updates);
 }
 
-function alterarExtra(categoria, item, delta) {
+
+function categoriaTemExtras(categoria) {
+  return ["acai", "promocoes", "combos"].includes(categoria);
+}
+
+function categoriaVaiDiretoCarrinho(categoria) {
+  return categoria === "bebidas";
+}
+
+
+function alterarExtra(categoria, item, delta, max = Infinity) {
   setExtrasSelecionados(prev => {
-
     const lista = prev[categoria] || [];
-
     const index = lista.findIndex(e => e.nome === item.nome);
 
     let novaLista = [...lista];
 
-    if (index >= 0) {
+    const totalAtualCategoria = lista.reduce(
+      (acc, e) => acc + (e.qtd || 0),
+      0
+    );
 
+    if (index >= 0) {
       const atual = novaLista[index];
       const novaQtd = (atual.qtd || 0) + delta;
 
@@ -1898,14 +1994,25 @@ function alterarExtra(categoria, item, delta) {
           qtd: novaQtd
         };
       }
-
     } else if (delta > 0) {
+      if (totalAtualCategoria >= max) {
+        return prev;
+      }
 
       novaLista.push({
         ...item,
+        categoria,
         qtd: 1
       });
+    }
 
+    const totalDepois = novaLista.reduce(
+      (acc, e) => acc + (e.qtd || 0),
+      0
+    );
+
+    if (totalDepois > max) {
+      return prev;
     }
 
     return {
@@ -1930,6 +2037,7 @@ function aplicarCupomDireto(cupom) {
 }
 
 async function finalizarPedido() {
+  if (!validarLojaAberta()) return;
 
   if (!user) {
     localStorage.setItem("redirectAfterLogin", "finalizar");
@@ -1938,6 +2046,17 @@ async function finalizarPedido() {
   }
 
   if (loadingPedido) return;
+
+
+    if (formaPagamento === "pix") {
+    setMostrarPagamento(true);
+    return;
+  }
+
+  const cupomValidoAgora = await validarCupomAntes();
+  if (!cupomValidoAgora) return;
+
+  
 
   if (!carrinho.length) {
     alert("Carrinho vazio!");
@@ -1955,102 +2074,84 @@ async function finalizarPedido() {
     return;
   }
 
-
-
-
-
   if (formaPagamento === "pix") {
     setMostrarPagamento(true);
     return;
   }
 
-
-
-  if (!user && authReady) {
-  return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#fff"
-    }}>
-      <TelaLogin />
-    </div>
-  );
-}
-
   try {
-
     setLoadingPedido(true);
 
     const pedidoId = Date.now().toString();
     const codigo = Math.floor(100000 + Math.random() * 900000);
 
     const pedido = {
-      codigo,
-      cliente: {
-        nome: clienteNome,
-        telefone: clienteTelefone,
-        endereco: clienteEndereco,
-        numero: clienteNumeroCasa,
-        uid: user?.uid || null
-      },
-      itens: carrinho,
-      total: Math.round(Number(totalFinal || 0)), // 🔥 CENTAVOS
-      formaPagamento,
-      status: "preparando",
-      data: new Date().toISOString()
-    };
+  codigo,
+  cliente: {
+    nome: clienteNome,
+    telefone: clienteTelefone,
+    endereco: clienteEndereco,
+    numero: clienteNumeroCasa,
+    uid: user?.uid || null
+  },
+  itens: carrinho,
+  total: Math.round(Number(totalFinal || 0)),
+  formaPagamento,
+  status: "preparando",
+  data: new Date().toISOString(),
+  cupom: cupomAplicado
+    ? {
+        id: cupomAplicado.id,
+        codigo: cupomAplicado.codigo || "",
+        tipo: cupomAplicado.tipo || "",
+        desconto: Number(descontoCalculado || 0)
+      }
+    : null
+};
 
     await setDoc(doc(db, "pedidos", pedidoId), pedido);
 
+    const usoRegistrado = await registrarUsoCupom();
+if (!usoRegistrado) return;
+
     localStorage.setItem("pedidoAtual", pedidoId);
 
-    // 🔥 WHATSAPP PROFISSIONAL
     let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
 
     carrinho.forEach((item, i) => {
+      mensagem += `*${i + 1}. ${item.produto?.nome || item.nome || "Produto"}*\n`;
+      mensagem += `Qtd: ${item.quantidade}\n`;
 
-  mensagem += `*${i + 1}. ${item.produto?.nome || item.nome || "Produto"}*\n`;
-  mensagem += `Qtd: ${item.quantidade}\n`;
+      if (item.extras?.length) {
+        const extrasPorCategoria = {};
 
-  if (item.extras?.length) {
+        (item.extras || []).forEach(e => {
+          const cat = e.categoria || "Extras";
 
-    const extrasPorCategoria = {};
+          if (!extrasPorCategoria[cat]) {
+            extrasPorCategoria[cat] = [];
+          }
 
-    (item.extras || []).forEach(e => {
-      const cat = e.categoria || "Extras";
+          extrasPorCategoria[cat].push(e.nome);
+        });
 
-      if (!extrasPorCategoria[cat]) {
-        extrasPorCategoria[cat] = [];
+        Object.keys(extrasPorCategoria).forEach(cat => {
+          mensagem += `\n• ${cat}:\n`;
+
+          extrasPorCategoria[cat].forEach(nome => {
+            mensagem += `  + ${nome}\n`;
+          });
+        });
       }
 
-      extrasPorCategoria[cat].push(e.nome);
+      mensagem += `\n💰 R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
     });
-
-    Object.keys(extrasPorCategoria).forEach(cat => {
-      mensagem += `\n• ${cat}:\n`;
-
-      extrasPorCategoria[cat].forEach(nome => {
-        mensagem += `  + ${nome}\n`;
-      });
-    });
-  }
-
-  mensagem += `\n💰 R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
-});
 
     mensagem += `━━━━━━━━━━━━━━━\n`;
-
-    // 🔥 CORREÇÃO AQUI
     mensagem += `💵 *Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
-
     mensagem += `💳 Pagamento: ${formaPagamento}\n\n`;
-
     mensagem += `📍 *Endereço:*\n`;
     mensagem += `${clienteEndereco}, Nº ${clienteNumeroCasa}\n\n`;
-
     mensagem += `👤 *Cliente:*\n`;
     mensagem += `${clienteNome}\n📞 ${clienteTelefone}`;
 
@@ -2126,20 +2227,23 @@ const enviarWhatsApp = (pedido) => {
 return (
 
 
-
+// CONTAINER
 
 <div style={{
   minHeight: "100dvh",
   background: themeAtual.background,
-  color: themeAtual.text
+  color: themeAtual.text,
+  paddingBottom: BOTTOM_SPACE,
+  boxSizing: "border-box"
 }}>
 
   <div style={{
-    width: "100%",
-    maxWidth: 420,
-    margin: "0 auto",
-    paddingBottom: 0
-  }}>
+  width: "100%",
+  maxWidth: 420,
+  margin: "0 auto",
+  paddingBottom: BOTTOM_SPACE,
+  boxSizing: "border-box"
+}}>
 
 
 
@@ -2440,18 +2544,18 @@ return (
   <>
     {/* HEADER */}
     <div
-      className="fade-slide"
-      style={{
-        maxWidth: 420,
-        margin: "0 auto",
-        padding: "env(safe-area-inset-top) 16px 10px",
-        background: "#fff",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-        position: "sticky",
-        top: 0,
-        zIndex: 10
-      }}
-    >
+  className="fade-slide"
+  style={{
+    maxWidth: 420,
+    margin: "0 auto",
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
+  }}
+>
       {/* TOPO */}
       <div
         style={{
@@ -2612,9 +2716,19 @@ return (
         <div
           key={c.id}
           onClick={() => {
-            setCategoriaSelecionada(c.slug);
-            setStep(9);
-          }}
+  const temProduto = produtos.some(
+    p => p.categoria === c.slug && p.ativo !== false
+  );
+
+  if (!temProduto) {
+    alert("Nenhum produto disponível nessa categoria");
+    return;
+  }
+
+  setCategoriaSelecionada(c.slug);
+  setAba("home");
+  setStep(9);
+}}
           style={{
             background: "#f4f4f5",
             borderRadius: 16,
@@ -2698,14 +2812,14 @@ return (
 </div>
     
 
-    {/* LISTA */}
+{/* LISTA */}
 <div style={{
   maxWidth: 420,
   margin: "0 auto",
-  
-  paddingBottom: 0
+  paddingBottom: BOTTOM_SPACE,
+  boxSizing: "border-box"
 }}>
-
+  
   {/* HEADER */}
   <div style={{
     marginTop: 20,
@@ -2737,7 +2851,9 @@ return (
     paddingBottom: 10
   }}>
 
-    {produtos.map((p, i) => {
+    {produtos
+    .filter(p => p.ativo !== false)
+    .map((p, i) => {
 
       const preco =
         Number(p.preco) > 100
@@ -2824,9 +2940,31 @@ return (
 
     <div
       onClick={() => {
-        setProduto(p);
-        setStep(2);
-      }}
+  if (!validarLojaAberta()) return;
+
+  if (categoriaTemExtras(p.categoria)) {
+    setProduto(p);
+    setAba("home");
+    setStep(2);
+    return;
+  }
+
+  if (categoriaVaiDiretoCarrinho(p.categoria)) {
+    setCarrinho(prev => [
+      ...prev,
+      {
+        produto: p,
+        quantidade: 1,
+        extras: [],
+        total: Number(p.preco || 0)
+      }
+    ]);
+
+    setAba("carrinho");
+    setStep(3);
+    return;
+  }
+}}
       style={{
         width: 32,
         height: 32,
@@ -2974,7 +3112,7 @@ return (
 
 
 
-{aba === "home" && step === 2 && (
+{aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
@@ -3012,7 +3150,13 @@ return (
 
       {/* VOLTAR */}
       <div
-        onClick={() => setStep(1)}
+       onClick={() => {
+        setAba("home");
+        setStep(1);
+        setEditandoIndex(null);
+        setExtrasSelecionados({});
+        setQuantidade(1);
+        }}
         style={{
           position: "absolute",
           top: 20,
@@ -3168,7 +3312,7 @@ return (
                   }}>
 
                     <button
-                      onClick={() => alterarExtra(grupo.categoria, item, -1)}
+                      onClick={() => alterarExtra(grupo.categoria, item, -1, grupo.max)}
                       disabled={qtd === 0}
                       style={{
                         width: 30,
@@ -3187,7 +3331,7 @@ return (
                     <strong>{qtd}</strong>
 
                     <button
-                      onClick={() => alterarExtra(grupo.categoria, item, 1)}
+                      onClick={() => alterarExtra(grupo.categoria, item, 1, grupo.max)}
                       style={{
                         width: 30,
                         height: 30,
@@ -4588,7 +4732,7 @@ return (
   </div>
 )}
 
-{step === 9 && (
+{aba === "home" && step === 9 && (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
@@ -4608,7 +4752,10 @@ return (
       gap: 10
     }}>
       <button
-        onClick={() => setStep(1)}
+        onClick={() => {
+          setAba("home");
+          setStep(1);
+        }}
         style={{
           width: 36,
           height: 36,
@@ -4635,31 +4782,48 @@ return (
     }}>
 
       {produtos
-        .filter(p => p.categoria === categoriaSelecionada)
+        .filter(p => p.categoria === categoriaSelecionada && p.ativo !== false)
+        .length === 0 && (
+          <div style={{
+            textAlign: "center",
+            color: "#777",
+            marginTop: 40,
+            fontSize: 14
+          }}>
+            Nenhum produto disponível nessa categoria
+          </div>
+        )}
+
+      {produtos
+        .filter(p => p.categoria === categoriaSelecionada && p.ativo !== false)
         .map(p => (
-
           <div
-            key={p.id}
             onClick={() => {
+  if (!validarLojaAberta()) return;
 
-              if (p.categoria === "acai") {
-                setProduto(p);
-                setStep(2);
-                return;
-              }
+  if (categoriaTemExtras(p.categoria)) {
+    setProduto(p);
+    setAba("home");
+    setStep(2);
+    return;
+  }
 
-              setCarrinho(prev => [
-                ...prev,
-                {
-                  produto: p,
-                  quantidade: 1,
-                  extras: [],
-                  total: p.preco
-                }
-              ]);
+  if (categoriaVaiDiretoCarrinho(p.categoria)) {
+    setCarrinho(prev => [
+      ...prev,
+      {
+        produto: p,
+        quantidade: 1,
+        extras: [],
+        total: Number(p.preco || 0)
+      }
+    ]);
 
-              setStep(3);
-            }}
+    setAba("carrinho");
+    setStep(3);
+    return;
+  }
+}}
             style={{
               background: "#fff",
               borderRadius: 18,
@@ -4737,7 +4901,6 @@ return (
             </div>
 
           </div>
-
         ))}
 
     </div>
@@ -4756,13 +4919,13 @@ return (
   maxWidth: 420,
   background: "#fff",
   borderTop: "1px solid #eee",
-  padding: "8px 0",
+  padding: `8px 0 calc(8px + ${SAFE_BOTTOM})`,
   display: "flex",
   justifyContent: "space-around",
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-  zIndex: 999
+  zIndex: 999,
+  boxSizing: "border-box"
 }}>
-
   {/* INICIO */}
   <div
     onClick={() => {
@@ -4841,8 +5004,9 @@ return (
   {/* PERFIL */}
   <div
     onClick={() => {
-      setAba("perfil");
-      setStep(4);
+    setAbaPerfil("dados");
+    setAba("perfil");
+    setStep(4);
     }}
     style={{ textAlign: "center", cursor: "pointer" }}
   >
