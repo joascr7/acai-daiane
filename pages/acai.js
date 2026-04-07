@@ -3401,8 +3401,12 @@ return (
   <div className="fade-slide" style={{
     maxWidth: 420,
     margin: "0 auto",
-    paddingBottom: 160,
-    background: "#f7f7f7"
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
   }}>
 
     {/* 🔝 HEADER */}
@@ -3883,8 +3887,12 @@ return (
   <div className={`fade-slide ${animacao}`} style={{
     maxWidth: 420,
     margin: "0 auto",
-    paddingBottom: 140,
-    background: "#f7f7f7"
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
   }}>
 
     {/* HEADER */}
@@ -4180,11 +4188,13 @@ return (
   <>
     <div style={{
       maxWidth: 420,
-      margin: "0 auto",
-      height: "100dvh",
-      display: "flex",
-      flexDirection: "column",
-      background: "#f5f5f5"
+    margin: "0 auto",
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
     }}>
 
       {/* HEADER */}
@@ -4355,10 +4365,12 @@ return (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
-    height: "100dvh",
-    display: "flex",
-    flexDirection: "column",
-    background: "#f7f7f7"
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
   }}>
 
     {/* HEADER */}
@@ -4497,9 +4509,13 @@ return (
     className={`fade-slide ${animacao}`}
     style={{
       maxWidth: 420,
-      margin: "0 auto",
-      paddingBottom: 140,
-      background: "#f7f7f7"
+    margin: "0 auto",
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
     }}
 
     onTouchStart={(e) => {
@@ -4738,10 +4754,12 @@ return (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
-    height: "100dvh",
-    display: "flex",
-    flexDirection: "column",
-    background: "#f7f7f7"
+    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+    background: "#fff",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+    position: "sticky",
+    top: 0,
+    zIndex: 10
   }}>
 
     {/* HEADER */}
@@ -5176,7 +5194,7 @@ return (
     }
 
     button {
-      margin-top: 10px;
+      margin-top: 15px;
       padding: 10px;
       border-radius: 10px;
       background: linear-gradient(90deg,#ec5353,#ec5353);
