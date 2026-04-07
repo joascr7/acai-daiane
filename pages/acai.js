@@ -953,6 +953,16 @@ useEffect(() => {
   return () => unsubscribe();
 }, []);
 
+
+useEffect(() => {
+  if (!mostrarPagamento) return;
+  if (formaPagamento !== "pix") return;
+  if (loadingPix) return;
+  if (paymentId || qrBase64) return;
+
+  gerarPix();
+}, [mostrarPagamento, formaPagamento]);
+
 useEffect(() => {
   async function carregarCupons() {
     const snap = await getDocs(collection(db, "cupons"));
@@ -2057,16 +2067,8 @@ async function finalizarPedido() {
 
   if (loadingPedido) return;
 
-
-    if (formaPagamento === "pix") {
-    setMostrarPagamento(true);
-    return;
-  }
-
   const cupomValidoAgora = await validarCupomAntes();
   if (!cupomValidoAgora) return;
-
-  
 
   if (!carrinho.length) {
     alert("Carrinho vazio!");
@@ -2084,11 +2086,7 @@ async function finalizarPedido() {
     return;
   }
 
-  if (formaPagamento === "pix") {
-    setMostrarPagamento(true);
-    return;
-  }
-
+ 
   try {
     setLoadingPedido(true);
 
@@ -2269,17 +2267,21 @@ return (
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 9999
+    zIndex: 9999,
+    padding: 16,
+    boxSizing: "border-box"
   }}>
     <div style={{
       background: "#fff",
       padding: 20,
       borderRadius: 16,
-      width: 350,
-      boxShadow: "0 10px 40px rgba(0,0,0,0.2)"
+      width: "100%",
+      maxWidth: 350,
+      boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+      boxSizing: "border-box"
     }}>
 
-      <h3 style={{ marginBottom: 10 }}> Forma de pagamento</h3>
+      <h3 style={{ marginBottom: 10 }}>Forma de pagamento</h3>
 
       {/* PIX */}
       <button
@@ -2287,11 +2289,9 @@ return (
           if (loadingPix) return;
 
           setFormaPagamento("pix");
-
           setQrBase64(null);
           setQrCode(null);
           setPaymentId(null);
-
           gerarPix();
         }}
         style={{
@@ -2325,7 +2325,7 @@ return (
           fontWeight: "bold"
         }}
       >
-         Dinheiro na entrega
+        Dinheiro na entrega
       </button>
 
       {/* CARTÃO */}
@@ -2343,17 +2343,16 @@ return (
           fontWeight: "bold"
         }}
       >
-         Cartão na entrega
+        Cartão na entrega
       </button>
 
       {/* PIX AREA */}
       {formaPagamento === "pix" && (
         <div style={{ marginTop: 20, textAlign: "center" }}>
-
           <p>
-          <strong>
-           Valor: {formatarReal(totalFinal)}
-          </strong>
+            <strong>
+              Valor: {formatarReal(totalFinal)}
+            </strong>
           </p>
 
           {!qrBase64 && (
@@ -2406,7 +2405,7 @@ return (
                   fontWeight: "bold"
                 }}
               >
-               Copiar código Pix
+                Copiar código Pix
               </button>
             </>
           )}
@@ -2414,7 +2413,6 @@ return (
           <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
             Após o pagamento, seu pedido será confirmado automaticamente.
           </p>
-
         </div>
       )}
 
@@ -2434,15 +2432,12 @@ return (
         }}
         disabled={loadingPedido}
         onClick={async () => {
-
           if (!formaPagamento) {
             alert("Escolha uma forma de pagamento");
             return;
           }
 
-          // 🔥 PIX NÃO FINALIZA PEDIDO
           if (formaPagamento === "pix") {
-
             if (!paymentId) {
               alert("Erro no Pix. Gere novamente.");
               return;
@@ -2454,12 +2449,12 @@ return (
             }
 
             alert("Aguardando pagamento do Pix...");
-            return; // 🔥 ESSENCIAL
+            return;
           }
 
           try {
             setLoadingPedido(true);
-            await finalizarPedido("pendente");
+            await finalizarPedido();
           } finally {
             setLoadingPedido(false);
           }
@@ -2473,6 +2468,9 @@ return (
         onClick={() => {
           setMostrarPagamento(false);
           setFormaPagamento(null);
+          setQrBase64(null);
+          setQrCode(null);
+          setPaymentId(null);
         }}
         style={{
           marginTop: 10,
@@ -2493,38 +2491,38 @@ return (
 {/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
 {pedidoPago && (
   <div style={{
-   position: "sticky",
+    position: "fixed",
     inset: 0,
     background: "rgba(0,0,0,0.7)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 9999
+    zIndex: 9999,
+    padding: 16,
+    boxSizing: "border-box"
   }}>
     <div style={{
       background: "#fff",
       padding: 20,
       borderRadius: 16,
-      textAlign: "center"
+      textAlign: "center",
+      width: "100%",
+      maxWidth: 320
     }}>
-
-      <h2> Pagamento confirmado</h2>
+      <h2>Pagamento confirmado</h2>
 
       <button
-  onClick={() => {
+        onClick={() => {
+          enviarWhatsApp(pedidoPago);
 
-    enviarWhatsApp(pedidoPago);
-
-    // 🔥 AGORA SIM LIMPA TUDO
-    setCarrinho([]);
-    setFormaPagamento(null);
-    setQrBase64(null);
-    setQrCode(null);
-    setPaymentId(null);
-    setMostrarPagamento(false);
-    setPedidoAtual(null);
-    setPedidoPago(null);
-
+          setCarrinho([]);
+          setFormaPagamento(null);
+          setQrBase64(null);
+          setQrCode(null);
+          setPaymentId(null);
+          setMostrarPagamento(false);
+          setPedidoAtual(null);
+          setPedidoPago(null);
         }}
         style={{
           marginTop: 10,
@@ -2536,9 +2534,8 @@ return (
           fontWeight: "bold"
         }}
       >
-         Enviar pedido no WhatsApp
+        Enviar pedido no WhatsApp
       </button>
-
     </div>
   </div>
 )}
@@ -3127,21 +3124,18 @@ return (
     maxWidth: 420,
     margin: "0 auto",
     height: "100dvh",
-    position: "relative",
+    display: "flex",
+    flexDirection: "column",
     background: "#fff",
     overflow: "hidden"
   }}>
 
-    {/* 🔥 IMAGEM FIXA */}
+    {/* TOPO FIXO */}
     <div style={{
-      position: "fixed",
-      top: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
+      position: "relative",
       width: "100%",
-      maxWidth: 420,
       height: 220,
-      zIndex: 10
+      flexShrink: 0
     }}>
       <img
         src={produto?.imagem || "/acai.png"}
@@ -3159,31 +3153,35 @@ return (
       }} />
 
       {/* VOLTAR */}
-      <div
-       onClick={() => {
-        setAba("home");
-        setStep(1);
-        setEditandoIndex(null);
-        setExtrasSelecionados({});
-        setQuantidade(1);
+      <button
+        onClick={() => {
+          setAba("home");
+          setStep(1);
+          setEditandoIndex(null);
+          setExtrasSelecionados({});
+          setQuantidade(1);
         }}
         style={{
           position: "absolute",
-          top: 20,
+          top: "calc(env(safe-area-inset-top) + 10px)",
           left: 16,
-          width: 38,
-          height: 38,
-          borderRadius: "50%",
+          width: 42,
+          height: 42,
+          borderRadius: 14,
+          border: "none",
           background: "#fff",
+          cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: "pointer",
-          fontWeight: "bold"
+          boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+          fontSize: 20,
+          fontWeight: "bold",
+          color: "#111"
         }}
       >
         ←
-      </div>
+      </button>
 
       {/* NOME */}
       <div style={{
@@ -3199,72 +3197,86 @@ return (
       </div>
     </div>
 
-    {/* 🔥 SCROLL (EXTRAS) */}
+    {/* CONTEÚDO COM SCROLL */}
     <div style={{
-      position: "absolute",
-      top: 210,
-      bottom: 120,
-      left: 0,
-      right: 0,
+      flex: 1,
       overflowY: "auto",
-      padding: 16
+      padding: 16,
+      paddingBottom: 140,
+      boxSizing: "border-box"
     }}>
 
       {/* QUANTIDADE */}
       <div style={{
         display: "flex",
         justifyContent: "space-between",
+        alignItems: "center",
         marginBottom: 20
       }}>
-        <span>Quantidade</span>
+        <span style={{ fontSize: 15, color: "#111", fontWeight: 500 }}>
+          Quantidade
+        </span>
 
         <div style={{
           display: "flex",
           alignItems: "center",
-          gap: 8
+          gap: 10
         }}>
-
           <button
             onClick={() => setQuantidade(q => Math.max(1, q - 1))}
             style={{
-              width: 34,
-              height: 34,
+              width: 32,
+              height: 32,
               borderRadius: "50%",
-              border: "none",
-              background: "#eee",
-              fontSize: 18,
-              cursor: "pointer"
+              border: "1px solid #dcdcdc",
+              background: "#fff",
+              color: "#333",
+              fontSize: 20,
+              lineHeight: 1,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0
             }}
           >
-            −
+            -
           </button>
 
-          <strong style={{ fontSize: 16 }}>
+          <strong style={{
+            fontSize: 15,
+            minWidth: 18,
+            textAlign: "center",
+            color: "#111"
+          }}>
             {quantidade}
           </strong>
 
           <button
             onClick={() => setQuantidade(q => q + 1)}
             style={{
-              width: 34,
-              height: 34,
+              width: 32,
+              height: 32,
               borderRadius: "50%",
               border: "none",
               background: "#ea1d2c",
               color: "#fff",
-              fontSize: 18,
-              cursor: "pointer"
+              fontSize: 20,
+              lineHeight: 1,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0
             }}
           >
             +
           </button>
-
         </div>
       </div>
 
       {/* EXTRAS */}
       {extrasDoProduto.map(grupo => {
-
         const selecionados = extrasSelecionados?.[grupo.categoria] || [];
 
         const totalSelecionado = selecionados.reduce(
@@ -3274,132 +3286,155 @@ return (
 
         return (
           <div key={grupo.categoria} style={{ marginBottom: 24 }}>
-
             <div style={{
               display: "flex",
               justifyContent: "space-between",
-              marginBottom: 8
+              marginBottom: 8,
+              alignItems: "center"
             }}>
-              <strong>{grupo.categoria}</strong>
+              <strong style={{ color: "#111", fontSize: 15 }}>
+                {grupo.categoria}
+              </strong>
 
               <span style={{
                 fontSize: 12,
-                color: totalSelecionado >= grupo.max ? "#ea1d2c" : "#777"
+                color: totalSelecionado >= grupo.max ? "#ea1d2c" : "#777",
+                fontWeight: 600
               }}>
                 {totalSelecionado}/{grupo.max}
               </span>
             </div>
 
             {grupo.itens.map(item => {
-
               const itemSelecionado = selecionados.find(e => e.nome === item.nome);
               const qtd = itemSelecionado?.qtd || 0;
 
               return (
-                <div key={item.nome} style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: 12,
-                  borderRadius: 14,
-                  marginBottom: 6,
-                  background: qtd > 0 ? "#fff5f5" : "#fff",
-                  border: qtd > 0 ? "1px solid #ea1d2c" : "1px solid #eee"
-                }}>
-
+                <div
+                  key={item.nome}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: 12,
+                    borderRadius: 14,
+                    marginBottom: 6,
+                    background: qtd > 0 ? "#fff5f5" : "#fff",
+                    border: qtd > 0 ? "1px solid #ea1d2c" : "1px solid #eee"
+                  }}
+                >
                   <div>
-                    <strong>{item.nome}</strong>
-                    <div style={{ fontSize: 12, color: "#777" }}>
+                    <strong style={{ color: "#111", fontSize: 14 }}>
+                      {item.nome}
+                    </strong>
+                    <div style={{ fontSize: 12, color: "#777", marginTop: 2 }}>
                       + {formatarReal(item.preco)}
                     </div>
                   </div>
 
-                  {/* 🔥 CONTADOR PREMIUM */}
                   <div style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 6
                   }}>
-
                     <button
                       onClick={() => alterarExtra(grupo.categoria, item, -1, grupo.max)}
                       disabled={qtd === 0}
                       style={{
-                        width: 30,
-                        height: 30,
+                        width: 28,
+                        height: 28,
                         borderRadius: "50%",
-                        border: "none",
-                        background: "#eee",
+                        border: "1px solid #dcdcdc",
+                        background: "#fff",
+                        color: "#333",
                         fontSize: 18,
-                        opacity: qtd === 0 ? 0.4 : 1,
-                        cursor: "pointer"
+                        lineHeight: 1,
+                        opacity: qtd === 0 ? 0.45 : 1,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 0
                       }}
                     >
-                      −
+                      -
                     </button>
 
-                    <strong>{qtd}</strong>
+                    <strong style={{
+                      minWidth: 16,
+                      textAlign: "center",
+                      fontSize: 14,
+                      color: "#111"
+                    }}>
+                      {qtd}
+                    </strong>
 
                     <button
                       onClick={() => alterarExtra(grupo.categoria, item, 1, grupo.max)}
                       style={{
-                        width: 30,
-                        height: 30,
+                        width: 28,
+                        height: 28,
                         borderRadius: "50%",
                         border: "none",
                         background: "#ea1d2c",
                         color: "#fff",
                         fontSize: 18,
-                        cursor: "pointer"
+                        lineHeight: 1,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: 0
                       }}
                     >
                       +
                     </button>
-
                   </div>
-
                 </div>
               );
             })}
-
           </div>
         );
       })}
-
     </div>
 
-    {/* 🔥 BOTÃO FIXO CENTRALIZADO */}
+    {/* BOTÃO FIXO */}
     <div style={{
       position: "fixed",
-      bottom: 70,
+      bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 8px)`,
       left: "50%",
       transform: "translateX(-50%)",
       width: "100%",
       maxWidth: 420,
       padding: "0 16px",
-      zIndex: 20
+      zIndex: 20,
+      boxSizing: "border-box"
     }}>
-
       <button
         onClick={adicionarCarrinho}
         disabled={!podeContinuar}
         style={{
-          width: "92%",
-          padding: 17,
-          borderRadius: 16,
-          background: podeContinuar ? "#ea1d2c" : "#ccc",
+          width: "94%",
+          height: 52,
+          borderRadius: 14,
+          background: podeContinuar ? "#ea1d2c" : "#d6d6d6",
           color: "#fff",
           border: "none",
-          fontWeight: "bold",
-          fontSize: 16,
-          cursor: "pointer"
+          fontWeight: 700,
+          fontSize: 15,
+          cursor: podeContinuar ? "pointer" : "not-allowed",
+          boxShadow: podeContinuar ? "0 8px 20px rgba(234,29,44,0.22)" : "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 10px"
         }}
       >
-        Adicionar • {formatarReal(
-          (Number(produto?.preco || 0) + totalExtras) * quantidade
-        )}
+        <span>Adicionar</span>
+        <span>
+          {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
+        </span>
       </button>
-
     </div>
 
   </div>
@@ -3427,28 +3462,26 @@ return (
         alignItems: "center",
         gap: 12
       }}>
-
-        {/* 🔥 BOTÃO VOLTAR CORRIGIDO */}
-      <button
-  onClick={() => {
-    setAba("home");
-    setStep(1);
-  }}
-  style={{
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    border: "none",
-    background: "#fff",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
-  }}
->
-  <ArrowLeft size={20} color="#111" />
-</button>
+        <button
+          onClick={() => {
+            setAba("home");
+            setStep(1);
+          }}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            border: "none",
+            background: "#fff",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+          }}
+        >
+          <ArrowLeft size={20} color="#111" />
+        </button>
 
         <h3 style={{ margin: 0 }}>Sacola</h3>
       </div>
@@ -3458,16 +3491,19 @@ return (
 
       {/* 🛒 ITENS */}
       {carrinho.map((item, i) => (
-        <div key={i} style={{
-          background: "#fff",
-          padding: 12,
-          borderRadius: 16,
-          marginBottom: 12,
-          display: "flex",
-          gap: 10,
-          alignItems: "center",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
-        }}>
+        <div
+          key={i}
+          style={{
+            background: "#fff",
+            padding: 12,
+            borderRadius: 16,
+            marginBottom: 12,
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+          }}
+        >
 
           <img
             src={item.produto?.imagem || item.imagem || "/acai.png"}
@@ -3480,7 +3516,6 @@ return (
           />
 
           <div style={{ flex: 1 }}>
-
             <strong style={{ fontSize: 14 }}>
               {item.produto.nome}
             </strong>
@@ -3503,7 +3538,6 @@ return (
               marginTop: 6,
               fontSize: 12
             }}>
-
               {item.produto.categoria === "acai" && (
                 <span
                   onClick={() => editarItem(i)}
@@ -3519,7 +3553,6 @@ return (
               >
                 Remover
               </span>
-
             </div>
 
             {/* PREÇO */}
@@ -3533,7 +3566,6 @@ return (
                 {formatarReal(item.total)}
               </strong>
             </div>
-
           </div>
 
           {/* QUANTIDADE */}
@@ -3541,37 +3573,57 @@ return (
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 4
+            gap: 6
           }}>
             <button
               onClick={() => alterarQuantidade(i, "mais")}
               style={{
-                width: 28,
-                height: 28,
+                width: 32,
+                height: 32,
                 borderRadius: "50%",
                 border: "none",
                 background: "#ea1d2c",
                 color: "#fff",
-                cursor: "pointer"
+                fontSize: 20,
+                lineHeight: 1,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0
               }}
             >
               +
             </button>
 
-            <strong>{item.quantidade}</strong>
+            <strong style={{
+              minWidth: 18,
+              textAlign: "center",
+              fontSize: 15,
+              color: "#111"
+            }}>
+              {item.quantidade}
+            </strong>
 
             <button
               onClick={() => alterarQuantidade(i, "menos")}
               style={{
-                width: 28,
-                height: 28,
+                width: 32,
+                height: 32,
                 borderRadius: "50%",
-                border: "none",
-                background: "#eee",
-                cursor: "pointer"
+                border: "1px solid #dcdcdc",
+                background: "#fff",
+                color: "#333",
+                fontSize: 20,
+                lineHeight: 1,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0
               }}
             >
-              −
+              -
             </button>
           </div>
 
@@ -3655,7 +3707,6 @@ return (
       padding: "12px 16px",
       boxShadow: "0 -4px 12px rgba(0,0,0,0.08)"
     }}>
-
       <div style={{
         display: "flex",
         justifyContent: "space-between",
@@ -3715,7 +3766,6 @@ return (
       >
         Continuar pedido
       </button>
-
     </div>
 
     {/* ANIMAÇÃO */}
@@ -4278,17 +4328,22 @@ return (
     <div style={{
       maxWidth: 420,
       margin: "0 auto",
-      height: "100dvh",
+      minHeight: "100dvh",
       display: "flex",
       flexDirection: "column",
-      background: "#f5f5f5"
+      background: "#f5f5f5",
+      paddingBottom: BOTTOM_SPACE,
+      boxSizing: "border-box"
     }}>
 
       {/* HEADER */}
       <div style={{
-        padding: 16,
+        padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
         background: "#fff",
-        borderBottom: "1px solid #eee"
+        borderBottom: "1px solid #eee",
+        position: "sticky",
+        top: 0,
+        zIndex: 10
       }}>
         <h3 style={{ margin: 0 }}>Pagamento</h3>
       </div>
@@ -4298,7 +4353,8 @@ return (
         flex: 1,
         overflowY: "auto",
         padding: 16,
-        paddingBottom: 120
+        paddingBottom: 140,
+        boxSizing: "border-box"
       }}>
 
         {/* RESUMO */}
@@ -4311,12 +4367,15 @@ return (
           <strong>Resumo do pedido</strong>
 
           {carrinho.map((item, i) => (
-            <div key={i} style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 13,
-              marginTop: 6
-            }}>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 13,
+                marginTop: 6
+              }}
+            >
               <span>{item.quantidade}x {item.produto.nome}</span>
               <span>{formatarReal(item.total)}</span>
             </div>
@@ -4359,11 +4418,6 @@ return (
                 key={p.id}
                 onClick={() => {
                   setFormaPagamento(p.id);
-
-                  // 🔥 NÃO abre modal aqui
-                  if (p.id === "pix") {
-                    gerarPix();
-                  }
                 }}
                 style={{
                   padding: 14,
@@ -4374,7 +4428,8 @@ return (
                   background: formaPagamento === p.id
                     ? "#fff5f5"
                     : "#fff",
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  fontWeight: formaPagamento === p.id ? "bold" : "normal"
                 }}
               >
                 {p.nome}
@@ -4388,38 +4443,42 @@ return (
       {/* BOTÕES */}
       <div style={{
         position: "fixed",
-        bottom: 60,
+        bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
         left: 0,
         right: 0,
         maxWidth: 420,
         margin: "0 auto",
         padding: "10px 16px",
-        zIndex: 10
+        zIndex: 10,
+        boxSizing: "border-box"
       }}>
-
         <button
           onClick={() => {
-            if (!formaPagamento) {
-              alert("Escolha a forma de pagamento");
-              return;
-            }
+         if (!formaPagamento) {
+        alert("Escolha uma forma de pagamento");
+        return;
+         }
 
-            if (formaPagamento === "pix") {
-              setMostrarPagamento(true); // 🔥 único lugar que abre
-              return;
-            }
+         if (formaPagamento === "pix") {
+          setQrBase64(null);
+          setQrCode(null);
+          setPaymentId(null);
+          setMostrarPagamento(true);
+          return;
+          }
 
-            finalizarPedido();
-          }}
+         finalizarPedido();
+         }}
           style={{
             width: "95%",
-            height: 34,
+            height: 42,
             borderRadius: 14,
             background: "#ea1d2c",
             color: "#fff",
             border: "none",
             fontWeight: "bold",
-            fontSize: 15
+            fontSize: 15,
+            cursor: "pointer"
           }}
         >
           Finalizar pedido • {formatarReal(totalFinal)}
@@ -4432,20 +4491,19 @@ return (
           }}
           style={{
             width: "95%",
-            height: 28,
+            height: 36,
             borderRadius: 14,
             background: "#555555",
             color: "#fff",
             border: "none",
-            marginTop: 8
+            marginTop: 8,
+            cursor: "pointer"
           }}
         >
           Voltar ao carrinho
         </button>
-
       </div>
     </div>
-     
   </>
 )}
 {aba === "notificacao" && step === 7 && (
@@ -4455,19 +4513,25 @@ return (
     height: "100dvh",
     display: "flex",
     flexDirection: "column",
-    background: "#f7f7f7"
+    background: "#f7f7f7",
+    overflow: "hidden"
   }}>
 
     {/* HEADER */}
     <div style={{
-      padding: 16,
+      padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
       background: "#fff",
-      borderBottom: "1px solid #eee"
+      borderBottom: "1px solid #eee",
+      position: "sticky",
+      top: 0,
+      zIndex: 10,
+      flexShrink: 0
     }}>
       <div style={{
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "center"
+        alignItems: "center",
+        gap: 10
       }}>
         <h3 style={{ margin: 0 }}>Notificações</h3>
 
@@ -4492,7 +4556,8 @@ return (
       flex: 1,
       overflowY: "auto",
       padding: 16,
-      paddingBottom: 100 // 🔥 espaço pro botão + navbar
+      paddingBottom: 120,
+      boxSizing: "border-box"
     }}>
 
       {/* HOJE */}
@@ -4503,14 +4568,17 @@ return (
           </div>
 
           {grupos.hoje.map(n => (
-            <div key={n.id} style={{
-              marginBottom: 10,
-              borderRadius: 16,
-              background: n.lida ? "#fff" : "#fff5f5",
-              padding: 12,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-              border: n.lida ? "1px solid #eee" : "1px solid #ea1d2c"
-            }}>
+            <div
+              key={n.id}
+              style={{
+                marginBottom: 10,
+                borderRadius: 16,
+                background: n.lida ? "#fff" : "#fff5f5",
+                padding: 12,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                border: n.lida ? "1px solid #eee" : "1px solid #ea1d2c"
+              }}
+            >
               <NotificacaoItem n={n} />
             </div>
           ))}
@@ -4530,13 +4598,16 @@ return (
           </div>
 
           {grupos.antigas.map(n => (
-            <div key={n.id} style={{
-              marginBottom: 10,
-              borderRadius: 16,
-              background: "#fff",
-              padding: 12,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
-            }}>
+            <div
+              key={n.id}
+              style={{
+                marginBottom: 10,
+                borderRadius: 16,
+                background: "#fff",
+                padding: 12,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+              }}
+            >
               <NotificacaoItem n={n} />
             </div>
           ))}
@@ -4555,16 +4626,17 @@ return (
       )}
     </div>
 
-    {/* BOTÃO FIXO (CORRIGIDO) */}
+    {/* RODAPÉ FIXO */}
     <div style={{
       position: "fixed",
-      bottom: 70, // 🔥 NÃO COLIDE COM NAVBAR
-      left: 0,
-      right: 0,
+      bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 8px)`,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "100%",
       maxWidth: 420,
-      margin: "0 auto",
       padding: "0 16px",
-      zIndex: 10
+      zIndex: 20,
+      boxSizing: "border-box"
     }}>
       <button
         onClick={() => {
@@ -4572,17 +4644,20 @@ return (
           setStep(1);
         }}
         style={{
-          width: "95%",
-          height: 28,
-          borderRadius: 12,
+          width: 42,
+          height: 42,
+          borderRadius: 14,
           border: "none",
-          background: "#ea1d2c",
-          color: "#fff",
-          fontWeight: "bold",
-          fontSize: 14
+          background: "#fff",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          margin: "0 auto"
         }}
       >
-        Voltar
+        <ArrowLeft size={20} color="#111" />
       </button>
     </div>
 
