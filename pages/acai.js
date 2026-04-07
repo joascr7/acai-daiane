@@ -3117,6 +3117,7 @@ return (
     maxWidth: 420,
     margin: "0 auto",
     height: "100dvh",
+    padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
     position: "relative",
     background: "#fff",
     overflow: "hidden"
@@ -3398,6 +3399,7 @@ return (
 {aba === "carrinho" && step === 3 && (
   <div className="fade-slide" style={{
     maxWidth: 420,
+    padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
     margin: "0 auto",
     paddingBottom: 160,
     background: "#f7f7f7"
@@ -3880,6 +3882,7 @@ return (
 {aba === "pedidos" && step === 5 && (
   <div className={`fade-slide ${animacao}`} style={{
     maxWidth: 420,
+    padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
     margin: "0 auto",
     paddingBottom: 140,
     background: "#f7f7f7"
@@ -4180,6 +4183,7 @@ return (
       maxWidth: 420,
       margin: "0 auto",
       height: "100dvh",
+      padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
       display: "flex",
       flexDirection: "column",
       background: "#f5f5f5"
@@ -4354,6 +4358,7 @@ return (
     maxWidth: 420,
     margin: "0 auto",
     height: "100dvh",
+    padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
     display: "flex",
     flexDirection: "column",
     background: "#f7f7f7"
@@ -4737,6 +4742,7 @@ return (
     maxWidth: 420,
     margin: "0 auto",
     height: "100dvh",
+    padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
     display: "flex",
     flexDirection: "column",
     background: "#f7f7f7"

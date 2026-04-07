@@ -3,7 +3,7 @@ export default function Layout({ children, dark }) {
     <div
       style={{
         minHeight: "100dvh", // 🔥 AQUI A CORREÇÃO REAL
-        background: dark ? "#111" : "#fff"
+        background: "#f4f5f7"
       }}
     >
       {children}

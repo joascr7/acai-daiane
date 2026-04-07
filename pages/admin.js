@@ -10,6 +10,7 @@ import Head from "next/head";
 
 
 
+
 import {
   collection,
   doc,
@@ -36,16 +37,9 @@ import {
 export default function Admin() {
 
 
-  const inputStyle = {
-  background: "#1e1e1e",
-  border: "1px solid #2a2a2a",
-  color: "#fff",
-  padding: "10px",
-  borderRadius: 12,
-  outline: "none",
-  marginBottom: 8
-};
-  
+const [abaAdmin, setAbaAdmin] = useState("dashboard");
+
+
   const btnCancel = {
     flex: 1,
     padding: 12,
@@ -85,22 +79,24 @@ const btnSecondary = {
 };
 
 
-const card = {
-  background: "#151515",
-  border: "1px solid #2a2a2a",
-  color: "#fff",
 
+
+
+const card = {
+  background: "#ffffff",
+  border: "1px solid #ececec",
+  color: "#111",
   borderRadius: 20,
   padding: 20,
   marginBottom: 20,
-  boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
+  boxShadow: "0 8px 30px rgba(0,0,0,0.06)"
 };
 
 const input = {
   width: "100%",
   padding: "14px 16px",
   borderRadius: 14,
-  border: "1px solid #eee",
+  border: "1px solid #e5e7eb",
   fontSize: 14,
   boxSizing: "border-box",
   background: "#fff",
@@ -112,7 +108,7 @@ const btnPrimary = {
   padding: 14,
   borderRadius: 14,
   border: "none",
-  background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+  background: "#ea1d2c",
   color: "#fff",
   fontWeight: "bold",
   cursor: "pointer"
@@ -123,7 +119,7 @@ const btnSuccess = {
   padding: 12,
   borderRadius: 12,
   border: "none",
-  background: "#00c853",
+  background: "#16a34a",
   color: "#fff",
   fontWeight: "bold",
   cursor: "pointer"
@@ -134,19 +130,29 @@ const btnDanger = {
   padding: 12,
   borderRadius: 12,
   border: "none",
-  background: "#ff3b30",
+  background: "#dc2626",
   color: "#fff",
   fontWeight: "bold",
   cursor: "pointer"
 };
 
 const btnDangerSmall = {
-  padding: "6px 10px",
+  padding: "8px 10px",
   borderRadius: 10,
   border: "none",
-  background: "#ff3b30",
+  background: "#ef4444",
   color: "#fff",
   cursor: "pointer"
+};
+
+const inputStyle = {
+  background: "#fff",
+  border: "1px solid #e5e7eb",
+  color: "#111",
+  padding: "12px 14px",
+  borderRadius: 12,
+  outline: "none",
+  marginBottom: 8
 };
 
   const router = useRouter();
@@ -859,123 +865,713 @@ if (loadingAuth) {
   return <div style={{ color: 'white' }}>Carregando...</div>;
 }
 
-
-// 🔥 RENDER
-return (
+  return (
   <div className="container">
-  <div className="wrapper">
+    <div className="wrapper">
 
-    {/* 🔥 HEADER */}
+      {/* HEADER */}
+     <div style={{
+  background: "#fff",
+  borderRadius: 24,
+  padding: 20,
+  marginBottom: 20,
+  boxShadow: "0 8px 30px rgba(0,0,0,0.06)",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  flexWrap: "wrap"
+}}>
+  <div>
     <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: 20
+      fontSize: 12,
+      color: "#777",
+      marginBottom: 6,
+      fontWeight: 600,
+      letterSpacing: 0.3
     }}>
-      <h1 style={{ margin: 0 }}>Painel Admin</h1>
-
-      <button onClick={logout} style={btnPrimary}>
-        Sair
-      </button>
+      PAINEL DA LOJA
     </div>
 
-    {/* 🔥 LIMPAR PEDIDOS */}
-    <button 
+    <h1 style={{
+      margin: 0,
+      fontSize: 28,
+      color: "#111"
+    }}>
+      Loja Admin
+    </h1>
+
+    <div style={{
+      marginTop: 10,
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      background: lojaAberta ? "#e8f7ec" : "#fdecec",
+      color: lojaAberta ? "#15803d" : "#b91c1c",
+      padding: "8px 12px",
+      borderRadius: 999,
+      fontWeight: "bold",
+      fontSize: 13
+    }}>
+      <span style={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        background: lojaAberta ? "#16a34a" : "#dc2626"
+      }} />
+      {lojaAberta ? "Loja aberta" : "Loja fechada"}
+    </div>
+  </div>
+
+  <button onClick={logout} style={{
+    padding: "12px 18px",
+    borderRadius: 14,
+    border: "none",
+    background: "#111",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer"
+  }}>
+    Sair
+  </button>
+</div>
+
+      {/* MENU */}
+      <div style={{
+  display: "flex",
+  gap: 10,
+  overflowX: "auto",
+  marginBottom: 20,
+  paddingBottom: 4
+}}>
+  {[
+    { id: "dashboard", nome: "Dashboard" },
+    { id: "pedidos", nome: "Pedidos" },
+    { id: "produtos", nome: "Produtos" },
+    { id: "cupons", nome: "Cupons" },
+    { id: "notificacoes", nome: "Notificações" },
+    { id: "loja", nome: "Loja" }
+  ].map(item => (
+    <button
+      key={item.id}
+      onClick={() => setAbaAdmin(item.id)}
+      style={{
+        padding: "12px 16px",
+        borderRadius: 14,
+        border: abaAdmin === item.id ? "none" : "1px solid #e5e7eb",
+        whiteSpace: "nowrap",
+        background: abaAdmin === item.id ? "#ea1d2c" : "#fff",
+        color: abaAdmin === item.id ? "#fff" : "#333",
+        fontWeight: "bold",
+        cursor: "pointer",
+        boxShadow: abaAdmin === item.id
+          ? "0 8px 20px rgba(234,29,44,0.25)"
+          : "0 4px 12px rgba(0,0,0,0.04)"
+      }}
+    >
+      {item.nome}
+    </button>
+  ))}
+</div>
+       
+      {/* DASHBOARD */}
+      {abaAdmin === "dashboard" && (
+  <div style={{
+    marginTop: 15,
+    padding: 18,
+    background: "#f4f5f7",
+    borderRadius: 20
+  }}>
+
+    {/* TOPO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
+      <h2 style={{
+        margin: 0,
+        color: "#111",
+        fontSize: 24
+      }}>
+        Dashboard
+      </h2>
+
+      <p style={{
+        marginTop: 6,
+        marginBottom: 0,
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Visão geral da loja, pedidos, faturamento e operação
+      </p>
+    </div>
+
+    {/* CARDS RESUMO */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: 16,
+      marginBottom: 20
+    }}>
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <div style={{ fontSize: 13, color: "#777" }}>Pedidos em andamento</div>
+        <div style={{
+          fontSize: 30,
+          fontWeight: "bold",
+          marginTop: 8,
+          color: "#111"
+        }}>
+          {pedidos.filter(p => p.status !== "entregue").length}
+        </div>
+      </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <div style={{ fontSize: 13, color: "#777" }}>Faturamento</div>
+        <div style={{
+          fontSize: 30,
+          fontWeight: "bold",
+          marginTop: 8,
+          color: "#111"
+        }}>
+          {formatarReal(totalFaturado)}
+        </div>
+      </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <div style={{ fontSize: 13, color: "#777" }}>Produtos ativos</div>
+        <div style={{
+          fontSize: 30,
+          fontWeight: "bold",
+          marginTop: 8,
+          color: "#111"
+        }}>
+          {produtos.filter(p => p.ativo).length}
+        </div>
+      </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <div style={{ fontSize: 13, color: "#777" }}>Cupons</div>
+        <div style={{
+          fontSize: 30,
+          fontWeight: "bold",
+          marginTop: 8,
+          color: "#111"
+        }}>
+          {cupons.length}
+        </div>
+      </div>
+    </div>
+
+    {/* AÇÃO RÁPIDA */}
+    <button
       onClick={limparPedidos}
       style={{
-        background: "#ff3b30",
+        background: "#ef4444",
         color: "#fff",
         padding: 12,
         borderRadius: 12,
         border: "none",
-        width: "100%",
-        marginBottom: 20,
+        width: "98%",
+        marginBottom: 16,
         fontWeight: "bold",
-        cursor: "pointer"
+        cursor: "pointer",
+        boxShadow: "0 6px 18px rgba(239,68,68,0.18)"
       }}
     >
       Limpar pedidos
     </button>
 
-    {/* 🔥 CARD */}
+    {/* STATUS + FATURAMENTO */}
     <div style={{
-      background: "#151515",
-      border: "1px solid #2a2a2a",
-      color: "#fff",
-      padding: 20,
-      borderRadius: 20,
-      boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+      gap: 16,
+      marginBottom: 16
     }}>
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 20,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <h3 style={{
+          marginTop: 0,
+          marginBottom: 14,
+          color: "#111"
+        }}>
+          Status da loja
+        </h3>
 
+        <div style={{
+          marginBottom: 14,
+          padding: 14,
+          borderRadius: 16,
+          background: lojaAberta ? "#e6fff1" : "#ffecec",
+          color: lojaAberta ? "#15803d" : "#b91c1c",
+          fontWeight: "bold",
+          textAlign: "center",
+          border: lojaAberta ? "1px solid #bbf7d0" : "1px solid #fecaca"
+        }}>
+          {lojaAberta === null
+            ? "Carregando..."
+            : lojaAberta
+              ? "Loja aberta"
+              : "Loja fechada"}
+        </div>
 
-{/* 🔥 GERENCIAR CATEGORIAS */}
-<h4>Categorias</h4>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button onClick={() => toggleLoja(true)} style={btnSuccess}>
+            Abrir
+          </button>
 
-{categorias.map(c => (
+          <button onClick={() => toggleLoja(false)} style={btnDanger}>
+            Fechar
+          </button>
+        </div>
+      </div>
 
-  <div key={c.id} style={{
-    display: "flex",
-    gap: 6,
-    marginBottom: 6,
-    alignItems: "center"
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 20,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <h3 style={{
+          marginTop: 0,
+          marginBottom: 14,
+          color: "#111"
+        }}>
+          Total faturado
+        </h3>
+
+        <div style={{
+          fontSize: 34,
+          fontWeight: "bold",
+          color: "#111",
+          marginBottom: 10
+        }}>
+          {formatarReal(totalFaturado)}
+        </div>
+
+        <div style={{
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Soma total dos pedidos registrados no painel
+        </div>
+      </div>
+    </div>
+
+    {/* GRÁFICO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 20,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
+      <h3 style={{
+        marginTop: 0,
+        marginBottom: 14,
+        color: "#111"
+      }}>
+        Vendas por dia
+      </h3>
+
+      {Object.keys(vendasPorDia).length === 0 && (
+        <div style={{
+          textAlign: "center",
+          color: "#666",
+          padding: 20,
+          background: "#fafafa",
+          borderRadius: 14,
+          border: "1px solid #eee"
+        }}>
+          Nenhuma venda registrada ainda
+        </div>
+      )}
+
+      {Object.keys(vendasPorDia)
+        .sort((a, b) => new Date(b) - new Date(a))
+        .map(dia => (
+          <div key={dia} style={{ marginBottom: 14 }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 13,
+              marginBottom: 6,
+              color: "#111"
+            }}>
+              <strong>{dia}</strong>
+              <span style={{ color: "#666" }}>
+                {formatarReal(vendasPorDia[dia])}
+              </span>
+            </div>
+
+            <div style={{
+              width: "100%",
+              height: 12,
+              borderRadius: 999,
+              background: "#eee",
+              overflow: "hidden"
+            }}>
+              <div style={{
+                width: `${maxVenda ? (vendasPorDia[dia] / maxVenda) * 100 : 0}%`,
+                height: "100%",
+                borderRadius: 999,
+                background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
+              }} />
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+)}
+
+      {/* LOJA */}
+     {abaAdmin === "loja" && (
+  <div style={{
+    marginTop: 15,
+    padding: 18,
+    background: "#f4f5f7",
+    borderRadius: 20
   }}>
 
-    {editandoCategoriaId === c.id ? (
-      <input
-        value={editandoCategoria[c.id] || ""}
-        onChange={(e) =>
-          setEditandoCategoria(prev => ({
-            ...prev,
-            [c.id]: e.target.value
-          }))
-        }
-        style={{ ...inputStyle, flex: 1 }}
-      />
-    ) : (
-      <span style={{ flex: 1 }}>{c.nome}</span>
-    )}
-
-    {editandoCategoriaId === c.id ? (
-      <button onClick={() => salvarEdicaoCategoria(c.id)}>
-        Salvar
-      </button>
-    ) : (
-      <button onClick={() => {
-        setEditandoCategoriaId(c.id);
-        setEditandoCategoria(prev => ({
-          ...prev,
-          [c.id]: c.nome
-        }));
+    {/* TOPO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
+      <h2 style={{
+        margin: 0,
+        color: "#111",
+        fontSize: 24
       }}>
-        Editar
-      </button>
-    )}
+        Loja
+      </h2>
 
-  </div>
+      <p style={{
+        marginTop: 6,
+        marginBottom: 0,
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Gerencie categorias, status da loja e logo
+      </p>
+    </div>
 
-))}
+    {/* CATEGORIAS */}
+    <div style={{
+      background: "#fff",
+      border: "1px solid #ececec",
+      color: "#111",
+      padding: 20,
+      borderRadius: 20,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      marginBottom: 16
+    }}>
+      <h3 style={{
+        marginTop: 0,
+        marginBottom: 14,
+        color: "#111"
+      }}>
+        Categorias
+      </h3>
 
-{/* CATEGORIA NOVA */}
+      {categorias.map(c => (
+        <div
+          key={c.id}
+          style={{
+            display: "flex",
+            gap: 8,
+            marginBottom: 10,
+            alignItems: "center",
+            padding: 10,
+            borderRadius: 14,
+            background: "#fafafa",
+            border: "1px solid #eee"
+          }}
+        >
+          {editandoCategoriaId === c.id ? (
+            <input
+              value={editandoCategoria[c.id] || ""}
+              onChange={(e) =>
+                setEditandoCategoria(prev => ({
+                  ...prev,
+                  [c.id]: e.target.value
+                }))
+              }
+              style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+            />
+          ) : (
+            <span style={{
+              flex: 1,
+              color: "#111",
+              fontWeight: 500
+            }}>
+              {c.nome}
+            </span>
+          )}
+
+          {editandoCategoriaId === c.id ? (
+            <button
+              onClick={() => salvarEdicaoCategoria(c.id)}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "none",
+                background: "#16a34a",
+                color: "#fff",
+                fontWeight: "bold",
+                cursor: "pointer"
+              }}
+            >
+              Salvar
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                setEditandoCategoriaId(c.id);
+                setEditandoCategoria(prev => ({
+                  ...prev,
+                  [c.id]: c.nome
+                }));
+              }}
+              style={{
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "none",
+                background: "#ea1d2c",
+                color: "#fff",
+                fontWeight: "bold",
+                cursor: "pointer"
+              }}
+            >
+              Editar
+            </button>
+          )}
+        </div>
+      ))}
+
+      {/* NOVA CATEGORIA */}
       <div style={{
-  marginBottom: 10,
-  display: "flex",
-  gap: 6
-}}>
-  <input
-    placeholder="Nova categoria"
-    value={novaCategoria}
-    onChange={(e) => setNovaCategoria(e.target.value)}
-    style={{ flex: 1, padding: 10, borderRadius: 10 }}
-  />
+        marginTop: 14,
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap"
+      }}>
+        <input
+          placeholder="Nova categoria"
+          value={novaCategoria}
+          onChange={(e) => setNovaCategoria(e.target.value)}
+          style={{
+            ...input,
+            flex: 1,
+            minWidth: 180
+          }}
+        />
 
-  <button onClick={criarCategoria}>
-    Criar
-  </button>
-</div>
-
-<select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}></select>
+        <button
+          onClick={criarCategoria}
+          style={btnPrimary}
+        >
+          Criar
+        </button>
+      </div>
 
       {/* SELECT */}
+      <div style={{ marginTop: 14 }}>
+        <select
+          value={categoria}
+          onChange={(e) => setCategoria(e.target.value)}
+          style={inputStyle}
+        >
+          {categorias.map(c => (
+            <option key={c.slug} value={c.slug}>
+              {c.nome}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    {/* STATUS DA LOJA */}
+    <div style={{
+      background: "#fff",
+      border: "1px solid #ececec",
+      color: "#111",
+      padding: 20,
+      borderRadius: 20,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      marginBottom: 16
+    }}>
+      <h3 style={{
+        marginTop: 0,
+        marginBottom: 14,
+        color: "#111"
+      }}>
+        Status da loja
+      </h3>
+
+      <div style={{
+        marginBottom: 14,
+        padding: 14,
+        borderRadius: 16,
+        background: lojaAberta ? "#e6fff1" : "#ffecec",
+        color: lojaAberta ? "#15803d" : "#b91c1c",
+        fontWeight: "bold",
+        textAlign: "center",
+        border: lojaAberta ? "1px solid #bbf7d0" : "1px solid #fecaca"
+      }}>
+        {lojaAberta === null
+          ? "Carregando..."
+          : lojaAberta
+            ? "Loja aberta"
+            : "Loja fechada"}
+      </div>
+
+      <div style={{
+        display: "flex",
+        gap: 10,
+        flexWrap: "wrap"
+      }}>
+        <button onClick={() => toggleLoja(true)} style={btnSuccess}>
+          Abrir
+        </button>
+
+        <button onClick={() => toggleLoja(false)} style={btnDanger}>
+          Fechar
+        </button>
+      </div>
+    </div>
+
+    {/* LOGO */}
+    <div style={{
+      background: "#fff",
+      border: "1px solid #ececec",
+      color: "#111",
+      padding: 20,
+      borderRadius: 20,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+    }}>
+      <h3 style={{
+        marginTop: 0,
+        marginBottom: 14,
+        color: "#111"
+      }}>
+        Logo da loja
+      </h3>
+
+      <input
+        placeholder="URL da logo"
+        value={logoInput}
+        onChange={(e) => setLogoInput(e.target.value)}
+        style={input}
+      />
+
+      {logoInput && (
+        <div style={{ marginTop: 14, marginBottom: 14 }}>
+          <img
+            src={logoInput}
+            style={{
+              width: 120,
+              height: 120,
+              objectFit: "cover",
+              borderRadius: 20,
+              border: "1px solid #eee",
+              background: "#fff"
+            }}
+          />
+        </div>
+      )}
+
+      <button onClick={salvarLogo} style={btnPrimary}>
+        Salvar Logo
+      </button>
+    </div>
+
+  </div>
+)}
+
+      {/* NOTIFICAÇÕES */}
+      {abaAdmin === "notificacoes" && (
+  <div style={{
+    marginTop: 15,
+    padding: 18,
+    background: "#f4f5f7",
+    borderRadius: 20
+  }}>
+
+    {/* TOPO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
+      <h2 style={{
+        margin: 0,
+        color: "#111",
+        fontSize: 24
+      }}>
+        Notificações
+      </h2>
+
+      <p style={{
+        marginTop: 6,
+        marginBottom: 0,
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Envie avisos para todos os clientes ou para um cliente específico
+      </p>
+    </div>
+
+    {/* FORMULÁRIO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
       <select
         value={clienteSelecionado}
         onChange={(e) => setClienteSelecionado(e.target.value)}
@@ -990,9 +1586,14 @@ return (
         ))}
       </select>
 
-      <h3 style={{ marginBottom: 10 }}>Enviar notificação</h3>
+      <h3 style={{
+        marginTop: 16,
+        marginBottom: 10,
+        color: "#111"
+      }}>
+        Enviar notificação
+      </h3>
 
-      {/* INPUT TEXTO */}
       <input
         placeholder="Digite a notificação..."
         value={textoNotificacao}
@@ -1000,12 +1601,10 @@ return (
         style={input}
       />
 
-      {/* UPLOAD */}
       <input
         type="file"
         accept="image/*"
         onChange={(e) => {
-
           const file = e.target.files[0];
           if (!file) return;
 
@@ -1020,24 +1619,24 @@ return (
         }}
         style={{
           ...input,
-          background: "#121212",
-          color: "#fff",
-          boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
-          cursor: "pointer"
+          background: "#fff",
+          color: "#111",
+          boxShadow: "none",
+          cursor: "pointer",
+          border: "1px solid #ddd"
         }}
       />
 
-      {/* 🔥 CROP */}
+      {/* MODAL CROP */}
       {mostrarCrop && imagemTemp && (
         <div style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.9)",
+          background: "rgba(0,0,0,0.55)",
           zIndex: 9999,
           display: "flex",
           flexDirection: "column"
         }}>
-
           <div style={{ flex: 1, position: "relative" }}>
             <Cropper
               image={imagemTemp}
@@ -1056,7 +1655,6 @@ return (
             padding: 20,
             background: "#fff"
           }}>
-
             <input
               type="range"
               min={1}
@@ -1072,14 +1670,15 @@ return (
               gap: 10,
               marginTop: 10
             }}>
-
-              <button onClick={() => setMostrarCrop(false)} style={btnSecondary}>
+              <button
+                onClick={() => setMostrarCrop(false)}
+                style={btnSecondary}
+              >
                 Cancelar
               </button>
 
               <button
                 onClick={async () => {
-
                   const canvas = document.createElement("canvas");
                   const ctx = canvas.getContext("2d");
 
@@ -1107,346 +1706,294 @@ return (
 
                   setImagemNotificacao(base64);
                   setMostrarCrop(false);
-
                 }}
                 style={btnPrimary}
               >
                 Salvar
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
 
-  
-{/* 🔥 PREVIEW IMAGEM */}
-{imagemNotificacao && (
-  <div style={{
-    position: "relative",
-    marginBottom: 12
-  }}>
+      {/* PREVIEW IMAGEM */}
+      {imagemNotificacao && (
+        <div style={{
+          position: "relative",
+          marginTop: 14,
+          marginBottom: 12
+        }}>
+          <img
+            src={imagemNotificacao}
+            style={{
+              width: "100%",
+              height: 160,
+              objectFit: "cover",
+              borderRadius: 16,
+              border: "1px solid #ececec"
+            }}
+          />
 
-    <img
-      src={imagemNotificacao}
-      style={{
-        width: "100%",
-        height: 140,
-        objectFit: "cover",
-        borderRadius: 16
-      }}
-    />
+          <div
+            onClick={() => setImagemNotificacao("")}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.6)",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: 14
+            }}
+          >
+            ✕
+          </div>
+        </div>
+      )}
 
-    {/* BOTÃO REMOVER (FLUTUANTE) */}
-    <div
-      onClick={() => setImagemNotificacao("")}
-      style={{
-        position: "absolute",
-        top: 10,
-        right: 10,
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        background: "rgba(0,0,0,0.6)",
-        color: "#fff",
+      <select
+        value={produtoSelecionado}
+        onChange={(e) => setProdutoSelecionado(e.target.value)}
+        style={input}
+      >
+        <option value="">Selecionar produto (opcional)</option>
+
+        {produtos.map(p => (
+          <option key={p.id} value={p.id}>
+            {p.nome}
+          </option>
+        ))}
+      </select>
+
+      <div style={{
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        fontSize: 14
-      }}
-    >
-      ✕
+        gap: 10,
+        marginTop: 10,
+        flexWrap: "wrap"
+      }}>
+        <button
+          onClick={() => enviarNotificacao("todos")}
+          style={btnPrimary}
+        >
+          Enviar para todos
+        </button>
+
+        <button
+          onClick={() => enviarNotificacao("usuario")}
+          style={btnSuccess}
+        >
+          Enviar para cliente
+        </button>
+      </div>
     </div>
 
+    {/* LISTA */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
+      <h3 style={{
+        marginTop: 0,
+        marginBottom: 14,
+        color: "#111"
+      }}>
+        Notificações enviadas
+      </h3>
+
+      {notificacoes.length === 0 && (
+        <div style={{
+          color: "#666",
+          textAlign: "center",
+          padding: 18,
+          background: "#fafafa",
+          borderRadius: 14,
+          border: "1px solid #eee"
+        }}>
+          Nenhuma notificação
+        </div>
+      )}
+
+      {notificacoes.map((n) => (
+        <div
+          key={n.id}
+          style={{
+            background: "#fff",
+            padding: 14,
+            borderRadius: 16,
+            marginBottom: 10,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 10,
+            boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+            border: "1px solid #ececec"
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div style={{
+              fontSize: 14,
+              color: "#111",
+              marginBottom: 4
+            }}>
+              {n.texto}
+            </div>
+
+            <div style={{
+              fontSize: 11,
+              color: "#888"
+            }}>
+              {n.data ? new Date(n.data).toLocaleString() : ""}
+            </div>
+          </div>
+
+          <button
+            onClick={() => removerNotificacao(n.id)}
+            style={btnDangerSmall}
+          >
+            Remover
+          </button>
+        </div>
+      ))}
+    </div>
   </div>
 )}
 
-{/* 🔥 SELECT PRODUTO */}
-<select
-  value={produtoSelecionado}
-  onChange={(e) => setProdutoSelecionado(e.target.value)}
-  style={input}
->
-  <option value="">Selecionar produto (opcional)</option>
+      {/* CUPONS */}
+      {abaAdmin === "cupons" && (
+        <div style={card}>
+          <h2>Criar cupom</h2>
 
-  {produtos.map(p => (
-    <option key={p.id} value={p.id}>
-      {p.nome}
-    </option>
-  ))}
-</select>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <input
+              placeholder="Código"
+              value={codigo}
+              onChange={e => setCodigo(e.target.value)}
+              style={input}
+            />
 
-{/* 🔥 BOTÕES */}
-<div style={{
-  display: "flex",
-  gap: 10,
-  marginTop: 10
-}}>
+            <input
+              placeholder="Desconto (%)"
+              type="number"
+              value={desconto}
+              onChange={e => setDesconto(e.target.value)}
+              style={input}
+            />
 
-  <button
-    onClick={() => enviarNotificacao("todos")}
-    style={btnPrimary}
-  >
-    Enviar para todos
-  </button>
+            <input
+              type="date"
+              value={validade}
+              onChange={e => setValidade(e.target.value)}
+              style={input}
+            />
 
-  <button
-    onClick={() => enviarNotificacao("usuario")}
-    style={btnSuccess}
-  >
-    Enviar para cliente
-  </button>
+            <input
+              placeholder="Limite"
+              type="number"
+              value={limite}
+              onChange={e => setLimite(e.target.value)}
+              style={input}
+            />
 
-</div>
+            <button onClick={criarCupom} style={btnPrimary}>
+              Criar cupom
+            </button>
+          </div>
 
-{/* 🔥 LISTA */}
-<div style={{ marginTop: 25 }}>
+          <h3 style={{ marginTop: 20 }}>Cupons criados</h3>
 
-  <h3 style={{ marginBottom: 10 }}>Notificações enviadas</h3>
+          {cupons.map((c) => (
+            <div
+              key={c.id}
+              style={{
+                background: "#fff",
+                borderRadius: 16,
+                padding: 14,
+                marginBottom: 10,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+              }}
+            >
+              <div>
+                <strong>{c.codigo}</strong>
 
-  {notificacoes.length === 0 && (
-    <p style={{ color: "#666" }}>Nenhuma notificação</p>
-  )}
+                <div style={{ fontSize: 13, color: "#666" }}>
+                  {c.desconto}% OFF
+                </div>
 
-  {notificacoes.map((n) => (
+                <div style={{ fontSize: 12, color: "#999" }}>
+                  Uso: {c.usos ? Object.keys(c.usos).length : 0}/{c.limite || "∞"}
+                </div>
 
-    <div key={n.id} style={{
-      background: "#fff",
-      padding: 14,
-      borderRadius: 16,
-      marginBottom: 10,
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      gap: 10,
-      boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
-    }}>
+                <div style={{ fontSize: 11, color: "#aaa" }}>
+                  Validade: {c.validade}
+                </div>
+              </div>
 
-      <div style={{ flex: 1 }}>
-
-        {/* TEXTO */}
-        <div style={{
-          fontSize: 14,
-          color: "#111",
-          marginBottom: 4
-        }}>
-          {n.texto}
+              <button onClick={() => deletarCupom(c.id)} style={btnDangerSmall}>
+                Remover
+              </button>
+            </div>
+          ))}
         </div>
+      )}
 
-        {/* DATA */}
-        <div style={{
-          fontSize: 11,
-          color: "#888"
-        }}>
-          {n.data ? new Date(n.data).toLocaleString() : ""}
-        </div>
-
-      </div>
-
-      {/* REMOVER */}
-      <button
-        onClick={() => removerNotificacao(n.id)}
-        style={btnDangerSmall}
-      >
-        Remover
-      </button>
-
-    </div>
-
-  ))}
-
-</div>
-</div>
-
-      
-{/* 🔥 STATUS LOJA */}
-<div style={card}>
-
-  <h2>Status da loja</h2>
-
-  <div style={{
-    marginBottom: 12,
-    padding: 12,
-    borderRadius: 14,
-    background: lojaAberta ? "#e6fff1" : "#ffecec",
-    color: lojaAberta ? "#00a650" : "#d32f2f",
-    fontWeight: "bold",
-    textAlign: "center"
-  }}>
-    {lojaAberta === null
-      ? "Carregando..."
-      : lojaAberta
-        ? "Loja aberta"
-        : "Loja fechada"}
-  </div>
-
-  <div style={{ display: "flex", gap: 10 }}>
-
-    <button onClick={() => toggleLoja(true)} style={btnSuccess}>
-      Abrir
-    </button>
-
-    <button onClick={() => toggleLoja(false)} style={btnDanger}>
-      Fechar
-    </button>
-
-  </div>
-
-</div>
-
-
-{/* 💰 FATURAMENTO */}
-<div style={card}>
-
-  <h2>Total faturado</h2>
-
-  <h1 style={{
-    color: "#111",
-    fontSize: 32,
-    marginTop: 10
-  }}>
-    {formatarReal(totalFaturado)}
-  </h1>
-
-</div>
-
-
-{/* 📊 GRÁFICO */}
-<div style={card}>
-
-  <h2>Vendas por dia</h2>
-
-  {Object.keys(vendasPorDia)
-    .sort((a, b) => new Date(b) - new Date(a))
-    .map(dia => (
-
-      <div key={dia} style={{
-        marginBottom: 10
-      }}>
-
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 13,
-          marginBottom: 4
-        }}>
-          <strong>{dia}</strong>
-          <span style={{ color: "#666" }}>
-            {formatarReal(vendasPorDia[dia])}
-          </span>
-        </div>
-
-        <div style={{
-          width: "100%",
-          height: 10,
-          borderRadius: 10,
-          background: "#eee"
-        }}>
-          <div style={{
-            width: `${(vendasPorDia[dia] / maxVenda) * 100}%`,
-            height: "100%",
-            borderRadius: 10,
-            background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
-          }} />
-        </div>
-
-      </div>
-
-    ))}
-
-</div>
-
-
-{/* 🎟️ CUPONS */}
-<div style={card}>
-
-  <h2>Criar cupom</h2>
-
-  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-
-    <input placeholder="Código" value={codigo} onChange={e => setCodigo(e.target.value)} style={input} />
-
-    <input placeholder="Desconto (%)" type="number" value={desconto} onChange={e => setDesconto(e.target.value)} style={input} />
-
-    <input type="date" value={validade} onChange={e => setValidade(e.target.value)} style={input} />
-
-    <input placeholder="Limite" type="number" value={limite} onChange={e => setLimite(e.target.value)} style={input} />
-
-    <button onClick={criarCupom} style={btnPrimary}>
-      Criar cupom
-    </button>
-
-  </div>
-
-  <h3 style={{ marginTop: 20 }}>Cupons criados</h3>
-
-  {cupons.map((c) => (
-
-    <div key={c.id} style={{
-      background: "#fff",
-      borderRadius: 16,
-      padding: 14,
-      marginBottom: 10,
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
-    }}>
-
-      <div>
-
-        <strong>{c.codigo}</strong>
-
-        <div style={{ fontSize: 13, color: "#666" }}>
-          {c.desconto}% OFF
-        </div>
-
-        <div style={{ fontSize: 12, color: "#999" }}>
-          Uso: {c.usos ? Object.keys(c.usos).length : 0}/{c.limite || "∞"}
-        </div>
-
-        <div style={{ fontSize: 11, color: "#aaa" }}>
-          Validade: {c.validade}
-        </div>
-
-      </div>
-
-      <button onClick={() => deletarCupom(c.id)} style={btnDangerSmall}>
-        Remover
-      </button>
-
-    </div>
-
-  ))}
-
-</div>
-
-
-{/* 💰 MODAL PRODUTO */}
-{mostrarModalProduto && (
+      {/* MODAL PRODUTO */}
+      {mostrarModalProduto && (
   <div style={{
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.75)",
-    backdropFilter: "blur(10px)",
+    background: "rgba(0,0,0,0.5)",
+    backdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 9999
+    zIndex: 9999,
+    padding: 16,
+    boxSizing: "border-box"
   }}>
     <div style={{
-      background: "#0f0f0f",
+      background: "#fff",
       padding: 20,
       borderRadius: 24,
-      width: 380,
+      width: "100%",
+      maxWidth: 420,
       maxHeight: "90vh",
-      overflowY: "auto"
+      overflowY: "auto",
+      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+      border: "1px solid #eee",
+      boxSizing: "border-box"
     }}>
 
-      <h3>🍧 Produto</h3>
+      {/* TOPO */}
+      <div style={{ marginBottom: 16 }}>
+        <h3 style={{
+          color: "#111",
+          margin: 0,
+          fontSize: 22
+        }}>
+          Criar / Editar Produto
+        </h3>
+
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Preencha os dados do produto e configure os extras
+        </p>
+      </div>
 
       {/* NOME */}
       <input
@@ -1457,9 +2004,15 @@ return (
       />
 
       {/* CATEGORIA */}
-      <select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}>
+      <select
+        value={categoria}
+        onChange={(e) => setCategoria(e.target.value)}
+        style={inputStyle}
+      >
         {categorias.map(c => (
-          <option key={c.slug} value={c.slug}>{c.nome}</option>
+          <option key={c.slug} value={c.slug}>
+            {c.nome}
+          </option>
         ))}
       </select>
 
@@ -1487,118 +2040,248 @@ return (
         style={inputStyle}
       />
 
-      {/* 🔥 EXTRAS PROFISSIONAL */}
-      <h3>⚙️ Extras</h3>
-
-      {/* ADD CATEGORIA */}
-      <div style={{ display: "flex", gap: 8 }}>
-        <input
-          placeholder="Categoria (ex: Complementos)"
-          value={novaCategoria}
-          onChange={e => setNovaCategoria(e.target.value)}
-          style={{ ...inputStyle, flex: 1 }}
-        />
-
-        <button onClick={() => {
-          if (!novaCategoria) return;
-
-          setExtras(prev => [
-            ...prev,
-            {
-              categoria: novaCategoria,
-              min: 0,
-              max: 5,
-              itens: []
-            }
-          ]);
-
-          setNovaCategoria("");
+      {/* EXTRAS */}
+      <div style={{
+        marginTop: 18,
+        marginBottom: 10,
+        padding: 14,
+        borderRadius: 18,
+        background: "#f8f8f8",
+        border: "1px solid #ececec"
+      }}>
+        <h3 style={{
+          margin: 0,
+          marginBottom: 10,
+          color: "#111",
+          fontSize: 18
         }}>
-          ➕
-        </button>
+          ⚙️ Extras
+        </h3>
+
+        {/* NOVA CATEGORIA DE EXTRA */}
+        <div style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          marginBottom: 10
+        }}>
+          <input
+            placeholder="Categoria (ex: Complementos)"
+            value={novaCategoria}
+            onChange={e => setNovaCategoria(e.target.value)}
+            style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+          />
+
+          <button
+            onClick={() => {
+              if (!novaCategoria) return;
+
+              setExtras(prev => [
+                ...prev,
+                {
+                  categoria: novaCategoria,
+                  min: 0,
+                  max: 5,
+                  itens: []
+                }
+              ]);
+
+              setNovaCategoria("");
+            }}
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 12,
+              border: "none",
+              background: "#ea1d2c",
+              color: "#fff",
+              fontWeight: "bold",
+              cursor: "pointer",
+              flexShrink: 0
+            }}
+          >
+            ➕
+          </button>
+        </div>
+
+        {/* LISTA DOS GRUPOS */}
+        {extras.map((grupo, i) => (
+          <div
+            key={i}
+            style={{
+              background: "#fff",
+              padding: 12,
+              borderRadius: 16,
+              marginTop: 12,
+              border: "1px solid #ececec",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+            }}
+          >
+            {/* TOPO DO GRUPO */}
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 10
+            }}>
+              <strong style={{ color: "#111" }}>
+                {grupo.categoria}
+              </strong>
+
+              <button
+                onClick={() => {
+                  setExtras(prev => prev.filter((_, index) => index !== i));
+                }}
+                style={{
+                  border: "none",
+                  background: "#fee2e2",
+                  color: "#b91c1c",
+                  borderRadius: 10,
+                  padding: "6px 10px",
+                  cursor: "pointer"
+                }}
+              >
+                ❌
+              </button>
+            </div>
+
+            {/* ITENS */}
+            {(grupo.itens || []).map((item, j) => (
+              <div
+                key={j}
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  marginTop: 8,
+                  alignItems: "center"
+                }}
+              >
+                <input
+                  placeholder="Nome"
+                  value={item.nome}
+                  onChange={(e) => {
+                    const novo = [...extras];
+                    novo[i].itens[j].nome = e.target.value;
+                    setExtras(novo);
+                  }}
+                  style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+                />
+
+                <input
+                  type="number"
+                  placeholder="R$"
+                  value={item.preco / 100}
+                  onChange={(e) => {
+                    const novo = [...extras];
+                    novo[i].itens[j].preco = Math.round(Number(e.target.value) * 100);
+                    setExtras(novo);
+                  }}
+                  style={{
+                    width: 80,
+                    ...inputStyle,
+                    marginBottom: 0
+                  }}
+                />
+
+                <button
+                  onClick={() => {
+                    const novo = [...extras];
+                    novo[i].itens.splice(j, 1);
+                    setExtras(novo);
+                  }}
+                  style={{
+                    border: "none",
+                    background: "#fee2e2",
+                    color: "#b91c1c",
+                    borderRadius: 10,
+                    padding: "10px 12px",
+                    cursor: "pointer"
+                  }}
+                >
+                  ❌
+                </button>
+              </div>
+            ))}
+
+            <button
+              onClick={() => {
+                const novo = [...extras];
+                novo[i].itens.push({ nome: "", preco: 0 });
+                setExtras(novo);
+              }}
+              style={{
+                marginTop: 10,
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: "1px solid #ddd",
+                background: "#fff",
+                color: "#111",
+                cursor: "pointer",
+                fontWeight: "bold"
+              }}
+            >
+              ➕ Item
+            </button>
+          </div>
+        ))}
       </div>
 
-      {/* LISTA DE GRUPOS */}
-      {extras.map((grupo, i) => (
-        <div key={i} style={{
-          background: "#1a1a1a",
-          padding: 12,
-          borderRadius: 16,
-          marginTop: 12
-        }}>
-
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between"
-          }}>
-            <strong>{grupo.categoria}</strong>
-
-            <button onClick={() => {
-              setExtras(prev => prev.filter((_, index) => index !== i));
-            }}>❌</button>
-          </div>
-
-          {/* ITENS */}
-          {(grupo.itens || []).map((item, j) => (
-            <div key={j} style={{
-              display: "flex",
-              gap: 6,
-              marginTop: 6
-            }}>
-              <input
-                placeholder="Nome"
-                value={item.nome}
-                onChange={(e) => {
-                  const novo = [...extras];
-                  novo[i].itens[j].nome = e.target.value;
-                  setExtras(novo);
-                }}
-                style={{ ...inputStyle, flex: 1 }}
-              />
-
-              <input
-                type="number"
-                placeholder="R$"
-                value={item.preco / 100}
-                onChange={(e) => {
-                  const novo = [...extras];
-                  novo[i].itens[j].preco = Math.round(Number(e.target.value) * 100);
-                  setExtras(novo);
-                }}
-                style={{ width: 70 }}
-              />
-
-              <button onClick={() => {
-                const novo = [...extras];
-                novo[i].itens.splice(j, 1);
-                setExtras(novo);
-              }}>❌</button>
-            </div>
-          ))}
-
-          <button onClick={() => {
-            const novo = [...extras];
-            novo[i].itens.push({ nome: "", preco: 0 });
-            setExtras(novo);
-          }}>
-            ➕ Item
-          </button>
-
-        </div>
-      ))}
-
       {/* IMAGEM */}
-      <input type="file" accept="image/*" onChange={(e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+      <div style={{
+        marginTop: 14,
+        marginBottom: 12
+      }}>
+        <label style={{
+          display: "block",
+          fontSize: 13,
+          color: "#666",
+          marginBottom: 6
+        }}>
+          Imagem do produto
+        </label>
 
-        const reader = new FileReader();
-        reader.onloadend = () => setNovaImagem(reader.result);
-        reader.readAsDataURL(file);
-      }} />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onloadend = () => setNovaImagem(reader.result);
+            reader.readAsDataURL(file);
+          }}
+          style={{
+            width: "100%"
+          }}
+        />
+      </div>
+
+      {/* PREVIEW IMAGEM */}
+      {novaImagem && (
+        <div style={{ marginBottom: 14 }}>
+          <img
+            src={novaImagem}
+            style={{
+              width: "100%",
+              height: 180,
+              objectFit: "cover",
+              borderRadius: 16,
+              border: "1px solid #eee"
+            }}
+          />
+        </div>
+      )}
 
       {/* MAIS VENDIDO */}
-      <label style={{ color: "#fff" }}>
+      <label style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        color: "#111",
+        marginBottom: 16,
+        fontWeight: "bold"
+      }}>
         <input
           type="checkbox"
           checked={maisVendido}
@@ -1608,187 +2291,464 @@ return (
       </label>
 
       {/* BOTÕES */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={salvarProduto} style={btnPrimary}>💾 Salvar</button>
-        <button onClick={() => setMostrarModalProduto(false)} style={btnCancel}>Cancelar</button>
-      </div>
+      <div style={{
+        display: "flex",
+        gap: 10,
+        marginTop: 4
+      }}>
+        <button onClick={salvarProduto} style={btnPrimary}>
+          💾 Salvar
+        </button>
 
+        <button
+          onClick={() => setMostrarModalProduto(false)}
+          style={btnCancel}
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   </div>
 )}
 
-{/* 🔥 PRODUTOS */}
-<div className="card">
-  <h2>🍧 Produtos</h2>
+      {/* PRODUTOS */}
+      {abaAdmin === "produtos" && (
+        <div className="card">
+          <h2>🍧 Produtos</h2>
 
-  {/* NOVO PRODUTO */}
-  <button
-    onClick={() => setMostrarModalProduto(true)}
-    style={{
-      marginBottom: 10,
-      padding: 14,
-      borderRadius: 14,
-      background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
-      color: "#fff",
-      border: "none",
-      cursor: "pointer",
-      width: "100%",
-      fontWeight: "bold",
-      fontSize: 15,
-      boxShadow: "0 6px 20px rgba(234,29,44,0.3)"
-    }}
-  >
-    ➕ Novo Produto
-  </button>
+          <button
+            onClick={() => setMostrarModalProduto(true)}
+            style={{
+              marginBottom: 10,
+              padding: 14,
+              borderRadius: 14,
+              background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              width: "100%",
+              fontWeight: "bold",
+              fontSize: 15,
+              boxShadow: "0 6px 20px rgba(234,29,44,0.3)"
+            }}
+          >
+            ➕ Novo Produto
+          </button>
 
-  {/* LISTA */}
-  {produtos.length === 0 ? (
-    <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
-  ) : (
-    produtos.map(p => (
-      <div
-        key={p.id}
+          {produtos.length === 0 ? (
+            <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
+          ) : (
+            produtos.map(p => (
+              <div
+  key={p.id}
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 14,
+    padding: 14,
+    borderRadius: 18,
+    background: "#fff",
+    marginBottom: 12,
+    border: "1px solid #ececec",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.04)"
+  }}
+>
+  <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
+    <img
+      src={p.imagem || "/acai.png"}
+      style={{
+        width: 64,
+        height: 64,
+        borderRadius: 16,
+        objectFit: "cover"
+      }}
+    />
+
+    <div style={{ flex: 1 }}>
+      <strong style={{ fontSize: 15, color: "#111" }}>{p.nome}</strong>
+
+      <div style={{ fontSize: 13, color: "#666", marginTop: 4 }}>
+        {formatarReal(p.preco)} • {p.tamanho || "Sem tamanho"}
+      </div>
+
+      <div style={{
+        display: "flex",
+        gap: 8,
+        flexWrap: "wrap",
+        marginTop: 6
+      }}>
+        <span style={{
+          padding: "4px 8px",
+          borderRadius: 999,
+          fontSize: 11,
+          fontWeight: "bold",
+          background: p.ativo ? "#e8f7ec" : "#fdecec",
+          color: p.ativo ? "#15803d" : "#b91c1c"
+        }}>
+          {p.ativo ? "Ativo" : "Inativo"}
+        </span>
+
+        {p.maisVendido && (
+          <span style={{
+            padding: "4px 8px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: "bold",
+            background: "#fff1f2",
+            color: "#e11d48"
+          }}>
+            Mais vendido
+          </span>
+        )}
+
+        {p.extras?.length > 0 && (
+          <span style={{
+            padding: "4px 8px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: "bold",
+            background: "#f3f4f6",
+            color: "#555"
+          }}>
+            {p.extras.length} grupos de extras
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 44px)",
+    gap: 8
+  }}>
+    <button onClick={() => abrirEdicao(p)}>✏️</button>
+    <button onClick={() => toggleProduto(p)}>{p.ativo ? "🚫" : "✅"}</button>
+    <button onClick={() => moverProduto(p, -1)}>⬆️</button>
+    <button onClick={() => moverProduto(p, 1)}>⬇️</button>
+    <button onClick={() => excluirProduto(p)} style={{
+      gridColumn: "1 / span 2",
+      background: "#ef4444"
+    }}>
+      🗑️
+    </button>
+  </div>
+</div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* PEDIDOS */}
+{abaAdmin === "pedidos" && (
+  <div style={{
+    marginTop: 15,
+    padding: 18,
+    background: "#f4f5f7",
+    borderRadius: 20
+  }}>
+
+    {/* TOPO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec"
+    }}>
+      <h2 style={{
+        margin: 0,
+        color: "#111",
+        fontSize: 24
+      }}>
+        Pedidos
+      </h2>
+
+      <p style={{
+        marginTop: 6,
+        marginBottom: 14,
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Acompanhe pedidos em andamento e entregues em tempo real
+      </p>
+
+      <input
+        placeholder="Buscar por código (#ABC123)"
+        value={buscaCodigo}
+        onChange={e => setBuscaCodigo(e.target.value)}
         style={{
+          marginBottom: 0,
+          padding: 12,
+          width: "100%",
+          borderRadius: 12,
+          border: "1px solid #ddd",
+          outline: "none",
+          background: "#fff",
+          color: "#111",
+          boxSizing: "border-box"
+        }}
+      />
+    </div>
+
+    {/* GRID */}
+    <div className="gridPedidos">
+
+      {/* EM ANDAMENTO */}
+      <div className="coluna">
+        <div style={{
           display: "flex",
           justifyContent: "space-between",
-          padding: 14,
-          borderRadius: 16,
-          background: "rgba(255,255,255,0.04)",
-          marginBottom: 12,
-          border: p.maisVendido ? "1px solid #ea1d2c" : "1px solid rgba(255,255,255,0.05)"
-        }}
-      >
+          alignItems: "center",
+          marginBottom: 14
+        }}>
+          <h3 style={{
+            margin: 0,
+            color: "#111"
+          }}>
+            ⚪ Em andamento
+          </h3>
 
-        {/* ESQUERDA */}
-        <div style={{ display: "flex", gap: 12 }}>
-
-          <img
-            src={p.imagem || "/acai.png"}
-            style={{
-              width: 55,
-              height: 55,
-              borderRadius: 12,
-              objectFit: "cover"
-            }}
-          />
-
-          <div>
-            <strong>{p.nome}</strong>
-
-            <p style={{ fontSize: 13 }}>
-              {formatarReal(p.preco)} • {p.tamanho || ""}
-            </p>
-
-            <small style={{ opacity: 0.7 }}>
-              {p.ativo ? "🟢 Ativo" : "🔴 Inativo"}
-            </small>
-
-            {/* 🔥 MOSTRAR EXTRAS */}
-            {p.extras?.length > 0 && (
-              <div style={{
-                fontSize: 11,
-                marginTop: 4,
-                opacity: 0.6
-              }}>
-                ⚙️ {p.extras.length} categorias de extras
-              </div>
-            )}
-
-          </div>
-
+          <span style={{
+            background: "#eef2ff",
+            color: "#4338ca",
+            padding: "6px 10px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: "bold"
+          }}>
+            {
+              pedidos
+                .filter(p => {
+                  if (!buscaCodigo) return true;
+                  return (p.codigo || "")
+                    .toLowerCase()
+                    .includes(buscaCodigo.toLowerCase());
+                })
+                .filter(p => p.status !== "entregue")
+                .length
+            }
+          </span>
         </div>
 
-        {/* AÇÕES */}
-        <div style={{ display: "flex", gap: 6, flexDirection: "column" }}>
+        {pedidos
+          .filter(p => {
+            if (!buscaCodigo) return true;
+            return (p.codigo || "")
+              .toLowerCase()
+              .includes(buscaCodigo.toLowerCase());
+          })
+          .filter(p => p.status !== "entregue")
+          .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
+          .slice(0, 10)
+          .map((p) => {
+            const status = p.status || "novo";
 
-  <button onClick={() => abrirEdicao(p)}>✏️</button>
+            const cores = {
+              novo: "#888",
+              preparando: "orange",
+              saiu: "#00b0ff",
+              entregue: "#00c853"
+            };
 
-  <button onClick={() => toggleProduto(p)}>
-    {p.ativo ? "🚫" : "✅"}
-  </button>
+            return (
+              <div
+                key={p.id}
+                style={{
+                  borderLeft: `5px solid ${cores[status]}`,
+                  marginBottom: 15,
+                  background: "#ffffff",
+                  borderRadius: 16,
+                  padding: 14,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+                  border: "1px solid #ececec",
+                  color: "#111"
+                }}
+              >
+                <div style={{ marginBottom: 8 }}>
+                  <strong>{p.cliente?.nome || "Cliente"}</strong><br />
+                  <small>📞 {p.cliente?.telefone}</small><br />
+                  <small>
+                    📍 {p.cliente?.endereco}, {p.cliente?.numero}
+                  </small>
+                </div>
 
-  <button onClick={() => excluirProduto(p)}>🗑️</button>
+                <p style={{ margin: "8px 0" }}>
+                  Código: <strong>{p.codigo || "—"}</strong>
+                </p>
 
-  {/* 🔥 NOVOS BOTÕES */}
-  <button onClick={() => moverProduto(p, -1)}>⬆️</button>
-  <button onClick={() => moverProduto(p, 1)}>⬇️</button>
+                {Array.isArray(p.itens) && p.itens.length > 0 ? (
+                  p.itens.map((item, idx) => (
+                    <div key={idx} style={{ marginBottom: 6 }}>
+                      <p style={{ margin: "4px 0" }}>
+                        <strong>
+                          {item.produto?.nome || item.nome || "Açaí"} (x{item.quantidade || 1})
+                        </strong>
+                      </p>
 
-</div>
+                      {Array.isArray(item.extras) && item.extras.map((e, i) => (
+                        <p key={i} style={{ fontSize: 12, opacity: 0.7, margin: "2px 0" }}>
+                          + {e.nome}
+                        </p>
+                      ))}
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ margin: "4px 0" }}>
+                    <strong>
+                      {p.produto?.nome || "Açaí"} (x{p.quantidade || 1})
+                    </strong>
+                  </p>
+                )}
 
-    </div>
-  ))
-)}
+                <p style={{ margin: "8px 0" }}>
+                  Status:
+                  <strong style={{ marginLeft: 6, color: cores[status] }}>
+                    {status}
+                  </strong>
+                </p>
 
-</div>
+                <p style={{ margin: "8px 0" }}>
+                  Pagamento:
+                  <span style={{
+                    background:
+                      p.formaPagamento === "pix" ? "#a855f7" :
+                      p.formaPagamento === "dinheiro" ? "#22c55e" :
+                      "#3b82f6",
+                    color: "#fff",
+                    padding: "4px 8px",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    marginLeft: 6
+                  }}>
+                    {p.formaPagamento === "pix" && "Pix"}
+                    {p.formaPagamento === "dinheiro" && "Dinheiro"}
+                    {p.formaPagamento === "cartao" && "Cartão"}
+                  </span>
+                </p>
 
-<input
-  placeholder="URL da logo"
-  value={logoInput}
-  onChange={(e) => setLogoInput(e.target.value)}
-/>
+                <p style={{ margin: "8px 0" }}>
+                  Total: <strong>{formatarReal(p.total)}</strong>
+                </p>
 
-<button onClick={salvarLogo}>
-  Salvar Logo
-</button>
+                <small style={{ color: "#666" }}>
+                  {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
+                </small>
 
-{/* PEDIDOS */}
-<div className="card">
-  <h2>Pedidos</h2>
+                <div style={{
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginTop: 10
+                }}>
+                  {status === "novo" && (
+                    <button onClick={() => atualizarStatus(p.id, "preparando")}>
+                      🔥 Preparar
+                    </button>
+                  )}
 
-  <input
-    placeholder="Buscar por código (#ABC123)"
-    value={buscaCodigo}
-    onChange={e => setBuscaCodigo(e.target.value)}
-    style={{
-      marginBottom: 10,
-      padding: 10,
-      width: "100%",
-      borderRadius: 10,
-      border: "none"
-    }}
-  />
+                  {status === "preparando" && (
+                    <button onClick={() => atualizarStatus(p.id, "saiu")}>
+                      🚚 Saiu
+                    </button>
+                  )}
 
-  <div className="gridPedidos">
+                  {status === "saiu" && (
+                    <button onClick={() => atualizarStatus(p.id, "entregue")}>
+                      ✅ Entregue
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
 
-    {/* 🟢 EM ANDAMENTO */}
-    <div className="coluna">
+        {pedidos
+          .filter(p => {
+            if (!buscaCodigo) return true;
+            return (p.codigo || "")
+              .toLowerCase()
+              .includes(buscaCodigo.toLowerCase());
+          })
+          .filter(p => p.status !== "entregue")
+          .length === 0 && (
+            <div style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: 20,
+              color: "#666",
+              textAlign: "center",
+              border: "1px solid #ececec"
+            }}>
+              Nenhum pedido em andamento
+            </div>
+          )}
+      </div>
 
-      <h3>⚪ Em andamento</h3>
+      {/* ENTREGUES */}
+      <div className="coluna">
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 14
+        }}>
+          <h3 style={{
+            margin: 0,
+            color: "#111"
+          }}>
+            🟢 Entregues
+          </h3>
 
-      {pedidos
-        .filter(p => {
-          if (!buscaCodigo) return true;
-          return (p.codigo || "")
-            .toLowerCase()
-            .includes(buscaCodigo.toLowerCase());
-        })
-        .filter(p => p.status !== "entregue")
-        .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
-        .slice(0, 10)
-        .map((p) => {
+          <span style={{
+            background: "#ecfdf3",
+            color: "#15803d",
+            padding: "6px 10px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: "bold"
+          }}>
+            {
+              pedidos
+                .filter(p => {
+                  if (!buscaCodigo) return true;
+                  return (p.codigo || "")
+                    .toLowerCase()
+                    .includes(buscaCodigo.toLowerCase());
+                })
+                .filter(p => p.status === "entregue")
+                .length
+            }
+          </span>
+        </div>
 
-          const status = p.status || "novo";
-
-          const cores = {
-            novo: "#888",
-            preparando: "orange",
-            saiu: "#00b0ff",
-            entregue: "#00c853"
-          };
-
-          return (
+        {pedidos
+          .filter(p => {
+            if (!buscaCodigo) return true;
+            return (p.codigo || "")
+              .toLowerCase()
+              .includes(buscaCodigo.toLowerCase());
+          })
+          .filter(p => p.status === "entregue")
+          .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
+          .slice(0, 10)
+          .map((p) => (
             <div
               key={p.id}
               style={{
-                borderLeft: `5px solid ${cores[status]}`,
+                opacity: 0.9,
+                borderLeft: "5px solid #00c853",
                 marginBottom: 15,
-                background: "rgba(255,255,255,0.03)",
-                borderRadius: 12,
-                padding: 12
+                background: "#ffffff",
+                borderRadius: 16,
+                padding: 14,
+                boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+                border: "1px solid #ececec",
+                color: "#111"
               }}
             >
-
-              {/* 🔥 CLIENTE CORRIGIDO */}
               <div style={{ marginBottom: 8 }}>
                 <strong>{p.cliente?.nome || "Cliente"}</strong><br />
                 <small>📞 {p.cliente?.telefone}</small><br />
@@ -1797,194 +2757,83 @@ return (
                 </small>
               </div>
 
-              <p>
+              <p style={{ margin: "8px 0" }}>
                 Código: <strong>{p.codigo || "—"}</strong>
               </p>
 
-              {/* ITENS */}
-              {Array.isArray(p.itens) && p.itens.length > 0 ? (
-                p.itens.map((item, idx) => (
-                  <div key={idx} style={{ marginBottom: 6 }}>
-                    <p>
-                      <strong>
-                        {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
-                      </strong>
-                    </p>
-
-                    {Array.isArray(item.extras) && item.extras.map((e, i) => (
-                      <p key={i} style={{ fontSize: 12, opacity: 0.7 }}>
-                        + {e.nome}
-                      </p>
-                    ))}
-                  </div>
-                ))
-              ) : (
-                <p>
+              {p.itens?.map((item, idx) => (
+                <p key={idx} style={{ margin: "4px 0" }}>
                   <strong>
-                    {p.produto?.nome || "Açaí"} (x{p.quantidade || 1})
+                    {item.produto?.nome || item.nome || "Açaí"} (x{item.quantidade || 1})
                   </strong>
                 </p>
-              )}
+              ))}
 
-              <p>
-  Status:
-  <strong style={{ marginLeft: 6, color: cores[status] }}>
-    {status}
-  </strong>
-</p>
-
-{/* 💳 PAGAMENTO */}
-<p>
-  Pagamento:
- <span style={{
-  background:
-    p.formaPagamento === "pix" ? "#a855f7" :
-    p.formaPagamento === "dinheiro" ? "#22c55e" :
-    "#3b82f6",
-  color: "#fff",
-  padding: "4px 8px",
-  borderRadius: 8,
-  fontSize: 12,
-  marginLeft: 6
-}}>
-  {p.formaPagamento === "pix" && "Pix"}
-  {p.formaPagamento === "dinheiro" && "Dinheiro"}
-  {p.formaPagamento === "cartao" && "Cartão"}
-</span>
-</p>
-
-              <p>
-                Total: <strong> {formatarReal(p.total)}</strong>
+              <p style={{ margin: "8px 0" }}>
+                Total: <strong>{formatarReal(p.total)}</strong>
               </p>
 
-              <small>
+              <small style={{ color: "#666" }}>
                 {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
               </small>
-
-              <div style={{
-                display: 'flex',
-                gap: 10,
-                flexWrap: "wrap",
-                marginTop: 10
-              }}>
-
-                {status === "novo" && (
-                  <button onClick={() => atualizarStatus(p.id, "preparando")}>
-                    🔥 Preparar
-                  </button>
-                )}
-
-                {status === "preparando" && (
-                  <button onClick={() => atualizarStatus(p.id, "saiu")}>
-                    🚚 Saiu
-                  </button>
-                )}
-
-                {status === "saiu" && (
-                  <button onClick={() => atualizarStatus(p.id, "entregue")}>
-                    ✅ Entregue
-                  </button>
-                )}
-
-              </div>
-
             </div>
-          );
-        })}
+          ))}
+
+        {pedidos
+          .filter(p => {
+            if (!buscaCodigo) return true;
+            return (p.codigo || "")
+              .toLowerCase()
+              .includes(buscaCodigo.toLowerCase());
+          })
+          .filter(p => p.status === "entregue")
+          .length === 0 && (
+            <div style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: 20,
+              color: "#666",
+              textAlign: "center",
+              border: "1px solid #ececec"
+            }}>
+              Nenhum pedido entregue
+            </div>
+          )}
+      </div>
 
     </div>
-
-    {/* 🟢 ENTREGUES */}
-    <div className="coluna">
-
-      <h3>🟢 Entregues</h3>
-
-      {pedidos
-        .filter(p => {
-          if (!buscaCodigo) return true;
-          return (p.codigo || "")
-            .toLowerCase()
-            .includes(buscaCodigo.toLowerCase());
-        })
-        .filter(p => p.status === "entregue")
-        .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
-        .slice(0, 10)
-        .map((p) => (
-
-          <div key={p.id} style={{
-            opacity: 0.6,
-            borderLeft: "5px solid #00c853",
-            marginBottom: 15,
-            background: "rgba(255,255,255,0.02)",
-            borderRadius: 12,
-            padding: 12
-          }}>
-
-            {/* 🔥 CLIENTE CORRIGIDO */}
-            <div style={{ marginBottom: 8 }}>
-              <strong>{p.cliente?.nome || "Cliente"}</strong><br />
-              <small>📞 {p.cliente?.telefone}</small><br />
-              <small>
-                📍 {p.cliente?.endereco}, {p.cliente?.numero}
-              </small>
-            </div>
-
-            <p>
-              Código: <strong>{p.codigo || "—"}</strong>
-            </p>
-
-            {p.itens?.map((item, idx) => (
-              <p key={idx}>
-                <strong>
-                  {item.produto?.nome || "Açaí"} (x{item.quantidade || 1})
-                </strong>
-              </p>
-            ))}
-
-            <p>
-              Total: <strong> {formatarReal(p.total)}</strong>
-            </p>
-
-            <small>
-              {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
-            </small>
-
-          </div>
-        ))}
-        
-
   </div>
+)}
 
-
-
-  </div>
-</div>
-
-     <style jsx>{`
+      <style jsx>{`
   .container {
-    background: #0a0014;
+    background: #f4f5f7;
     min-height: 100vh;
     padding: 20px;
-    color: white;
-
+    color: #111;
     display: flex;
     justify-content: center;
   }
 
-  /* 🔥 ÁREA CENTRAL */
+  .wrapper {
+    width: 100%;
+    max-width: 1200px;
+  }
+
   .content {
     width: 100%;
-    max-width: 900px;
+    max-width: 1200px;
   }
 
   .card {
     margin-top: 15px;
-    padding: 15px;
-    background: #111;
-    border-radius: 15px;
+    padding: 18px;
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #ececec;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
   }
 
-  /* 🔥 GRÁFICO */
   .graficoItem {
     margin-bottom: 12px;
   }
@@ -1992,25 +2841,48 @@ return (
   .barra {
     height: 10px;
     border-radius: 10px;
-    background: linear-gradient(90deg,#6a00ff,#ff2aff);
+    background: linear-gradient(90deg,#ea1d2c,#ff4d4d);
     margin: 5px 0;
     transition: 0.3s;
   }
+
+  .gridPedidos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .coluna {
+  min-width: 0;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+  border: 1px solid #ececec;
+}
 
   button {
     margin-top: 10px;
     padding: 10px;
     border-radius: 10px;
-    background: linear-gradient(90deg,#5a00ff,#8a00ff);
+    background: linear-gradient(90deg,#ea1d2c,#ff4d4d);
     color: white;
     border: none;
     cursor: pointer;
   }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 14px;
+    }
+
+    .gridPedidos {
+      grid-template-columns: 1fr;
+    }
+  }
 `}</style>
 
     </div>
-    </div>
-
-  
-  );
+  </div>
+);
 }
