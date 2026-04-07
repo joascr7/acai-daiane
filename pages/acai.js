@@ -2547,63 +2547,57 @@ return (
   <>
     {/* HEADER */}
     <div
-  className="fade-slide"
-  style={{
-    maxWidth: 420,
-    margin: "0 auto",
-    padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
-    background: "#fff",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-    position: "sticky",
-    top: 0,
-    zIndex: 10
-  }}
->
+      className="fade-slide"
+      style={{
+        maxWidth: 420,
+        margin: "0 auto",
+        padding: "calc(env(safe-area-inset-top) + 10px) 16px 14px",
+        background: "#fff",
+        position: "sticky",
+        top: 0,
+        zIndex: 20,
+        boxShadow: "0 4px 18px rgba(0,0,0,0.05)"
+      }}
+    >
       {/* TOPO */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
-        }}
-      >
-        {/* ENDEREÇO */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 10
+      }}>
+        {/* ENDEREÇO MENOR */}
         <div
           onClick={() => {
             setAba("perfil");
             setStep(4);
+            setAbaPerfil("endereco");
           }}
           style={{
+            flex: 1,
             display: "flex",
+            justifyContent: "center",
             alignItems: "center",
             gap: 6,
-            cursor: "pointer"
+            cursor: "pointer",
+            minWidth: 0
           }}
         >
-          <MapPin size={16} />
+          <MapPin size={14} color="#666" />
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              lineHeight: 1
-            }}
-          >
-            <span
-              style={{
-                fontSize: 10,
-                color: "#999"
-              }}
-            >
-              ENTREGAR EM
-            </span>
-
-            <strong style={{ fontSize: 13 }}>
-              {clienteEndereco
-                ? `${clienteEndereco}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
-                : "Adicionar endereço"}
-            </strong>
-          </div>
+          <span style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#111",
+            maxWidth: 145,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}>
+            {clienteEndereco
+              ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
+              : "Adicionar endereço"}
+          </span>
         </div>
 
         {/* NOTIFICAÇÃO */}
@@ -2614,484 +2608,466 @@ return (
           }}
           style={{
             position: "relative",
-            cursor: "pointer"
+            cursor: "pointer",
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: "#f7f7f7",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0
           }}
         >
-          <Bell size={20} />
+          <Bell size={18} color="#111" />
 
           {temNotificacao && (
             <div
               style={{
                 position: "absolute",
-                top: -2,
-                right: -2,
+                top: 5,
+                right: 5,
                 width: 8,
                 height: 8,
                 borderRadius: "50%",
-                background: "#ea1d2c"
+                background: "#ea1d2c",
+                boxShadow: "0 0 0 2px #fff"
               }}
             />
           )}
         </div>
       </div>
 
-      {/* TITULO */}
-      <div style={{ marginTop: 16 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>
+      {/* TÍTULO */}
+      <div style={{ marginTop: 14 }}>
+        <h1 style={{
+          margin: 0,
+          fontSize: 16,
+          fontWeight: 700,
+          color: "#111",
+          lineHeight: 1.2
+        }}>
           Peça seu açaí
         </h1>
 
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 700,
-            color: "#ea1d2c"
-          }}
-        >
+        <h1 style={{
+          margin: 0,
+          fontSize: 16,
+          fontWeight: 800,
+          color: "#ea1d2c",
+          lineHeight: 1.2
+        }}>
           favorito hoje
         </h1>
 
-        <p
-          style={{
-            marginTop: 6,
-            fontSize: 14,
-            color: "#666"
-          }}
-        >
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666",
+          lineHeight: 1.3
+        }}>
           Qualidade, sabor e entrega rápida pertinho de você.
         </p>
       </div>
 
-      {/* BUSCA */}
-      <div
-        onClick={() => {
-          setAba("busca");
-          setStep(10);
-        }}
-        style={{
-          marginTop: 14,
-          background: "#f5f5f5",
-          borderRadius: 14,
-          padding: "12px 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
+      {/* CATEGORIAS */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 10,
+        marginTop: 16
+      }}>
+        {categorias
+          .filter(c =>
+            ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
+          )
+          .sort((a, b) => {
+            const ordem = ["acai", "promocoes", "bebidas", "combos"];
+            return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
+          })
+          .map((c) => {
+            const config = {
+              acai: { icone: <IceCream size={18} />, cor: "#7c3aed" },
+              promocoes: { icone: <Tag size={18} />, cor: "#7c3aed" },
+              bebidas: { icone: <CupSoda size={18} />, cor: "#7c3aed" },
+              combos: { icone: <Star size={18} />, cor: "#7c3aed" }
+            };
+
+            const item = config[c.slug];
+            if (!item) return null;
+
+            return (
+              <div
+                key={c.id}
+                onClick={() => {
+                  setCategoriaSelecionada(c.slug);
+                  setAba("home");
+                  setStep(9);
+                }}
+                style={{
+                  background: "#fff",
+                  borderRadius: 16,
+                  padding: "12px 6px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid #f1f1f1",
+                  boxShadow: "0 6px 14px rgba(0,0,0,0.04)"
+                }}
+              >
+                <div style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 10,
+                  background: "#f4ecff",
+                  color: item.cor,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 6
+                }}>
+                  {item.icone}
+                </div>
+
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#222"
+                }}>
+                  {c.nome}
+                </span>
+              </div>
+            );
+          })}
+      </div>
+
+      {/* BANNER */}
+      <div style={{
+        marginTop: 16,
+        borderRadius: 22,
+        overflow: "hidden",
+        position: "relative",
+        boxShadow: "0 10px 24px rgba(0,0,0,0.08)"
+      }}>
+        <img
+          src="/t1.jpg"
+          style={{
+            width: "100%",
+            height: 155,
+            objectFit: "cover"
+          }}
+        />
+
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(90deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.14) 100%)"
+        }} />
+
+        <div style={{
+          position: "absolute",
+          left: 16,
+          top: 18,
+          color: "#fff",
+          maxWidth: "56%"
+        }}>
+          <strong style={{ fontSize: 17 }}>
+            Ofertas especiais
+          </strong>
+
+          <p style={{
+            fontSize: 13,
+            marginTop: 6,
+            marginBottom: 0,
+            lineHeight: 1.2
+          }}>
+            Descontos imperdíveis hoje
+          </p>
+
+          <button style={{
+            marginTop: 12,
+            padding: "8px 14px",
+            borderRadius: 999,
+            border: "none",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: "bold",
+            cursor: "pointer",
+            boxShadow: "0 8px 22px rgba(234,29,44,0.45)"
+          }}>
+            Ver ofertas
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* CONTEÚDO */}
+    <div style={{
+      maxWidth: 420,
+      margin: "0 auto",
+      padding: "16px 10px 0"
+    }}>
+      {/* TÍTULO */}
+      <div style={{
+        marginBottom: 12,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "0 6px"
+      }}>
+        <strong style={{
+          fontSize: 17,
+          fontWeight: 700,
+          color: "#111"
+        }}>
+          Mais pedidos
+        </strong>
+
+        <span style={{
+          color: "#ea1d2c",
+          fontSize: 13,
+          fontWeight: 600,
           cursor: "pointer"
-        }}
-      >
-        <Search size={18} color="#999" />
-        <span style={{ color: "#999", fontSize: 14 }}>
-          Buscar por produtos
+        }}>
+          Ver todos
         </span>
       </div>
 
- {/* CATEGORIAS */}
-<div style={{
-  display: "grid",
-  gridTemplateColumns: "repeat(4, 1fr)",
-  gap: 10,
-  marginTop: 14
-}}>
-
-  {categorias
-    .filter(c =>
-      ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
-    )
-    .sort((a, b) => {
-      const ordem = ["acai", "promocoes", "bebidas", "combos"];
-      return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
-    })
-    .map((c) => {
-
-      const config = {
-        acai: { icone: <IceCream />, cor: "#6b21a8" },
-        promocoes: { icone: <Tag />, cor: "#9333ea" },
-        bebidas: { icone: <CupSoda />, cor: "#7c3aed" },
-        combos: { icone: <Star />, cor: "#5b21b6" }
-      };
-
-      const item = config[c.slug];
-
-      if (!item) return null;
-
-      return (
-        <div
-          key={c.id}
-          onClick={() => {
-  const temProduto = produtos.some(
-    p => p.categoria === c.slug && p.ativo !== false
-  );
-
-  if (!temProduto) {
-    alert("Nenhum produto disponível nessa categoria");
-    return;
-  }
-
-  setCategoriaSelecionada(c.slug);
-  setAba("home");
-  setStep(9);
-}}
-          style={{
-            background: "#f4f4f5",
-            borderRadius: 16,
-            padding: 10,
-            textAlign: "center",
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-
-          <div style={{
-            color: item.cor,
-            marginBottom: 6
-          }}>
-            {item.icone}
-          </div>
-
-          <span style={{
-            fontSize: 12,
-            fontWeight: 500
-          }}>
-            {c.nome}
-          </span>
-
-        </div>
-      );
-    })}
-
-</div>
-
-
-      {/* BANNER */}
-<div style={{
-  marginTop: 16,
-  borderRadius: 20,
-  overflow: "hidden",
-  position: "relative"
-}}>
-
-  <img
-    src="/t1.jpg"
-    style={{
-      width: "100%",
-      height: 150, // 🔥 IMPORTANTE
-      objectFit: "cover"
-    }}
-  />
-
-  {/* TEXTO SOBRE O BANNER */}
-  <div style={{
-    position: "absolute",
-    left: 16,
-    top: 20,
-    color: "#fff"
-  }}>
-    <strong style={{ fontSize: 18 }}>
-      Ofertas especiais
-    </strong>
-
-    <p style={{ fontSize: 12, marginTop: 4 }}>
-      Descontos imperdíveis hoje
-    </p>
-
-    <button style={{
-      marginTop: 8,
-      padding: "6px 12px",
-      borderRadius: 10,
-      border: "none",
-      background: "#c91508",
-      fontSize: 12,
-      cursor: "pointer"
-    }}>
-      Ver ofertas
-    </button>
-  </div>
-
-</div>
-</div>
-    
-
-{/* LISTA */}
-<div style={{
-  maxWidth: 420,
-  margin: "0 auto",
-  paddingBottom: BOTTOM_SPACE,
-  boxSizing: "border-box"
-}}>
-  
-  {/* HEADER */}
-  <div style={{
-    marginTop: 20,
-    marginBottom: 12,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  }}>
-    <strong style={{ fontSize: 16 }}>
-      Mais pedidos
-    </strong>
-
-    <span style={{
-      color: "#ea1d2c",
-      fontSize: 13,
-      fontWeight: 500,
-      cursor: "pointer"
-    }}>
-      Ver todos
-    </span>
-  </div>
-
-
-  {/* PRODUTOS */}
-  <div style={{
-    display: "flex",
-    gap: 14,
-    overflowX: "auto",
-    paddingBottom: 10
-  }}>
-
-    {produtos
-    .filter(p => p.ativo !== false)
-    .map((p, i) => {
-
-      const preco =
-        Number(p.preco) > 100
-          ? Number(p.preco) / 100
-          : Number(p.preco);
-
-      return (
-<div
-  key={i}
-  style={{
-    minWidth: 155,
-    flex: "0 0 auto",
-    background: "#fff",
-    borderRadius: 16,
-    padding: 12,
-    border: "1px solid #eee",
-    position: "relative"
-  }}
->
-
-  {/* BADGE */}
-  {p.maisVendido && (
-    <div style={{
-      position: "absolute",
-      top: 8,
-      left: 8,
-      background: "#6b21a8",
-      color: "#fff",
-      fontSize: 10,
-      padding: "3px 8px",
-      borderRadius: 999
-    }}>
-      Mais pedido
-    </div>
-  )}
-
-  {/* IMAGEM (CORRIGIDO) */}
-  <div style={{
-    display: "flex",
-    justifyContent: "center",
-    marginTop: 6
-  }}>
-    <img
-      src={p.imagem}
-      style={{
-        width: 110,
-        height: 110,
-        objectFit: "contain"
-      }}
-    />
-  </div>
-
-  {/* NOME */}
-  <div style={{
-    marginTop: 8,
-    fontSize: 13,
-    fontWeight: 500
-  }}>
-    {p.nome}
-  </div>
-
-  {/* TAMANHO */}
-  <div style={{
-    fontSize: 11,
-    color: "#777",
-    marginTop: 2
-  }}>
-    {p.tamanho}
-  </div>
-
-  {/* PREÇO + BOTÃO */}
-  <div style={{
-    marginTop: 8,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  }}>
-    <strong style={{
-      fontSize: 14,
-      color: "#111"
-    }}>
-      R$ {preco.toFixed(2).replace(".", ",")}
-    </strong>
-
-    <div
-      onClick={() => {
-  if (!validarLojaAberta()) return;
-
-  if (categoriaTemExtras(p.categoria)) {
-    setProduto(p);
-    setAba("home");
-    setStep(2);
-    return;
-  }
-
-  if (categoriaVaiDiretoCarrinho(p.categoria)) {
-    setCarrinho(prev => [
-      ...prev,
-      {
-        produto: p,
-        quantidade: 1,
-        extras: [],
-        total: Number(p.preco || 0)
-      }
-    ]);
-
-    setAba("carrinho");
-    setStep(3);
-    return;
-  }
-}}
-      style={{
-        width: 32,
-        height: 32,
-        borderRadius: "50%",
-        background: "#ea1d2c",
+      {/* PRODUTOS */}
+      <div style={{
         display: "flex",
+        gap: 8,
+        overflowX: "auto",
+        paddingBottom: 10,
+        paddingLeft: 6,
+        scrollbarWidth: "none"
+      }}>
+        {produtos
+          .filter(p => p.ativo !== false)
+          .map((p, i) => {
+            const preco =
+              Number(p.preco) > 100
+                ? Number(p.preco) / 100
+                : Number(p.preco);
+
+            return (
+              <div
+                key={i}
+                style={{
+                  minWidth: 108,
+                  maxWidth: 108,
+                  flex: "0 0 auto",
+                  background: "#fff",
+                  borderRadius: 16,
+                  padding: 7,
+                  border: "1px solid #f0f0f0",
+                  position: "relative",
+                  boxShadow: "0 8px 18px rgba(0,0,0,0.05)"
+                }}
+              >
+                {p.maisVendido && (
+                  <div style={{
+                    position: "absolute",
+                    top: 5,
+                    left: 5,
+                    background: "#ea1d2c",
+                    color: "#fff",
+                    fontSize: 7,
+                    padding: "3px 5px",
+                    borderRadius: 999,
+                    fontWeight: "bold",
+                    zIndex: 2
+                  }}>
+                    Mais
+                  </div>
+                )}
+
+                <div style={{
+                  width: "100%",
+                  height: 66,
+                  borderRadius: 12,
+                  background: "#fafafa",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden"
+                }}>
+                  <img
+                    src={p.imagem}
+                    style={{
+                      width: 62,
+                      height: 62,
+                      objectFit: "contain"
+                    }}
+                  />
+                </div>
+
+                <div style={{
+                  marginTop: 7,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#111",
+                  minHeight: 30,
+                  lineHeight: 1.2,
+                  overflow: "hidden"
+                }}>
+                  {p.nome}
+                </div>
+
+                <div style={{
+                  marginTop: 8,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <strong style={{
+                    fontSize: 11,
+                    color: "#111"
+                  }}>
+                    R$ {preco.toFixed(2).replace(".", ",")}
+                  </strong>
+
+                  <div
+                    onClick={() => {
+                      if (!validarLojaAberta()) return;
+
+                      if (categoriaTemExtras(p.categoria)) {
+                        setProduto(p);
+                        setAba("home");
+                        setStep(2);
+                        return;
+                      }
+
+                      if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                        setCarrinho(prev => [
+                          ...prev,
+                          {
+                            produto: p,
+                            quantidade: 1,
+                            extras: [],
+                            total: Number(p.preco || 0)
+                          }
+                        ]);
+                        setAba("carrinho");
+                        setStep(3);
+                      }
+                    }}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "#ea1d2c",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      boxShadow: "0 8px 18px rgba(234,29,44,0.35)"
+                    }}
+                  >
+                    +
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+      </div>
+
+      {/* INFO BAR */}
+      <div style={{
+        marginTop: 18,
+        background: "#fff",
+        padding: "16px 10px",
+        borderRadius: 22,
+        display: "flex",
+        justifyContent: "space-between",
         alignItems: "center",
-        justifyContent: "center",
-        color: "#fff",
-        fontSize: 18,
-        cursor: "pointer"
-      }}
-      >
-      +
-       </div>
+        boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
+      }}>
+        <div style={{
+          flex: 1,
+          textAlign: "center"
+        }}>
+          <Clock size={20} color="#7c3aed" />
+          <div style={{
+            fontSize: 13,
+            fontWeight: 600,
+            marginTop: 4,
+            color: "#111"
+          }}>
+            25-35 min
+          </div>
+          <div style={{
+            fontSize: 11,
+            color: "#888"
+          }}>
+            Tempo de entrega
+          </div>
+        </div>
+
+        <div style={{
+          width: 1,
+          height: 40,
+          background: "#ececec"
+        }} />
+
+        <div style={{
+          flex: 1,
+          textAlign: "center"
+        }}>
+          <Bike size={20} color="#7c3aed" />
+          <div style={{
+            fontSize: 13,
+            fontWeight: 600,
+            marginTop: 4,
+            color: "#111"
+          }}>
+            Entrega grátis
+          </div>
+          <div style={{
+            fontSize: 11,
+            color: "#888"
+          }}>
+            Acima de R$30
+          </div>
+        </div>
+
+        <div style={{
+          width: 1,
+          height: 40,
+          background: "#ececec"
+        }} />
+
+        <div style={{
+          flex: 1,
+          textAlign: "center"
+        }}>
+          <ShieldCheck size={20} color="#7c3aed" />
+          <div style={{
+            fontSize: 13,
+            fontWeight: 600,
+            marginTop: 4,
+            color: "#111"
+          }}>
+            Compra segura
+          </div>
+          <div style={{
+            fontSize: 11,
+            color: "#888"
+          }}>
+            Seus dados protegidos
+          </div>
+        </div>
       </div>
     </div>
-      );
-   })}
-   </div>
 
-<div style={{
-  marginTop: 16,
-  background: "#f4f4f5",
-  padding: "14px 10px",
-  borderRadius: 20,
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center"
-}}>
-
-  {/* TEMPO */}
-  <div style={{
-    flex: 1,
-    textAlign: "center"
-  }}>
-    <Clock size={20} color="#6b21a8" />
-
-    <div style={{
-      fontSize: 13,
-      fontWeight: 500,
-      marginTop: 4
-    }}>
-      25-35 min
-    </div>
-
-    <div style={{
-      fontSize: 11,
-      color: "#888"
-    }}>
-      Tempo de entrega
-    </div>
-  </div>
-
-
-  {/* DIVISOR */}
-  <div style={{
-    width: 1,
-    height: 40,
-    background: "#ddd"
-  }} />
-
-
-  {/* ENTREGA */}
-  <div style={{
-    flex: 1,
-    textAlign: "center"
-  }}>
-    <Bike size={20} color="#6b21a8" />
-
-    <div style={{
-      fontSize: 13,
-      fontWeight: 500,
-      marginTop: 4
-    }}>
-      Entrega grátis
-    </div>
-
-    <div style={{
-      fontSize: 11,
-      color: "#888"
-    }}>
-      Acima de R$30
-    </div>
-  </div>
-
-
-  {/* DIVISOR */}
-  <div style={{
-    width: 1,
-    height: 40,
-    background: "#ddd"
-  }} />
-
-
-  {/* SEGURANÇA */}
-  <div style={{
-    flex: 1,
-    textAlign: "center"
-  }}>
-    <ShieldCheck size={20} color="#6b21a8" />
-
-    <div style={{
-      fontSize: 13,
-      fontWeight: 500,
-      marginTop: 4
-    }}>
-      Compra segura
-    </div>
-
-    <div style={{
-      fontSize: 11,
-      color: "#888"
-    }}>
-      Seus dados protegidos
-    </div>
-  </div>
-
-</div>
-
-</div>
-   
-
-    {/* 🔥 ANIMAÇÃO */}
     <style>
       {`
         .fade-slide {
@@ -5237,6 +5213,181 @@ return (
 
 </div>
           
+     ))}
+
+  </div>
+
+ </div>
+)}
+
+
+{aba === "busca" && step === 10 && (
+  <div style={{
+    maxWidth: 420,
+    margin: "0 auto",
+    minHeight: "100dvh",
+    background: "#f7f7f7"
+  }}>
+
+    {/* HEADER */}
+    <div style={{
+      padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
+      background: "#fff",
+      borderBottom: "1px solid #eee",
+      position: "sticky",
+      top: 0,
+      zIndex: 10
+    }}>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12
+      }}>
+        <button
+          onClick={() => {
+            setAba("home");
+            setStep(1);
+          }}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            border: "none",
+            background: "#fff",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+          }}
+        >
+          <ArrowLeft size={20} color="#111" />
+        </button>
+
+        <div style={{ flex: 1 }}>
+          <input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar produto"
+            style={{
+              width: "100%",
+              padding: "12px 14px",
+              borderRadius: 14,
+              border: "1px solid #eee",
+              background: "#f5f5f5",
+              outline: "none",
+              fontSize: 14,
+              boxSizing: "border-box"
+            }}
+          />
+        </div>
+      </div>
+    </div>
+
+    {/* CATEGORIAS */}
+    <div style={{
+      padding: 16,
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
+      gap: 10
+    }}>
+      {categorias
+        .filter(c =>
+          ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
+        )
+        .map(c => (
+          <div
+            key={c.id}
+            onClick={() => {
+              setCategoriaSelecionada(c.slug);
+              setAba("home");
+              setStep(9);
+            }}
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: 14,
+              cursor: "pointer",
+              border: "1px solid #eee",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+              fontWeight: "bold",
+              textAlign: "center"
+            }}
+          >
+            {c.nome}
+          </div>
+        ))}
+    </div>
+
+    {/* RESULTADOS */}
+    <div style={{ padding: "0 16px 100px" }}>
+      {produtos
+        .filter(p =>
+          p.ativo !== false &&
+          p.nome?.toLowerCase().includes(busca.toLowerCase())
+        )
+        .map(p => (
+          <div
+            key={p.id}
+            onClick={() => {
+              if (!validarLojaAberta()) return;
+
+              if (categoriaTemExtras(p.categoria)) {
+                setProduto(p);
+                setAba("home");
+                setStep(2);
+                return;
+              }
+
+              if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                setCarrinho(prev => [
+                  ...prev,
+                  {
+                    produto: p,
+                    quantidade: 1,
+                    extras: [],
+                    total: Number(p.preco || 0)
+                  }
+                ]);
+                setAba("carrinho");
+                setStep(3);
+              }
+            }}
+            style={{
+              background: "#fff",
+              borderRadius: 16,
+              padding: 12,
+              marginBottom: 10,
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            }}
+          >
+            <img
+              src={p.imagem || "/acai.png"}
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 12,
+                objectFit: "cover"
+              }}
+            />
+
+            <div style={{ flex: 1 }}>
+              <strong>{p.nome}</strong>
+              <div style={{ fontSize: 12, color: "#666", marginTop: 4 }}>
+                {p.descricao}
+              </div>
+              <div style={{
+                marginTop: 6,
+                color: "#ea1d2c",
+                fontWeight: "bold"
+              }}>
+                {formatarReal(p.preco)}
+              </div>
+            </div>
+          </div>
         ))}
     </div>
   </div>
@@ -5253,13 +5404,13 @@ return (
   maxWidth: 420,
   background: "#fff",
   borderTop: "1px solid #eee",
-  padding: `8px 0 calc(8px + ${SAFE_BOTTOM})`,
+  padding: "8px 0 calc(env(safe-area-inset-bottom) + 6px)",
   display: "flex",
   justifyContent: "space-around",
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-  zIndex: 999,
-  boxSizing: "border-box"
+  zIndex: 999
 }}>
+
   {/* INICIO */}
   <div
     onClick={() => {
@@ -5268,13 +5419,31 @@ return (
     }}
     style={{ textAlign: "center", cursor: "pointer" }}
   >
-    <Home size={22} color={aba === "home" ? "#ea1d2c" : "#999"} />
+    <Home size={22} color={aba === "home" && step === 1 ? "#ea1d2c" : "#999"} />
     <div style={{
       fontSize: 11,
       marginTop: 2,
-      color: aba === "home" ? "#ea1d2c" : "#999"
+      color: aba === "home" && step === 1 ? "#ea1d2c" : "#999"
     }}>
       Início
+    </div>
+  </div>
+
+  {/* BUSCA */}
+  <div
+    onClick={() => {
+      setAba("busca");
+      setStep(10);
+    }}
+    style={{ textAlign: "center", cursor: "pointer" }}
+  >
+    <Search size={22} color={aba === "busca" ? "#ea1d2c" : "#999"} />
+    <div style={{
+      fontSize: 11,
+      marginTop: 2,
+      color: aba === "busca" ? "#ea1d2c" : "#999"
+    }}>
+      Buscar
     </div>
   </div>
 
@@ -5306,7 +5475,6 @@ return (
   >
     <ShoppingCart size={22} color={aba === "carrinho" ? "#ea1d2c" : "#999"} />
 
-    {/* 🔥 BOLINHA QUANTIDADE */}
     {carrinho.length > 0 && (
       <div style={{
         position: "absolute",
@@ -5338,9 +5506,8 @@ return (
   {/* PERFIL */}
   <div
     onClick={() => {
-    setAbaPerfil("dados");
-    setAba("perfil");
-    setStep(4);
+      setAba("perfil");
+      setStep(4);
     }}
     style={{ textAlign: "center", cursor: "pointer" }}
   >

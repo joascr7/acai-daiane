@@ -186,7 +186,7 @@ const backBtn = {
 
     {/* 🔥 IMAGEM */}
     <img
-      src="/bg.png"
+      src="/t1.jpg"
       style={{
         position: "absolute",
         inset: 0,
