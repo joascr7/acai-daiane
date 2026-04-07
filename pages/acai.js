@@ -2235,23 +2235,19 @@ const enviarWhatsApp = (pedido) => {
 return (
 
 
-// CONTAINER
-
 <div style={{
   minHeight: "100dvh",
   background: themeAtual.background,
   color: themeAtual.text,
-  paddingBottom: BOTTOM_SPACE,
   boxSizing: "border-box"
 }}>
 
   <div style={{
-  width: "100%",
-  maxWidth: 420,
-  margin: "0 auto",
-  paddingBottom: BOTTOM_SPACE,
-  boxSizing: "border-box"
-}}>
+    width: "100%",
+    maxWidth: 420,
+    margin: "0 auto",
+    boxSizing: "border-box"
+  }}>
 
 
 
@@ -3504,7 +3500,6 @@ return (
             boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
           }}
         >
-
           <img
             src={item.produto?.imagem || item.imagem || "/acai.png"}
             style={{
@@ -3626,7 +3621,6 @@ return (
               -
             </button>
           </div>
-
         </div>
       ))}
 
@@ -3651,7 +3645,8 @@ return (
             background: carrinho.length ? "#ea1d2c" : "#ccc",
             color: "#fff",
             border: "none",
-            fontWeight: "bold"
+            fontWeight: "bold",
+            cursor: carrinho.length ? "pointer" : "not-allowed"
           }}
         >
           Aplicar melhor desconto
@@ -3688,7 +3683,8 @@ return (
               background: "none",
               border: "none",
               color: "#ea1d2c",
-              fontWeight: "bold"
+              fontWeight: "bold",
+              cursor: "pointer"
             }}
           >
             Remover
@@ -3741,6 +3737,12 @@ return (
 
       <button
         onClick={() => {
+          if (!user) {
+            localStorage.setItem("redirectAfterLogin", "carrinho");
+            router.push("/login");
+            return;
+          }
+
           if (!clienteNome || !clienteEndereco || !clienteTelefone) {
             alert("Preencha seus dados");
             setAba("perfil");
@@ -3814,9 +3816,26 @@ return (
         <div style={card}>
           <strong>Dados do cliente</strong>
 
-          <input style={input} value={clienteNome} onChange={e=>setClienteNome(e.target.value)} placeholder="Nome"/>
-          <input style={input} value={clienteEmail} disabled placeholder="Email"/>
-          <input style={input} value={clienteCpf} disabled placeholder="CPF"/>
+          <input
+            style={input}
+            value={clienteNome}
+            onChange={e=>setClienteNome(e.target.value)}
+            placeholder="Nome"
+          />
+
+          <input
+            style={input}
+            value={clienteEmail}
+            disabled
+            placeholder="Email"
+          />
+
+          <input
+            style={input}
+            value={clienteCpf}
+            disabled
+            placeholder="CPF"
+          />
 
           <input
             style={input}
@@ -3831,16 +3850,16 @@ return (
             placeholder="Telefone"
           />
 
-          <button 
-           onClick={salvarDadosCliente}
-          style={{
-           ...btn,
-          padding: "10px 14px",
-          fontSize: 13,
-          borderRadius: 12,
-          width: "fit-content",
-          alignSelf: "flex-start"
-         }}
+          <button
+            onClick={salvarDadosCliente}
+            style={{
+              ...btn,
+              padding: "10px 14px",
+              fontSize: 13,
+              borderRadius: 12,
+              width: "fit-content",
+              alignSelf: "flex-start"
+            }}
           >
             Salvar dados
           </button>
@@ -3878,17 +3897,17 @@ return (
             placeholder="Número"
           />
 
-          <button 
-           onClick={salvarDadosCliente}
-          style={{
-           ...btn,
-          padding: "10px 14px",
-          fontSize: 13,
-          borderRadius: 12,
-          width: "fit-content",
-          alignSelf: "flex-start"
-         }}
-         >
+          <button
+            onClick={salvarDadosCliente}
+            style={{
+              ...btn,
+              padding: "10px 14px",
+              fontSize: 13,
+              borderRadius: 12,
+              width: "fit-content",
+              alignSelf: "flex-start"
+            }}
+          >
             Salvar endereço
           </button>
         </div>
@@ -3912,25 +3931,25 @@ return (
               <div>{c.valor}% desconto</div>
 
               <div style={{ display: "flex", justifyContent: "center" }}>
-  <button
-    onClick={()=>{
-      navigator.clipboard.writeText(c.codigo);
-      alert("Copiado");
-    }}
-    style={{
-      padding: "8px 14px",
-      fontSize: 12,
-      borderRadius: 10,
-      background: "#ea1d2c",
-      color: "#fff",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "bold"
-    }}
-  >
-    Copiar
-  </button>
-</div>
+                <button
+                  onClick={()=>{
+                    navigator.clipboard.writeText(c.codigo);
+                    alert("Copiado");
+                  }}
+                  style={{
+                    padding: "8px 14px",
+                    fontSize: 12,
+                    borderRadius: 10,
+                    background: "#ea1d2c",
+                    color: "#fff",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                  }}
+                >
+                  Copiar
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -3947,49 +3966,72 @@ return (
       {abaPerfil === "loja" && (
         <div style={card}>
           <button
-    onClick={()=>{
-      setAba("info");
-      setStep(99);
-    }}
-    style={{
-      padding: "10px 16px",
-      fontSize: 13,
-      borderRadius: 12,
-      background: "#ea1d2c",
-      color: "#fff",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "bold",
-      width: "fit-content"
-    }}
-  >
-    Ver loja
-  </button>
-</div>
+            onClick={()=>{
+              setAba("info");
+              setStep(99);
+            }}
+            style={{
+              padding: "10px 16px",
+              fontSize: 13,
+              borderRadius: 12,
+              background: "#ea1d2c",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              width: "fit-content"
+            }}
+          >
+            Ver loja
+          </button>
+        </div>
       )}
 
-      {/* LOGOUT */}
-     <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
-  <button
-    onClick={async ()=>{
-      await signOut(auth);
-      router.push("/login");
-    }}
-    style={{
-      padding: "10px 16px",
-      fontSize: 13,
-      borderRadius: 12,
-      background: "#ef4444",
-      color: "#fff",
-      border: "none",
-      cursor: "pointer",
-      fontWeight: "bold",
-      width: "fit-content"
-    }}
-  >
-    Sair da conta
-  </button>
-</div>
+      {/* LOGIN / LOGOUT */}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+        {user ? (
+          <button
+            onClick={async () => {
+              await signOut(auth);
+              setUser(null);
+              setAba("home");
+              setStep(1);
+            }}
+            style={{
+              padding: "10px 16px",
+              fontSize: 13,
+              borderRadius: 12,
+              background: "#ef4444",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              width: "fit-content"
+            }}
+          >
+            Sair da conta
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              router.push("/login");
+            }}
+            style={{
+              padding: "10px 16px",
+              fontSize: 13,
+              borderRadius: 12,
+              background: "#ea1d2c",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: "bold",
+              width: "fit-content"
+            }}
+          >
+            Entrar / Cadastre-se
+          </button>
+        )}
+      </div>
 
     </div>
   </div>
@@ -4510,7 +4552,7 @@ return (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
-    height: "100dvh",
+    height: `calc(100dvh - ${NAVBAR}px - env(safe-area-inset-bottom))`,
     display: "flex",
     flexDirection: "column",
     background: "#f7f7f7",
@@ -4524,16 +4566,45 @@ return (
       borderBottom: "1px solid #eee",
       position: "sticky",
       top: 0,
-      zIndex: 10,
+      zIndex: 20,
+      boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
       flexShrink: 0
     }}>
       <div style={{
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "space-between",
         gap: 10
       }}>
-        <h3 style={{ margin: 0 }}>Notificações</h3>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12
+        }}>
+          <button
+            onClick={() => {
+              setAba("home");
+              setStep(1);
+            }}
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 14,
+              border: "none",
+              background: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+              flexShrink: 0
+            }}
+          >
+            <ArrowLeft size={20} color="#111" />
+          </button>
+
+          <h3 style={{ margin: 0 }}>Notificações</h3>
+        </div>
 
         <button
           onClick={marcarComoLida}
@@ -4543,7 +4614,8 @@ return (
             border: "none",
             color: "#ea1d2c",
             fontWeight: "bold",
-            cursor: "pointer"
+            cursor: "pointer",
+            padding: 0
           }}
         >
           Marcar como lido
@@ -4551,12 +4623,12 @@ return (
       </div>
     </div>
 
-    {/* CONTEÚDO SCROLL */}
+    {/* CONTEÚDO */}
     <div style={{
       flex: 1,
       overflowY: "auto",
+      WebkitOverflowScrolling: "touch",
       padding: 16,
-      paddingBottom: 120,
       boxSizing: "border-box"
     }}>
 
@@ -4624,41 +4696,6 @@ return (
           Nenhuma notificação ainda
         </div>
       )}
-    </div>
-
-    {/* RODAPÉ FIXO */}
-    <div style={{
-      position: "fixed",
-      bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 8px)`,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "100%",
-      maxWidth: 420,
-      padding: "0 16px",
-      zIndex: 20,
-      boxSizing: "border-box"
-    }}>
-      <button
-        onClick={() => {
-          setAba("home");
-          setStep(1);
-        }}
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 14,
-          border: "none",
-          background: "#fff",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-          margin: "0 auto"
-        }}
-      >
-        <ArrowLeft size={20} color="#111" />
-      </button>
     </div>
 
   </div>
