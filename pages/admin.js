@@ -157,7 +157,10 @@ const btnDangerSmall = {
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
+
   
+  const [editandoCategoriaId, setEditandoCategoriaId] = useState(null);
+  const [novoNomeCategoria, setNovoNomeCategoria] = useState("");
 
   const [novaCategoria, setNovaCategoria] = useState("");
   const [categorias, setCategorias] = useState([]);
@@ -228,6 +231,25 @@ function tocarSom() {
   // 🔥 se quiser som real depois:
   // const audio = new Audio("/notificacao.mp3");
   // audio.play();
+}
+
+
+
+async function salvarEdicaoCategoria(id) {
+
+  if (!novoNomeCategoria) return;
+
+  const slug = novoNomeCategoria
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  await updateDoc(doc(db, "categorias", id), {
+    nome: novoNomeCategoria,
+    slug
+  });
+
+  setEditandoCategoriaId(null);
+  setNovoNomeCategoria("");
 }
 
 // nova funcao add no painel
@@ -650,19 +672,19 @@ function abrirEdicao(p) {
 async function salvarProduto() {
   if (!novoNome || !novoPreco) return alert("Preencha os campos");
 
-  const dados = {
-    nome: novoNome,
-    preco: converterParaCentavos(novoPreco),
-    tamanho: novoTamanho,
-    descricao: novaDescricao,
-    imagem: novaImagem,
-    ativo: true,
-    maisVendido,
-    categoria,
+ const dados = {
+  nome: novoNome,
+  preco: converterParaCentavos(novoPreco),
+  tamanho: novoTamanho,
+  descricao: novaDescricao,
+  imagem: novaImagem,
+  ativo: true,
+  maisVendido,
+  categoria,
+  extras: extras,
 
-    // 🔥 EXTRA CORRETO
-    extras: extras
-  };
+  ordem: Date.now() // 🔥 ADICIONA ISSO
+};
 
   await addDoc(collection(db, "produtos"), dados);
 
@@ -875,6 +897,24 @@ return (
       borderRadius: 20,
       boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
     }}>
+
+
+      <div style={{
+  marginBottom: 10,
+  display: "flex",
+  gap: 6
+}}>
+  <input
+    placeholder="Nova categoria"
+    value={novaCategoria}
+    onChange={(e) => setNovaCategoria(e.target.value)}
+    style={{ flex: 1, padding: 10, borderRadius: 10 }}
+  />
+
+  <button onClick={criarCategoria}>
+    Criar
+  </button>
+</div>
 
       {/* SELECT */}
       <select

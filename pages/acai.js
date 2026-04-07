@@ -314,7 +314,9 @@ useEffect(() => {
   const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
   const [clienteCep, setClienteCep] = useState("");
   const [abrirPagamento, setAbrirPagamento] = useState(false);
-  const [mostrarPix, setMostrarPix] = useState(false);
+
+  
+  
   
 
     // 🔥 PERFIL
@@ -353,6 +355,8 @@ const [novoEndereco, setNovoEndereco] = useState({
   complemento: ""
 });
 const [loadingCep, setLoadingCep] = useState(false);
+
+const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   
   
 
@@ -395,6 +399,41 @@ const [pedidoAtual, setPedidoAtual] = useState(null);
   const [cupons, setCupons] = useState([]);
   const [animacao, setAnimacao] = useState("slide-enter");
   const [loadingCupons, setLoadingCupons] = useState(false);
+
+
+  function adicionarPorCategoria(categoria) {
+
+  const produto = produtos.find(p => p.categoria === categoria);
+
+  if (!produto) {
+    alert("Nenhum produto disponível");
+    return;
+  }
+
+  // 🍧 AÇAÍ → abre montagem
+  if (categoria === "acai") {
+    setProduto(produto);
+    setStep(2);
+    setAba("home");
+    return;
+  }
+
+  // 🛒 OUTROS → adiciona direto
+  const total = produto.preco || 0;
+
+  setCarrinho(prev => [
+    ...prev,
+    {
+      produto,
+      quantidade: 1,
+      extras: [],
+      total
+    }
+  ]);
+
+  setAba("carrinho");
+  setStep(3);
+}
   
 
   // 🔥 BOTÃO PADRÃO
@@ -1102,6 +1141,8 @@ function NotificacaoItem({ n }) {
     </div>
   );
 }
+
+
 
 
 // marca tudo como lido
@@ -2522,25 +2563,39 @@ return (
       </div>
 
       {/* CATEGORIAS */}
-    <div style={{
+  <div style={{
   display: "grid",
-  gridTemplateColumns: "repeat(4,1fr)",
-  gap: 12,
+  gridTemplateColumns: "repeat(4, 1fr)", // 🔥 ESSENCIAL
+  gap: 10,
   marginTop: 14
 }}>
 
   {[
-    { nome: "Açaí", icone: <IceCream />, cor: "#6b21a8" },
-    { nome: "Promoções", icone: <Tag />, cor: "#9333ea" },
-    { nome: "Bebidas", icone: <CupSoda />, cor: "#7c3aed" },
-    { nome: "Combos", icone: <Star />, cor: "#5b21b6" }
+    { nome: "Açaí", icone: <IceCream />, cor: "#6b21a8", categoria: "acai" },
+    { nome: "Promoções", icone: <Tag />, cor: "#9333ea", categoria: "promocoes" },
+    { nome: "Bebidas", icone: <CupSoda />, cor: "#7c3aed", categoria: "bebidas" },
+    { nome: "Combos", icone: <Star />, cor: "#5b21b6", categoria: "combos" }
   ].map((c, i) => (
-    <div key={i} style={{
-      background: "#f4f4f5",
-      borderRadius: 16,
-      padding: 12,
-      textAlign: "center"
-    }}>
+    
+    <div
+      key={i}
+      onClick={() => {
+      setCategoriaSelecionada(c.categoria);
+      setStep(4);
+      }}
+      style={{
+        background: "#f4f4f5",
+        borderRadius: 16,
+        padding: 10,
+        textAlign: "center",
+        cursor: "pointer",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+
       <div style={{
         color: c.cor,
         marginBottom: 6
@@ -2548,10 +2603,15 @@ return (
         {c.icone}
       </div>
 
-      <span style={{ fontSize: 12 }}>
+      <span style={{
+        fontSize: 12,
+        fontWeight: 500
+      }}>
         {c.nome}
       </span>
+
     </div>
+
   ))}
 
 </div>
@@ -3938,13 +3998,188 @@ return (
 )}
 
 {aba === "pagamentos" && step === 6 && (
+  <>
+    <div style={{
+      maxWidth: 420,
+      margin: "0 auto",
+      height: "100dvh",
+      display: "flex",
+      flexDirection: "column",
+      background: "#f5f5f5"
+    }}>
+
+      {/* HEADER */}
+      <div style={{
+        padding: 16,
+        background: "#fff",
+        borderBottom: "1px solid #eee"
+      }}>
+        <h3 style={{ margin: 0 }}>Pagamento</h3>
+      </div>
+
+      {/* CONTEÚDO */}
+      <div style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: 16,
+        paddingBottom: 120
+      }}>
+
+        {/* RESUMO */}
+        <div style={{
+          background: "#fff",
+          padding: 14,
+          borderRadius: 14,
+          marginBottom: 12
+        }}>
+          <strong>Resumo do pedido</strong>
+
+          {carrinho.map((item, i) => (
+            <div key={i} style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 13,
+              marginTop: 6
+            }}>
+              <span>{item.quantidade}x {item.produto.nome}</span>
+              <span>{formatarReal(item.total)}</span>
+            </div>
+          ))}
+
+          <div style={{ margin: "10px 0", borderTop: "1px solid #eee" }} />
+
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontWeight: "bold"
+          }}>
+            <span>Total</span>
+            <span style={{ color: "#ea1d2c" }}>
+              {formatarReal(totalFinal)}
+            </span>
+          </div>
+        </div>
+
+        {/* PAGAMENTO */}
+        <div style={{
+          background: "#fff",
+          padding: 14,
+          borderRadius: 14
+        }}>
+          <strong>Forma de pagamento</strong>
+
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            marginTop: 12
+          }}>
+            {[
+              { id: "pix", nome: "Pix" },
+              { id: "cartao", nome: "Cartão" },
+              { id: "dinheiro", nome: "Dinheiro" }
+            ].map(p => (
+              <div
+                key={p.id}
+                onClick={() => {
+                  setFormaPagamento(p.id);
+
+                  // 🔥 NÃO abre modal aqui
+                  if (p.id === "pix") {
+                    gerarPix();
+                  }
+                }}
+                style={{
+                  padding: 14,
+                  borderRadius: 12,
+                  border: formaPagamento === p.id
+                    ? "2px solid #ea1d2c"
+                    : "1px solid #eee",
+                  background: formaPagamento === p.id
+                    ? "#fff5f5"
+                    : "#fff",
+                  cursor: "pointer"
+                }}
+              >
+                {p.nome}
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* BOTÕES */}
+      <div style={{
+        position: "fixed",
+        bottom: 60,
+        left: 0,
+        right: 0,
+        maxWidth: 420,
+        margin: "0 auto",
+        padding: "10px 16px",
+        zIndex: 10
+      }}>
+
+        <button
+          onClick={() => {
+            if (!formaPagamento) {
+              alert("Escolha a forma de pagamento");
+              return;
+            }
+
+            if (formaPagamento === "pix") {
+              setMostrarPagamento(true); // 🔥 único lugar que abre
+              return;
+            }
+
+            finalizarPedido();
+          }}
+          style={{
+            width: "95%",
+            height: 34,
+            borderRadius: 14,
+            background: "#ea1d2c",
+            color: "#fff",
+            border: "none",
+            fontWeight: "bold",
+            fontSize: 15
+          }}
+        >
+          Finalizar pedido • {formatarReal(totalFinal)}
+        </button>
+
+        <button
+          onClick={() => {
+            setAba("carrinho");
+            setStep(3);
+          }}
+          style={{
+            width: "95%",
+            height: 28,
+            borderRadius: 14,
+            background: "#555555",
+            color: "#fff",
+            border: "none",
+            marginTop: 8
+          }}
+        >
+          Voltar ao carrinho
+        </button>
+
+      </div>
+    </div>
+     
+  </>
+)}
+{aba === "notificacao" && step === 7 && (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
     height: "100dvh",
     display: "flex",
     flexDirection: "column",
-    background: "#f5f5f5"
+    background: "#f7f7f7"
   }}>
 
     {/* HEADER */}
@@ -3952,304 +4187,6 @@ return (
       padding: 16,
       background: "#fff",
       borderBottom: "1px solid #eee"
-    }}>
-      <h3 style={{ margin: 0 }}>Pagamento</h3>
-    </div>
-
-    {/* CONTEÚDO */}
-    <div style={{
-      flex: 1,
-      overflowY: "auto",
-      padding: 16,
-      paddingBottom: 120
-    }}>
-
-      {/* RESUMO */}
-      <div style={{
-        background: "#fff",
-        padding: 14,
-        borderRadius: 14,
-        marginBottom: 12
-      }}>
-        <strong>Resumo do pedido</strong>
-
-        {carrinho.map((item, i) => (
-          <div key={i} style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 13,
-            marginTop: 6
-          }}>
-            <span>{item.quantidade}x {item.produto.nome}</span>
-            <span>{formatarReal(item.total)}</span>
-          </div>
-        ))}
-
-        <div style={{ margin: "10px 0", borderTop: "1px solid #eee" }} />
-
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontWeight: "bold"
-        }}>
-          <span>Total</span>
-          <span style={{ color: "#ea1d2c" }}>
-            {formatarReal(totalFinal)}
-          </span>
-        </div>
-      </div>
-
-      {/* PAGAMENTO */}
-      <div style={{
-        background: "#fff",
-        padding: 14,
-        borderRadius: 14
-      }}>
-        <strong>Forma de pagamento</strong>
-
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          marginTop: 12
-        }}>
-          {[
-            { id: "pix", nome: "Pix" },
-            { id: "cartao", nome: "Cartão" },
-            { id: "dinheiro", nome: "Dinheiro" }
-          ].map(p => (
-            <div
-              key={p.id}
-              onClick={() => {
-                setFormaPagamento(p.id);
-
-                if (p.id === "pix") {
-                  gerarPix(); // 🔥 só gera
-                }
-              }}
-              style={{
-                padding: 14,
-                borderRadius: 12,
-                border: formaPagamento === p.id
-                  ? "2px solid #ea1d2c"
-                  : "1px solid #eee",
-                background: formaPagamento === p.id
-                  ? "#fff5f5"
-                  : "#fff",
-                cursor: "pointer"
-              }}
-            >
-              {p.nome}
-            </div>
-          ))}
-        </div>
-      </div>
-
-    </div>
-
-    {/* BOTÕES */}
-    <div style={{
-      position: "fixed",
-      bottom: 60,
-      left: 0,
-      right: 0,
-      maxWidth: 420,
-      margin: "0 auto",
-      padding: "10px 16px",
-      zIndex: 100
-    }}>
-
-      <button
-        onClick={() => {
-          if (!formaPagamento) {
-            alert("Escolha a forma de pagamento");
-            return;
-          }
-
-          if (formaPagamento === "pix") {
-            setMostrarPix(true); // 🔥 único lugar que abre modal
-            return;
-          }
-
-          finalizarPedido();
-        }}
-        style={{
-          width: "100%",
-          height: 54,
-          borderRadius: 14,
-          background: "#ea1d2c",
-          color: "#fff",
-          border: "none",
-          fontWeight: "bold",
-          fontSize: 15
-        }}
-      >
-        Finalizar pedido • {formatarReal(totalFinal)}
-      </button>
-
-      <button
-        onClick={() => {
-          setAba("carrinho");
-          setStep(3);
-        }}
-        style={{
-          width: "100%",
-          height: 48,
-          borderRadius: 14,
-          background: "#111",
-          color: "#fff",
-          border: "none",
-          marginTop: 8
-        }}
-      >
-        Voltar ao carrinho
-      </button>
-
-    </div>
-
-    {/* 🔥 ÚNICO MODAL PIX (OFICIAL) */}
-    {mostrarPix && (
-      <div style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.7)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 999
-      }}>
-        <div style={{
-          background: "#fff",
-          borderRadius: 20,
-          padding: 20,
-          width: 320,
-          textAlign: "center"
-        }}>
-
-          <strong>Forma de pagamento</strong>
-
-          <div style={{
-            marginTop: 10,
-            padding: 12,
-            borderRadius: 12,
-            background: "#ea1d2c",
-            color: "#fff",
-            fontWeight: "bold"
-          }}>
-            Pix
-          </div>
-
-          <p style={{ marginTop: 10 }}>
-            Valor: {formatarReal(totalFinal)}
-          </p>
-
-          {/* QR */}
-          {qrCode && (
-            <img
-              src={qrCode}
-              style={{
-                width: 180,
-                height: 180,
-                marginTop: 10
-              }}
-            />
-          )}
-
-          {/* COPIA PIX */}
-          <button
-            onClick={() => navigator.clipboard.writeText(codigoPix)}
-            style={{
-              width: "100%",
-              marginTop: 10,
-              padding: 12,
-              background: "#ea1d2c",
-              color: "#fff",
-              border: "none",
-              borderRadius: 10,
-              fontWeight: "bold"
-            }}
-          >
-            Copiar código Pix
-          </button>
-
-          <p style={{
-            fontSize: 11,
-            color: "#777",
-            marginTop: 6
-          }}>
-            Após o pagamento, seu pedido será confirmado.
-          </p>
-
-          {/* FINALIZA */}
-          <button
-            onClick={finalizarPedido}
-            style={{
-              width: "100%",
-              marginTop: 10,
-              padding: 14,
-              background: "#00c853",
-              color: "#fff",
-              border: "none",
-              borderRadius: 10,
-              fontWeight: "bold"
-            }}
-          >
-            Confirmar Pedido
-          </button>
-
-          <button
-            onClick={() => setMostrarPix(false)}
-            style={{
-              marginTop: 10,
-              background: "none",
-              border: "none",
-              color: "#999"
-            }}
-          >
-            Cancelar
-          </button>
-
-        </div>
-      </div>
-    )}
-
-  </div>
-)}
-{aba === "notificacao" && step === 7 && (
-  <div
-    className={`fade-slide ${animacao}`}
-    style={{
-      maxWidth: 420,
-      margin: "0 auto",
-      paddingBottom: 140,
-      background: "#f7f7f7"
-    }}
-
-    onTouchStart={(e) => {
-      window.touchStartX = e.touches[0].clientX;
-    }}
-
-    onTouchEnd={(e) => {
-      const touchEndX = e.changedTouches[0].clientX;
-
-      if (touchEndX - window.touchStartX > 80) {
-        setAnimacao("slide-back");
-        setTimeout(() => {
-          setAba("home");
-          setStep(1);
-        }, 50);
-      }
-    }}
-  >
-
-    {/* 🔝 HEADER */}
-    <div style={{
-      padding: 16,
-      background: "#fff",
-      position: "fixed",
-      top: 0,
-      zIndex: 10,
-      boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
     }}>
       <div style={{
         display: "flex",
@@ -4259,10 +4196,7 @@ return (
         <h3 style={{ margin: 0 }}>Notificações</h3>
 
         <button
-          onClick={() => {
-            navigator.vibrate?.(10);
-            marcarComoLida();
-          }}
+          onClick={marcarComoLida}
           style={{
             fontSize: 12,
             background: "none",
@@ -4277,63 +4211,37 @@ return (
       </div>
     </div>
 
-    <div style={{ padding: 16 }}>
+    {/* CONTEÚDO SCROLL */}
+    <div style={{
+      flex: 1,
+      overflowY: "auto",
+      padding: 16,
+      paddingBottom: 100 // 🔥 espaço pro botão + navbar
+    }}>
 
-      {/* 🔥 HOJE */}
+      {/* HOJE */}
       {grupos.hoje.length > 0 && (
         <>
-          <div style={{
-            fontSize: 12,
-            color: "#777",
-            marginBottom: 8
-          }}>
+          <div style={{ fontSize: 12, color: "#777", marginBottom: 8 }}>
             Hoje
           </div>
 
           {grupos.hoje.map(n => (
-            <div
-              key={n.id}
-              style={{
-                marginBottom: 10,
-                borderRadius: 16,
-                background: n.lida ? "#fff" : "#fff5f5",
-                padding: 12,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
-                border: n.lida ? "1px solid #eee" : "1px solid #ea1d2c"
-              }}
-            >
-
-              {/* LINHA */}
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
-
-                <div style={{ flex: 1 }}>
-                  <NotificacaoItem n={n} />
-                </div>
-
-                {!n.lida && (
-                  <span style={{
-                    fontSize: 10,
-                    background: "#ea1d2c",
-                    color: "#fff",
-                    padding: "2px 6px",
-                    borderRadius: 999
-                  }}>
-                    Novo
-                  </span>
-                )}
-
-              </div>
-
+            <div key={n.id} style={{
+              marginBottom: 10,
+              borderRadius: 16,
+              background: n.lida ? "#fff" : "#fff5f5",
+              padding: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+              border: n.lida ? "1px solid #eee" : "1px solid #ea1d2c"
+            }}>
+              <NotificacaoItem n={n} />
             </div>
           ))}
         </>
       )}
 
-      {/* 🔥 ANTIGAS */}
+      {/* ANTIGAS */}
       {grupos.antigas.length > 0 && (
         <>
           <div style={{
@@ -4346,89 +4254,61 @@ return (
           </div>
 
           {grupos.antigas.map(n => (
-            <div
-              key={n.id}
-              style={{
-                marginBottom: 10,
-                borderRadius: 16,
-                background: "#fff",
-                padding: 12,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
-              }}
-            >
+            <div key={n.id} style={{
+              marginBottom: 10,
+              borderRadius: 16,
+              background: "#fff",
+              padding: 12,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+            }}>
               <NotificacaoItem n={n} />
             </div>
           ))}
         </>
       )}
 
-      {/* 💤 VAZIO */}
+      {/* VAZIO */}
       {grupos.hoje.length === 0 && grupos.antigas.length === 0 && (
         <div style={{
           textAlign: "center",
           marginTop: 60,
           color: "#777"
         }}>
-          <p>Nenhuma notificação ainda</p>
+          Nenhuma notificação ainda
         </div>
       )}
-
     </div>
 
-    {/* 🔥 FOOTER FIXO */}
+    {/* BOTÃO FIXO (CORRIGIDO) */}
     <div style={{
-      position: "sticky",
-      bottom: 0,
+      position: "fixed",
+      bottom: 70, // 🔥 NÃO COLIDE COM NAVBAR
       left: 0,
       right: 0,
-      background: "#fff",
-      padding: 16,
-      borderTop: "1px solid #eee",
-      boxShadow: "0 -4px 12px rgba(0,0,0,0.08)"
+      maxWidth: 420,
+      margin: "0 auto",
+      padding: "0 16px",
+      zIndex: 10
     }}>
       <button
         onClick={() => {
-          navigator.vibrate?.(10);
-          setAnimacao("slide-back");
-
-          setTimeout(() => {
-            setAba("home");
-            setStep(1);
-          }, 50);
+          setAba("home");
+          setStep(1);
         }}
         style={{
-          width: "100%",
-          padding: 14,
-          borderRadius: 16,
+          width: "95%",
+          height: 28,
+          borderRadius: 12,
           border: "none",
           background: "#ea1d2c",
           color: "#fff",
-          fontWeight: "bold"
+          fontWeight: "bold",
+          fontSize: 14
         }}
       >
         Voltar
       </button>
     </div>
-
-    {/* 🔥 ANIMAÇÃO */}
-    <style>
-      {`
-        .fade-slide {
-          animation: fadeUp 0.4s ease;
-        }
-
-        @keyframes fadeUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}
-    </style>
 
   </div>
 )}
@@ -4671,6 +4551,163 @@ return (
         }
       `}
     </style>
+
+  </div>
+)}
+
+{step === 4 && (
+  <div style={{
+    maxWidth: 420,
+    margin: "0 auto",
+    height: "100dvh",
+    display: "flex",
+    flexDirection: "column",
+    background: "#f7f7f7"
+  }}>
+
+    {/* HEADER */}
+    <div style={{
+      padding: 16,
+      background: "#fff",
+      borderBottom: "1px solid #eee",
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }}>
+      <button
+        onClick={() => setStep(1)}
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          border: "none",
+          background: "#f4f4f5",
+          cursor: "pointer"
+        }}
+      >
+        ←
+      </button>
+
+      <h3 style={{ margin: 0, textTransform: "capitalize" }}>
+        {categoriaSelecionada}
+      </h3>
+    </div>
+
+    {/* LISTA */}
+    <div style={{
+      flex: 1,
+      overflowY: "auto",
+      padding: 16,
+      paddingBottom: 100
+    }}>
+
+      {produtos
+        .filter(p => p.categoria === categoriaSelecionada)
+        .map(p => (
+
+          <div
+            key={p.id}
+            onClick={() => {
+
+              if (p.categoria === "acai") {
+                setProduto(p);
+                setStep(2);
+                return;
+              }
+
+              setCarrinho(prev => [
+                ...prev,
+                {
+                  produto: p,
+                  quantidade: 1,
+                  extras: [],
+                  total: p.preco
+                }
+              ]);
+
+              setStep(3);
+            }}
+            style={{
+              background: "#fff",
+              borderRadius: 18,
+              padding: 12,
+              marginBottom: 12,
+              display: "flex",
+              gap: 12,
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              position: "relative"
+            }}
+          >
+
+            {/* BADGE */}
+            {p.maisVendido && (
+              <div style={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                background: "#ea1d2c",
+                color: "#fff",
+                fontSize: 10,
+                padding: "3px 6px",
+                borderRadius: 6,
+                fontWeight: "bold"
+              }}>
+                Mais vendido
+              </div>
+            )}
+
+            {/* IMAGEM */}
+            <img
+              src={p.imagem || "/acai.png"}
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 14,
+                objectFit: "cover"
+              }}
+            />
+
+            {/* INFO */}
+            <div style={{ flex: 1 }}>
+
+              <strong style={{ fontSize: 15 }}>
+                {p.nome}
+              </strong>
+
+              <div style={{
+                fontSize: 12,
+                color: "#666",
+                marginTop: 4
+              }}>
+                {p.descricao}
+              </div>
+
+              {p.extras?.length > 0 && (
+                <div style={{
+                  fontSize: 11,
+                  color: "#999",
+                  marginTop: 4
+                }}>
+                  + {p.extras.length} adicionais
+                </div>
+              )}
+
+              <div style={{
+                marginTop: 6,
+                fontWeight: "bold",
+                color: "#ea1d2c"
+              }}>
+                {formatarReal(p.preco)}
+              </div>
+
+            </div>
+
+          </div>
+
+        ))}
+
+    </div>
 
   </div>
 )}
