@@ -36,15 +36,15 @@ import {
 export default function Admin() {
 
 
-   const inputStyle = {
-    width: "100%",
-    padding: 12,
-    borderRadius: 12,
-    border: "none",
-    background: "#222",
-    color: "#fff",
-    marginBottom: 10
-  };
+  const inputStyle = {
+  background: "#1e1e1e",
+  border: "1px solid #2a2a2a",
+  color: "#fff",
+  padding: "10px",
+  borderRadius: 12,
+  outline: "none",
+  marginBottom: 8
+};
   
   const btnCancel = {
     flex: 1,
@@ -86,7 +86,10 @@ const btnSecondary = {
 
 
 const card = {
-  background: "#ffffff",
+  background: "#151515",
+  border: "1px solid #2a2a2a",
+  color: "#fff",
+
   borderRadius: 20,
   padding: 20,
   marginBottom: 20,
@@ -160,7 +163,7 @@ const btnDangerSmall = {
 
   
   const [editandoCategoriaId, setEditandoCategoriaId] = useState(null);
-  const [novoNomeCategoria, setNovoNomeCategoria] = useState("");
+  const [editandoCategoria, setEditandoCategoria] = useState({});
 
   const [novaCategoria, setNovaCategoria] = useState("");
   const [categorias, setCategorias] = useState([]);
@@ -237,19 +240,17 @@ function tocarSom() {
 
 async function salvarEdicaoCategoria(id) {
 
-  if (!novoNomeCategoria) return;
+  const nome = editandoCategoria[id];
+  if (!nome) return;
 
-  const slug = novoNomeCategoria
-    .toLowerCase()
-    .replace(/\s+/g, "");
+  const slug = nome.toLowerCase().replace(/\s+/g, "");
 
   await updateDoc(doc(db, "categorias", id), {
-    nome: novoNomeCategoria,
+    nome,
     slug
   });
 
   setEditandoCategoriaId(null);
-  setNovoNomeCategoria("");
 }
 
 // nova funcao add no painel
@@ -505,7 +506,12 @@ useEffect(() => {
 // 🔥 cadastro produto categoria
 useEffect(() => {
   const unsub = onSnapshot(collection(db, "categorias"), (snap) => {
-    setCategorias(snap.docs.map(doc => doc.data()));
+    setCategorias(
+  snap.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+);
   });
 
   return () => unsub();
@@ -892,13 +898,63 @@ return (
 
     {/* 🔥 CARD */}
     <div style={{
-      background: "#ffffff",
+      background: "#151515",
+      border: "1px solid #2a2a2a",
+      color: "#fff",
       padding: 20,
       borderRadius: 20,
       boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
     }}>
 
 
+{/* 🔥 GERENCIAR CATEGORIAS */}
+<h4>Categorias</h4>
+
+{categorias.map(c => (
+
+  <div key={c.id} style={{
+    display: "flex",
+    gap: 6,
+    marginBottom: 6,
+    alignItems: "center"
+  }}>
+
+    {editandoCategoriaId === c.id ? (
+      <input
+        value={editandoCategoria[c.id] || ""}
+        onChange={(e) =>
+          setEditandoCategoria(prev => ({
+            ...prev,
+            [c.id]: e.target.value
+          }))
+        }
+        style={{ ...inputStyle, flex: 1 }}
+      />
+    ) : (
+      <span style={{ flex: 1 }}>{c.nome}</span>
+    )}
+
+    {editandoCategoriaId === c.id ? (
+      <button onClick={() => salvarEdicaoCategoria(c.id)}>
+        Salvar
+      </button>
+    ) : (
+      <button onClick={() => {
+        setEditandoCategoriaId(c.id);
+        setEditandoCategoria(prev => ({
+          ...prev,
+          [c.id]: c.nome
+        }));
+      }}>
+        Editar
+      </button>
+    )}
+
+  </div>
+
+))}
+
+{/* CATEGORIA NOVA */}
       <div style={{
   marginBottom: 10,
   display: "flex",
@@ -915,6 +971,8 @@ return (
     Criar
   </button>
 </div>
+
+<select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}></select>
 
       {/* SELECT */}
       <select
@@ -961,7 +1019,9 @@ return (
         }}
         style={{
           ...input,
-          background: "#f7f7f7",
+          background: "#121212",
+          color: "#fff",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
           cursor: "pointer"
         }}
       />

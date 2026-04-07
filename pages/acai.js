@@ -299,6 +299,8 @@ useEffect(() => {
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [menuAberto, setMenuAberto] = useState(false);
 
+  const [categorias, setCategorias] = useState([]);
+
   const [bloqueado, setBloqueado] = useState(false);
 
   const [aba, setAba] = useState("home");
@@ -565,6 +567,21 @@ useEffect(() => {
     if (pedido.status === "entregue") {
       alert("Pedido entregue");
     }
+  });
+
+  return () => unsub();
+}, []);
+
+
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "categorias"), (snap) => {
+
+    const lista = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setCategorias(lista);
   });
 
   return () => unsub();
@@ -2562,59 +2579,75 @@ return (
         </span>
       </div>
 
-      {/* CATEGORIAS */}
-  <div style={{
+ {/* CATEGORIAS */}
+<div style={{
   display: "grid",
-  gridTemplateColumns: "repeat(4, 1fr)", // 🔥 ESSENCIAL
+  gridTemplateColumns: "repeat(4, 1fr)",
   gap: 10,
   marginTop: 14
 }}>
 
-  {[
-    { nome: "Açaí", icone: <IceCream />, cor: "#6b21a8", categoria: "acai" },
-    { nome: "Promoções", icone: <Tag />, cor: "#9333ea", categoria: "promocoes" },
-    { nome: "Bebidas", icone: <CupSoda />, cor: "#7c3aed", categoria: "bebidas" },
-    { nome: "Combos", icone: <Star />, cor: "#5b21b6", categoria: "combos" }
-  ].map((c, i) => (
-    
-    <div
-      key={i}
-      onClick={() => {
-      setCategoriaSelecionada(c.categoria);
-      setStep(4);
-      }}
-      style={{
-        background: "#f4f4f5",
-        borderRadius: 16,
-        padding: 10,
-        textAlign: "center",
-        cursor: "pointer",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
+  {categorias
+    .filter(c =>
+      ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
+    )
+    .sort((a, b) => {
+      const ordem = ["acai", "promocoes", "bebidas", "combos"];
+      return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
+    })
+    .map((c) => {
 
-      <div style={{
-        color: c.cor,
-        marginBottom: 6
-      }}>
-        {c.icone}
-      </div>
+      const config = {
+        acai: { icone: <IceCream />, cor: "#6b21a8" },
+        promocoes: { icone: <Tag />, cor: "#9333ea" },
+        bebidas: { icone: <CupSoda />, cor: "#7c3aed" },
+        combos: { icone: <Star />, cor: "#5b21b6" }
+      };
 
-      <span style={{
-        fontSize: 12,
-        fontWeight: 500
-      }}>
-        {c.nome}
-      </span>
+      const item = config[c.slug];
 
-    </div>
+      if (!item) return null;
 
-  ))}
+      return (
+        <div
+          key={c.id}
+          onClick={() => {
+            setCategoriaSelecionada(c.slug);
+            setStep(9);
+          }}
+          style={{
+            background: "#f4f4f5",
+            borderRadius: 16,
+            padding: 10,
+            textAlign: "center",
+            cursor: "pointer",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+
+          <div style={{
+            color: item.cor,
+            marginBottom: 6
+          }}>
+            {item.icone}
+          </div>
+
+          <span style={{
+            fontSize: 12,
+            fontWeight: 500
+          }}>
+            {c.nome}
+          </span>
+
+        </div>
+      );
+    })}
 
 </div>
+
 
       {/* BANNER */}
 <div style={{
@@ -4555,7 +4588,7 @@ return (
   </div>
 )}
 
-{step === 4 && (
+{step === 9 && (
   <div style={{
     maxWidth: 420,
     margin: "0 auto",
