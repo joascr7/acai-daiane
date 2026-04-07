@@ -245,15 +245,15 @@ function tocarSom() {
 
 
 async function salvarEdicaoCategoria(id) {
-
   const nome = editandoCategoria[id];
   if (!nome) return;
 
-  const slug = nome.toLowerCase().replace(/\s+/g, "");
+  const categoriaAtual = categorias.find(c => c.id === id);
+  if (!categoriaAtual) return;
 
   await updateDoc(doc(db, "categorias", id), {
     nome,
-    slug
+    slug: categoriaAtual.slug // 🔥 mantém a chave interna fixa
   });
 
   setEditandoCategoriaId(null);

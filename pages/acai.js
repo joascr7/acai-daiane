@@ -60,6 +60,7 @@ import {
   Clock,
   Bike,
   ShieldCheck,
+  ArrowLeft,
   Star
   
 } from "lucide-react";
@@ -393,6 +394,9 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   const [editandoIndex, setEditandoIndex] = useState(null);
 // 🔥 forma de pagamento
   const [formaPagamento, setFormaPagamento] = useState(null);
+
+const categoriaAtualObj = categorias.find(c => c.slug === categoriaSelecionada);
+const nomeCategoriaAtual = categoriaAtualObj?.nome || categoriaSelecionada;
 
   
   const [statusPagamento, setStatusPagamento] = useState("pendente");
@@ -1961,6 +1965,12 @@ async function marcarComoLida() {
 }
 
 
+function getNomeCategoria(slug) {
+  const cat = categorias.find(c => c.slug === slug);
+  return cat?.nome || slug;
+}
+
+
 function categoriaTemExtras(categoria) {
   return ["acai", "promocoes", "combos"].includes(categoria);
 }
@@ -3419,23 +3429,26 @@ return (
       }}>
 
         {/* 🔥 BOTÃO VOLTAR CORRIGIDO */}
-        <button
-          onClick={() => {
-            setAba("home");
-            setStep(1);
-          }}
-          style={{
-            border: "none",
-            borderRadius: "50%",
-            width: 15,
-            height: 15,
-            cursor: "pointer",
-            
-            fontWeight: "bold"
-          }}
-        >
-          ←
-        </button>
+      <button
+  onClick={() => {
+    setAba("home");
+    setStep(1);
+  }}
+  style={{
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    border: "none",
+    background: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+  }}
+>
+  <ArrowLeft size={20} color="#111" />
+</button>
 
         <h3 style={{ margin: 0 }}>Sacola</h3>
       </div>
@@ -3955,24 +3968,26 @@ return (
         alignItems: "center",
         gap: 10
       }}>
-        <button
-          onClick={() => {
-            setAnimacao("slide-back");
-            setTimeout(() => {
-              setAba("home");
-              setStep(1);
-            }, 50);
-          }}
-          style={{
-            border: "none",
-            borderRadius: "50%",
-            width: 15,
-            height: 15,
-            cursor: "pointer"
-          }}
-        >
-          ←
-        </button>
+       <button
+  onClick={() => {
+    setAba("home");
+    setStep(1);
+  }}
+  style={{
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    border: "none",
+    background: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+  }}
+>
+  <ArrowLeft size={20} color="#111" />
+</button>
 
         <h3 style={{ margin: 0 }}>Pedidos</h3>
       </div>
@@ -4001,8 +4016,9 @@ return (
           "Pedido";
 
         const produtoReal = produtos.find(prod =>
-          prod.id === primeiroItem?.produtoId ||
-          prod.nome === nomePrincipal
+        prod.id === primeiroItem?.produtoId ||
+        prod.nome === primeiroItem?.produto?.nome ||
+        prod.nome === primeiroItem?.nome
         );
 
         // 🔥 STATUS CORRIGIDO
@@ -4047,21 +4063,36 @@ return (
             }}>
 
               {/* TOPO */}
-              <div style={{
-                display: "flex",
-                gap: 10,
-                alignItems: "center"
-              }}>
+<div style={{
+  display: "flex",
+  gap: 12,
+  alignItems: "center"
+}}>
 
-                <img
-                  src={produtoReal?.imagem || "/acai.png"}
-                  style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 12,
-                    objectFit: "cover"
-                  }}
-                />
+  {/* IMAGEM CORRIGIDA */}
+  <div style={{
+    width: 70,
+    height: 70,
+    borderRadius: 12,
+    overflow: "hidden",
+    background: "#f4f4f5",
+    flexShrink: 0
+  }}>
+    <img
+      src={
+        produtoReal?.imagem ||
+        primeiroItem?.produto?.imagem ||
+        primeiroItem?.imagem ||
+        "/acai.png"
+      }
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
+  </div>
+
 
                 <div style={{ flex: 1 }}>
 
@@ -4144,35 +4175,47 @@ return (
 
                 <button
                   onClick={() => {
+          const novosItens = (p.itens || []).map(item => {
+          const produtoBanco = produtos.find(prod =>
+          prod.id === item.produtoId ||
+          prod.nome === item.produto?.nome ||
+          prod.nome === item.nome
+           );
 
-                    const novosItens = p.itens.map(item => {
-                      const produtoBanco = produtos.find(prod =>
-                        prod.id === item.produtoId ||
-                        prod.nome === item.nome
-                      );
+         return {
+        produto: {
+        id: produtoBanco?.id || item.produtoId || item.produto?.id || null,
+        nome: produtoBanco?.nome || item.produto?.nome || item.nome || "Produto",
+        imagem:
+          produtoBanco?.imagem ||
+          item.produto?.imagem ||
+          item.imagem ||
+          "/acai.png",
+        preco: Number(
+          produtoBanco?.preco ??
+          item.produto?.preco ??
+          0
+        ),
+        categoria:
+          produtoBanco?.categoria ||
+          item.produto?.categoria ||
+          item.categoria ||
+          ""
+      },
+      quantidade: Number(item.quantidade || 1),
+      extras: item.extras || [],
+      total: Number(item.total || 0)
+       };
+       });
 
-                      return {
-                        produto: {
-                          id: produtoBanco?.id,
-                          nome: item.produto?.nome || item.nome,
-                          imagem: produtoBanco?.imagem || "",
-                          preco: produtoBanco?.preco || 0
-                        },
-                        quantidade: item.quantidade || 1,
-                        extras: item.extras || [],
-                        total: item.total
-                      };
-                    });
+         setCarrinho(novosItens);
+         setAba("carrinho");
+        setAnimacao("slide-enter");
 
-                    setCarrinho(novosItens);
-                    setAba("carrinho");
-
-                    setAnimacao("slide-enter");
-
-                    setTimeout(() => {
-                      setStep(3);
-                    }, 50);
-                  }}
+        setTimeout(() => {
+        setStep(3);
+        }, 50);
+        }}
                   style={{
                     background: "#ea1d2c",
                     border: "none",
@@ -4587,24 +4630,26 @@ return (
         alignItems: "center",
         gap: 10
       }}>
-        <button
-          onClick={() => {
-            setAnimacao("slide-back");
-            setTimeout(() => {
-              setStep(1);
-              setAba("home");
-            }, 50);
-          }}
-          style={{
-            background: "#ff0707",
-            border: "none",
-            borderRadius: "50%",
-            width: 32,
-            height: 32
-          }}
-        >
-          ←
-        </button>
+           <button
+  onClick={() => {
+    setAba("home");
+    setStep(1);
+  }}
+  style={{
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    border: "none",
+    background: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+  }}
+>
+  <ArrowLeft size={20} color="#111" />
+</button>
 
         <h3 style={{ margin: 0 }}>Sobre a loja</h3>
       </div>
@@ -4798,14 +4843,18 @@ return (
     background: "#f7f7f7"
   }}>
 
-    {/* HEADER */}
+    {/* HEADER FIXO */}
     <div style={{
-      padding: 16,
+      padding: "calc(env(safe-area-inset-top) + 12px) 16px 12px",
       background: "#fff",
       borderBottom: "1px solid #eee",
       display: "flex",
       alignItems: "center",
-      gap: 10
+      gap: 10,
+      position: "sticky",
+      top: 0,
+      zIndex: 20,
+      flexWrap: "wrap"
     }}>
       <button
         onClick={() => {
@@ -4813,20 +4862,71 @@ return (
           setStep(1);
         }}
         style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
+          width: 42,
+          height: 42,
+          borderRadius: 14,
           border: "none",
-          background: "#f4f4f5",
-          cursor: "pointer"
+          background: "#fff",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          flexShrink: 0
         }}
       >
-        ←
+        <ArrowLeft size={20} color="#111" />
       </button>
 
-      <h3 style={{ margin: 0, textTransform: "capitalize" }}>
-        {categoriaSelecionada}
+      <h3 style={{
+        margin: 0,
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#111"
+      }}>
+        {nomeCategoriaAtual}
       </h3>
+
+      {/* ABAS FIXAS */}
+      <div style={{
+        width: "100%",
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 8,
+        marginTop: 10
+      }}>
+        {categorias
+          .filter(c =>
+            ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
+          )
+          .sort((a, b) => {
+            const ordem = ["acai", "promocoes", "bebidas", "combos"];
+            return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
+          })
+          .map(c => {
+            const ativo = categoriaSelecionada === c.slug;
+
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCategoriaSelecionada(c.slug)}
+                style={{
+                  padding: "10px 6px",
+                  borderRadius: 12,
+                  border: ativo ? "1px solid #ea1d2c" : "1px solid #eee",
+                  background: ativo ? "#fff1f2" : "#fff",
+                  color: ativo ? "#ea1d2c" : "#333",
+                  fontSize: 12,
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  marginTop: 0
+                }}
+              >
+                {c.nome}
+              </button>
+            );
+          })}
+      </div>
     </div>
 
     {/* LISTA */}
@@ -4836,7 +4936,6 @@ return (
       padding: 16,
       paddingBottom: 100
     }}>
-
       {produtos
         .filter(p => p.categoria === categoriaSelecionada && p.ativo !== false)
         .length === 0 && (
@@ -4854,113 +4953,180 @@ return (
         .filter(p => p.categoria === categoriaSelecionada && p.ativo !== false)
         .map(p => (
           <div
-            onClick={() => {
-  if (!validarLojaAberta()) return;
+  key={p.id}
+  onClick={() => {
+    if (!validarLojaAberta()) return;
 
-  if (categoriaTemExtras(p.categoria)) {
-    setProduto(p);
-    setAba("home");
-    setStep(2);
-    return;
-  }
+    if (categoriaTemExtras(p.categoria)) {
+      setProduto(p);
+      setAba("home");
+      setStep(2);
+      return;
+    }
 
-  if (categoriaVaiDiretoCarrinho(p.categoria)) {
-    setCarrinho(prev => [
-      ...prev,
-      {
-        produto: p,
-        quantidade: 1,
-        extras: [],
-        total: Number(p.preco || 0)
-      }
-    ]);
+    if (categoriaVaiDiretoCarrinho(p.categoria)) {
+      setCarrinho(prev => [
+        ...prev,
+        {
+          produto: p,
+          quantidade: 1,
+          extras: [],
+          total: Number(p.preco || 0)
+        }
+      ]);
 
-    setAba("carrinho");
-    setStep(3);
-    return;
-  }
-}}
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              padding: 12,
-              marginBottom: 12,
-              display: "flex",
-              gap: 12,
-              cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              position: "relative"
-            }}
-          >
+      setAba("carrinho");
+      setStep(3);
+      return;
+    }
+  }}
+  style={{
+    background: "#fff",
+    borderRadius: 18,
+    padding: 12,
+    marginBottom: 12,
+    display: "flex",
+    gap: 12,
+    cursor: "pointer",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
+    position: "relative",
+    alignItems: "center"
+  }}
+>
 
-            {/* BADGE */}
-            {p.maisVendido && (
-              <div style={{
-                position: "absolute",
-                top: 8,
-                left: 8,
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 10,
-                padding: "3px 6px",
-                borderRadius: 6,
-                fontWeight: "bold"
-              }}>
-                Mais vendido
-              </div>
-            )}
+  {/* BADGE */}
+  {p.maisVendido && (
+    <div style={{
+      position: "absolute",
+      top: 8,
+      left: 8,
+      background: "#ea1d2c",
+      color: "#fff",
+      fontSize: 10,
+      padding: "3px 6px",
+      borderRadius: 6,
+      fontWeight: "bold"
+    }}>
+      Mais vendido
+    </div>
+  )}
 
-            {/* IMAGEM */}
-            <img
-              src={p.imagem || "/acai.png"}
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: 14,
-                objectFit: "cover"
-              }}
-            />
+  {/* IMAGEM PADRONIZADA */}
+  <div style={{
+    width: 80,
+    height: 80,
+    borderRadius: 14,
+    overflow: "hidden",
+    background: "#f4f4f5",
+    flexShrink: 0
+  }}>
+    <img
+      src={p.imagem || "/acai.png"}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
+  </div>
 
-            {/* INFO */}
-            <div style={{ flex: 1 }}>
+  {/* INFO */}
+  <div style={{ flex: 1 }}>
 
-              <strong style={{ fontSize: 15 }}>
-                {p.nome}
-              </strong>
+    <strong style={{
+      fontSize: 15,
+      color: "#111"
+    }}>
+      {p.nome}
+    </strong>
 
-              <div style={{
-                fontSize: 12,
-                color: "#666",
-                marginTop: 4
-              }}>
-                {p.descricao}
-              </div>
-
-              {p.extras?.length > 0 && (
-                <div style={{
-                  fontSize: 11,
-                  color: "#999",
-                  marginTop: 4
-                }}>
-                  + {p.extras.length} adicionais
-                </div>
-              )}
-
-              <div style={{
-                marginTop: 6,
-                fontWeight: "bold",
-                color: "#ea1d2c"
-              }}>
-                {formatarReal(p.preco)}
-              </div>
-
-            </div>
-
-          </div>
-        ))}
-
+    <div style={{
+      fontSize: 12,
+      color: "#666",
+      marginTop: 4
+    }}>
+      {p.descricao}
     </div>
 
+    {p.extras?.length > 0 && (
+      <div style={{
+        fontSize: 11,
+        color: "#999",
+        marginTop: 4
+      }}>
+        + {p.extras.length} adicionais
+      </div>
+    )}
+
+    {/* PREÇO + BOTÃO */}
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 8
+    }}>
+      <span style={{
+        fontWeight: "bold",
+        color: "#ea1d2c",
+        fontSize: 14
+      }}>
+        {formatarReal(p.preco)}
+      </span>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+
+          if (!validarLojaAberta()) return;
+
+          if (categoriaTemExtras(p.categoria)) {
+            setProduto(p);
+            setAba("home");
+            setStep(2);
+            return;
+          }
+
+          if (categoriaVaiDiretoCarrinho(p.categoria)) {
+            setCarrinho(prev => [
+              ...prev,
+              {
+                produto: p,
+                quantidade: 1,
+                extras: [],
+                total: Number(p.preco || 0)
+              }
+            ]);
+
+            setAba("carrinho");
+            setStep(3);
+          }
+        }}
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          border: "none",
+          background: "#ea1d2c",
+          color: "#fff",
+          fontSize: 18,
+          fontWeight: "bold",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 12px rgba(234,29,44,0.3)"
+        }}
+      >
+        +
+      </button>
+    </div>
+
+  </div>
+
+</div>
+          
+        ))}
+    </div>
   </div>
 )}
 
