@@ -3405,7 +3405,7 @@ return (
 
     {/* 🔝 HEADER */}
     <div style={{
-      padding: 16,
+      padding: 20,
       background: "#fff",
       position: "sticky",
       top: 0,
@@ -3415,7 +3415,7 @@ return (
       <div style={{
         display: "flex",
         alignItems: "center",
-        gap: 10
+        gap: 12
       }}>
 
         {/* 🔥 BOTÃO VOLTAR CORRIGIDO */}
@@ -3427,8 +3427,8 @@ return (
           style={{
             border: "none",
             borderRadius: "50%",
-            width: 28,
-            height: 28,
+            width: 15,
+            height: 15,
             cursor: "pointer",
             
             fontWeight: "bold"
@@ -3731,7 +3731,7 @@ return (
   <div style={{ maxWidth: 420, margin: "0 auto", background: "#f7f7f7" }}>
 
     {/* HEADER */}
-    <div style={{ padding: 28, background: "#fff" }}>
+    <div style={{ padding: 38, background: "#fff" }}>
       <strong>Minha conta</strong>
     </div>
 
@@ -3768,7 +3768,17 @@ return (
             placeholder="Telefone"
           />
 
-          <button style={btn} onClick={salvarDadosCliente}>
+          <button 
+           onClick={salvarDadosCliente}
+          style={{
+           ...btn,
+          padding: "10px 14px",
+          fontSize: 13,
+          borderRadius: 12,
+          width: "fit-content",
+          alignSelf: "flex-start"
+         }}
+          >
             Salvar dados
           </button>
         </div>
@@ -3805,7 +3815,17 @@ return (
             placeholder="Número"
           />
 
-          <button style={btn} onClick={salvarDadosCliente}>
+          <button 
+           onClick={salvarDadosCliente}
+          style={{
+           ...btn,
+          padding: "10px 14px",
+          fontSize: 13,
+          borderRadius: 12,
+          width: "fit-content",
+          alignSelf: "flex-start"
+         }}
+         >
             Salvar endereço
           </button>
         </div>
@@ -3828,15 +3848,26 @@ return (
               <strong>{c.codigo}</strong>
               <div>{c.valor}% desconto</div>
 
-              <button
-                style={btn}
-                onClick={()=>{
-                  navigator.clipboard.writeText(c.codigo);
-                  alert("Copiado");
-                }}
-              >
-                Copiar
-              </button>
+              <div style={{ display: "flex", justifyContent: "center" }}>
+  <button
+    onClick={()=>{
+      navigator.clipboard.writeText(c.codigo);
+      alert("Copiado");
+    }}
+    style={{
+      padding: "8px 14px",
+      fontSize: 12,
+      borderRadius: 10,
+      background: "#ea1d2c",
+      color: "#fff",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold"
+    }}
+  >
+    Copiar
+  </button>
+</div>
             </div>
           ))}
         </div>
@@ -3852,25 +3883,50 @@ return (
       {/* 🏪 LOJA */}
       {abaPerfil === "loja" && (
         <div style={card}>
-          <button style={btn} onClick={()=>{
-            setAba("info");
-            setStep(99);
-          }}>
-            Ver loja
-          </button>
-        </div>
+          <button
+    onClick={()=>{
+      setAba("info");
+      setStep(99);
+    }}
+    style={{
+      padding: "10px 16px",
+      fontSize: 13,
+      borderRadius: 12,
+      background: "#ea1d2c",
+      color: "#fff",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold",
+      width: "fit-content"
+    }}
+  >
+    Ver loja
+  </button>
+</div>
       )}
 
       {/* LOGOUT */}
-      <button
-        onClick={async ()=>{
-          await signOut(auth);
-          router.push("/login");
-        }}
-        style={btnLogout}
-      >
-        Sair da conta
-      </button>
+     <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
+  <button
+    onClick={async ()=>{
+      await signOut(auth);
+      router.push("/login");
+    }}
+    style={{
+      padding: "10px 16px",
+      fontSize: 13,
+      borderRadius: 12,
+      background: "#ef4444",
+      color: "#fff",
+      border: "none",
+      cursor: "pointer",
+      fontWeight: "bold",
+      width: "fit-content"
+    }}
+  >
+    Sair da conta
+  </button>
+</div>
 
     </div>
   </div>
@@ -3887,7 +3943,7 @@ return (
 
     {/* HEADER */}
     <div style={{
-      padding: 16,
+      padding: 20,
       background: "#fff",
       position: "sticky",
       top: 0,
@@ -3910,8 +3966,8 @@ return (
           style={{
             border: "none",
             borderRadius: "50%",
-            width: 25,
-            height: 25,
+            width: 15,
+            height: 15,
             cursor: "pointer"
           }}
         >
@@ -4540,7 +4596,7 @@ return (
             }, 50);
           }}
           style={{
-            background: "#f2f2f2",
+            background: "#ff0707",
             border: "none",
             borderRadius: "50%",
             width: 32,
@@ -4696,7 +4752,7 @@ return (
           }, 50);
         }}
         style={{
-          width: "100%",
+          width: "93%",
           padding: 14,
           borderRadius: 16,
           border: "none",
