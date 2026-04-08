@@ -1,4 +1,4 @@
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBTR3bccO-PnPFlfxNtel2gfbupup_goLU",
@@ -9,8 +9,15 @@ const firebaseConfig = {
   appId: "1:218618921752:web:c32de26abd5adfbcc4546d"
 };
 
-// 🔥 CRIA O DEFAULT SEMPRE
-const app = getApps().find(app => app.name === "[DEFAULT]")
-  || initializeApp(firebaseConfig);
+// 🔥 GARANTE QUE SEMPRE EXISTE UM DEFAULT
+let app;
+
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+  console.log("🔥 Firebase inicializado");
+} else {
+  app = getApp();
+  console.log("♻️ Firebase reutilizado");
+}
 
 export { app };
