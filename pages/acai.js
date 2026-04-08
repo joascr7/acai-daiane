@@ -2815,15 +2815,13 @@ return (
     </div>
 
     {/* CONTEÚDO */}
-    <div style={{
+   <div style={{
   maxWidth: larguraApp,
   margin: "0 auto",
-  minHeight: "100dvh", // 🔥 ESSENCIAL
-  background: "#fff", // 🔥 ESSENCIAL
+  background: "#fff",
   padding: "16px 10px 0",
-  paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 12px)`, // 🔥 ESSENCIAL
   boxSizing: "border-box"
-  }}>
+}}>
       {/* TÍTULO */}
       <div style={{
         marginBottom: 12,
@@ -3079,6 +3077,11 @@ return (
         </div>
       </div>
     </div>
+
+    <div style={{
+  height: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 12px)`,
+  background: "#fff"
+}} />
 
     <style>
       {`
