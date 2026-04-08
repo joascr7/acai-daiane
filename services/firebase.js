@@ -1,4 +1,5 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBTR3bccO-PnPFlfxNtel2gfbupup_goLU",
@@ -9,15 +10,11 @@ const firebaseConfig = {
   appId: "1:218618921752:web:c32de26abd5adfbcc4546d"
 };
 
-// 🔥 GARANTE QUE SEMPRE EXISTE UM DEFAULT
-let app;
+// 🔥 cria app
+const app = initializeApp(firebaseConfig);
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  console.log("🔥 Firebase inicializado");
-} else {
-  app = getApp();
-  console.log("♻️ Firebase reutilizado");
-}
+// 🔥 cria banco
+const db = getFirestore(app);
 
-export { app };
+// 🔥 EXPORTA (ISSO QUE TAVA FALTANDO)
+export { db };
