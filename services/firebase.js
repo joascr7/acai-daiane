@@ -1,28 +1,16 @@
-// services/firebase.js
-
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-
-
-// 🔥 ADICIONAR ISSO
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps } from "firebase/app";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBTR3bccO-PnPFlfxNtel2gfbupup_goLU",
   authDomain: "acai-ddff1.firebaseapp.com",
   projectId: "acai-ddff1",
-  storageBucket: "acai-ddff1.firebasestorage.app",
+  storageBucket: "acai-ddff1.appspot.com",
   messagingSenderId: "218618921752",
-  appId: "1:218618921752:web:c32de26abd5adfbcc4546d",
-  measurementId: "G-TWVZ9NPED1"
+  appId: "1:218618921752:web:c32de26abd5adfbcc4546d"
 };
 
-// Inicializa
-export const app = initializeApp(firebaseConfig);
+// 🔥 CRIA O DEFAULT SEMPRE
+const app = getApps().find(app => app.name === "[DEFAULT]")
+  || initializeApp(firebaseConfig);
 
-// 🔥 BANCO
-export const db = getFirestore(app);
-
-// 🔥 AUTH (ESSENCIAL PRO ADMIN)
-export const auth = getAuth(app);
-
+export { app };

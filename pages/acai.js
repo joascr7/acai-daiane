@@ -1,3 +1,5 @@
+
+
 // 🔥 REACT
 import { useState, useEffect, useRef } from "react";
 
@@ -81,6 +83,7 @@ import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
 
+  
 
 
 
@@ -653,7 +656,7 @@ useEffect(() => {
       const messagingModule = require("firebase/messaging");
       const { getMessaging, getToken } = messagingModule;
 
-      const { app } = require("../services/firebaseDual");
+      const { app } = await import("../services/firebase");
 
       console.log("✅ Firebase carregado");
 
