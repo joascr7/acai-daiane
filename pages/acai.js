@@ -3079,7 +3079,7 @@ return (
     </div>
 
     <div style={{
-  height: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 18px)`,
+  height: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 48px)`,
   background: "#fff"
 }} />
 
