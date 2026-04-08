@@ -645,16 +645,23 @@ useEffect(() => {
   async function ativarPush() {
     try {
       const permission = await Notification.requestPermission();
+      console.log("PERMISSAO:", permission);
 
       if (permission !== "granted") {
         console.log("❌ Permissão negada");
         return;
       }
 
+      console.log("🔄 Importando messaging...");
+
       const { getMessaging, getToken } = await import("firebase/messaging");
       const { app } = await import("../services/firebaseDual");
 
+      console.log("✅ Firebase carregado");
+
       const messaging = getMessaging(app);
+
+      console.log("🔄 Gerando token...");
 
       const token = await getToken(messaging, {
         vapidKey: "BLepi8PlvHdVnZ1Y83skyi1_WTc49JgGLKQZo-eyk_Ae8UJHLLewHG_VjQbuzxI4JWHhISwGdIfdGQNWDdNiREI"
@@ -663,7 +670,7 @@ useEffect(() => {
       console.log("🔥 TOKEN:", token);
 
     } catch (e) {
-      console.log("❌ ERRO PUSH:", e);
+      console.log("💥 ERRO COMPLETO:", e);
     }
   }
 
