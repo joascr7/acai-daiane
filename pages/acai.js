@@ -16,6 +16,9 @@ import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 
 
+
+
+
 // 🔥 FIRESTORE
 import {
   collection,
@@ -69,8 +72,7 @@ import {
 } from "lucide-react";
 
 
-import { app } from "../services/firebase-messaging";
-import { getMessaging, getToken } from "firebase/messaging";
+
 
 
 
@@ -80,7 +82,7 @@ import { lightTheme, darkTheme } from "../styles/theme";
 export default function Acai() {
 
 
-  
+
 
 const NAVBAR = 60;
 const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
@@ -635,35 +637,38 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  if (typeof window === "undefined") return;
 
- useEffect(() => {
-    async function ativarPush() {
-      try {
-        const permission = await Notification.requestPermission();
+  console.log("🔥 PUSH INICIOU");
 
-        if (permission === "granted") {
-          const token = await getToken(messaging, {
-            vapidKey: "BLepi8PlvHdVnZ1Y83skyi1_WTc49JgGLKQZo-eyk_Ae8UJHLLewHG_VjQbuzxI4JWHhISwGdIfdGQNWDdNiREI"
-          });
+  async function ativarPush() {
+    try {
+      const permission = await Notification.requestPermission();
 
-          console.log("TOKEN PUSH:", token);
-
-          if (user?.uid) {
-            await setDoc(doc(db, "usuarios", user.uid), {
-              pushToken: token
-            }, { merge: true });
-          }
-        }
-      } catch (e) {
-        console.log("ERRO PUSH:", e);
+      if (permission !== "granted") {
+        console.log("❌ Permissão negada");
+        return;
       }
-    }
 
-    if (user) {
-      ativarPush();
-    }
-  }, [user]);
+      const { getMessaging, getToken } = await import("firebase/messaging");
+      const { app } = await import("../services/firebaseDual");
 
+      const messaging = getMessaging(app);
+
+      const token = await getToken(messaging, {
+        vapidKey: "BLepi8PlvHdVnZ1Y83skyi1_WTc49JgGLKQZo-eyk_Ae8UJHLLewHG_VjQbuzxI4JWHhISwGdIfdGQNWDdNiREI"
+      });
+
+      console.log("🔥 TOKEN:", token);
+
+    } catch (e) {
+      console.log("❌ ERRO PUSH:", e);
+    }
+  }
+
+  ativarPush();
+}, []);
 
 useEffect(() => {
   const unsub = onSnapshot(collection(db, "categorias"), (snap) => {
