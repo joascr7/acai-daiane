@@ -2128,7 +2128,7 @@ if (!usoRegistrado) return;
 
     localStorage.setItem("pedidoAtual", pedidoId);
 
-    let mensagem = `🛒 *Pedido #${codigo}*\n\n`;
+    let mensagem = ` *Pedido #${codigo}*\n\n`;
 
     carrinho.forEach((item, i) => {
       mensagem += `*${i + 1}. ${item.produto?.nome || item.nome || "Produto"}*\n`;
@@ -2156,16 +2156,16 @@ if (!usoRegistrado) return;
         });
       }
 
-      mensagem += `\n💰 R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
+      mensagem += `\n R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
     });
 
     mensagem += `━━━━━━━━━━━━━━━\n`;
-    mensagem += `💵 *Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
-    mensagem += `💳 Pagamento: ${formaPagamento}\n\n`;
-    mensagem += `📍 *Endereço:*\n`;
+    mensagem += ` *Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
+    mensagem += ` Pagamento: ${formaPagamento}\n\n`;
+    mensagem += ` *Endereço:*\n`;
     mensagem += `${clienteEndereco}, Nº ${clienteNumeroCasa}\n\n`;
-    mensagem += `👤 *Cliente:*\n`;
-    mensagem += `${clienteNome}\n📞 ${clienteTelefone}`;
+    mensagem += ` *Cliente:*\n`;
+    mensagem += `${clienteNome}\n ${clienteTelefone}`;
 
     window.location.href =
       `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
