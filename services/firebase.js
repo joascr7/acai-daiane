@@ -18,10 +18,11 @@ const firebaseConfig = {
 };
 
 // Inicializa
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 // 🔥 BANCO
 export const db = getFirestore(app);
 
 // 🔥 AUTH (ESSENCIAL PRO ADMIN)
 export const auth = getAuth(app);
+

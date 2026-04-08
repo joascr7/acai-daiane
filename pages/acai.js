@@ -69,6 +69,10 @@ import {
 } from "lucide-react";
 
 
+import { app } from "../services/firebase-messaging";
+import { getMessaging, getToken } from "firebase/messaging";
+
+
 
 
 import { lightTheme, darkTheme } from "../styles/theme";
@@ -639,7 +643,7 @@ useEffect(() => {
 
         if (permission === "granted") {
           const token = await getToken(messaging, {
-            vapidKey: "BLepi8PIvHdVnZ1Y83skyi1WTc49JgGLKQZo-eyk_Ae8UJHLLEwHG_iVQbuzxl4JWHhSwGdlfdGQNWDDNIREL"
+            vapidKey: "BLepi8PlvHdVnZ1Y83skyi1_WTc49JgGLKQZo-eyk_Ae8UJHLLewHG_VjQbuzxI4JWHhISwGdIfdGQNWDdNiREI"
           });
 
           console.log("TOKEN PUSH:", token);
