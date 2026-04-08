@@ -653,7 +653,7 @@ useEffect(() => {
       if (permission !== "granted") return;
 
       // 🔥 IMPORTA PRIMEIRO O FIREBASE (OBRIGATÓRIO)
-      const { app } = await import("../services/firebase");
+      const { app } = await import("../services/firebase-messaging");
 
       console.log("✅ Firebase carregado");
 
