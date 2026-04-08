@@ -642,26 +642,24 @@ useEffect(() => {
 
   console.log("🔥 PUSH INICIOU");
 
-  async function ativarPush() {
+  const ativarPush = async () => {
     try {
       const permission = await Notification.requestPermission();
       console.log("PERMISSAO:", permission);
 
-      if (permission !== "granted") {
-        console.log("❌ Permissão negada");
-        return;
-      }
+      if (permission !== "granted") return;
 
-      console.log("🔄 Importando messaging...");
+      // 🔥 IMPORT DIRETO (SEM await import)
+      const messagingModule = require("firebase/messaging");
+      const { getMessaging, getToken } = messagingModule;
 
-      const { getMessaging, getToken } = await import("firebase/messaging");
-      const { app } = await import("../services/firebaseDual");
+      const { app } = require("../services/firebaseDual");
 
       console.log("✅ Firebase carregado");
 
       const messaging = getMessaging(app);
 
-      console.log("🔄 Gerando token...");
+      console.log("🔄 tentando gerar token...");
 
       const token = await getToken(messaging, {
         vapidKey: "BLepi8PlvHdVnZ1Y83skyi1_WTc49JgGLKQZo-eyk_Ae8UJHLLewHG_VjQbuzxI4JWHhISwGdIfdGQNWDdNiREI"
@@ -670,9 +668,9 @@ useEffect(() => {
       console.log("🔥 TOKEN:", token);
 
     } catch (e) {
-      console.log("💥 ERRO COMPLETO:", e);
+      console.log("💥 ERRO REAL:", e);
     }
-  }
+  };
 
   ativarPush();
 }, []);
