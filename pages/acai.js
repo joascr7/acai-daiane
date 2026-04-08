@@ -2241,7 +2241,7 @@ return (
 // CONTAINER ///
 <div style={{
   minHeight: "100dvh",
-  background: themeAtual.background,
+  background: "#fff",
   color: themeAtual.text,
   boxSizing: "border-box",
   paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
@@ -2251,7 +2251,8 @@ return (
     maxWidth: larguraApp,
     margin: "0 auto",
     padding: isMobile ? 0 : "0 20px",
-    boxSizing: "border-box"
+    boxSizing: "border-box",
+    background: "#fff"
   }}>
 
 
