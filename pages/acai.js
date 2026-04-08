@@ -3938,108 +3938,110 @@ return (
     </div>
 
     {/* RESUMO FIXO */}
-    <div
-      style={{
-        position: "fixed",
-        left: "50%",
-        transform: "translateX(-50%)",
-        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + ${isMobile ? 18 : 10}px)`,
-        width: "100%",
-        maxWidth: larguraApp,
-        padding: "0 16px",
-        boxSizing: "border-box",
-        zIndex: 20,
-        pointerEvents: "none"
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 20,
-          padding: 16,
-          paddingBottom: `calc(16px + env(safe-area-inset-bottom))`,
-          boxShadow: "0 -4px 18px rgba(0,0,0,0.08)",
-          border: "1px solid #efefef",
-          pointerEvents: "auto"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 13,
-            color: "#555"
-          }}
-        >
-          <span>Subtotal</span>
-          <span>{formatarReal(total)}</span>
-        </div>
+{/* RESUMO FIXO */}
+<div
+  style={{
+    position: "fixed",
+    bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + ${isMobile ? 18 : 10}px)`,
 
-        {descontoCalculado > 0 && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              color: "#00a650",
-              fontSize: 13,
-              marginTop: 6
-            }}
-          >
-            <span>Desconto</span>
-            <span>-{formatarReal(descontoCalculado)}</span>
-          </div>
-        )}
+    left: "50%", // 🔥 centraliza
+    transform: "translateX(-50%)",
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 8,
-            alignItems: "center"
-          }}
-        >
-          <strong style={{ fontSize: 15, color: "#111" }}>Total</strong>
-          <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
-            {formatarReal(totalFinal)}
-          </strong>
-        </div>
+    width: "100%",
+    maxWidth: larguraApp,
 
-        <button
-          onClick={() => {
-            if (!user) {
-              localStorage.setItem("redirectAfterLogin", "carrinho");
-              router.push("/login");
-              return;
-            }
+    padding: "0 16px", // 🔥 espaço lateral correto
+    boxSizing: "border-box",
 
-            if (!clienteNome || !clienteEndereco || !clienteTelefone) {
-              alert("Preencha seus dados");
-              setAba("perfil");
-              setStep(4);
-              return;
-            }
+    zIndex: 20
+  }}
+>
+  <div
+    style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 16,
+      paddingBottom: `calc(16px + env(safe-area-inset-bottom))`,
+      boxShadow: "0 -4px 18px rgba(0,0,0,0.08)",
+      border: "1px solid #efefef"
+    }}
+  >
 
-            setAba("pagamentos");
-            setStep(6);
-          }}
-          style={{
-            width: "97%",
-            marginTop: 0,
-            height: 52,
-            borderRadius: 16,
-            background: "#ea1d2c",
-            color: "#fff",
-            border: "none",
-            fontWeight: 700,
-            fontSize: 15,
-            cursor: "pointer",
-            boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
-          }}
-        >
-          Continuar pedido
-        </button>
-      </div>
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: 13,
+      color: "#555"
+    }}>
+      <span>Subtotal</span>
+      <span>{formatarReal(total)}</span>
     </div>
+
+    {descontoCalculado > 0 && (
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        color: "#00a650",
+        fontSize: 13,
+        marginTop: 6
+      }}>
+        <span>Desconto</span>
+        <span>-{formatarReal(descontoCalculado)}</span>
+      </div>
+    )}
+
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      marginTop: 8,
+      alignItems: "center"
+    }}>
+      <strong style={{ fontSize: 15, color: "#111" }}>Total</strong>
+      <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
+        {formatarReal(totalFinal)}
+      </strong>
+    </div>
+
+    <button
+  onClick={() => {
+    if (!user) {
+      localStorage.setItem("redirectAfterLogin", "carrinho");
+      router.push("/login");
+      return;
+    }
+
+    if (!clienteNome || !clienteEndereco || !clienteTelefone) {
+      alert("Preencha seus dados");
+      setAba("perfil");
+      setStep(4);
+      return;
+    }
+
+    setAba("pagamentos");
+    setStep(6);
+  }}
+  style={{
+    display: "block",
+    width: "calc(100% - 0px)", // 🔥 CORREÇÃO
+    boxSizing: "border-box",   // 🔥 IMPORTANTE
+
+    marginTop: 12,
+    height: 52,
+    borderRadius: 16,
+    background: "#ea1d2c",
+    color: "#fff",
+    border: "none",
+    fontWeight: 700,
+    fontSize: 15,
+    cursor: "pointer",
+    boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
+  }}
+>
+  Continuar pedido
+</button>
+
+  </div>
+</div>
 
     {/* ANIMAÇÃO */}
     <style>
