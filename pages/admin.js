@@ -837,13 +837,21 @@ pedidos.forEach(p => {
 
   let dia = "";
 
-  if (p.data.includes("T")) {
-    dia = p.data.split("T")[0];
-  } else if (p.data.includes("/")) {
-    const partes = p.data.split(" ")[0];
-    const [d, m, a] = partes.split("/");
-    dia = `${a}-${m}-${d}`;
-  }
+ const dataObj = new Date(Number(p.data));
+
+const hoje = new Date();
+const ontem = new Date();
+ontem.setDate(ontem.getDate() - 1);
+
+let label;
+
+if (dataObj.toDateString() === hoje.toDateString()) {
+  label = "Hoje";
+} else if (dataObj.toDateString() === ontem.toDateString()) {
+  label = "Ontem";
+} else {
+  label = dataObj.toLocaleDateString("pt-BR");
+}
 
   if (!dia) return;
 

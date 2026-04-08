@@ -291,6 +291,9 @@ useEffect(() => {
   setMounted(true);
 }, []);
 
+
+const [pedidoAberto,  setPedidoAberto] = useState(null);
+
   // 🔥 USER
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -301,7 +304,7 @@ useEffect(() => {
   const larguraNavbar = isMobile ? 420 : 700;
 
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
-  const [pedidoAberto,  setPedidoAberto] = useState(null);
+  
   const [extrasGlobais, setExtrasGlobais] = useState([]);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [menuAberto, setMenuAberto] = useState(false);
@@ -3649,7 +3652,7 @@ return (
       margin: "0 auto",
       minHeight: "100dvh",
       background: "#f7f7f7",
-      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 120px)`,
+      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 190px)`,
       boxSizing: "border-box"
     }}
   >
@@ -3732,7 +3735,7 @@ return (
                 lineHeight: 1.25
               }}
             >
-              {item.produto.nome}
+              {item.produto?.nome || "Produto"}
             </strong>
 
             {item.extras?.length > 0 && (
@@ -3756,7 +3759,7 @@ return (
                 fontSize: 12
               }}
             >
-              {item.produto.categoria === "acai" && (
+              {item.produto?.categoria === "acai" && (
                 <span
                   onClick={() => editarItem(i)}
                   style={{
@@ -3940,12 +3943,13 @@ return (
         position: "fixed",
         left: "50%",
         transform: "translateX(-50%)",
-        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 8px)`,
+        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + ${isMobile ? 18 : 10}px)`,
         width: "100%",
         maxWidth: larguraApp,
         padding: "0 16px",
         boxSizing: "border-box",
-        zIndex: 20
+        zIndex: 20,
+        pointerEvents: "none"
       }}
     >
       <div
@@ -3953,8 +3957,10 @@ return (
           background: "#fff",
           borderRadius: 20,
           padding: 16,
+          paddingBottom: `calc(16px + env(safe-area-inset-bottom))`,
           boxShadow: "0 -4px 18px rgba(0,0,0,0.08)",
-          border: "1px solid #efefef"
+          border: "1px solid #efefef",
+          pointerEvents: "auto"
         }}
       >
         <div
@@ -4017,7 +4023,7 @@ return (
             setStep(6);
           }}
           style={{
-            width: "97%",
+            width: "100%",
             marginTop: 12,
             height: 52,
             borderRadius: 16,
