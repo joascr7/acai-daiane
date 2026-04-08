@@ -43,7 +43,7 @@ const placeholderStyle = {
 };
 
 const btnPrimary = {
-  width: "100%",
+  width: "99%",
   padding: 14,
   borderRadius: 14,
   border: "none",
@@ -176,17 +176,15 @@ const backBtn = {
 
   return (
   <div style={{
-    position: "fixed",
-    inset: 0,
-    width: "100%",
-    height: "100%",
+    position: "relative",
+    minHeight: "100dvh",
     overflow: "hidden",
-    background: "#000"
+    background: "#fff"
   }}>
 
-    {/* 🔥 IMAGEM */}
+    {/* IMAGEM DE FUNDO */}
     <img
-      src="/t1.jpg"
+      src="/logo.jpg"
       style={{
         position: "absolute",
         inset: 0,
@@ -196,128 +194,319 @@ const backBtn = {
       }}
     />
 
-    {/* 🔥 OVERLAY */}
+    {/* OVERLAY CLARO */}
     <div style={{
       position: "absolute",
       inset: 0,
-      background: "linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2))"
+      background: "linear-gradient(to bottom, rgba(255,255,255,0.82), rgba(255,255,255,0.96))"
     }} />
 
-    {/* 🔥 HEADER */}
+    {/* CONTEÚDO */}
     <div style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
+      position: "relative",
+      zIndex: 2,
+      minHeight: "100dvh",
       display: "flex",
-      justifyContent: "space-between",
-      paddingTop: "calc(env(safe-area-inset-top) + 12px)",
-      paddingLeft: 16,
-      paddingRight: 16,
-      zIndex: 5
+      flexDirection: "column",
+      boxSizing: "border-box"
     }}>
 
-      {/* VOLTAR */}
-      <div
-        onClick={() => setModo("inicio")}
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: "50%",
-          background: "rgba(255,255,255,0.15)",
-          backdropFilter: "blur(12px)",
+      {/* TOPO */}
+      <div style={{
+        paddingTop: "calc(env(safe-area-inset-top) + 14px)",
+        paddingLeft: 20,
+        paddingRight: 20,
+        paddingBottom: 20
+      }}>
+        <div style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontSize: 20,
-          cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
-        }}
-      >
-        ←
+          justifyContent: "space-between"
+        }}>
+          <button
+            onClick={() => {
+              if (modo === "inicio") {
+                router.push("/acai");
+                return;
+              }
+              setModo("inicio");
+            }}
+            style={backBtn}
+          >
+            ←
+          </button>
+
+          <div style={{ width: 42 }} />
+        </div>
+
+        {/* LOGO / TÍTULO */}
+        <div style={{
+          marginTop: 18,
+          textAlign: "center"
+        }}>
+          <img
+            src="/logo.jpg"
+            style={{
+              width: 78,
+              height: 78,
+              objectFit: "contain",
+              borderRadius: 20,
+              background: "#fff",
+              padding: 8,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.08)"
+            }}
+          />
+
+          <h1 style={{
+            marginTop: 16,
+            marginBottom: 6,
+            fontSize: 24,
+            fontWeight: 800,
+            color: "#111",
+            letterSpacing: "-0.3px"
+          }}>
+            Entrar ou criar conta
+          </h1>
+
+          <p style={{
+            margin: 0,
+            fontSize: 14,
+            color: "#666",
+            lineHeight: 1.4
+          }}>
+            Use seu e-mail para continuar no app
+          </p>
+        </div>
       </div>
 
-      <div style={{ width: 44 }} />
-
-    </div>
-
-    {/* 🔥 CARD (BOTTOM SHEET IFOOD) */}
-    <div style={{
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: "#fff",
-      borderTopLeftRadius: 28,
-      borderTopRightRadius: 28,
-      padding: 20,
-      paddingBottom: "calc(20px + env(safe-area-inset-bottom))",
-      maxHeight: "78%",
-      overflowY: "auto",
-      boxShadow: "0 -10px 40px rgba(0,0,0,0.25)",
-      animation: "slideUp 0.3s ease"
-    }}>
-
-      {/* 🔥 DRAG HANDLE */}
+      {/* CARD */}
       <div style={{
-        width: 40,
-        height: 5,
-        borderRadius: 10,
-        background: "#ddd",
-        margin: "0 auto 15px"
-      }} />
+        flex: 1,
+        padding: "0 20px calc(24px + env(safe-area-inset-bottom))",
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
+      }}>
+        <div style={{
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(10px)",
+          borderRadius: 28,
+          padding: 20,
+          boxShadow: "0 16px 40px rgba(0,0,0,0.12)",
+          border: "1px solid rgba(255,255,255,0.7)"
+        }}>
 
-      {/* 🔥 INICIO */}
-      {modo === "inicio" && (
-        <>
-          <button style={btnPrimary} onClick={() => setModo("login")}>
-            Já tenho uma conta
-          </button>
+          {/* INÍCIO */}
+          {modo === "inicio" && (
+            <div style={{ marginTop: 6 }}>
+              <button
+                style={{
+                  ...btnPrimary,
+                  marginTop: 0
+                }}
+                onClick={() => setModo("login")}
+              >
+                Já tenho uma conta
+              </button>
 
-          <button style={btnSecondary} onClick={() => setModo("cadastro")}>
-            Criar nova conta
-          </button>
-        </>
-      )}
+              <button
+                style={btnSecondary}
+                onClick={() => setModo("cadastro")}
+              >
+                Criar nova conta
+              </button>
+            </div>
+          )}
 
-      {/* 🔥 LOGIN */}
-      {modo === "login" && (
-        <>
-          <Top voltar={() => setModo("inicio")} titulo="Entrar" />
+          {/* LOGIN */}
+          {modo === "login" && (
+            <div style={{ marginTop: 2 }}>
+              <div style={{ marginBottom: 14 }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: "#111",
+                  letterSpacing: "-0.3px"
+                }}>
+                  Entrar
+                </h3>
 
-          <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputPremium} />
-          
-        
-          <input type="password" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} style={inputPremium} />
+                <p style={{
+                  marginTop: 6,
+                  marginBottom: 0,
+                  fontSize: 13,
+                  color: "#666"
+                }}>
+                  Digite seus dados para continuar
+                </p>
+              </div>
 
-          <button onClick={entrar} style={btnPrimary}>
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-        </>
-      )}
+              <input
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={inputPremium}
+              />
 
-      {/* 🔥 CADASTRO */}
-      {modo === "cadastro" && (
-        <>
-          <Top voltar={() => setModo("inicio")} titulo="Criar conta" />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                style={inputPremium}
+              />
 
-          <input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} style={inputPremium} />
-          <input placeholder="CPF" value={cpf} onChange={e => setCpf(formatarCPF(e.target.value))} style={inputPremium} />
-          <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputPremium} />
-          <input type="password" placeholder="Senha" value={senha} onChange={e => setSenha(e.target.value)} style={inputPremium} />
-          <input type="password" placeholder="Confirmar senha" value={confirmarSenha} onChange={e => setConfirmarSenha(e.target.value)} style={inputPremium} />
+              <button
+                onClick={entrar}
+                style={btnPrimary}
+              >
+                {loading ? "Entrando..." : "Entrar"}
+              </button>
 
-          <button onClick={entrar} style={btnPrimary}>
-            {loading ? "Criando..." : "Criar conta"}
-          </button>
-        </>
-      )}
+              <div style={{
+                marginTop: 16,
+                textAlign: "center",
+                fontSize: 13
+              }}>
+                <span style={{ color: "#777" }}>
+                  Não tem conta?{" "}
+                </span>
+                <span
+                  onClick={() => setModo("cadastro")}
+                  style={{
+                    color: "#ea1d2c",
+                    fontWeight: "bold",
+                    cursor: "pointer"
+                  }}
+                >
+                  Criar agora
+                </span>
+              </div>
+            </div>
+          )}
 
+          {/* CADASTRO */}
+          {modo === "cadastro" && (
+            <div style={{ marginTop: 2 }}>
+              <div style={{ marginBottom: 14 }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: "#111",
+                  letterSpacing: "-0.3px"
+                }}>
+                  Criar conta
+                </h3>
+
+                <p style={{
+                  marginTop: 6,
+                  marginBottom: 0,
+                  fontSize: 13,
+                  color: "#666"
+                }}>
+                  Preencha os dados para criar sua conta
+                </p>
+              </div>
+
+              <input
+                placeholder="Nome"
+                value={nome}
+                onChange={e => setNome(e.target.value)}
+                style={inputPremium}
+              />
+
+              <input
+                placeholder="CPF"
+                value={cpf}
+                onChange={e => setCpf(formatarCPF(e.target.value))}
+                style={inputPremium}
+              />
+
+              <input
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                style={inputPremium}
+              />
+
+              <input
+                type="password"
+                placeholder="Senha"
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                style={inputPremium}
+              />
+
+              <input
+                type="password"
+                placeholder="Confirmar senha"
+                value={confirmarSenha}
+                onChange={e => setConfirmarSenha(e.target.value)}
+                style={inputPremium}
+              />
+
+              <button
+                onClick={entrar}
+                style={btnPrimary}
+              >
+                {loading ? "Criando..." : "Criar conta"}
+              </button>
+
+              <div style={{
+                marginTop: 16,
+                textAlign: "center",
+                fontSize: 13
+              }}>
+                <span style={{ color: "#777" }}>
+                  Já tem conta?{" "}
+                </span>
+                <span
+                  onClick={() => setModo("login")}
+                  style={{
+                    color: "#ea1d2c",
+                    fontWeight: "bold",
+                    cursor: "pointer"
+                  }}
+                >
+                  Entrar
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* RODAPÉ */}
+        <div style={{
+          marginTop: 20,
+          textAlign: "center",
+          fontSize: 12,
+          color: "#888",
+          lineHeight: 1.5
+        }}>
+          Ao continuar, você concorda com nossos termos e política de privacidade.
+        </div>
+      </div>
     </div>
+
+    <style>{`
+      input:focus {
+        border: 1px solid #ea1d2c !important;
+        background: #fff !important;
+        box-shadow: 0 0 0 3px rgba(234,29,44,0.08);
+      }
+
+      button:active {
+        transform: scale(0.96);
+      }
+    `}</style>
   </div>
 );
 }
+
+
 
 function Top({ voltar, titulo }) {
   return (
@@ -327,6 +516,50 @@ function Top({ voltar, titulo }) {
     </div>
   );
 }
+
+
+
+const btnPrimary = {
+  width: "100%",
+  height: 54,
+  borderRadius: 18,
+  border: "none",
+  background: "#ea1d2c",
+  color: "#fff",
+  fontWeight: 700,
+  fontSize: 15,
+  marginTop: 14,
+  cursor: "pointer",
+  boxShadow: "0 10px 30px rgba(234,29,44,0.28)",
+  transition: "0.2s"
+};
+
+const btnSecondary = {
+  width: "100%",
+  height: 54,
+  borderRadius: 18,
+  border: "1px solid #e5e5e5",
+  background: "#fff",
+  color: "#111",
+  fontWeight: 600,
+  fontSize: 15,
+  marginTop: 10,
+  cursor: "pointer"
+};
+
+
+const inputPremium = {
+  width: "100%",
+  padding: "16px 18px",
+  borderRadius: 18,
+  border: "1px solid #eee",
+  background: "#f7f7f7",
+  fontSize: 15,
+  outline: "none",
+  marginTop: 10,
+  boxSizing: "border-box",
+  transition: "0.2s"
+};
 
 
 const input = {
@@ -340,29 +573,6 @@ const input = {
   color: "#000"
 };
 
-const btnPrimary = {
-  width: "100%",
-  padding: 16,
-  borderRadius: 14,
-  border: "none",
-  background: "#ea1d2c",
-  color: "#fff",
-  fontWeight: "bold",
-  fontSize: 16,
-  marginBottom: 12
-};
-
-const btnSecondary = {
-  width: "100%",
-  padding: 16,
-  borderRadius: 14,
-  border: "2px solid #ea1d2c",
-  background: "#fff",
-  color: "#ea1d2c",
-  fontWeight: "bold",
-  fontSize: 16,
-  marginBottom: 12
-};
 
 const backBtn = {
   background: "#f2f2f2",
