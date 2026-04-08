@@ -13,6 +13,9 @@ import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 
 
+
+
+
 // 🔥 FIRESTORE
 import {
   collection,
@@ -73,6 +76,7 @@ import { lightTheme, darkTheme } from "../styles/theme";
 export default function Acai() {
 
 
+  
 
 const NAVBAR = 60;
 const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
@@ -625,6 +629,36 @@ useEffect(() => {
     }
   }
 }, []);
+
+
+
+ useEffect(() => {
+    async function ativarPush() {
+      try {
+        const permission = await Notification.requestPermission();
+
+        if (permission === "granted") {
+          const token = await getToken(messaging, {
+            vapidKey: "BLepi8PIvHdVnZ1Y83skyi1WTc49JgGLKQZo-eyk_Ae8UJHLLEwHG_iVQbuzxl4JWHhSwGdlfdGQNWDDNIREL"
+          });
+
+          console.log("TOKEN PUSH:", token);
+
+          if (user?.uid) {
+            await setDoc(doc(db, "usuarios", user.uid), {
+              pushToken: token
+            }, { merge: true });
+          }
+        }
+      } catch (e) {
+        console.log("ERRO PUSH:", e);
+      }
+    }
+
+    if (user) {
+      ativarPush();
+    }
+  }, [user]);
 
 
 useEffect(() => {
