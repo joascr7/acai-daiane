@@ -298,6 +298,7 @@ useEffect(() => {
   const [promptInstall, setPromptInstall] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const larguraApp = isMobile ? 420 : 1200;
+  const larguraNavbar = isMobile ? 420 : 700;
 
 
   const [pedidoAberto, setPedidoAberto] = useState(null);
