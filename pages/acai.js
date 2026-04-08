@@ -647,31 +647,37 @@ useEffect(() => {
 
   const ativarPush = async () => {
     try {
+      // 🔔 pedir permissão
       const permission = await Notification.requestPermission();
       console.log("PERMISSAO:", permission);
 
       if (permission !== "granted") return;
 
-      // 🔥 IMPORTA PRIMEIRO O FIREBASE (OBRIGATÓRIO)
+      // 🔥 IMPORTA O FIREBASE PRIMEIRO
       const { app } = await import("../services/firebase-messaging");
 
       console.log("✅ Firebase carregado");
 
-      // 🔥 SÓ DEPOIS IMPORTA O MESSAGING
+      // 🔥 IMPORTA MESSAGING (OBRIGATORIO SER AQUI)
       const { getMessaging, getToken } = await import("firebase/messaging");
 
       const messaging = getMessaging(app);
 
       console.log("🔄 tentando gerar token...");
 
+      // 🔑 GERAR TOKEN
       const token = await getToken(messaging, {
         vapidKey: "BLepi8PlvHdVnZ1Y83skyi1_WTc49JgGLKQZo-eyk_Ae8UJHLLewHG_VjQbuzxI4JWHhISwGdIfdGQNWDdNiREI"
       });
 
-      console.log("🔥 TOKEN:", token);
+      if (token) {
+        console.log("🔥 TOKEN:", token);
+      } else {
+        console.log("⚠️ Nenhum token gerado");
+      }
 
-    } catch (e) {
-      console.log("💥 ERRO FINAL:", e);
+    } catch (error) {
+      console.log("💥 ERRO FINAL:", error);
     }
   };
 
