@@ -297,6 +297,9 @@ useEffect(() => {
   const [logo, setLogo] = useState(null);
   const [promptInstall, setPromptInstall] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const larguraApp = isMobile ? 420 : 1200;
+
+
   const [pedidoAberto, setPedidoAberto] = useState(null);
   const [extrasGlobais, setExtrasGlobais] = useState([]);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
@@ -2234,7 +2237,7 @@ const enviarWhatsApp = (pedido) => {
 
 return (
 
-
+// CONTAINER ///
 <div style={{
   minHeight: "100dvh",
   background: themeAtual.background,
@@ -2244,8 +2247,9 @@ return (
 
   <div style={{
     width: "100%",
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
+    padding: isMobile ? 0 : "0 20px",
     boxSizing: "border-box"
   }}>
 
@@ -2549,7 +2553,7 @@ return (
     <div
       className="fade-slide"
       style={{
-        maxWidth: 420,
+        maxWidth: larguraApp,
         margin: "0 auto",
         padding: "calc(env(safe-area-inset-top) + 10px) 16px 14px",
         background: "#fff",
@@ -2674,7 +2678,8 @@ return (
       {/* CATEGORIAS */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
+        gridTemplateColumns: isMobile ? "repeat(4, 1fr)" : "repeat(4, 140px)",
+        justifyContent: isMobile ? "initial" : "center",
         gap: 10,
         marginTop: 16
       }}>
@@ -2754,12 +2759,12 @@ return (
         boxShadow: "0 10px 24px rgba(0,0,0,0.08)"
       }}>
         <img
-          src="/t1.jpg"
-          style={{
-            width: "100%",
-            height: 155,
-            objectFit: "cover"
-          }}
+        src="/t1.jpg"
+        style={{
+        width: "100%",
+        height: isMobile ? 155 : 220,
+        objectFit: "cover"
+        }}
         />
 
         <div style={{
@@ -2808,7 +2813,7 @@ return (
 
     {/* CONTEÚDO */}
     <div style={{
-      maxWidth: 420,
+      maxWidth: larguraApp,
       margin: "0 auto",
       padding: "16px 10px 0"
     }}>
@@ -2841,7 +2846,7 @@ return (
       {/* PRODUTOS */}
       <div style={{
         display: "flex",
-        gap: 8,
+        gap: isMobile ? 8 : 14,
         overflowX: "auto",
         paddingBottom: 10,
         paddingLeft: 6,
@@ -2859,8 +2864,8 @@ return (
               <div
                 key={i}
                 style={{
-                  minWidth: 108,
-                  maxWidth: 108,
+                  minWidth: isMobile ? 108 : 170,
+                  maxWidth: isMobile ? 108 : 170,
                   flex: "0 0 auto",
                   background: "#fff",
                   borderRadius: 16,
@@ -2984,7 +2989,7 @@ return (
       <div style={{
         marginTop: 18,
         background: "#fff",
-        padding: "16px 10px",
+        padding: isMobile ? "16px 10px" : "18px 24px",
         borderRadius: 22,
         display: "flex",
         justifyContent: "space-between",
@@ -3093,7 +3098,7 @@ return (
 
 {aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
   <div style={{
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
     height: "100dvh",
     display: "flex",
@@ -3377,7 +3382,7 @@ return (
       left: "50%",
       transform: "translateX(-50%)",
       width: "100%",
-      maxWidth: 420,
+      maxWidth: larguraApp,
       padding: "0 16px",
       zIndex: 20,
       boxSizing: "border-box"
@@ -3414,7 +3419,7 @@ return (
 
 {aba === "carrinho" && step === 3 && (
   <div className="fade-slide" style={{
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
     paddingBottom: 160,
     background: "#f7f7f7"
@@ -3769,7 +3774,7 @@ return (
   </div>
 )}
 {aba === "perfil" && step === 4 && (
-  <div style={{ maxWidth: 420, margin: "0 auto", background: "#f7f7f7" }}>
+  <div style={{ maxWidth: larguraApp, margin: "0 auto", background: "#f7f7f7" }}>
 
     {/* HEADER */}
     <div style={{ padding: 38, background: "#fff" }}>
@@ -4016,7 +4021,7 @@ return (
 
 {aba === "pedidos" && step === 5 && (
   <div className={`fade-slide ${animacao}`} style={{
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
     paddingBottom: 140,
     background: "#f7f7f7"
@@ -4344,7 +4349,7 @@ return (
 {aba === "pagamentos" && step === 6 && (
   <>
     <div style={{
-      maxWidth: 420,
+      maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100dvh",
       display: "flex",
@@ -4464,7 +4469,7 @@ return (
         bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
         left: 0,
         right: 0,
-        maxWidth: 420,
+        maxWidth: larguraApp,
         margin: "0 auto",
         padding: "10px 16px",
         zIndex: 10,
@@ -4526,7 +4531,7 @@ return (
 )}
 {aba === "notificacao" && step === 7 && (
   <div style={{
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
     height: `calc(100dvh - ${NAVBAR}px - env(safe-area-inset-bottom))`,
     display: "flex",
@@ -4681,7 +4686,7 @@ return (
   <div
     className={`fade-slide ${animacao}`}
     style={{
-      maxWidth: 420,
+      maxWidth: larguraApp,
       margin: "0 auto",
       paddingBottom: 140,
       background: "#f7f7f7"
@@ -4873,29 +4878,7 @@ return (
       borderTop: "1px solid #eee",
       boxShadow: "0 -4px 12px rgba(0,0,0,0.08)"
     }}>
-      <button
-        onClick={() => {
-          navigator.vibrate?.(10);
-
-          setAnimacao("slide-back");
-
-          setTimeout(() => {
-            setStep(1);
-            setAba("home");
-          }, 50);
-        }}
-        style={{
-          width: "93%",
-          padding: 14,
-          borderRadius: 16,
-          border: "none",
-          background: "#ea1d2c",
-          color: "#fff",
-          fontWeight: "bold"
-        }}
-      >
-        Voltar
-      </button>
+      
     </div>
 
     {/* 🔥 ANIMAÇÃO */}
@@ -4923,7 +4906,7 @@ return (
 
 {aba === "home" && step === 9 && (
   <div style={{
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
     height: "100dvh",
     display: "flex",
@@ -5223,7 +5206,7 @@ return (
 
 {aba === "busca" && step === 10 && (
   <div style={{
-    maxWidth: 420,
+    maxWidth: larguraApp,
     margin: "0 auto",
     minHeight: "100dvh",
     background: "#f7f7f7"
@@ -5401,7 +5384,7 @@ return (
   left: "50%",
   transform: "translateX(-50%)",
   width: "100%",
-  maxWidth: 420,
+  maxWidth: larguraApp,
   background: "#fff",
   borderTop: "1px solid #eee",
   padding: "8px 0 calc(env(safe-area-inset-bottom) + 6px)",
