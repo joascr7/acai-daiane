@@ -2240,12 +2240,11 @@ return (
 
 // CONTAINER ///
 <div style={{
-  maxWidth: larguraApp,
-  margin: "0 auto",
   minHeight: "100dvh",
   background: "#fff",
-  paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 12px)`,
-  boxSizing: "border-box"
+  color: themeAtual.text,
+  boxSizing: "border-box",
+  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
 }}>
   <div style={{
     width: "100%",
@@ -2553,14 +2552,19 @@ return (
 {aba === "home" && step === 1 && (
   <>
     {/* HEADER */}
-    <div style={{
-  padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
-  background: "#fff",
+    <div
+      className="fade-slide"
+      style={{
+  maxWidth: larguraApp,
+  margin: "0 auto",
+  padding: "calc(env(safe-area-inset-top) + 10px) 16px 14px",
+  background: "#fff", // 🔥 ESSENCIAL
   position: "sticky",
   top: 0,
-  zIndex: 10,
-  boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
-}}>
+  zIndex: 20,
+  boxShadow: "0 4px 18px rgba(0,0,0,0.05)"
+}}
+    >
       {/* TOPO */}
       <div style={{
         display: "flex",
@@ -2812,10 +2816,14 @@ return (
 
     {/* CONTEÚDO */}
     <div style={{
-      maxWidth: larguraApp,
-      margin: "0 auto",
-      padding: "16px 10px 0"
-    }}>
+  maxWidth: larguraApp,
+  margin: "0 auto",
+  minHeight: "100dvh", // 🔥 ESSENCIAL
+  background: "#fff", // 🔥 ESSENCIAL
+  padding: "16px 10px 0",
+  paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 12px)`, // 🔥 ESSENCIAL
+  boxSizing: "border-box"
+  }}>
       {/* TÍTULO */}
       <div style={{
         marginBottom: 12,
