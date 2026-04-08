@@ -2242,9 +2242,9 @@ return (
   minHeight: "100dvh",
   background: themeAtual.background,
   color: themeAtual.text,
-  boxSizing: "border-box"
+  boxSizing: "border-box",
+  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
 }}>
-
   <div style={{
     width: "100%",
     maxWidth: larguraApp,
@@ -5384,14 +5384,15 @@ return (
   left: "50%",
   transform: "translateX(-50%)",
   width: "100%",
-  maxWidth: larguraApp,
+  maxWidth: larguraNavbar,
   background: "#fff",
   borderTop: "1px solid #eee",
-  padding: "8px 0 calc(env(safe-area-inset-bottom) + 6px)",
+  padding: `8px 0 calc(env(safe-area-inset-bottom) + 6px)`,
   display: "flex",
   justifyContent: "space-around",
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-  zIndex: 999
+  zIndex: 999,
+  boxSizing: "border-box"
 }}>
 
   {/* INICIO */}
