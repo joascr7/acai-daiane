@@ -2240,11 +2240,12 @@ return (
 
 // CONTAINER ///
 <div style={{
+  maxWidth: larguraApp,
+  margin: "0 auto",
   minHeight: "100dvh",
   background: "#fff",
-  color: themeAtual.text,
-  boxSizing: "border-box",
-  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
+  paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 12px)`,
+  boxSizing: "border-box"
 }}>
   <div style={{
     width: "100%",
@@ -2552,25 +2553,21 @@ return (
 {aba === "home" && step === 1 && (
   <>
     {/* HEADER */}
-    <div
-      className="fade-slide"
-      style={{
-        maxWidth: larguraApp,
-        margin: "0 auto",
-        padding: "calc(env(safe-area-inset-top) + 10px) 16px 14px",
-        background: "#fff",
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-        boxShadow: "0 4px 18px rgba(0,0,0,0.05)"
-      }}
-    >
+    <div style={{
+  padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
+  background: "#fff",
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+  boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
+}}>
       {/* TOPO */}
       <div style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         gap: 10
+        
       }}>
         {/* ENDEREÇO MENOR */}
         <div
