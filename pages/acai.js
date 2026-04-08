@@ -652,13 +652,13 @@ useEffect(() => {
 
       if (permission !== "granted") return;
 
-      // 🔥 IMPORT DIRETO (SEM await import)
-      const messagingModule = require("firebase/messaging");
-      const { getMessaging, getToken } = messagingModule;
-
+      // 🔥 IMPORTA PRIMEIRO O FIREBASE (OBRIGATÓRIO)
       const { app } = await import("../services/firebase");
 
       console.log("✅ Firebase carregado");
+
+      // 🔥 SÓ DEPOIS IMPORTA O MESSAGING
+      const { getMessaging, getToken } = await import("firebase/messaging");
 
       const messaging = getMessaging(app);
 
@@ -671,7 +671,7 @@ useEffect(() => {
       console.log("🔥 TOKEN:", token);
 
     } catch (e) {
-      console.log("💥 ERRO REAL:", e);
+      console.log("💥 ERRO FINAL:", e);
     }
   };
 
