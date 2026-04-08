@@ -157,6 +157,8 @@ const inputStyle = {
 
   const router = useRouter();
 
+  const [produtoEditandoId, setProdutoEditandoId] = useState(null);
+
   const [pedidos, setPedidos] = useState([]);
   const [novosPedidos, setNovosPedidos] = useState([]);
   const [primeiraCarga, setPrimeiraCarga] = useState(true);
@@ -668,6 +670,7 @@ async function atualizarStatus(id, status) {
 }
 // 🔥 EABRIR EDITACAO
 function abrirEdicao(p) {
+  setProdutoEditandoId(p.id);
   setNovoNome(p.nome);
   setNovoPreco((p.preco / 100).toFixed(2));
   setNovoTamanho(p.tamanho || "");
@@ -683,25 +686,56 @@ function abrirEdicao(p) {
 
 // 🔥 EDITAR PRODUTOS
 async function salvarProduto() {
-  if (!novoNome || !novoPreco) return alert("Preencha os campos");
+  if (!novoNome || !novoPreco) {
+    return alert("Preencha os campos");
+  }
 
- const dados = {
-  nome: novoNome,
-  preco: converterParaCentavos(novoPreco),
-  tamanho: novoTamanho,
-  descricao: novaDescricao,
-  imagem: novaImagem,
-  ativo: true,
-  maisVendido,
-  categoria,
-  extras: extras,
+  const dados = {
+    nome: novoNome,
+    preco: converterParaCentavos(novoPreco),
+    tamanho: novoTamanho,
+    descricao: novaDescricao,
+    imagem: novaImagem,
+    ativo: true,
+    maisVendido,
+    categoria,
+    extras,
+    ordem: Date.now()
+  };
 
-  ordem: Date.now() // 🔥 ADICIONA ISSO
-};
+  try {
+    if (produtoEditandoId) {
+      // 🔥 EDITAR
+      await updateDoc(
+        doc(db, "produtos", produtoEditandoId),
+        dados
+      );
 
-  await addDoc(collection(db, "produtos"), dados);
+      alert("Produto atualizado!");
+    } else {
+      // 🔥 NOVO
+      await addDoc(collection(db, "produtos"), dados);
 
-  setMostrarModalProduto(false);
+      alert("Produto criado!");
+    }
+
+    // 🔥 LIMPA
+    setProdutoEditandoId(null);
+    setNovoNome("");
+    setNovoPreco("");
+    setNovoTamanho("");
+    setNovaDescricao("");
+    setNovaImagem("");
+    setMaisVendido(false);
+    setCategoria("");
+    setExtras([]);
+
+    setMostrarModalProduto(false);
+
+  } catch (e) {
+    console.log(e);
+    alert("Erro ao salvar");
+  }
 }
 
 

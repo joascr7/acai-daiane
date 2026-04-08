@@ -4023,8 +4023,8 @@ return (
             setStep(6);
           }}
           style={{
-            width: "100%",
-            marginTop: 12,
+            width: "97%",
+            marginTop: 0,
             height: 52,
             borderRadius: 16,
             background: "#ea1d2c",
