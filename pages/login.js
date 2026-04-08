@@ -43,7 +43,7 @@ const placeholderStyle = {
 };
 
 const btnPrimary = {
-  width: "99%",
+  width: "98%",
   padding: 14,
   borderRadius: 14,
   border: "none",
@@ -56,7 +56,7 @@ const btnPrimary = {
 };
 
 const btnSecondary = {
-  width: "100%",
+  width: "98%",
   padding: 14,
   borderRadius: 14,
   border: "1px solid #ddd",

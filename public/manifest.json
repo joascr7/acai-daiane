@@ -1,11 +1,11 @@
 {
   "name": "Açaí da Daiane",
   "short_name": "Açaí",
-  "start_url": "/",
+  "description": "Peça seu açaí favorito",
+  "start_url": "/acai",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ea1d2c",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -16,6 +16,12 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
