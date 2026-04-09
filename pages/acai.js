@@ -69,6 +69,9 @@ import {
   Bike,
   ShieldCheck,
   ArrowLeft,
+  X,
+  QrCode,
+  Wallet,
   Star
   
 } from "lucide-react";
@@ -317,7 +320,8 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
   const larguraNavbar = isMobile ? 420 : 700;
 
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
-  
+  const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
+
   const [extrasGlobais, setExtrasGlobais] = useState([]);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [menuAberto, setMenuAberto] = useState(false);
@@ -2527,27 +2531,29 @@ return (
     style={{
       position: "fixed",
       inset: 0,
-      background: "rgba(0,0,0,0.6)",
+      background: "rgba(0,0,0,0.58)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       zIndex: 9999,
-      padding: 16,
+      padding: "12px",
       boxSizing: "border-box"
     }}
   >
     <div
       style={{
         background: "#fff",
-        borderRadius: 28,
+        borderRadius: 22,
         width: "100%",
-        maxWidth: 430,
-        maxHeight: "88vh",
+        maxWidth: 380,
+        maxHeight: "88dvh",
         overflowY: "auto",
-        boxShadow: "0 18px 60px rgba(0,0,0,0.22)",
+        overflowX: "hidden",
+        boxShadow: "0 18px 60px rgba(0,0,0,0.20)",
+        padding: 14,
+        position: "relative",
         boxSizing: "border-box",
-        padding: 22,
-        position: "relative"
+        WebkitOverflowScrolling: "touch"
       }}
     >
       {/* FECHAR */}
@@ -2560,46 +2566,50 @@ return (
           setPaymentId(null);
           setPedidoPixAberto(null);
           setMensagemPagamento("");
+          setMostrarCodigoPix(false);
         }}
         style={{
           position: "absolute",
-          top: 14,
-          right: 14,
-          width: 42,
-          height: 42,
+          top: 10,
+          right: 10,
+          width: 34,
+          height: 34,
           borderRadius: "50%",
           border: "none",
-          background: "#f3f3f3",
+          background: "#f5f5f5",
           color: "#666",
-          fontSize: 26,
-          lineHeight: 1,
-          cursor: "pointer"
+          fontSize: 22,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
         }}
       >
-        ×
+        <X size={18} />
       </button>
 
       <h2
         style={{
-          margin: "4px 0 18px",
-          fontSize: 24,
+          margin: "2px 0 12px",
+          fontSize: 20,
           color: "#111",
-          textAlign: "center"
+          textAlign: "left",
+          fontWeight: 800
         }}
       >
         Forma de pagamento
       </h2>
 
-      {/* MENSAGEM PREMIUM */}
+      {/* MENSAGEM */}
       {mensagemPagamento && (
         <div
           style={{
-            marginBottom: 14,
-            padding: "12px 14px",
-            borderRadius: 16,
-            fontSize: 14,
+            marginBottom: 12,
+            padding: "11px 12px",
+            borderRadius: 14,
+            fontSize: 13,
             fontWeight: 600,
-            lineHeight: 1.4,
+            lineHeight: 1.35,
             background:
               tipoMensagemPagamento === "erro"
                 ? "#fff1f2"
@@ -2617,7 +2627,8 @@ return (
                 ? "1px solid #fecdd3"
                 : tipoMensagemPagamento === "sucesso"
                 ? "1px solid #bbf7d0"
-                : "1px solid #e2e8f0"
+                : "1px solid #e2e8f0",
+            boxSizing: "border-box"
           }}
         >
           {mensagemPagamento}
@@ -2627,18 +2638,19 @@ return (
       {/* RESUMO */}
       <div
         style={{
-          background: "#f8f8f8",
+          background: "#fafafa",
           border: "1px solid #efefef",
-          borderRadius: 18,
-          padding: 16,
-          marginBottom: 16
+          borderRadius: 16,
+          padding: 12,
+          marginBottom: 12,
+          boxSizing: "border-box"
         }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            gap: 12,
+            alignItems: "center",
             fontSize: 15,
             color: "#444"
           }}
@@ -2655,7 +2667,7 @@ return (
           style={{
             display: "flex",
             justifyContent: "space-between",
-            gap: 12,
+            alignItems: "center",
             fontSize: 15,
             color: "#444",
             marginTop: 8
@@ -2669,24 +2681,17 @@ return (
           </strong>
         </div>
 
-        <div
-          style={{
-            height: 1,
-            background: "#e8e8e8",
-            margin: "14px 0"
-          }}
-        />
+        <div style={{ height: 1, background: "#ececec", margin: "10px 0" }} />
 
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            gap: 12,
             alignItems: "center"
           }}
         >
-          <strong style={{ fontSize: 18, color: "#111" }}>Total</strong>
-          <strong style={{ fontSize: 18, color: "#ea1d2c" }}>
+          <strong style={{ fontSize: 16, color: "#111" }}>Total</strong>
+          <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
             {pedidoPixAberto
               ? formatarReal(pedidoPixAberto.total)
               : formatarReal(totalFinal)}
@@ -2695,158 +2700,179 @@ return (
       </div>
 
       {/* MÉTODOS */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {/* PIX */}
         <button
           onClick={() => {
             if (loadingPix) return;
 
             setFormaPagamento("pix");
 
-            if (pedidoPixAberto) {
-              return;
-            }
+            if (pedidoPixAberto) return;
 
             setQrBase64(null);
             setQrCode(null);
             setPaymentId(null);
+            setMostrarCodigoPix(false);
             gerarPix();
           }}
           style={{
             width: "100%",
-            padding: "18px 18px",
-            borderRadius: 18,
-            border: "none",
+            minHeight: 54,
+            padding: "0 16px",
+            borderRadius: 14,
+            border:
+              formaPagamento === "pix"
+                ? "1px solid #ea1d2c"
+                : "1px solid #ededed",
             cursor: loadingPix ? "not-allowed" : "pointer",
-            background: formaPagamento === "pix" ? "#ea1d2c" : "#f3f3f3",
-            color: formaPagamento === "pix" ? "#fff" : "#222",
-            fontWeight: 800,
-            fontSize: 17,
-            textAlign: "left",
-            opacity: loadingPix ? 0.7 : 1,
+            background: formaPagamento === "pix" ? "#fff5f5" : "#f7f7f7",
+            color: "#222",
+            fontWeight: 700,
+            fontSize: 16,
             display: "flex",
             alignItems: "center",
-            gap: 12
+            justifyContent: "center",
+            gap: 10,
+            boxSizing: "border-box",
+            opacity: loadingPix ? 0.7 : 1
           }}
         >
-          <span style={{ fontSize: 24 }}>⚡</span>
+          <QrCode
+            size={18}
+            color={formaPagamento === "pix" ? "#ea1d2c" : "#666"}
+          />
           <span>{loadingPix ? "Gerando Pix..." : "Pix"}</span>
         </button>
 
+        {/* CARTÃO */}
         <button
           onClick={() => {
             setFormaPagamento("cartao");
             setPedidoPixAberto(null);
             setMensagemPagamento("");
+            setMostrarCodigoPix(false);
           }}
           style={{
             width: "100%",
-            padding: "18px 18px",
-            borderRadius: 18,
-            border: "none",
+            minHeight: 54,
+            padding: "0 16px",
+            borderRadius: 14,
+            border:
+              formaPagamento === "cartao"
+                ? "1px solid #ea1d2c"
+                : "1px solid #ededed",
             cursor: "pointer",
-            background: formaPagamento === "cartao" ? "#ea1d2c" : "#f3f3f3",
-            color: formaPagamento === "cartao" ? "#fff" : "#222",
-            fontWeight: 800,
-            fontSize: 17,
-            textAlign: "left",
+            background: formaPagamento === "cartao" ? "#fff5f5" : "#f7f7f7",
+            color: "#222",
+            fontWeight: 700,
+            fontSize: 16,
             display: "flex",
             alignItems: "center",
-            gap: 12
+            justifyContent: "center",
+            gap: 10,
+            boxSizing: "border-box"
           }}
         >
-          <span style={{ fontSize: 24 }}>💳</span>
+          <CreditCard
+            size={18}
+            color={formaPagamento === "cartao" ? "#ea1d2c" : "#666"}
+          />
           <span>Cartão</span>
         </button>
 
+        {/* DINHEIRO */}
         <button
           onClick={() => {
             setFormaPagamento("dinheiro");
             setPedidoPixAberto(null);
             setMensagemPagamento("");
+            setMostrarCodigoPix(false);
           }}
           style={{
             width: "100%",
-            padding: "18px 18px",
-            borderRadius: 18,
-            border: "none",
+            minHeight: 54,
+            padding: "0 16px",
+            borderRadius: 14,
+            border:
+              formaPagamento === "dinheiro"
+                ? "1px solid #ea1d2c"
+                : "1px solid #ededed",
             cursor: "pointer",
-            background: formaPagamento === "dinheiro" ? "#ea1d2c" : "#f3f3f3",
-            color: formaPagamento === "dinheiro" ? "#fff" : "#222",
-            fontWeight: 800,
-            fontSize: 17,
-            textAlign: "left",
+            background: formaPagamento === "dinheiro" ? "#fff5f5" : "#f7f7f7",
+            color: "#222",
+            fontWeight: 700,
+            fontSize: 16,
             display: "flex",
             alignItems: "center",
-            gap: 12
+            justifyContent: "center",
+            gap: 10,
+            boxSizing: "border-box"
           }}
         >
-          <span style={{ fontSize: 24 }}>💵</span>
+          <Wallet
+            size={18}
+            color={formaPagamento === "dinheiro" ? "#ea1d2c" : "#666"}
+          />
           <span>Dinheiro</span>
         </button>
       </div>
 
       {/* ÁREA PIX */}
       {formaPagamento === "pix" && (
-        <div style={{ marginTop: 20, textAlign: "center" }}>
+        <div
+          style={{
+            marginTop: 14,
+            textAlign: "center",
+            width: "100%",
+            overflow: "hidden",
+            boxSizing: "border-box"
+          }}
+        >
           {!qrBase64 && (
             <div
               style={{
                 marginTop: 8,
-                fontSize: 15,
+                fontSize: 14,
                 color: "#666"
               }}
             >
               {pedidoPixAberto
                 ? "Abrindo pagamento do pedido..."
-                : loadingPix
-                ? "Gerando QR Code..."
                 : "Gerando QR Code..."}
             </div>
           )}
 
           {qrBase64 && (
-            <div style={{ marginTop: 12 }}>
+            <div
+              style={{
+                background: "#fafafa",
+                border: "1px solid #efefef",
+                borderRadius: 16,
+                padding: "14px 12px",
+                marginTop: 12,
+                boxSizing: "border-box"
+              }}
+            >
               <div
                 style={{
                   display: "inline-flex",
                   background: "#fff",
-                  padding: 12,
-                  borderRadius: 20,
-                  border: "1px solid #ececec",
-                  boxShadow: "0 8px 20px rgba(0,0,0,0.05)"
+                  padding: 8,
+                  borderRadius: 14,
+                  border: "1px solid #ececec"
                 }}
               >
                 <img
                   src={`data:image/png;base64,${qrBase64}`}
                   style={{
-                    width: 220,
-                    maxWidth: "100%",
+                    width: 156,
+                    height: 156,
+                    objectFit: "contain",
                     display: "block"
                   }}
                 />
               </div>
-            </div>
-          )}
-
-          {qrCode && (
-            <>
-              <textarea
-                value={qrCode}
-                readOnly
-                style={{
-                  width: "100%",
-                  marginTop: 16,
-                  padding: 14,
-                  borderRadius: 16,
-                  fontSize: 13,
-                  lineHeight: 1.45,
-                  border: "1px solid #ddd",
-                  minHeight: 96,
-                  resize: "none",
-                  boxSizing: "border-box",
-                  outline: "none"
-                }}
-              />
 
               <button
                 onClick={() => {
@@ -2854,45 +2880,83 @@ return (
                   mostrarMensagemPagamento("Código Pix copiado com sucesso.", "sucesso");
                 }}
                 style={{
-                  marginTop: 14,
+                  marginTop: 12,
                   width: "100%",
-                  padding: 16,
-                  borderRadius: 16,
+                  maxWidth: "100%",
+                  height: 46,
+                  borderRadius: 12,
                   border: "none",
                   background: "#ea1d2c",
                   color: "#fff",
                   fontWeight: 800,
-                  fontSize: 17,
+                  fontSize: 15,
                   cursor: "pointer",
-                  boxShadow: "0 10px 24px rgba(234,29,44,0.22)"
+                  boxSizing: "border-box"
                 }}
               >
                 Copiar código Pix
               </button>
-            </>
-          )}
 
-          <p
-            style={{
-              marginTop: 18,
-              marginBottom: 0,
-              fontSize: 15,
-              color: "#666",
-              lineHeight: 1.45
-            }}
-          >
-            Após o pagamento, seu pedido será confirmado automaticamente.
-          </p>
+              <button
+                onClick={() => setMostrarCodigoPix(v => !v)}
+                style={{
+                  marginTop: 10,
+                  background: "transparent",
+                  border: "none",
+                  color: "#666",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                {mostrarCodigoPix ? "Ocultar código" : "Ver código Pix"}
+              </button>
+
+              {mostrarCodigoPix && (
+                <textarea
+                  value={qrCode}
+                  readOnly
+                  style={{
+                    width: "100%",
+                    maxWidth: "100%",
+                    marginTop: 10,
+                    padding: 10,
+                    borderRadius: 12,
+                    fontSize: 11,
+                    lineHeight: 1.35,
+                    border: "1px solid #ddd",
+                    minHeight: 68,
+                    resize: "none",
+                    boxSizing: "border-box",
+                    overflowX: "hidden",
+                    outline: "none"
+                  }}
+                />
+              )}
+
+              <p
+                style={{
+                  marginTop: 12,
+                  marginBottom: 0,
+                  fontSize: 13,
+                  color: "#666",
+                  lineHeight: 1.35
+                }}
+              >
+                Após o pagamento, seu pedido será confirmado automaticamente.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       {/* AÇÕES */}
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 16 }}>
         <button
           style={{
             width: "100%",
-            padding: 16,
-            borderRadius: 18,
+            height: 48,
+            borderRadius: 14,
             border: "none",
             background:
               formaPagamento === "pix"
@@ -2900,13 +2964,10 @@ return (
                 : "#ea1d2c",
             color: "#fff",
             fontWeight: 800,
-            fontSize: 18,
+            fontSize: 15,
             cursor: loadingPedido ? "not-allowed" : "pointer",
             opacity: loadingPedido ? 0.7 : 1,
-            boxShadow:
-              formaPagamento === "pix"
-                ? "0 10px 24px rgba(17,201,95,0.18)"
-                : "0 10px 24px rgba(234,29,44,0.18)"
+            boxSizing: "border-box"
           }}
           disabled={loadingPedido}
           onClick={async () => {
@@ -2954,17 +3015,18 @@ return (
             setPaymentId(null);
             setPedidoPixAberto(null);
             setMensagemPagamento("");
+            setMostrarCodigoPix(false);
           }}
           style={{
-            marginTop: 14,
+            marginTop: 10,
             background: "transparent",
             border: "none",
             color: "#777",
             cursor: "pointer",
             width: "100%",
-            fontSize: 18,
+            fontSize: 15,
             fontWeight: 500,
-            padding: 10
+            padding: 6
           }}
         >
           Cancelar
@@ -5522,7 +5584,7 @@ return (
          finalizarPedido();
          }}
           style={{
-            width: "95%",
+            width: "97%",
             height: 42,
             borderRadius: 14,
             background: "#ea1d2c",
@@ -5542,7 +5604,7 @@ return (
             setStep(3);
           }}
           style={{
-            width: "95%",
+            width: "97%",
             height: 36,
             borderRadius: 14,
             background: "#555555",
