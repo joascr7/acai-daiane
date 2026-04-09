@@ -5584,7 +5584,7 @@ return (
          finalizarPedido();
          }}
           style={{
-            width: "95%",
+            width: "94%",
             height: 42,
             borderRadius: 14,
             background: "#ea1d2c",
@@ -5604,7 +5604,7 @@ return (
             setStep(3);
           }}
           style={{
-            width: "95%",
+            width: "94%",
             height: 36,
             borderRadius: 14,
             background: "#555555",
