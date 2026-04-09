@@ -169,6 +169,7 @@ const inputStyle = {
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
 
+  const [usuarios, setUsuarios] = useState([]);
   
   const [editandoCategoriaId, setEditandoCategoriaId] = useState(null);
   const [editandoCategoria, setEditandoCategoria] = useState({});
@@ -355,38 +356,52 @@ async function salvarExtras() {
 
 
 
-async function enviarNotificacao(tipo) {
+async function enviarNotificacao() {
 
-  if (!textoNotificacao) {
-    alert("Digite a notificação");
+  console.log("UID ENVIADO:", clienteSelecionado);
+
+  if (!textoNotificacao || !textoNotificacao.trim()) {
+    alert("Digite a mensagem");
     return;
   }
 
-  await addDoc(collection(db, "notificacoes"), {
+  try {
 
-  texto: textoNotificacao,
-  para: tipo,
-  uid: tipo === "usuario" ? clienteSelecionado : null,
-  ativo: true,
+    // TODOS
+    if (!clienteSelecionado) {
 
-  // 🔥 DATA
-  data: new Date().toISOString(),
+      await addDoc(collection(db, "notificacoes"), {
+        texto: textoNotificacao,
+        para: "todos",
+        uid: null,
+        data: Date.now(),
+        ativo: true,
+        lida: false
+      });
 
-  lida: false,
+      alert("Enviado para todos");
+      return;
+    }
 
-  // 🔥 IMAGEM (ADICIONA ISSO)
-  imagem: imagemNotificacao || null,
+    // CLIENTE
+    await addDoc(collection(db, "notificacoes"), {
+      texto: textoNotificacao,
+      para: "usuario",
+      uid: String(clienteSelecionado), // 🔥 AQUI É O UID REAL
+      data: Date.now(),
+      ativo: true,
+      lida: false
+    });
 
-  produtoId: produtoSelecionado || null
+    alert("Enviado para cliente");
 
-});
-
-setTextoNotificacao("");
-setClienteSelecionado("");
-setImagemNotificacao(""); // 🔥 limpa imagem também
-
-alert("Notificação enviada 🚀");
+  } catch (e) {
+    console.log("ERRO AO ENVIAR:", e);
+    alert("Erro ao enviar notificação");
+  }
 }
+
+
 
 
 // valor em centavos
@@ -622,11 +637,11 @@ useEffect(() => {
   const unsub = onSnapshot(collection(db, "usuarios"), (snapshot) => {
 
     const lista = snapshot.docs.map(doc => ({
-      id: doc.id, // 🔥 UID
+      id: doc.id,
       ...doc.data()
     }));
 
-    setClientes(lista);
+    setUsuarios(lista);
 
   });
 
@@ -636,21 +651,49 @@ useEffect(() => {
 
 useEffect(() => {
 
-  const unsub = onSnapshot(collection(db, "notificacoes"), (snapshot) => {
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
 
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    if (!user) return;
 
-    setNotificacoes(lista);
+    console.log("USER UID REAL:", user.uid);
+
+    const q = collection(db, "notificacoes");
+
+    const unsubscribeSnap = onSnapshot(q, (snapshot) => {
+
+      const lista = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      console.log("TODAS NOTIFICACOES:", lista);
+
+const filtradas = lista.filter(n => {
+  console.log("USER UID:", user?.uid);
+  console.log("NOTIF UID:", n.uid);
+
+  if (!n.ativo) return false;
+
+  if (n.para === "todos") return true;
+
+  if (n.para === "usuario" && String(n.uid) === String(user?.uid)) return true;
+
+  return false;
+});
+
+      console.log("FILTRADAS:", filtradas);
+
+      setNotificacoes(filtradas);
+
+    });
+
+    return () => unsubscribeSnap();
 
   });
 
-  return () => unsub();
+  return () => unsubscribeAuth();
 
 }, []);
-
 
 
 // 🔓 LOGOUT
@@ -1614,19 +1657,19 @@ if (loadingAuth) {
       boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
       border: "1px solid #ececec"
     }}>
-      <select
-        value={clienteSelecionado}
-        onChange={(e) => setClienteSelecionado(e.target.value)}
-        style={input}
-      >
-        <option value="">Selecionar cliente</option>
+   <select
+  value={clienteSelecionado}
+  onChange={(e) => setClienteSelecionado(e.target.value)}
+  style={input}
+>
+  <option value="">Selecionar cliente</option>
 
-        {clientes.map(c => (
-          <option key={c.id} value={c.id}>
-            {c.clienteNome || "Sem nome"} - {c.clienteTelefone || ""}
-          </option>
-        ))}
-      </select>
+  {usuarios.map(u => (
+    <option key={u.id} value={u.id}>
+      {u.clienteNome || u.clienteEmail || "Sem nome"}
+    </option>
+  ))}
+</select>
 
       <h3 style={{
         marginTop: 16,
@@ -1827,7 +1870,7 @@ if (loadingAuth) {
         </button>
 
         <button
-          onClick={() => enviarNotificacao("usuario")}
+          onClick={enviarNotificacao}
           style={btnSuccess}
         >
           Enviar para cliente

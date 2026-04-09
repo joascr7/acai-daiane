@@ -304,7 +304,7 @@ useEffect(() => {
   setMounted(true);
 }, []);
 
-
+const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
   // 🔥 USER
@@ -356,6 +356,9 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
 
   // 🔥 THEME
   const [dark, setDark] = useState(false);
+
+
+  
 
 
 
@@ -433,6 +436,9 @@ const [qrCode, setQrCode] = useState(null);
 const [paymentId, setPaymentId] = useState(null);
 const [pedidoAtual, setPedidoAtual] = useState(null);
 
+const [mensagemPagamento, setMensagemPagamento] = useState("");
+const [tipoMensagemPagamento, setTipoMensagemPagamento] = useState("info");
+
 
 const [historicoBusca, setHistoricoBusca] = useState([]);
 const [filtroBusca, setFiltroBusca] = useState("todos");
@@ -449,6 +455,15 @@ const [filtroBusca, setFiltroBusca] = useState("todos");
   p => p.categoria === categoriaSelecionada && p.ativo !== false
 );
 
+
+const mostrarMensagemPagamento = (texto, tipo = "info") => {
+  setMensagemPagamento(texto);
+  setTipoMensagemPagamento(tipo);
+
+  setTimeout(() => {
+    setMensagemPagamento("");
+  }, 2500);
+};
 
 function adicionarPorCategoria(categoria) {
   const produto = produtos.find(
@@ -741,43 +756,45 @@ useEffect(() => {
 }, []);
 
 
-  // 🔥 NOTIFICACAO
- useEffect(() => {
 
-  const unsub = onSnapshot(collection(db, "notificacoes"), (snapshot) => {
+useEffect(() => {
+  const q = query(collection(db, "notificacoes"));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+
+    if (!user) return; // 🔥 valida aqui dentro
 
     const lista = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
-    setNotificacoes(lista);
+ const filtradas = lista.filter(n => {
+  if (!n.ativo) return false;
 
-    const naoLidas = lista.filter(n => n.ativo && !n.lida);
+  // 🔥 TODOS
+  if (n.para === "todos") return true;
 
-    // 🔔 ATIVA SINO
-    setTemNotificacao(naoLidas.length > 0);
+  // 🔥 GARANTE QUE EXISTE UID
+  if (n.para === "usuario" && n.uid && String(n.uid) === String(user.uid)) {
+    return true;
+  }
 
-    // 🔥 NOVA NOTIFICAÇÃO → SOM + VIBRAÇÃO
-    if (naoLidas.length > 0) {
+  return false;
+});
 
-      // 🔊 SOM
-      try {
-        const audio = new Audio("/notify.mp3");
-        audio.play();
-      } catch (e) {}
+    console.log("FILTRADAS:", filtradas);
 
-      // 📳 VIBRAÇÃO (CELULAR)
-      if (navigator.vibrate) {
-        navigator.vibrate(200);
-      }
-
-    }
-
+    setNotificacoes(filtradas);
   });
+
+  return () => unsubscribe();
+}, [user]);
+
 
   
 
+// 🔥 HISTÓRICO DE BUSCA
 function salvarBuscaHistorico(valor) {
   const termo = (valor || "").trim();
   if (!termo) return;
@@ -795,15 +812,16 @@ function salvarBuscaHistorico(valor) {
 }
 
 
-// funct voltar para aba ex:  onClick={() => voltarPara("home", 1)}
-
+// 🔥 VOLTAR DE TELA
 function voltarPara(abaDestino, stepDestino) {
   setAba(abaDestino);
   setStep(stepDestino);
 }
 
 
+// 🔥 TIMELINE PEDIDO
 function renderTimeline(status) {
+
   const etapas = [
     { key: "recebido", label: "Recebido" },
     { key: "preparando", label: "Em preparo" },
@@ -818,21 +836,13 @@ function renderTimeline(status) {
   );
 
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      marginTop: 10
-    }}>
+    <div style={{ display: "flex", alignItems: "center", marginTop: 10 }}>
       {etapas.map((e, i) => {
         const ativo = i <= atualIndex;
 
         return (
-          <div key={e.key} style={{
-            display: "flex",
-            alignItems: "center",
-            flex: 1
-          }}>
-            {/* BOLINHA */}
+          <div key={e.key} style={{ display: "flex", alignItems: "center", flex: 1 }}>
+            
             <div style={{
               width: 10,
               height: 10,
@@ -841,7 +851,6 @@ function renderTimeline(status) {
               zIndex: 2
             }} />
 
-            {/* LINHA */}
             {i < etapas.length - 1 && (
               <div style={{
                 height: 2,
@@ -857,54 +866,15 @@ function renderTimeline(status) {
 }
 
 
-  // agrupar notificacoes
 
-function agruparNotificacoes(lista) {
-  const hoje = new Date().toDateString();
-
-  const grupos = {
-    hoje: [],
-    antigas: []
-  };
-
-  lista.forEach(n => {
-    const data = new Date(n.data).toDateString();
-
-    if (data === hoje) {
-      grupos.hoje.push(n);
-    } else {
-      grupos.antigas.push(n);
-    }
-  });
-
-  return grupos;
-}
-
-const notificacoesOrdenadas = [...notificacoes].sort(
-  (a, b) => new Date(b.data) - new Date(a.data)
-);
-
-const grupos = agruparNotificacoes(notificacoesOrdenadas);
-
-  return () => unsub();
-
-}, []);
-
-  // 🔥 EXTRAS
-  const [extrasSelecionados, setExtrasSelecionados] = useState({});
-
- useEffect(() => {
+// 🔥 EXTRAS GLOBAIS
+useEffect(() => {
 
   const unsub = onSnapshot(doc(db, "config", "loja"), (snap) => {
 
     if (snap.exists()) {
-
       const data = snap.data();
-
-      console.log("🔥 extras globais:", data.extras);
-
       setExtrasGlobais(data.extras || []);
-
     }
 
   });
@@ -914,18 +884,26 @@ const grupos = agruparNotificacoes(notificacoesOrdenadas);
 }, []);
 
 
+// 🔥 RESPONSIVO
 useEffect(() => {
+
   if (typeof window !== "undefined") {
+
     const check = () => setIsMobile(window.innerWidth <= 768);
+
     check();
+
     window.addEventListener("resize", check);
+
     return () => window.removeEventListener("resize", check);
   }
+
 }, []);
 
 
-// 🔥 VARIOS CUPONS
+// 🔥 CUPONS
 useEffect(() => {
+
   const unsub = onSnapshot(collection(db, "cupons"), (snapshot) => {
 
     const lista = snapshot.docs.map(doc => ({
@@ -937,10 +915,13 @@ useEffect(() => {
   });
 
   return () => unsub();
+
 }, []);
 
-// 🔥 APP instalar
+
+// 🔥 PWA INSTALL
 useEffect(() => {
+
   const handler = (e) => {
     e.preventDefault();
     setPromptInstall(e);
@@ -949,6 +930,7 @@ useEffect(() => {
   window.addEventListener("beforeinstallprompt", handler);
 
   return () => window.removeEventListener("beforeinstallprompt", handler);
+
 }, []);
 
 // 🔥 MUDA ABA
@@ -1060,7 +1042,7 @@ useEffect(() => {
 }, []);
 
   // 🔥 CLIENTE
- useEffect(() => {
+useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, async (u) => {
 
     console.log("🔥 AUTH USER:", u);
@@ -1084,17 +1066,28 @@ useEffect(() => {
       console.log("📦 EXISTS:", snap.exists());
       console.log("📊 DADOS:", snap.data());
 
-      if (snap.exists()) {
-        const dados = snap.data();
+      // 🔥 SE NÃO EXISTIR → CRIA USUÁRIO
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          uid: u.uid,
+          clienteNome: u.displayName || "",
+          clienteEmail: u.email || ""
+        });
 
-        setClienteNome(dados.clienteNome || "");
-        setClienteTelefone(dados.clienteTelefone || "");
-        setClienteCpf(dados.clienteCpf || "");
-        setClienteEmail(dados.clienteEmail || "");
-        setClienteEndereco(dados.clienteEndereco || "");
-        setClienteNumeroCasa(dados.clienteNumeroCasa || "");
-        setClienteCep(dados.clienteCep || "");
+        console.log("✅ USUÁRIO CRIADO NO FIRESTORE");
       }
+
+      // 🔥 AGORA SIM PEGA OS DADOS
+      const snapAtualizado = await getDoc(ref);
+      const dados = snapAtualizado.data();
+
+      setClienteNome(dados.clienteNome || "");
+      setClienteTelefone(dados.clienteTelefone || "");
+      setClienteCpf(dados.clienteCpf || "");
+      setClienteEmail(dados.clienteEmail || "");
+      setClienteEndereco(dados.clienteEndereco || "");
+      setClienteNumeroCasa(dados.clienteNumeroCasa || "");
+      setClienteCep(dados.clienteCep || "");
 
     } catch (e) {
       console.log("🔥 ERRO FIRESTORE:", e);
@@ -1104,7 +1097,6 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, []);
-
 
 useEffect(() => {
   if (!mostrarPagamento) return;
@@ -1138,6 +1130,10 @@ useEffect(() => {
     setCarrinho(JSON.parse(saved));
   }
 }, []);
+
+
+
+
 
 
 useEffect(() => {
@@ -1251,7 +1247,7 @@ async function marcarUmaComoLida(n) {
 const gerarNovoPixDoPedido = async (pedido) => {
   try {
     if (!pedido?.id) {
-      alert("Pedido inválido");
+      mostrarMensagemPagamento("Pedido inválido para gerar novo Pix.", "erro");
       return;
     }
 
@@ -1259,7 +1255,7 @@ const gerarNovoPixDoPedido = async (pedido) => {
     const valorPix = totalPedido > 100 ? totalPedido / 100 : totalPedido;
 
     if (!valorPix || valorPix <= 0) {
-      alert("Valor inválido para gerar Pix");
+      mostrarMensagemPagamento("Valor inválido para gerar o novo Pix.", "erro");
       return;
     }
 
@@ -1282,7 +1278,7 @@ const gerarNovoPixDoPedido = async (pedido) => {
     const data = await res.json();
 
     if (!data?.payment_id) {
-      alert("Erro ao gerar novo Pix");
+      mostrarMensagemPagamento("Não foi possível gerar um novo Pix agora.", "erro");
       return;
     }
 
@@ -1296,19 +1292,22 @@ const gerarNovoPixDoPedido = async (pedido) => {
     localStorage.setItem("pedidoId", pedido.id);
 
     await updateDoc(doc(db, "pedidos", pedido.id), {
-    paymentId: String(data.payment_id),
-
-    qrCode: data.qr_code || "",
-    qrBase64: data.qr_code_base64 || "",
-
-    statusPagamento: "aguardando_pagamento",
-    status: "aguardando_pagamento",
-    data: Date.now()
+      paymentId: String(data.payment_id),
+      qrCode: data.qr_code || "",
+      qrBase64: data.qr_code_base64 || "",
+      statusPagamento: "aguardando_pagamento",
+      status: "aguardando_pagamento",
+      data: Date.now()
     });
+
+    mostrarMensagemPagamento(
+      "Novo Pix gerado com sucesso. Faça o pagamento para continuar.",
+      "sucesso"
+    );
 
   } catch (e) {
     console.log("ERRO AO GERAR NOVO PIX:", e);
-    alert("Erro ao gerar novo Pix");
+    mostrarMensagemPagamento("Erro ao gerar novo Pix. Tente novamente.", "erro");
   }
 };
 
@@ -1463,12 +1462,12 @@ const gerarPix = async () => {
 
     // 🔒 VALIDAÇÃO
     if (!totalFinal || totalFinal <= 0) {
-      alert("Carrinho vazio!");
+      mostrarMensagemPagamento("Sua sacola está vazia.", "erro");
       return;
     }
 
     if (!clienteNome || !clienteTelefone) {
-      alert("Preencha seus dados!");
+      mostrarMensagemPagamento("Preencha seus dados antes de gerar o Pix.", "erro");
       return;
     }
 
@@ -1503,7 +1502,7 @@ const gerarPix = async () => {
     const data = await res.json();
 
     if (!data?.payment_id) {
-      alert("Erro ao gerar Pix");
+      mostrarMensagemPagamento("Não foi possível gerar o Pix agora. Tente novamente.", "erro");
       return;
     }
 
@@ -1590,11 +1589,14 @@ const gerarPix = async () => {
       ativo: true
     });
 
-    alert("PIX gerado! Pague para liberar o pedido.");
+    mostrarMensagemPagamento(
+      "Pix gerado com sucesso. Faça o pagamento para liberar seu pedido.",
+      "sucesso"
+    );
 
   } catch (e) {
     console.log("ERRO GERAL:", e);
-    alert("Erro ao gerar Pix");
+    mostrarMensagemPagamento("Ocorreu um erro ao gerar o Pix. Tente novamente.", "erro");
   }
 };
 
@@ -2228,6 +2230,12 @@ function categoriaVaiDiretoCarrinho(categoria) {
 }
 
 
+const limparHistoricoBusca = () => {
+  setHistoricoBusca([]);
+  localStorage.removeItem("historicoBusca");
+};
+
+
 function alterarExtra(categoria, item, delta, max = Infinity) {
   setExtrasSelecionados(prev => {
     const lista = prev[categoria] || [];
@@ -2309,22 +2317,21 @@ async function finalizarPedido() {
   if (!cupomValidoAgora) return;
 
   if (!carrinho.length) {
-    alert("Carrinho vazio!");
+    mostrarMensagemPagamento("Sua sacola está vazia.", "erro");
     return;
   }
 
   if (!clienteNome || !clienteTelefone) {
-    alert("Preencha seus dados!");
+    mostrarMensagemPagamento("Preencha seus dados antes de continuar.", "erro");
     setStep(4);
     return;
   }
 
   if (!formaPagamento) {
-    alert("Escolha a forma de pagamento");
+    mostrarMensagemPagamento("Escolha a forma de pagamento.", "erro");
     return;
   }
 
- 
   try {
     setLoadingPedido(true);
 
@@ -2332,37 +2339,40 @@ async function finalizarPedido() {
     const codigo = Math.floor(100000 + Math.random() * 900000);
 
     const pedido = {
-  codigo,
-  cliente: {
-    nome: clienteNome,
-    telefone: clienteTelefone,
-    endereco: clienteEndereco,
-    numero: clienteNumeroCasa,
-    uid: user?.uid || null
-  },
-  itens: carrinho,
-  total: Math.round(Number(totalFinal || 0)),
-  formaPagamento,
-  status: "preparando",
-  data: new Date().toISOString(),
-  cupom: cupomAplicado
-    ? {
-        id: cupomAplicado.id,
-        codigo: cupomAplicado.codigo || "",
-        tipo: cupomAplicado.tipo || "",
-        desconto: Number(descontoCalculado || 0)
-      }
-    : null
-};
+      codigo,
+      cliente: {
+        nome: clienteNome,
+        telefone: clienteTelefone,
+        endereco: clienteEndereco,
+        numero: clienteNumeroCasa,
+        uid: user?.uid || null
+      },
+      itens: carrinho,
+      total: Math.round(Number(totalFinal || 0)),
+      formaPagamento,
+      status: "preparando",
+      data: Date.now(),
+      cupom: cupomAplicado
+        ? {
+            id: cupomAplicado.id,
+            codigo: cupomAplicado.codigo || "",
+            tipo: cupomAplicado.tipo || "",
+            desconto: Number(descontoCalculado || 0)
+          }
+        : null
+    };
 
     await setDoc(doc(db, "pedidos", pedidoId), pedido);
 
     const usoRegistrado = await registrarUsoCupom();
-if (!usoRegistrado) return;
+    if (!usoRegistrado) {
+      setLoadingPedido(false);
+      return;
+    }
 
     localStorage.setItem("pedidoAtual", pedidoId);
 
-    let mensagem = ` *Pedido #${codigo}*\n\n`;
+    let mensagem = `*Pedido #${codigo}*\n\n`;
 
     carrinho.forEach((item, i) => {
       mensagem += `*${i + 1}. ${item.produto?.nome || item.nome || "Produto"}*\n`;
@@ -2390,31 +2400,38 @@ if (!usoRegistrado) return;
         });
       }
 
-      mensagem += `\n R$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
+      mensagem += `\nR$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
     });
 
     mensagem += `━━━━━━━━━━━━━━━\n`;
-    mensagem += ` *Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
-    mensagem += ` Pagamento: ${formaPagamento}\n\n`;
-    mensagem += ` *Endereço:*\n`;
+    mensagem += `*Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
+    mensagem += `Pagamento: ${formaPagamento}\n\n`;
+    mensagem += `*Endereço:*\n`;
     mensagem += `${clienteEndereco}, Nº ${clienteNumeroCasa}\n\n`;
-    mensagem += ` *Cliente:*\n`;
-    mensagem += `${clienteNome}\n ${clienteTelefone}`;
+    mensagem += `*Cliente:*\n`;
+    mensagem += `${clienteNome}\n${clienteTelefone}`;
 
-    window.location.href =
-      `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
+    mostrarMensagemPagamento("Pedido confirmado com sucesso.", "sucesso");
 
     setCarrinho([]);
     setFormaPagamento(null);
+    setMostrarPagamento(false);
+    setQrBase64(null);
+    setQrCode(null);
+    setPaymentId(null);
+    setPedidoPixAberto(null);
 
-    alert("Pedido enviado!");
+    setTimeout(() => {
+      window.location.href =
+        `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
+    }, 700);
 
   } catch (e) {
     console.log(e);
-    alert("Erro ao finalizar pedido");
+    mostrarMensagemPagamento("Ocorreu um erro ao finalizar o pedido.", "erro");
+  } finally {
+    setLoadingPedido(false);
   }
-
-  setLoadingPedido(false);
 }
 
 
@@ -2469,7 +2486,6 @@ const enviarWhatsApp = (pedido) => {
     `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 };
 
-
 return (
 
 
@@ -2507,134 +2523,308 @@ return (
 
     
 {mostrarPagamento && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-    boxSizing: "border-box"
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 16,
-      width: "100%",
-      maxWidth: 350,
-      boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 16,
       boxSizing: "border-box"
-    }}>
-
-      <h3 style={{ marginBottom: 10 }}>Forma de pagamento</h3>
-
-      {/* PIX */}
+    }}
+  >
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 28,
+        width: "100%",
+        maxWidth: 430,
+        maxHeight: "88vh",
+        overflowY: "auto",
+        boxShadow: "0 18px 60px rgba(0,0,0,0.22)",
+        boxSizing: "border-box",
+        padding: 22,
+        position: "relative"
+      }}
+    >
+      {/* FECHAR */}
       <button
         onClick={() => {
-          if (loadingPix) return;
-
-          setFormaPagamento("pix");
-
-          // 🔥 se veio do step 5, NÃO gera outro pedido
-          if (pedidoPixAberto) {
-            return;
-          }
-
-          // 🔥 checkout normal
+          setMostrarPagamento(false);
+          setFormaPagamento(null);
           setQrBase64(null);
           setQrCode(null);
           setPaymentId(null);
-          gerarPix();
-        }}
-        style={{
-          width: "93%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
-          border: "none",
-          cursor: loadingPix ? "not-allowed" : "pointer",
-          background: formaPagamento === "pix" ? "#ff0000" : "#eee",
-          color: formaPagamento === "pix" ? "#fff" : "#000",
-          fontWeight: "bold",
-          opacity: loadingPix ? 0.7 : 1
-        }}
-      >
-        {loadingPix ? "Gerando Pix..." : "⚡ Pix"}
-      </button>
-
-      {/* DINHEIRO */}
-      <button
-        onClick={() => {
-          setFormaPagamento("dinheiro");
           setPedidoPixAberto(null);
+          setMensagemPagamento("");
         }}
         style={{
-          width: "93%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
+          position: "absolute",
+          top: 14,
+          right: 14,
+          width: 42,
+          height: 42,
+          borderRadius: "50%",
           border: "none",
-          cursor: "pointer",
-          background: formaPagamento === "dinheiro" ? "#ff0000" : "#eee",
-          color: formaPagamento === "dinheiro" ? "#fff" : "#000",
-          fontWeight: "bold"
+          background: "#f3f3f3",
+          color: "#666",
+          fontSize: 26,
+          lineHeight: 1,
+          cursor: "pointer"
         }}
       >
-        Dinheiro na entrega
+        ×
       </button>
 
-      {/* CARTÃO */}
-      <button
-        onClick={() => {
-          setFormaPagamento("cartao");
-          setPedidoPixAberto(null);
-        }}
+      <h2
         style={{
-          width: "93%",
-          padding: 12,
-          marginTop: 8,
-          borderRadius: 10,
-          border: "none",
-          cursor: "pointer",
-          background: formaPagamento === "cartao" ? "#ff0000" : "#eee",
-          color: formaPagamento === "cartao" ? "#fff" : "#000",
-          fontWeight: "bold"
+          margin: "4px 0 18px",
+          fontSize: 24,
+          color: "#111",
+          textAlign: "center"
         }}
       >
-        Cartão na entrega
-      </button>
+        Forma de pagamento
+      </h2>
 
-      {/* PIX AREA */}
+      {/* MENSAGEM PREMIUM */}
+      {mensagemPagamento && (
+        <div
+          style={{
+            marginBottom: 14,
+            padding: "12px 14px",
+            borderRadius: 16,
+            fontSize: 14,
+            fontWeight: 600,
+            lineHeight: 1.4,
+            background:
+              tipoMensagemPagamento === "erro"
+                ? "#fff1f2"
+                : tipoMensagemPagamento === "sucesso"
+                ? "#ecfdf3"
+                : "#f8fafc",
+            color:
+              tipoMensagemPagamento === "erro"
+                ? "#be123c"
+                : tipoMensagemPagamento === "sucesso"
+                ? "#15803d"
+                : "#334155",
+            border:
+              tipoMensagemPagamento === "erro"
+                ? "1px solid #fecdd3"
+                : tipoMensagemPagamento === "sucesso"
+                ? "1px solid #bbf7d0"
+                : "1px solid #e2e8f0"
+          }}
+        >
+          {mensagemPagamento}
+        </div>
+      )}
+
+      {/* RESUMO */}
+      <div
+        style={{
+          background: "#f8f8f8",
+          border: "1px solid #efefef",
+          borderRadius: 18,
+          padding: 16,
+          marginBottom: 16
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            fontSize: 15,
+            color: "#444"
+          }}
+        >
+          <span>Pedido</span>
+          <strong style={{ color: "#111", fontWeight: 600 }}>
+            {pedidoPixAberto
+              ? formatarReal(pedidoPixAberto.total)
+              : formatarReal(total)}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            fontSize: 15,
+            color: "#444",
+            marginTop: 8
+          }}
+        >
+          <span>Entrega</span>
+          <strong style={{ color: "#111", fontWeight: 600 }}>
+            {formatarReal((totalFinal || 0) - (total || 0)) === "R$ 0,00"
+              ? "Grátis"
+              : formatarReal((totalFinal || 0) - (total || 0))}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            height: 1,
+            background: "#e8e8e8",
+            margin: "14px 0"
+          }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "center"
+          }}
+        >
+          <strong style={{ fontSize: 18, color: "#111" }}>Total</strong>
+          <strong style={{ fontSize: 18, color: "#ea1d2c" }}>
+            {pedidoPixAberto
+              ? formatarReal(pedidoPixAberto.total)
+              : formatarReal(totalFinal)}
+          </strong>
+        </div>
+      </div>
+
+      {/* MÉTODOS */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <button
+          onClick={() => {
+            if (loadingPix) return;
+
+            setFormaPagamento("pix");
+
+            if (pedidoPixAberto) {
+              return;
+            }
+
+            setQrBase64(null);
+            setQrCode(null);
+            setPaymentId(null);
+            gerarPix();
+          }}
+          style={{
+            width: "100%",
+            padding: "18px 18px",
+            borderRadius: 18,
+            border: "none",
+            cursor: loadingPix ? "not-allowed" : "pointer",
+            background: formaPagamento === "pix" ? "#ea1d2c" : "#f3f3f3",
+            color: formaPagamento === "pix" ? "#fff" : "#222",
+            fontWeight: 800,
+            fontSize: 17,
+            textAlign: "left",
+            opacity: loadingPix ? 0.7 : 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 12
+          }}
+        >
+          <span style={{ fontSize: 24 }}>⚡</span>
+          <span>{loadingPix ? "Gerando Pix..." : "Pix"}</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setFormaPagamento("cartao");
+            setPedidoPixAberto(null);
+            setMensagemPagamento("");
+          }}
+          style={{
+            width: "100%",
+            padding: "18px 18px",
+            borderRadius: 18,
+            border: "none",
+            cursor: "pointer",
+            background: formaPagamento === "cartao" ? "#ea1d2c" : "#f3f3f3",
+            color: formaPagamento === "cartao" ? "#fff" : "#222",
+            fontWeight: 800,
+            fontSize: 17,
+            textAlign: "left",
+            display: "flex",
+            alignItems: "center",
+            gap: 12
+          }}
+        >
+          <span style={{ fontSize: 24 }}>💳</span>
+          <span>Cartão</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setFormaPagamento("dinheiro");
+            setPedidoPixAberto(null);
+            setMensagemPagamento("");
+          }}
+          style={{
+            width: "100%",
+            padding: "18px 18px",
+            borderRadius: 18,
+            border: "none",
+            cursor: "pointer",
+            background: formaPagamento === "dinheiro" ? "#ea1d2c" : "#f3f3f3",
+            color: formaPagamento === "dinheiro" ? "#fff" : "#222",
+            fontWeight: 800,
+            fontSize: 17,
+            textAlign: "left",
+            display: "flex",
+            alignItems: "center",
+            gap: 12
+          }}
+        >
+          <span style={{ fontSize: 24 }}>💵</span>
+          <span>Dinheiro</span>
+        </button>
+      </div>
+
+      {/* ÁREA PIX */}
       {formaPagamento === "pix" && (
         <div style={{ marginTop: 20, textAlign: "center" }}>
-          <p>
-            <strong>
-              Valor: {pedidoPixAberto ? formatarReal(pedidoPixAberto.total) : formatarReal(totalFinal)}
-            </strong>
-          </p>
-
           {!qrBase64 && (
-            <p style={{ marginTop: 10 }}>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 15,
+                color: "#666"
+              }}
+            >
               {pedidoPixAberto
                 ? "Abrindo pagamento do pedido..."
+                : loadingPix
+                ? "Gerando QR Code..."
                 : "Gerando QR Code..."}
-            </p>
+            </div>
           )}
 
           {qrBase64 && (
-            <div style={{
-              background: "#fff",
-              padding: 6,
-              borderRadius: 12,
-              display: "inline-block",
-              marginTop: 10
-            }}>
-              <img
-                src={`data:image/png;base64,${qrBase64}`}
-                style={{ width: 200 }}
-              />
+            <div style={{ marginTop: 12 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  background: "#fff",
+                  padding: 12,
+                  borderRadius: 20,
+                  border: "1px solid #ececec",
+                  boxShadow: "0 8px 20px rgba(0,0,0,0.05)"
+                }}
+              >
+                <img
+                  src={`data:image/png;base64,${qrBase64}`}
+                  style={{
+                    width: 220,
+                    maxWidth: "100%",
+                    display: "block"
+                  }}
+                />
+              </div>
             </div>
           )}
 
@@ -2644,29 +2834,37 @@ return (
                 value={qrCode}
                 readOnly
                 style={{
-                  width: "80%",
-                  marginTop: 12,
-                  padding: 10,
-                  borderRadius: 10,
-                  fontSize: 12,
-                  border: "1px solid #ddd"
+                  width: "100%",
+                  marginTop: 16,
+                  padding: 14,
+                  borderRadius: 16,
+                  fontSize: 13,
+                  lineHeight: 1.45,
+                  border: "1px solid #ddd",
+                  minHeight: 96,
+                  resize: "none",
+                  boxSizing: "border-box",
+                  outline: "none"
                 }}
               />
 
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(qrCode);
-                  alert("Pix copiado!");
+                  mostrarMensagemPagamento("Código Pix copiado com sucesso.", "sucesso");
                 }}
                 style={{
-                  marginTop: 10,
-                  width: "90%",
-                  padding: 10,
-                  borderRadius: 10,
+                  marginTop: 14,
+                  width: "100%",
+                  padding: 16,
+                  borderRadius: 16,
                   border: "none",
-                  background: "#ff0800",
+                  background: "#ea1d2c",
                   color: "#fff",
-                  fontWeight: "bold"
+                  fontWeight: 800,
+                  fontSize: 17,
+                  cursor: "pointer",
+                  boxShadow: "0 10px 24px rgba(234,29,44,0.22)"
                 }}
               >
                 Copiar código Pix
@@ -2674,81 +2872,104 @@ return (
             </>
           )}
 
-          <p style={{ marginTop: 12, fontSize: 13, color: "#666" }}>
+          <p
+            style={{
+              marginTop: 18,
+              marginBottom: 0,
+              fontSize: 15,
+              color: "#666",
+              lineHeight: 1.45
+            }}
+          >
             Após o pagamento, seu pedido será confirmado automaticamente.
           </p>
         </div>
       )}
 
-      {/* CONFIRMAR */}
-      <button
-        style={{
-          marginTop: 20,
-          width: "90%",
-          padding: 12,
-          borderRadius: 12,
-          border: "none",
-          background: "linear-gradient(90deg,#00c853,#00e676)",
-          color: "#fff",
-          fontWeight: "bold",
-          cursor: loadingPedido ? "not-allowed" : "pointer",
-          opacity: loadingPedido ? 0.7 : 1
-        }}
-        disabled={loadingPedido}
-        onClick={async () => {
-          if (!formaPagamento) {
-            alert("Escolha uma forma de pagamento");
-            return;
-          }
-
-          if (formaPagamento === "pix") {
-            if (!paymentId) {
-              alert("Erro no Pix. Gere novamente.");
+      {/* AÇÕES */}
+      <div style={{ marginTop: 24 }}>
+        <button
+          style={{
+            width: "100%",
+            padding: 16,
+            borderRadius: 18,
+            border: "none",
+            background:
+              formaPagamento === "pix"
+                ? "linear-gradient(90deg,#00a63e,#11c95f)"
+                : "#ea1d2c",
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: 18,
+            cursor: loadingPedido ? "not-allowed" : "pointer",
+            opacity: loadingPedido ? 0.7 : 1,
+            boxShadow:
+              formaPagamento === "pix"
+                ? "0 10px 24px rgba(17,201,95,0.18)"
+                : "0 10px 24px rgba(234,29,44,0.18)"
+          }}
+          disabled={loadingPedido}
+          onClick={async () => {
+            if (!formaPagamento) {
+              mostrarMensagemPagamento("Escolha uma forma de pagamento para continuar.", "erro");
               return;
             }
 
-            if (!qrBase64) {
-              alert("Aguarde o QR Code gerar");
+            if (formaPagamento === "pix") {
+              if (!paymentId) {
+                mostrarMensagemPagamento("Erro no Pix. Gere novamente para continuar.", "erro");
+                return;
+              }
+
+              if (!qrBase64) {
+                mostrarMensagemPagamento("Aguarde o QR Code terminar de carregar.", "info");
+                return;
+              }
+
+              mostrarMensagemPagamento("Pagamento Pix aguardando confirmação automática.", "info");
               return;
             }
 
-            alert("Aguardando pagamento do Pix...");
-            return;
-          }
+            try {
+              setLoadingPedido(true);
+              await finalizarPedido();
+            } finally {
+              setLoadingPedido(false);
+            }
+          }}
+        >
+          {loadingPedido
+            ? "Processando..."
+            : formaPagamento === "pix"
+            ? "Aguardando pagamento"
+            : "Confirmar pedido"}
+        </button>
 
-          try {
-            setLoadingPedido(true);
-            await finalizarPedido();
-          } finally {
-            setLoadingPedido(false);
-          }
-        }}
-      >
-        {loadingPedido ? "Processando..." : "Confirmar Pedido"}
-      </button>
-
-      {/* CANCELAR */}
-      <button
-        onClick={() => {
-          setMostrarPagamento(false);
-          setFormaPagamento(null);
-          setQrBase64(null);
-          setQrCode(null);
-          setPaymentId(null);
-          setPedidoPixAberto(null);
-        }}
-        style={{
-          marginTop: 10,
-          background: "transparent",
-          border: "none",
-          color: "#999",
-          cursor: "pointer",
-          width: "100%"
-        }}
-      >
-        Cancelar
-      </button>
-
+        <button
+          onClick={() => {
+            setMostrarPagamento(false);
+            setFormaPagamento(null);
+            setQrBase64(null);
+            setQrCode(null);
+            setPaymentId(null);
+            setPedidoPixAberto(null);
+            setMensagemPagamento("");
+          }}
+          style={{
+            marginTop: 14,
+            background: "transparent",
+            border: "none",
+            color: "#777",
+            cursor: "pointer",
+            width: "100%",
+            fontSize: 18,
+            fontWeight: 500,
+            padding: 10
+          }}
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   </div>
 )}
@@ -4237,12 +4458,12 @@ return (
         </div>
       </div>
 
-      {/* MENU CARDS */}
+      {/* MENU */}
       <div style={{
         display: "flex",
         flexDirection: "column",
         gap: 10,
-        marginBottom: 16
+        marginBottom: 14
       }}>
         {[
           { id: "dados", titulo: "Meus dados", desc: "Nome, telefone e dados da conta" },
@@ -4250,310 +4471,318 @@ return (
           { id: "cupons", titulo: "Meus cupons", desc: "Descontos disponíveis" },
           { id: "seguranca", titulo: "Segurança", desc: "Proteção e informações da conta" },
           { id: "loja", titulo: "Informações da loja", desc: "Saiba mais sobre a loja" }
-        ].map(item => (
-          <div
-            key={item.id}
-            onClick={() => setAbaPerfil(item.id)}
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              padding: 14,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              border: abaPerfil === item.id ? "1px solid #ea1d2c" : "1px solid #eee",
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 12
-            }}
-          >
-            <div>
-              <strong style={{
-                display: "block",
-                fontSize: 14,
-                color: "#111"
-              }}>
-                {item.titulo}
-              </strong>
+        ].map(item => {
+          const ativo = abaPerfil === item.id;
+
+          return (
+            <div
+              key={item.id}
+              onClick={() => setAbaPerfil(item.id)}
+              style={{
+                background: ativo ? "#fff8f8" : "#fff",
+                borderRadius: 18,
+                padding: 14,
+                boxShadow: ativo
+                  ? "0 6px 16px rgba(234,29,44,0.08)"
+                  : "0 4px 12px rgba(0,0,0,0.05)",
+                border: ativo ? "1px solid #f3b1b7" : "1px solid #eee",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                transition: "all 0.2s ease"
+              }}
+            >
+              <div>
+                <strong style={{
+                  display: "block",
+                  fontSize: 14,
+                  color: "#111"
+                }}>
+                  {item.titulo}
+                </strong>
+
+                <span style={{
+                  display: "block",
+                  fontSize: 12,
+                  color: "#777",
+                  marginTop: 4
+                }}>
+                  {item.desc}
+                </span>
+              </div>
 
               <span style={{
-                display: "block",
-                fontSize: 12,
-                color: "#777",
-                marginTop: 4
+                fontSize: 20,
+                color: ativo ? "#ea1d2c" : "#999",
+                lineHeight: 1,
+                fontWeight: 700
               }}>
-                {item.desc}
+                ›
               </span>
             </div>
-
-            <span style={{
-              fontSize: 20,
-              color: abaPerfil === item.id ? "#ea1d2c" : "#999",
-              lineHeight: 1
-            }}>
-              ›
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* CONTEÚDO */}
-      {abaPerfil === "dados" && (
-        <div style={{
-          ...card,
-          borderRadius: 18,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-        }}>
-          <strong>Dados do cliente</strong>
+      {/* CONTEÚDO ATIVO */}
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 16,
+        boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
+      }}>
+        {abaPerfil === "dados" && (
+          <>
+            <strong style={{ fontSize: 16, color: "#111" }}>
+              Meus dados
+            </strong>
 
-          <input
-            style={input}
-            value={clienteNome}
-            onChange={e=>setClienteNome(e.target.value)}
-            placeholder="Nome"
-          />
+            <div style={{ marginTop: 14 }}>
+              <input
+                style={input}
+                value={clienteNome}
+                onChange={e=>setClienteNome(e.target.value)}
+                placeholder="Nome"
+              />
 
-          <input
-            style={input}
-            value={clienteEmail}
-            disabled
-            placeholder="Email"
-          />
+              <input
+                style={input}
+                value={clienteEmail}
+                disabled
+                placeholder="Email"
+              />
 
-          <input
-            style={input}
-            value={clienteCpf}
-            disabled
-            placeholder="CPF"
-          />
+              <input
+                style={input}
+                value={clienteCpf}
+                disabled
+                placeholder="CPF"
+              />
 
-          <input
-            style={input}
-            value={clienteTelefone}
-            onChange={(e)=>{
-              let v = e.target.value.replace(/\D/g,"").slice(0,11);
-              v = v.length<=10
-                ? v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{4})(\d)/,"$1-$2")
-                : v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2");
-              setClienteTelefone(v);
-            }}
-            placeholder="Telefone"
-          />
+              <input
+                style={input}
+                value={clienteTelefone}
+                onChange={(e)=>{
+                  let v = e.target.value.replace(/\D/g,"").slice(0,11);
+                  v = v.length<=10
+                    ? v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{4})(\d)/,"$1-$2")
+                    : v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2");
+                  setClienteTelefone(v);
+                }}
+                placeholder="Telefone"
+              />
 
-          <button
-            onClick={salvarDadosCliente}
-            style={{
-              ...btn,
-              padding: "10px 14px",
-              fontSize: 13,
-              borderRadius: 12,
-              width: "fit-content",
-              alignSelf: "flex-start"
-            }}
-          >
-            Salvar dados
-          </button>
-        </div>
-      )}
-
-      {abaPerfil === "endereco" && (
-        <div style={{
-          ...card,
-          borderRadius: 18,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-        }}>
-          <strong>Endereço</strong>
-
-          <input
-            style={input}
-            placeholder="CEP"
-            onChange={(e)=>{
-              if(e.target.value.replace(/\D/g,"").length===8){
-                buscarCEP(e.target.value);
-              }
-            }}
-          />
-
-          {loadingCep && (
-            <div style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>
-              Buscando CEP...
+              <button
+                onClick={salvarDadosCliente}
+                style={{
+                  ...btn,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  borderRadius: 12,
+                  width: "fit-content",
+                  marginTop: 4
+                }}
+              >
+                Salvar dados
+              </button>
             </div>
-          )}
+          </>
+        )}
 
-          <input
-            style={input}
-            value={clienteEndereco}
-            onChange={(e)=>setClienteEndereco(e.target.value)}
-            placeholder="Rua"
-          />
+        {abaPerfil === "endereco" && (
+          <>
+            <strong style={{ fontSize: 16, color: "#111" }}>
+              Meu endereço
+            </strong>
 
-          <input
-            style={input}
-            value={clienteNumeroCasa}
-            onChange={(e)=>setClienteNumeroCasa(e.target.value)}
-            placeholder="Número"
-          />
+            <div style={{ marginTop: 14 }}>
+              <input
+                style={input}
+                placeholder="CEP"
+                onChange={(e)=>{
+                  if(e.target.value.replace(/\D/g,"").length===8){
+                    buscarCEP(e.target.value);
+                  }
+                }}
+              />
 
-          <button
-            onClick={salvarDadosCliente}
-            style={{
-              ...btn,
-              padding: "10px 14px",
-              fontSize: 13,
-              borderRadius: 12,
-              width: "fit-content",
-              alignSelf: "flex-start"
-            }}
-          >
-            Salvar endereço
-          </button>
-        </div>
-      )}
+              {loadingCep && (
+                <div style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>
+                  Buscando CEP...
+                </div>
+              )}
 
-      {abaPerfil === "cupons" && (
-        <div style={{
-          ...card,
-          borderRadius: 18,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-        }}>
-          <strong>Cupons</strong>
+              <input
+                style={input}
+                value={clienteEndereco}
+                onChange={(e)=>setClienteEndereco(e.target.value)}
+                placeholder="Rua"
+              />
 
-          {loadingCupons && <div style={{ marginTop: 8 }}>Carregando...</div>}
+              <input
+                style={input}
+                value={clienteNumeroCasa}
+                onChange={(e)=>setClienteNumeroCasa(e.target.value)}
+                placeholder="Número"
+              />
 
-          {cupons.map((c,i)=>(
-            <div key={i} style={{
-              marginTop: 10,
-              padding: 12,
-              border: "1px dashed #ea1d2c",
-              borderRadius: 12,
-              background: "#fffafa"
+              <button
+                onClick={salvarDadosCliente}
+                style={{
+                  ...btn,
+                  padding: "10px 14px",
+                  fontSize: 13,
+                  borderRadius: 12,
+                  width: "fit-content",
+                  marginTop: 4
+                }}
+              >
+                Salvar endereço
+              </button>
+            </div>
+          </>
+        )}
+
+        {abaPerfil === "cupons" && (
+          <>
+            <strong style={{ fontSize: 16, color: "#111" }}>
+              Meus cupons
+            </strong>
+
+            {loadingCupons && <div style={{ marginTop: 10 }}>Carregando...</div>}
+
+            {cupons.map((c,i)=>(
+              <div key={i} style={{
+                marginTop: 12,
+                padding: 12,
+                border: "1px dashed #ea1d2c",
+                borderRadius: 12,
+                background: "#fffafa"
+              }}>
+                <strong>{c.codigo}</strong>
+                <div style={{ marginTop: 4, fontSize: 13 }}>{c.valor}% desconto</div>
+
+                <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+                  <button
+                    onClick={()=>{
+                      navigator.clipboard.writeText(c.codigo);
+                    }}
+                    style={{
+                      padding: "8px 14px",
+                      fontSize: 12,
+                      borderRadius: 10,
+                      background: "#ea1d2c",
+                      color: "#fff",
+                      border: "none",
+                      cursor: "pointer",
+                      fontWeight: "bold"
+                    }}
+                  >
+                    Copiar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {abaPerfil === "seguranca" && (
+          <>
+            <strong style={{ fontSize: 16, color: "#111" }}>
+              Segurança
+            </strong>
+
+            <div style={{
+              marginTop: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10
             }}>
-              <strong>{c.codigo}</strong>
-              <div style={{ marginTop: 4, fontSize: 13 }}>{c.valor}% desconto</div>
+              <div style={{
+                padding: 12,
+                borderRadius: 12,
+                background: "#fff",
+                border: "1px solid #eee"
+              }}>
+                <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
+                  Email protegido
+                </strong>
+                <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4 }}>
+                  Seu acesso está vinculado ao email cadastrado.
+                </span>
+              </div>
 
-              <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
-                <button
-                  onClick={()=>{
-                    navigator.clipboard.writeText(c.codigo);
-                    alert("Copiado");
-                  }}
-                  style={{
-                    padding: "8px 14px",
-                    fontSize: 12,
-                    borderRadius: 10,
-                    background: "#ea1d2c",
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: "bold"
-                  }}
-                >
-                  Copiar
-                </button>
+              <div style={{
+                padding: 12,
+                borderRadius: 12,
+                background: "#fff",
+                border: "1px solid #eee"
+              }}>
+                <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
+                  CPF validado
+                </strong>
+                <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4 }}>
+                  O CPF ajuda a proteger seus cupons e seus pedidos.
+                </span>
+              </div>
+
+              <div style={{
+                padding: 12,
+                borderRadius: 12,
+                background: "#fff8f8",
+                border: "1px solid #ffd9d9"
+              }}>
+                <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
+                  Dica de segurança
+                </strong>
+                <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4, lineHeight: 1.45 }}>
+                  Não compartilhe sua conta com outras pessoas e sempre confira seus dados antes de finalizar um pedido.
+                </span>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </>
+        )}
 
-      {abaPerfil === "seguranca" && (
-        <div style={{
-          ...card,
-          borderRadius: 18,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-        }}>
-          <strong>Conta protegida</strong>
-
-          <div style={{
-            marginTop: 14,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10
-          }}>
-            <div style={{
-              padding: 12,
-              borderRadius: 12,
-              background: "#fff",
-              border: "1px solid #eee"
-            }}>
-              <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
-                Email protegido
-              </strong>
-              <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4 }}>
-                Seu acesso está vinculado ao email cadastrado.
-              </span>
-            </div>
+        {abaPerfil === "loja" && (
+          <>
+            <strong style={{ fontSize: 16, color: "#111" }}>
+              Informações da loja
+            </strong>
 
             <div style={{
-              padding: 12,
-              borderRadius: 12,
-              background: "#fff",
-              border: "1px solid #eee"
-            }}>
-              <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
-                CPF validado
-              </strong>
-              <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4 }}>
-                O CPF ajuda a proteger seus cupons e seus pedidos.
-              </span>
-            </div>
-
-            <div style={{
-              padding: 12,
-              borderRadius: 12,
-              background: "#fff8f8",
-              border: "1px solid #ffd9d9"
-            }}>
-              <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
-                Dica de segurança
-              </strong>
-              <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4, lineHeight: 1.45 }}>
-                Não compartilhe sua conta com outras pessoas e sempre confira seus dados antes de finalizar um pedido.
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {abaPerfil === "loja" && (
-        <div style={{
-          ...card,
-          borderRadius: 18,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-        }}>
-          <strong>Informações da loja</strong>
-
-          <div style={{
-            fontSize: 13,
-            color: "#666",
-            lineHeight: 1.5,
-            marginTop: 10,
-            marginBottom: 12
-          }}>
-            Veja detalhes, horários, informações e apresentação da loja.
-          </div>
-
-          <button
-            onClick={()=>{
-              setAba("info");
-              setStep(99);
-            }}
-            style={{
-              padding: "10px 16px",
               fontSize: 13,
-              borderRadius: 12,
-              background: "#ea1d2c",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: "bold",
-              width: "fit-content"
-            }}
-          >
-            Ver loja
-          </button>
-        </div>
-      )}
+              color: "#666",
+              lineHeight: 1.5,
+              marginTop: 10,
+              marginBottom: 12
+            }}>
+              Veja detalhes, horários, informações e apresentação da loja.
+            </div>
+
+            <button
+              onClick={()=>{
+                setAba("info");
+                setStep(99);
+              }}
+              style={{
+                padding: "10px 16px",
+                fontSize: 13,
+                borderRadius: 12,
+                background: "#ea1d2c",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: "bold",
+                width: "fit-content"
+              }}
+            >
+              Ver loja
+            </button>
+          </>
+        )}
+      </div>
 
       {/* LOGIN / LOGOUT */}
       <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
@@ -6046,6 +6275,14 @@ return (
   }}>
 
     {(() => {
+      const normalizarCategoria = (categoria) => {
+        return String(categoria || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim();
+      };
+
       const termo = busca.trim().toLowerCase();
 
       const produtosBusca = produtos.filter(p => {
@@ -6053,7 +6290,7 @@ return (
 
         const nome = (p.nome || "").toLowerCase();
         const descricao = (p.descricao || "").toLowerCase();
-        const categoria = (p.categoria || "").toLowerCase();
+        const categoria = normalizarCategoria(p.categoria);
 
         const bateBusca =
           !termo ||
@@ -6342,14 +6579,20 @@ return (
 
                   if (!validarLojaAberta()) return;
 
-                  if (categoriaTemExtras(p.categoria)) {
+                  const categoriaNormalizada = normalizarCategoria(p.categoria);
+
+                  if (categoriaNormalizada === "acai") {
                     setProduto(p);
                     setAba("home");
                     setStep(2);
                     return;
                   }
 
-                  if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                  if (
+                    categoriaNormalizada === "bebidas" ||
+                    categoriaNormalizada === "combos" ||
+                    categoriaNormalizada === "promocoes"
+                  ) {
                     setCarrinho(prev => [
                       ...prev,
                       {
@@ -6361,7 +6604,10 @@ return (
                     ]);
                     setAba("carrinho");
                     setStep(3);
+                    return;
                   }
+
+                  console.log("Categoria não reconhecida:", p.categoria);
                 }}
                 style={{
                   background: "#fff",
