@@ -3549,74 +3549,7 @@ return (
       </div>
 
 
-      {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
-    {!user && (
-  <div
-    style={{
-      padding: "0 16px",
-      marginTop: 14
-    }}
-  >
-    <div
-      onClick={() => router.push("/login")}
-      style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: "18px 16px",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
-        border: "1px solid #ededed",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center", // 🔥 CENTRALIZA TUDO
-        gap: 12,
-        textAlign: "center",
-        WebkitTapHighlightColor: "transparent"
-      }}
-    >
-      {/* ÍCONE */}
-      <div
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 12,
-          background: "#fff0f1",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0
-        }}
-      >
-        <User size={20} color="#ea1d2c" />
-      </div>
-
-      {/* TEXTOS */}
-      <div style={{ lineHeight: 1.3 }}>
-        <div
-          style={{
-            fontSize: 14,
-            color: "#222",
-            fontWeight: 500
-          }}
-        >
-          Explore mais com sua conta
-        </div>
-
-        <div
-          style={{
-            fontSize: 15,
-            color: "#ea1d2c",
-            fontWeight: 800,
-            marginTop: 2
-          }}
-        >
-          Entrar ou cadastrar-se
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
+    
       {/* INFO BAR */}
       <div style={{
         marginTop: 18,
@@ -6957,6 +6890,88 @@ return (
   </div>
 
 </div>
+
+ {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
+
+ {!user &&
+  aba !== "perfil" &&
+  router.pathname !== "/login" && (
+    <div
+      onClick={() => router.push("/login")}
+      style={{
+        position: "fixed",
+        left: "50%",
+        transform: "translateX(-50%)",
+        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 14px)`,
+        width: "calc(100% - 32px)",
+        maxWidth: 388,
+        zIndex: 999,
+        background: "#fff",
+        border: "1px solid #ededed",
+        borderRadius: 18,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.10)",
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        cursor: "pointer",
+        WebkitTapHighlightColor: "transparent",
+        boxSizing: "border-box"
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          minWidth: 0
+        }}
+      >
+        <div
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            background: "#fff0f1",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0
+          }}
+        >
+          <User size={20} color="#ea1d2c" />
+        </div>
+
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13,
+              color: "#333",
+              fontWeight: 500,
+              lineHeight: 1.2
+            }}
+          >
+            Explore mais com sua conta 
+          </div>
+
+          <div
+            style={{
+              fontSize: 14,
+              color: "#ea1d2c",
+              fontWeight: 800,
+              marginTop: 3,
+              lineHeight: 1.2
+            }}
+          >
+            Entrar ou cadastrar-se
+          </div>
+        </div>
+      </div>
+
+      <ChevronRight size={18} color="#b3b3b3" />
+    </div>
+)}
 
 
 {/* 🔥 STYLES */}
