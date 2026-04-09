@@ -2472,6 +2472,11 @@ const enviarWhatsApp = (pedido) => {
 
 return (
 
+
+  
+
+
+
 // CONTAINER ///
 <div style={{
   minHeight: "100dvh",
@@ -2487,6 +2492,11 @@ return (
     padding: isMobile ? 0 : "0 20px",
     boxSizing: "border-box",
     background: "#fff"
+
+
+
+
+    
   }}>
 
 
@@ -2494,6 +2504,30 @@ return (
  {/* ========================= */}
     {/* 🔥 MODAL DE PAGAMENTO */}
     {/* ========================= */}
+
+
+
+     {/* 🔥 BOTÃO TESTE */}
+    <button
+      onClick={() => {
+        new Notification("TESTE 🚀", {
+          body: "Se aparecer, push está OK",
+        });
+      }}
+      style={{
+        position: "fixed",
+        bottom: 120,
+        right: 20,
+        zIndex: 9999,
+        padding: 12,
+        background: "red",
+        color: "#fff",
+        border: "none",
+        borderRadius: 10
+      }}
+    >
+      Testar push
+    </button>
     
 {mostrarPagamento && (
   <div style={{
