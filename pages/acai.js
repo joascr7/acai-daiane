@@ -3406,10 +3406,7 @@ return (
         {produtos
           .filter(p => p.ativo !== false)
           .map((p, i) => {
-            const preco =
-              Number(p.preco) > 100
-                ? Number(p.preco) / 100
-                : Number(p.preco);
+            {formatarReal(p.preco || 0)}
 
             return (
               <div
@@ -3496,7 +3493,7 @@ return (
                     fontSize: 12,
                     color: "#111"
                   }}>
-                    R$ {preco.toFixed(2).replace(".", ",")}
+                    R$ {formatarReal(p.preco || 0)}
                   </strong>
 
                   <div
