@@ -72,6 +72,7 @@ import {
   X,
   QrCode,
   Wallet,
+  ChevronRight,
   Star
   
 } from "lucide-react";
@@ -326,6 +327,8 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [menuAberto, setMenuAberto] = useState(false);
   const [pedidoPixAberto,  setPedidoPixAberto] = useState(null);
+
+  
 
   const [categorias, setCategorias] = useState([]);
 
@@ -3359,6 +3362,7 @@ return (
       </div>
     </div>
 
+
     {/* CONTEÚDO */}
     <div style={{
       maxWidth: larguraApp,
@@ -3543,6 +3547,75 @@ return (
             );
           })}
       </div>
+
+
+      {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
+    {!user && (
+  <div
+    style={{
+      padding: "0 16px",
+      marginTop: 14
+    }}
+  >
+    <div
+      onClick={() => router.push("/login")}
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: "18px 16px",
+        boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+        border: "1px solid #ededed",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center", // 🔥 CENTRALIZA TUDO
+        gap: 12,
+        textAlign: "center",
+        WebkitTapHighlightColor: "transparent"
+      }}
+    >
+      {/* ÍCONE */}
+      <div
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 12,
+          background: "#fff0f1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0
+        }}
+      >
+        <User size={20} color="#ea1d2c" />
+      </div>
+
+      {/* TEXTOS */}
+      <div style={{ lineHeight: 1.3 }}>
+        <div
+          style={{
+            fontSize: 14,
+            color: "#222",
+            fontWeight: 500
+          }}
+        >
+          Explore mais com sua conta
+        </div>
+
+        <div
+          style={{
+            fontSize: 15,
+            color: "#ea1d2c",
+            fontWeight: 800,
+            marginTop: 2
+          }}
+        >
+          Entrar ou cadastrar-se
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* INFO BAR */}
       <div style={{
