@@ -6913,21 +6913,22 @@ return (
         padding: "14px 16px",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center", // 🔥 centraliza o bloco
         gap: 12,
         cursor: "pointer",
         WebkitTapHighlightColor: "transparent",
-        boxSizing: "border-box"
+        boxSizing: "border-box",
+        textAlign: "center"
       }}
     >
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
-          minWidth: 0
+          gap: 12
         }}
       >
+        {/* ÍCONE */}
         <div
           style={{
             width: 42,
@@ -6943,7 +6944,8 @@ return (
           <User size={20} color="#ea1d2c" />
         </div>
 
-        <div style={{ minWidth: 0 }}>
+        {/* TEXTOS */}
+        <div>
           <div
             style={{
               fontSize: 13,
@@ -6952,7 +6954,7 @@ return (
               lineHeight: 1.2
             }}
           >
-            Explore mais com sua conta 
+            Explore mais com sua conta
           </div>
 
           <div
@@ -6960,7 +6962,7 @@ return (
               fontSize: 14,
               color: "#ea1d2c",
               fontWeight: 800,
-              marginTop: 3,
+              marginTop: 4,
               lineHeight: 1.2
             }}
           >
