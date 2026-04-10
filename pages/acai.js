@@ -73,7 +73,8 @@ import {
   QrCode,
   Wallet,
   ChevronRight,
-  Star
+  Star,
+  CheckCircle
   
 } from "lucide-react";
 
@@ -322,6 +323,9 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
 
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
+
+
+  const [enviandoWhatsapp, setEnviandoWhatsapp] = useState(false);
 
   const [extrasGlobais, setExtrasGlobais] = useState([]);
   const [loadingProdutos, setLoadingProdutos] = useState(true);
@@ -2457,74 +2461,103 @@ async function finalizarPedido() {
 }
 
 
-const enviarWhatsApp = (pedido) => {
+const enviarWhatsApp = async (pedido) => {
+  if (!pedido) return false;
+
+  const codigo = pedido?.codigo || Date.now();
+  const itens = Array.isArray(pedido?.itens) ? pedido.itens : [];
+  const total = Number(pedido?.total || 0);
+  const forma = pedido?.formaPagamento || formaPagamento || "Não informado";
+
+  const nomeCliente =
+    pedido?.cliente?.nome || clienteNome || "Cliente";
+
+  const telefoneCliente =
+    pedido?.cliente?.telefone || clienteTelefone || "-";
+
+  const enderecoCliente =
+    pedido?.cliente?.endereco || clienteEndereco || "Não informado";
+
+  const numeroCliente =
+    pedido?.cliente?.numero || clienteNumeroCasa || "-";
 
   let mensagem = `*Pedido #${codigo}*\n\n`;
 
-carrinho.forEach((item, i) => {
-  const nomeProduto =
-    item?.produto?.nome ||
-    item?.nome ||
-    "Produto";
+  itens.forEach((item, i) => {
+    const nomeProduto =
+      item?.produto?.nome ||
+      item?.nome ||
+      "Produto";
 
-  const quantidade = Number(item?.quantidade || 1);
-  const totalItem = Number(item?.total || 0);
+    const quantidade = Number(item?.quantidade || 1);
+    const totalItem = Number(item?.total || 0);
 
-  mensagem += `*${i + 1}. ${nomeProduto}*\n`;
-  mensagem += `Qtd: ${quantidade}\n`;
+    mensagem += `*${i + 1}. ${nomeProduto}*\n`;
+    mensagem += `Qtd: ${quantidade}\n`;
 
-  if (Array.isArray(item?.extras) && item.extras.length > 0) {
-    const extrasPorCategoria = {};
+    if (Array.isArray(item?.extras) && item.extras.length > 0) {
+      const extrasPorCategoria = {};
 
-    item.extras.forEach((e) => {
-      const categoria = e?.categoria || "Extras";
-      const nomeExtra = e?.nome || "Item";
+      item.extras.forEach((e) => {
+        const categoria = e?.categoria || "Extras";
+        const nomeExtra = e?.nome || "Item";
 
-      if (!extrasPorCategoria[categoria]) {
-        extrasPorCategoria[categoria] = [];
-      }
+        if (!extrasPorCategoria[categoria]) {
+          extrasPorCategoria[categoria] = [];
+        }
 
-      extrasPorCategoria[categoria].push(nomeExtra);
-    });
-
-    Object.keys(extrasPorCategoria).forEach((categoria) => {
-      mensagem += `\n• ${categoria}:\n`;
-
-      extrasPorCategoria[categoria].forEach((nomeExtra) => {
-        mensagem += `  + ${nomeExtra}\n`;
+        extrasPorCategoria[categoria].push(nomeExtra);
       });
-    });
-  }
 
-  mensagem += `\nValor: ${(totalItem / 100).toLocaleString("pt-BR", {
+      Object.keys(extrasPorCategoria).forEach((categoria) => {
+        mensagem += `\n• ${categoria}:\n`;
+
+        extrasPorCategoria[categoria].forEach((nomeExtra) => {
+          mensagem += `  + ${nomeExtra}\n`;
+        });
+      });
+    }
+
+    mensagem += `\nValor: ${(totalItem / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    })}\n\n`;
+  });
+
+  mensagem += `━━━━━━━━━━━━━━━\n`;
+  mensagem += `*Total:* ${(total / 100).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
-  })}\n\n`;
-});
+  })}\n`;
 
-mensagem += `━━━━━━━━━━━━━━━\n`;
-mensagem += `*Total:* ${(Number(totalFinal || 0) / 100).toLocaleString("pt-BR", {
-  style: "currency",
-  currency: "BRL"
-})}\n`;
+  if (forma === "pix") {
+    mensagem += `*Pagamento:* Pix confirmado\n`;
+  } else if (forma === "cartao") {
+    mensagem += `*Pagamento:* Cartão na entrega\n`;
+  } else if (forma === "dinheiro") {
+    mensagem += `*Pagamento:* Dinheiro na entrega\n`;
+  } else if (forma === "cartao_online") {
+    mensagem += `*Pagamento:* Cartão online\n`;
+  } else {
+    mensagem += `*Pagamento:* ${forma}\n`;
+  }
 
-if (formaPagamento === "pix") {
-  mensagem += `*Pagamento:* Pix\n`;
-} else if (formaPagamento === "cartao") {
-  mensagem += `*Pagamento:* Cartão na entrega\n`;
-} else if (formaPagamento === "dinheiro") {
-  mensagem += `*Pagamento:* Dinheiro na entrega\n`;
-} else if (formaPagamento === "cartao_online") {
-  mensagem += `*Pagamento:* Cartão online\n`;
-} else {
-  mensagem += `*Pagamento:* ${formaPagamento || "Não informado"}\n`;
-}
+  mensagem += `\n*Endereço:*\n${enderecoCliente}, Nº ${numeroCliente}\n`;
+  mensagem += `\n*Cliente:*\n${nomeCliente}\n${telefoneCliente}`;
 
-mensagem += `\n*Endereço:*\n${clienteEndereco || "Não informado"}, Nº ${clienteNumeroCasa || "-"}\n`;
-mensagem += `\n*Cliente:*\n${clienteNome || "Cliente"}\n${clienteTelefone || "-"}`;
+  const url = `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 
-  window.location.href =
-    `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const novaAba = window.open(url, "_blank");
+
+      if (!novaAba) {
+        window.location.href = url;
+      }
+
+      resolve(true);
+    }, 180);
+  });
 };
 
 return (
@@ -3075,51 +3108,229 @@ return (
 
 {/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
 {pedidoPago && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.7)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-    boxSizing: "border-box"
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 16,
-      textAlign: "center",
-      width: "100%",
-      maxWidth: 320
-    }}>
-      <h2>Pagamento confirmado</h2>
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.62)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 16,
+      boxSizing: "border-box"
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 360,
+        background: "#fff",
+        borderRadius: 24,
+        padding: 22,
+        boxSizing: "border-box",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.22)",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden"
+      }}
+    >
+      {/* TOPO DECORATIVO */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 6,
+          background: "linear-gradient(90deg,#00b34a,#1ed760)"
+        }}
+      />
 
+      {/* ÍCONE PREMIUM */}
+      <div
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: "50%",
+          background: "linear-gradient(180deg,#e9fff1,#f6fff9)",
+          border: "1px solid #d8f7e2",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "8px auto 14px",
+          boxShadow: "0 10px 26px rgba(0,179,74,0.12)"
+        }}
+      >
+        <CheckCircle size={42} color="#16c95b" strokeWidth={2.5} />
+      </div>
+
+      {/* TÍTULO */}
+      <h2
+        style={{
+          margin: 0,
+          fontSize: 22,
+          lineHeight: 1.15,
+          color: "#111",
+          fontWeight: 800
+        }}
+      >
+        Pagamento confirmado
+      </h2>
+
+      {/* SUBTÍTULO */}
+      <p
+        style={{
+          marginTop: 8,
+          marginBottom: 0,
+          fontSize: 14,
+          lineHeight: 1.45,
+          color: "#666"
+        }}
+      >
+        Seu pedido foi aprovado. Agora envie para o WhatsApp da loja para finalizar o atendimento.
+      </p>
+
+      {/* RESUMO */}
+      <div
+        style={{
+          marginTop: 18,
+          background: "#fafafa",
+          border: "1px solid #efefef",
+          borderRadius: 16,
+          padding: 14,
+          textAlign: "left"
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 14,
+            color: "#444"
+          }}
+        >
+          <span>Pedido</span>
+          <strong style={{ color: "#111" }}>
+            #{pedidoPago?.codigo || "—"}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 14,
+            color: "#444",
+            marginTop: 8
+          }}
+        >
+          <span>Total pago</span>
+          <strong style={{ color: "#16a34a" }}>
+            {formatarReal(Number(pedidoPago?.total || 0))}
+          </strong>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 14,
+            color: "#444",
+            marginTop: 8
+          }}
+        >
+          <span>Pagamento</span>
+          <strong style={{ color: "#111" }}>
+            {pedidoPago?.formaPagamento === "pix"
+              ? "Pix"
+              : pedidoPago?.formaPagamento === "cartao"
+              ? "Cartão na entrega"
+              : pedidoPago?.formaPagamento === "dinheiro"
+              ? "Dinheiro na entrega"
+              : pedidoPago?.formaPagamento === "cartao_online"
+              ? "Cartão online"
+              : "Confirmado"}
+          </strong>
+        </div>
+      </div>
+
+      {/* BOTÃO PRINCIPAL */}
       <button
-        onClick={() => {
-          enviarWhatsApp(pedidoPago);
+        disabled={enviandoWhatsapp}
+        onClick={async () => {
+          if (enviandoWhatsapp) return;
 
-          setCarrinho([]);
-          setFormaPagamento(null);
-          setQrBase64(null);
-          setQrCode(null);
-          setPaymentId(null);
-          setMostrarPagamento(false);
-          setPedidoAtual(null);
+          const pedido = pedidoPago;
+          if (!pedido) return;
+
+          try {
+            setEnviandoWhatsapp(true);
+
+            await enviarWhatsApp(pedido);
+
+            setTimeout(() => {
+              setCarrinho([]);
+              setFormaPagamento(null);
+              setQrBase64(null);
+              setQrCode(null);
+              setPaymentId(null);
+              setMostrarPagamento(false);
+              setPedidoAtual(null);
+              setPedidoPago(null);
+              setEnviandoWhatsapp(false);
+            }, 350);
+          } catch (e) {
+            console.log("ERRO AO ENVIAR WHATSAPP:", e);
+            setEnviandoWhatsapp(false);
+          }
+        }}
+        style={{
+          marginTop: 18,
+          width: "90%",
+          height: 52,
+          borderRadius: 16,
+          border: "none",
+          background: enviandoWhatsapp
+            ? "#9adfb4"
+            : "linear-gradient(90deg,#12b450,#1ed760)",
+          color: "#fff",
+          fontWeight: 800,
+          fontSize: 15,
+          cursor: enviandoWhatsapp ? "not-allowed" : "pointer",
+          boxShadow: enviandoWhatsapp
+            ? "none"
+            : "0 12px 28px rgba(18,180,80,0.26)",
+          transition: "all 0.2s ease"
+        }}
+      >
+        {enviandoWhatsapp ? "Abrindo WhatsApp..." : "Enviar pedido no WhatsApp"}
+      </button>
+
+      {/* BOTÃO SECUNDÁRIO */}
+      <button
+        disabled={enviandoWhatsapp}
+        onClick={() => {
+          if (enviandoWhatsapp) return;
           setPedidoPago(null);
         }}
         style={{
           marginTop: 10,
-          padding: 12,
-          borderRadius: 10,
-          border: "none",
-          background: "#00c853",
-          color: "#fff",
-          fontWeight: "bold"
+          width: "90%",
+          height: 46,
+          borderRadius: 14,
+          border: "1px solid #e5e5e5",
+          background: "#fff",
+          color: "#555",
+          fontWeight: 700,
+          fontSize: 14,
+          cursor: enviandoWhatsapp ? "not-allowed" : "pointer"
         }}
       >
-        Enviar pedido no WhatsApp
+        Fechar
       </button>
     </div>
   </div>

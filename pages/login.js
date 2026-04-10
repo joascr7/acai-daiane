@@ -6,7 +6,9 @@ import { db } from "../services/firebase";
 
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence
 } from "firebase/auth";
 
 import {
@@ -136,59 +138,62 @@ export default function Login() {
       .slice(0, 14);
   }
 
-  async function entrar() {
-    try {
-      setLoading(true);
+ async function entrar() {
+  try {
+    setLoading(true);
 
-      if (modo === "cadastro") {
-        if (!validarCPF(cpf)) {
-          alert("CPF inválido");
-          return;
-        }
+    // 🔥 mantém login salvo no navegador
+    await setPersistence(auth, browserLocalPersistence);
 
-        if (senha !== confirmarSenha) {
-          alert("Senhas não coincidem");
-          return;
-        }
-
-        const q = query(
-          collection(db, "clientes"),
-          where("cpf", "==", cpf)
-        );
-
-        const snap = await getDocs(q);
-
-        if (!snap.empty) {
-          alert("CPF já cadastrado");
-          return;
-        }
-
-        const res = await createUserWithEmailAndPassword(auth, email, senha);
-        const user = res.user;
-
-        await setDoc(doc(db, "clientes", user.uid), {
-          nome,
-          email,
-          cpf
-        });
-
-        await setDoc(doc(db, "usuarios", user.uid), {
-          clienteNome: nome,
-          clienteEmail: email,
-          clienteCpf: cpf
-        });
-      } else {
-        await signInWithEmailAndPassword(auth, email, senha);
+    if (modo === "cadastro") {
+      if (!validarCPF(cpf)) {
+        alert("CPF inválido");
+        return;
       }
 
-      router.push("/acai");
-    } catch (e) {
-      console.log(e);
-      alert("Erro: " + e.message);
+      if (senha !== confirmarSenha) {
+        alert("Senhas não coincidem");
+        return;
+      }
+
+      const q = query(
+        collection(db, "clientes"),
+        where("cpf", "==", cpf)
+      );
+
+      const snap = await getDocs(q);
+
+      if (!snap.empty) {
+        alert("CPF já cadastrado");
+        return;
+      }
+
+      const res = await createUserWithEmailAndPassword(auth, email, senha);
+      const user = res.user;
+
+      await setDoc(doc(db, "clientes", user.uid), {
+        nome,
+        email,
+        cpf
+      });
+
+      await setDoc(doc(db, "usuarios", user.uid), {
+        clienteNome: nome,
+        clienteEmail: email,
+        clienteCpf: cpf
+      });
+    } else {
+      await signInWithEmailAndPassword(auth, email, senha);
     }
 
+    router.push("/acai");
+  } catch (e) {
+    console.log(e);
+    alert("Erro: " + e.message);
+  } finally {
     setLoading(false);
   }
+}
 
   return (
     <div style={{
