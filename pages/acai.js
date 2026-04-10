@@ -33,6 +33,7 @@ import {
   updateDoc,
   query,
   where,
+  deleteDoc,
   runTransaction
 } from "firebase/firestore";
 
@@ -320,6 +321,9 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const larguraApp = isMobile ? 420 : 1200;
   const larguraNavbar = isMobile ? 420 : 700;
+
+  const [clienteBairro, setClienteBairro] = useState("");
+  const [fretes, setFretes] = useState([]);
 
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
@@ -1099,6 +1103,7 @@ useEffect(() => {
       setClienteEndereco(dados.clienteEndereco || "");
       setClienteNumeroCasa(dados.clienteNumeroCasa || "");
       setClienteCep(dados.clienteCep || "");
+      setClienteBairro(dados.clienteBairro || "");
 
     } catch (e) {
       console.log("🔥 ERRO FIRESTORE:", e);
@@ -1144,7 +1149,18 @@ useEffect(() => {
 
 
 
+useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, "fretes"), (snapshot) => {
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
+    setFretes(lista);
+  });
+
+  return () => unsubscribe();
+}, []);
 
 
 useEffect(() => {
@@ -1322,6 +1338,8 @@ const gerarNovoPixDoPedido = async (pedido) => {
   }
 };
 
+
+
 // PROMOCAO 
 const produtoEmPromocao = (p) => {
   return (
@@ -1480,14 +1498,12 @@ async function marcarComoLida() {
 
 const gerarPix = async () => {
   try {
-    // 🔥 se veio do step 5, não deixa gerar outro pedido
     if (pedidoPixAberto) {
       console.log("Fluxo de pedido existente: gerarPix bloqueado");
       return;
     }
 
-    // 🔒 VALIDAÇÃO
-    if (!totalFinal || totalFinal <= 0) {
+    if (!totalFinalComFrete || totalFinalComFrete <= 0) {
       mostrarMensagemPagamento("Sua sacola está vazia.", "erro");
       return;
     }
@@ -1497,23 +1513,24 @@ const gerarPix = async () => {
       return;
     }
 
+    if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+      mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
+      return;
+    }
+
     const cupomValidoAgora = await validarCupomAntes();
     if (!cupomValidoAgora) return;
 
-    const valorPix = Number(totalFinal) / 100;
-
-    // 🔥 ID ÚNICO
+    const valorPix = Number(totalFinalComFrete) / 100;
     const pedidoId = Date.now().toString();
 
     console.log("INICIANDO PEDIDO:", pedidoId);
 
-    // 🔥 LIMPA ESTADOS
     setQrBase64(null);
     setQrCode(null);
     setPaymentId(null);
     setPedidoPago(null);
 
-    // 🔥 CHAMA API PIX
     const res = await fetch("/api/pix", {
       method: "POST",
       headers: {
@@ -1532,19 +1549,16 @@ const gerarPix = async () => {
       return;
     }
 
-    // 🔥 QR CODE
     setQrBase64(data.qr_code_base64 || null);
     setQrCode(data.qr_code || null);
     setPaymentId(String(data.payment_id));
     setFormaPagamento("pix");
     setMostrarPagamento(true);
 
-    // 🔥 SALVA paymentId
     localStorage.setItem("paymentId", String(data.payment_id));
 
     console.log("PIX GERADO");
 
-    // 🔥 CRIA PEDIDO (BLOQUEADO ATÉ PAGAR)
     await setDoc(doc(db, "pedidos", pedidoId), {
       codigo: Math.floor(100000 + Math.random() * 900000),
 
@@ -1553,13 +1567,14 @@ const gerarPix = async () => {
         telefone: clienteTelefone || "",
         endereco: clienteEndereco || "",
         numero: clienteNumeroCasa || "",
+        bairro: clienteBairro || "",
         uid: user?.uid || null
       },
 
       itens: (carrinho || []).map(item => ({
         produtoId: item?.produto?.id || "",
-        nome: item?.produto?.nome || "Produto",
-        quantidade: item?.quantidade || 1,
+        nome: item?.produto?.nome || item?.nome || "Produto",
+        quantidade: Number(item?.quantidade || 1),
         total: Number(item?.total || 0),
 
         extras: (item?.extras || []).map(e => ({
@@ -1569,7 +1584,10 @@ const gerarPix = async () => {
         }))
       })),
 
-      total: Number(totalFinal || 0),
+      bairro: clienteBairro || "",
+      subtotal: Number(subtotalProdutos || 0),
+      taxaEntrega: Number(taxaEntrega || 0),
+      total: Number(totalFinalComFrete || 0),
 
       formaPagamento: "pix",
       statusPagamento: "aguardando_pagamento",
@@ -1595,21 +1613,15 @@ const gerarPix = async () => {
         : null,
 
       paymentId: String(data.payment_id),
-
-      // 🔥 SALVA QR PRA REABRIR DEPOIS
       qrCode: data.qr_code || "",
       qrBase64: data.qr_code_base64 || "",
-
-      // 🔥 SEMPRE EM CENTAVOS / DATA EM MS
       data: Date.now()
     });
 
     console.log("PEDIDO PIX SALVO (AGUARDANDO PAGAMENTO)");
 
-    // 🔥 SALVA ID LOCAL
     localStorage.setItem("pedidoId", pedidoId);
 
-    // 🔥 ATUALIZA UI
     setPedidoAtual({
       id: pedidoId,
       ativo: true
@@ -1619,7 +1631,6 @@ const gerarPix = async () => {
       "Pix gerado com sucesso. Faça o pagamento para liberar seu pedido.",
       "sucesso"
     );
-
   } catch (e) {
     console.log("ERRO GERAL:", e);
     mostrarMensagemPagamento("Ocorreu um erro ao gerar o Pix. Tente novamente.", "erro");
@@ -1684,6 +1695,35 @@ if (cupomAplicado) {
 
 // 🔥 TOTAL FINAL
 const totalFinal = Math.max(0, total - descontoCalculado);
+
+// 🔥 FRETE GRÁTIS
+const LIMITE_FRETE_GRATIS = 3000; // R$ 30,00
+
+const subtotalProdutos = Array.isArray(carrinho)
+  ? carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+  : 0;
+
+const bairroClienteNormalizado = (clienteBairro || "")
+  .trim()
+  .toLowerCase();
+
+const freteEncontrado = Array.isArray(fretes)
+  ? fretes.find(f =>
+      String(f?.bairro || "").trim().toLowerCase() === bairroClienteNormalizado &&
+      f?.ativo !== false
+    )
+  : null;
+
+const faltaFreteGratis = Math.max(0, LIMITE_FRETE_GRATIS - subtotalProdutos);
+
+const taxaEntrega =
+  subtotalProdutos >= LIMITE_FRETE_GRATIS
+    ? 0
+    : Number(freteEncontrado?.valor || 0);
+
+const totalFinalComFrete = totalFinal + taxaEntrega;
+
+
 
 // 🔥 MELHOR CUPOM AUTOMÁTICO
 const melhorCupom = Array.isArray(cupons)
@@ -1799,19 +1839,27 @@ async function sair() {
 }
 
 async function salvarDadosCliente() {
-
   if (!authReady) {
-    alert("Aguarde... carregando usuário");
+    setToast({
+      tipo: "info",
+      texto: "Carregando usuário..."
+    });
+
+    setTimeout(() => setToast(null), 2200);
     return;
   }
 
   if (!user) {
-    alert("Você não está logado");
+    setToast({
+      tipo: "erro",
+      texto: "Você precisa estar logado"
+    });
+
+    setTimeout(() => setToast(null), 2200);
     return;
   }
 
   try {
-
     await setDoc(
       doc(db, "usuarios", user.uid),
       {
@@ -1819,16 +1867,27 @@ async function salvarDadosCliente() {
         clienteTelefone,
         clienteEndereco,
         clienteNumeroCasa,
-        clienteCep
+        clienteCep,
+        clienteBairro
       },
       { merge: true }
     );
 
-    alert("Dados salvos ✅");
+    setToast({
+      tipo: "sucesso",
+      texto: "Alteração Feita"
+    });
 
+    setTimeout(() => setToast(null), 2200);
   } catch (e) {
     console.log("ERRO REAL:", e);
-    alert("Erro ao salvar ❌");
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao salvar dados"
+    });
+
+    setTimeout(() => setToast(null), 2200);
   }
 }
 
@@ -1844,15 +1903,34 @@ const buscarCEP = async (cep) => {
     const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
     const data = await res.json();
 
-    if (!data.erro) {
-      setClienteEndereco(
-        `${data.logradouro}, ${data.bairro}, ${data.localidade}`
-      );
+    if (data.erro) {
+      setToast({
+        tipo: "erro",
+        texto: "CEP não encontrado"
+      });
+      return;
     }
 
-  } catch {}
+    // 🔥 SEPARADO CORRETAMENTE
+    setClienteCep(cepLimpo);
+    setClienteEndereco(data.logradouro || "");
+    setClienteBairro(data.bairro || "");
 
-  setLoadingCep(false);
+    setToast({
+      tipo: "sucesso",
+      texto: "Endereço preenchido automaticamente"
+    });
+
+  } catch (e) {
+    console.log("ERRO CEP:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao buscar CEP"
+    });
+  } finally {
+    setLoadingCep(false);
+  }
 };
 
 
@@ -2349,7 +2427,17 @@ async function finalizarPedido() {
 
   if (!clienteNome || !clienteTelefone) {
     mostrarMensagemPagamento("Preencha seus dados antes de continuar.", "erro");
+    setAba("perfil");
     setStep(4);
+    setAbaPerfil("dados");
+    return;
+  }
+
+  if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+    mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
+    setAba("perfil");
+    setStep(4);
+    setAbaPerfil("endereco");
     return;
   }
 
@@ -2367,14 +2455,28 @@ async function finalizarPedido() {
     const pedido = {
       codigo,
       cliente: {
-        nome: clienteNome,
-        telefone: clienteTelefone,
-        endereco: clienteEndereco,
-        numero: clienteNumeroCasa,
+        nome: clienteNome || "Cliente",
+        telefone: clienteTelefone || "",
+        endereco: clienteEndereco || "",
+        numero: clienteNumeroCasa || "",
+        bairro: clienteBairro || "",
         uid: user?.uid || null
       },
-      itens: carrinho,
-      total: Math.round(Number(totalFinal || 0)),
+      itens: (carrinho || []).map(item => ({
+        produtoId: item?.produto?.id || "",
+        nome: item?.produto?.nome || item?.nome || "Produto",
+        quantidade: Number(item?.quantidade || 1),
+        total: Number(item?.total || 0),
+        extras: (item?.extras || []).map(e => ({
+          nome: e?.nome || "",
+          preco: Number(e?.preco || 0),
+          categoria: e?.categoria || "Extras"
+        }))
+      })),
+      bairro: clienteBairro || "",
+      subtotal: Number(subtotalProdutos || 0),
+      taxaEntrega: Number(taxaEntrega || 0),
+      total: Number(totalFinalComFrete || 0),
       formaPagamento,
       status: "preparando",
       data: Date.now(),
@@ -2398,45 +2500,6 @@ async function finalizarPedido() {
 
     localStorage.setItem("pedidoAtual", pedidoId);
 
-    let mensagem = `*Pedido #${codigo}*\n\n`;
-
-    carrinho.forEach((item, i) => {
-      mensagem += `*${i + 1}. ${item.produto?.nome || item.nome || "Produto"}*\n`;
-      mensagem += `Qtd: ${item.quantidade}\n`;
-
-      if (item.extras?.length) {
-        const extrasPorCategoria = {};
-
-        (item.extras || []).forEach(e => {
-          const cat = e.categoria || "Extras";
-
-          if (!extrasPorCategoria[cat]) {
-            extrasPorCategoria[cat] = [];
-          }
-
-          extrasPorCategoria[cat].push(e.nome);
-        });
-
-        Object.keys(extrasPorCategoria).forEach(cat => {
-          mensagem += `\n• ${cat}:\n`;
-
-          extrasPorCategoria[cat].forEach(nome => {
-            mensagem += `  + ${nome}\n`;
-          });
-        });
-      }
-
-      mensagem += `\nR$ ${(Number(item.total || 0) / 100).toFixed(2)}\n\n`;
-    });
-
-    mensagem += `━━━━━━━━━━━━━━━\n`;
-    mensagem += `*Total: R$ ${(Number(totalFinal || 0) / 100).toFixed(2)}*\n\n`;
-    mensagem += `Pagamento: ${formaPagamento}\n\n`;
-    mensagem += `*Endereço:*\n`;
-    mensagem += `${clienteEndereco}, Nº ${clienteNumeroCasa}\n\n`;
-    mensagem += `*Cliente:*\n`;
-    mensagem += `${clienteNome}\n${clienteTelefone}`;
-
     mostrarMensagemPagamento("Pedido confirmado com sucesso.", "sucesso");
 
     setCarrinho([]);
@@ -2447,10 +2510,9 @@ async function finalizarPedido() {
     setPaymentId(null);
     setPedidoPixAberto(null);
 
-    setTimeout(() => {
-      window.location.href =
-        `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
-    }, 700);
+    setTimeout(async () => {
+      await enviarWhatsApp(pedido);
+    }, 500);
 
   } catch (e) {
     console.log(e);
@@ -2745,9 +2807,9 @@ return (
         >
           <span>Entrega</span>
           <strong style={{ color: "#111", fontWeight: 600 }}>
-            {formatarReal((totalFinal || 0) - (total || 0)) === "R$ 0,00"
+            {formatarReal((totalFinalComFrete || 0) - (total || 0)) === "R$ 0,00"
               ? "Grátis"
-              : formatarReal((totalFinal || 0) - (total || 0))}
+              : formatarReal((totalFinalComFrete || 0) - (total || 0))}
           </strong>
         </div>
 
@@ -2764,7 +2826,7 @@ return (
           <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
             {pedidoPixAberto
               ? formatarReal(pedidoPixAberto.total)
-              : formatarReal(totalFinal)}
+              : formatarReal(totalFinalComFrete)}
           </strong>
         </div>
       </div>
@@ -3202,6 +3264,7 @@ return (
           textAlign: "left"
         }}
       >
+        {/* PEDIDO */}
         <div
           style={{
             display: "flex",
@@ -3217,6 +3280,7 @@ return (
           </strong>
         </div>
 
+        {/* SUBTOTAL */}
         <div
           style={{
             display: "flex",
@@ -3227,12 +3291,13 @@ return (
             marginTop: 8
           }}
         >
-          <span>Total pago</span>
-          <strong style={{ color: "#16a34a" }}>
-            {formatarReal(Number(pedidoPago?.total || 0))}
+          <span>Subtotal</span>
+          <strong style={{ color: "#111" }}>
+            {formatarReal(Number(pedidoPago?.subtotal || 0))}
           </strong>
         </div>
 
+        {/* ENTREGA */}
         <div
           style={{
             display: "flex",
@@ -3241,6 +3306,95 @@ return (
             fontSize: 14,
             color: "#444",
             marginTop: 8
+          }}
+        >
+          <span>Entrega</span>
+          <strong
+            style={{
+              color: Number(pedidoPago?.taxaEntrega || 0) === 0 ? "#16a34a" : "#111"
+            }}
+          >
+            {Number(pedidoPago?.taxaEntrega || 0) === 0
+              ? "Grátis"
+              : formatarReal(Number(pedidoPago?.taxaEntrega || 0))}
+          </strong>
+        </div>
+
+        {/* AVISO FRETE GRÁTIS */}
+        {Number(pedidoPago?.subtotal || 0) < 3000 &&
+          Number(pedidoPago?.taxaEntrega || 0) > 0 && (
+            <div
+              style={{
+                marginTop: 10,
+                padding: "10px 12px",
+                borderRadius: 12,
+                background: "#fff7ed",
+                border: "1px solid #fed7aa",
+                fontSize: 12,
+                lineHeight: 1.4,
+                color: "#9a3412",
+                fontWeight: 600
+              }}
+            >
+              Faltaram{" "}
+              {formatarReal(3000 - Number(pedidoPago?.subtotal || 0))}{" "}
+              para frete grátis.
+            </div>
+          )}
+
+        {Number(pedidoPago?.subtotal || 0) >= 3000 && (
+          <div
+            style={{
+              marginTop: 10,
+              padding: "10px 12px",
+              borderRadius: 12,
+              background: "#ecfdf3",
+              border: "1px solid #bbf7d0",
+              fontSize: 12,
+              lineHeight: 1.4,
+              color: "#15803d",
+              fontWeight: 700
+            }}
+          >
+            Pedido com frete grátis liberado.
+          </div>
+        )}
+
+        {/* LINHA */}
+        <div
+          style={{
+            height: 1,
+            background: "#e5e5e5",
+            margin: "12px 0"
+          }}
+        />
+
+        {/* TOTAL */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 16,
+            fontWeight: 800,
+            color: "#111"
+          }}
+        >
+          <span>Total</span>
+          <strong style={{ color: "#16a34a" }}>
+            {formatarReal(Number(pedidoPago?.total || 0))}
+          </strong>
+        </div>
+
+        {/* PAGAMENTO */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 14,
+            color: "#444",
+            marginTop: 10
           }}
         >
           <span>Pagamento</span>
@@ -4327,7 +4481,7 @@ return (
       margin: "0 auto",
       minHeight: "100dvh",
       background: "#f7f7f7",
-      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 190px)`,
+      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 220px)`,
       boxSizing: "border-box"
     }}
   >
@@ -4555,11 +4709,10 @@ return (
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#ea1d2c",
-              fontWeight: 700
+              color: "#ea1d2c"
             }}
           >
-            %
+            <Tag size={14} />
           </div>
 
           <strong style={{ color: "#111" }}>Adicionar cupom</strong>
@@ -4589,7 +4742,7 @@ return (
             </strong>
 
             <div style={{ fontSize: 12, marginTop: 3 }}>
-              Economizou {formatarReal(desconto)}
+              Economizou {formatarReal(descontoCalculado)}
             </div>
           </div>
 
@@ -4613,110 +4766,178 @@ return (
     </div>
 
     {/* RESUMO FIXO */}
-{/* RESUMO FIXO */}
-<div
-  style={{
-    position: "fixed",
-    bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + ${isMobile ? 18 : 10}px)`,
+    <div
+      style={{
+        position: "fixed",
+        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + ${isMobile ? 18 : 10}px)`,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: larguraApp,
+        padding: "0 16px",
+        boxSizing: "border-box",
+        zIndex: 20
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          padding: 16,
+          paddingBottom: `calc(16px + env(safe-area-inset-bottom))`,
+          boxShadow: "0 -4px 18px rgba(0,0,0,0.08)",
+          border: "1px solid #efefef"
+        }}
+      >
+        {/* SUBTOTAL */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 13,
+            color: "#555"
+          }}
+        >
+          <span>Subtotal</span>
+          <span>{formatarReal(subtotalProdutos)}</span>
+        </div>
 
-    left: "50%", // 🔥 centraliza
-    transform: "translateX(-50%)",
+        {/* 🔥 ENTREGA */}
+<div style={{
+  display: "flex",
+  justifyContent: "space-between",
+  marginTop: 6,
+  fontSize: 13,
+  color: "#555"
+}}>
+  <span>Entrega</span>
 
-    width: "100%",
-    maxWidth: larguraApp,
+  <span style={{
+    color: taxaEntrega === 0 ? "#16a34a" : "#111",
+    fontWeight: 700
+  }}>
+    {subtotalProdutos >= LIMITE_FRETE_GRATIS
+      ? "Grátis"
+      : formatarReal(taxaEntrega)}
+  </span>
+</div>
 
-    padding: "0 16px", // 🔥 espaço lateral correto
-    boxSizing: "border-box",
 
-    zIndex: 20
-  }}
->
+{/* 🔥 MENSAGEM FRETE */}
+{faltaFreteGratis > 0 && (
   <div
     style={{
-      background: "#fff",
-      borderRadius: 20,
-      padding: 16,
-      paddingBottom: `calc(16px + env(safe-area-inset-bottom))`,
-      boxShadow: "0 -4px 18px rgba(0,0,0,0.08)",
-      border: "1px solid #efefef"
+      marginTop: 10,
+      padding: "10px 12px",
+      borderRadius: 12,
+      background: "#fff7ed",
+      border: "1px solid #fed7aa",
+      fontSize: 12,
+      color: "#9a3412",
+      fontWeight: 600
     }}
   >
-
-    <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      fontSize: 13,
-      color: "#555"
-    }}>
-      <span>Subtotal</span>
-      <span>{formatarReal(total)}</span>
-    </div>
-
-    {descontoCalculado > 0 && (
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        color: "#00a650",
-        fontSize: 13,
-        marginTop: 6
-      }}>
-        <span>Desconto</span>
-        <span>-{formatarReal(descontoCalculado)}</span>
-      </div>
-    )}
-
-    <div style={{
-      display: "flex",
-      justifyContent: "space-between",
-      marginTop: 8,
-      alignItems: "center"
-    }}>
-      <strong style={{ fontSize: 15, color: "#111" }}>Total</strong>
-      <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
-        {formatarReal(totalFinal)}
-      </strong>
-    </div>
-
-    <button
-  onClick={() => {
-    if (!user) {
-      localStorage.setItem("redirectAfterLogin", "carrinho");
-      router.push("/login");
-      return;
-    }
-
-    if (!clienteNome || !clienteEndereco || !clienteTelefone) {
-      alert("Preencha seus dados");
-      setAba("perfil");
-      setStep(4);
-      return;
-    }
-
-    setAba("pagamentos");
-    setStep(6);
-  }}
-  style={{
-    display: "block",
-    width: "calc(100% - 0px)", // 🔥 CORREÇÃO
-    boxSizing: "border-box",   // 🔥 IMPORTANTE
-
-    marginTop: 12,
-    height: 52,
-    borderRadius: 16,
-    background: "#ea1d2c",
-    color: "#fff",
-    border: "none",
-    fontWeight: 700,
-    fontSize: 15,
-    cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
-  }}
->
-  Continuar pedido
-</button>
-
+    Faltam {formatarReal(faltaFreteGratis)} para ganhar frete grátis
   </div>
-</div>
+)}
+
+{faltaFreteGratis === 0 && subtotalProdutos > 0 && (
+  <div
+    style={{
+      marginTop: 10,
+      padding: "10px 12px",
+      borderRadius: 12,
+      background: "#ecfdf3",
+      border: "1px solid #bbf7d0",
+      fontSize: 12,
+      color: "#15803d",
+      fontWeight: 700
+    }}
+  >
+    Frete grátis liberado para este pedido.
+  </div>
+)}
+
+        {/* DESCONTO */}
+        {descontoCalculado > 0 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              color: "#00a650",
+              fontSize: 13,
+              marginTop: 6
+            }}
+          >
+            <span>Desconto</span>
+            <span>-{formatarReal(descontoCalculado)}</span>
+          </div>
+        )}
+
+
+        {/* TOTAL */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: 10,
+            alignItems: "center"
+          }}
+        >
+          <strong style={{ fontSize: 15, color: "#111" }}>Total</strong>
+          <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
+            {formatarReal(totalFinalComFrete)}
+          </strong>
+        </div>
+
+        <button
+          onClick={() => {
+            if (!user) {
+              localStorage.setItem("redirectAfterLogin", "carrinho");
+              router.push("/login");
+              return;
+            }
+
+            if (!clienteNome || !clienteTelefone) {
+              mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
+              setAba("perfil");
+              setStep(4);
+              setAbaPerfil("dados");
+              return;
+            }
+
+            if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+              mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
+              setAba("perfil");
+              setStep(4);
+              setAbaPerfil("endereco");
+              return;
+            }
+
+            setAba("pagamentos");
+            setStep(6);
+          }}
+          style={{
+            display: "block",
+            width: "100%",
+            boxSizing: "border-box",
+            marginTop: 12,
+            height: 52,
+            borderRadius: 16,
+            background: "#ea1d2c",
+            color: "#fff",
+            border: "none",
+            fontWeight: 700,
+            fontSize: 15,
+            cursor: "pointer",
+            boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
+          }}
+        >
+          Continuar pedido
+        </button>
+      </div>
+    </div>
+ 
 
     {/* ANIMAÇÃO */}
     <style>
@@ -4985,14 +5206,21 @@ return (
 
             <div style={{ marginTop: 14 }}>
               <input
-                style={input}
-                placeholder="CEP"
-                onChange={(e)=>{
-                  if(e.target.value.replace(/\D/g,"").length===8){
-                    buscarCEP(e.target.value);
-                  }
-                }}
-              />
+              style={input}
+              value={clienteCep}
+              onChange={(e) => {
+              const valor = e.target.value
+              .replace(/\D/g, "")
+              .slice(0, 8);
+
+              setClienteCep(valor);
+
+              if (valor.length === 8) {
+              buscarCEP(valor);
+             }
+             }}
+             placeholder="CEP"
+             />
 
               {loadingCep && (
                 <div style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>
@@ -5005,6 +5233,14 @@ return (
                 value={clienteEndereco}
                 onChange={(e)=>setClienteEndereco(e.target.value)}
                 placeholder="Rua"
+              />
+
+
+              <input
+              style={input}
+              value={clienteBairro}
+              onChange={(e) => setClienteBairro(e.target.value)}
+              placeholder="Bairro"
               />
 
               <input
@@ -5266,9 +5502,54 @@ return (
         )}
       </div>
 
+{toast && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "calc(100% - 32px)",
+      maxWidth: 420,
+      zIndex: 9999
+    }}
+  >
+    <div
+      style={{
+        background:
+          toast.tipo === "sucesso"
+            ? "#ecfdf3"
+            : toast.tipo === "erro"
+            ? "#fef2f2"
+            : "#f8fafc",
+        color:
+          toast.tipo === "sucesso"
+            ? "#166534"
+            : toast.tipo === "erro"
+            ? "#b91c1c"
+            : "#334155",
+        border:
+          toast.tipo === "sucesso"
+            ? "1px solid #bbf7d0"
+            : toast.tipo === "erro"
+            ? "1px solid #fecaca"
+            : "1px solid #e2e8f0",
+        borderRadius: 16,
+        padding: "14px 16px",
+        boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+        fontSize: 14,
+        fontWeight: 600
+      }}
+    >
+      {toast.texto}
     </div>
   </div>
 )}
+
+    </div>
+  </div>
+)}
+
 
 
 {aba === "pedidos" && step === 5 && (
@@ -5878,7 +6159,7 @@ return (
           }}>
             <span>Total</span>
             <span style={{ color: "#ea1d2c" }}>
-              {formatarReal(totalFinal)}
+              {formatarReal(totalFinalComFrete)}
             </span>
           </div>
         </div>
@@ -5969,7 +6250,7 @@ return (
             cursor: "pointer"
           }}
         >
-          Finalizar pedido • {formatarReal(totalFinal)}
+          Finalizar pedido • {formatarReal(totalFinalComFrete)}
         </button>
 
         <button

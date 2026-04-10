@@ -19,8 +19,10 @@ import {
   addDoc,
   deleteDoc,
   updateDoc,
-  onSnapshot
+  onSnapshot,
 } from 'firebase/firestore';
+
+import { Pencil, Trash2, Power } from "lucide-react";
 
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -158,7 +160,7 @@ const inputStyle = {
   const router = useRouter();
 
   const [produtoEditandoId, setProdutoEditandoId] = useState(null);
-
+const [toast, setToast] = useState(null);
   const [pedidos, setPedidos] = useState([]);
   const [novosPedidos, setNovosPedidos] = useState([]);
   const [primeiraCarga, setPrimeiraCarga] = useState(true);
@@ -168,6 +170,13 @@ const inputStyle = {
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
+
+
+  const [fretes, setFretes] = useState([]);
+const [bairroFrete, setBairroFrete] = useState("");
+const [valorFrete, setValorFrete] = useState("");
+const [freteEditandoId, setFreteEditandoId] = useState(null);
+const [loadingFrete, setLoadingFrete] = useState(false);
 
   const [usuarios, setUsuarios] = useState([]);
 
@@ -192,6 +201,21 @@ const inputStyle = {
   const [editandoProduto, setEditandoProduto] = useState(null);
 
   const [mostrarModalProduto, setMostrarModalProduto] = useState(false);
+
+
+  const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+
+    check();
+
+    window.addEventListener("resize", check);
+
+    return () => window.removeEventListener("resize", check);
+  }
+}, []);
 
   const [novoNome, setNovoNome] = useState("");
   const [novoPreco, setNovoPreco] = useState("");
@@ -484,7 +508,147 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, "fretes"), (snapshot) => {
+    const lista = snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
 
+    lista.sort((a, b) =>
+      String(a?.bairro || "").localeCompare(String(b?.bairro || ""), "pt-BR")
+    );
+
+    setFretes(lista);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
+
+function limparFormularioFrete() {
+  setFreteEditandoId(null);
+  setBairroFrete("");
+  setValorFrete("");
+}
+
+function abrirEdicaoFrete(item) {
+  setFreteEditandoId(item.id);
+  setBairroFrete(item?.bairro || "");
+  setValorFrete(
+    Number(item?.valor || 0) > 0
+      ? (Number(item.valor) / 100).toFixed(2).replace(".", ",")
+      : ""
+  );
+}
+
+async function salvarFrete() {
+  const bairro = String(bairroFrete || "").trim();
+  const valorCentavos = converterParaCentavos(valorFrete || "0");
+
+  if (!bairro) {
+    setToast({
+      tipo: "erro",
+      texto: "Preencha o bairro."
+    });
+    setTimeout(() => setToast(null), 2000);
+    return;
+  }
+
+  if (!valorCentavos || valorCentavos <= 0) {
+    setToast({
+      tipo: "erro",
+      texto: "Informe um valor de frete válido."
+    });
+    setTimeout(() => setToast(null), 2000);
+    return;
+  }
+
+  try {
+    setLoadingFrete(true);
+
+    if (freteEditandoId) {
+      await updateDoc(doc(db, "fretes", freteEditandoId), {
+        bairro,
+        valor: valorCentavos
+      });
+
+      setToast({
+        tipo: "sucesso",
+        texto: "Frete atualizado com sucesso."
+      });
+    } else {
+      await addDoc(collection(db, "fretes"), {
+        bairro,
+        valor: valorCentavos,
+        ativo: true,
+        criadoEm: Date.now()
+      });
+
+      setToast({
+        tipo: "sucesso",
+        texto: "Bairro adicionado com sucesso."
+      });
+    }
+
+    limparFormularioFrete();
+    setTimeout(() => setToast(null), 2000);
+  } catch (e) {
+    console.log("ERRO AO SALVAR FRETE:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao salvar frete."
+    });
+
+    setTimeout(() => setToast(null), 2000);
+  } finally {
+    setLoadingFrete(false);
+  }
+}
+
+async function alternarStatusFrete(item) {
+  try {
+    await updateDoc(doc(db, "fretes", item.id), {
+      ativo: item?.ativo === false ? true : false
+    });
+
+    setToast?.({
+      tipo: "sucesso",
+      texto: item?.ativo === false
+        ? "Bairro ativado."
+        : "Bairro desativado."
+    });
+  } catch (e) {
+    console.log("ERRO AO ATIVAR/DESATIVAR FRETE:", e);
+    setToast?.({
+      tipo: "erro",
+      texto: "Erro ao atualizar status."
+    });
+  }
+}
+
+async function excluirFrete(id) {
+  try {
+    await deleteDoc(doc(db, "fretes", id));
+
+    if (freteEditandoId === id) {
+      limparFormularioFrete();
+    }
+
+    setToast?.({
+      tipo: "sucesso",
+      texto: "Bairro removido com sucesso."
+    });
+  } catch (e) {
+    console.log("ERRO AO EXCLUIR FRETE:", e);
+    setToast?.({
+      tipo: "erro",
+      texto: "Erro ao remover bairro."
+    });
+  }
+}
 
 
 // 🔥 criar categoria
@@ -981,7 +1145,31 @@ if (loadingAuth) {
   return <div style={{ color: 'white' }}>Carregando...</div>;
 }
 
+
+
+{toast && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 20,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#111",
+      color: "#fff",
+      padding: "10px 16px",
+      borderRadius: 10,
+      fontWeight: 600,
+      zIndex: 9999
+    }}
+  >
+    {toast.texto}
+  </div>
+)}
+
+
   return (
+
+
   <div className="container">
     <div className="wrapper">
 
@@ -1065,6 +1253,7 @@ if (loadingAuth) {
     { id: "pedidos", nome: "Pedidos" },
     { id: "produtos", nome: "Produtos" },
     { id: "cupons", nome: "Cupons" },
+    { id: "fretes", nome: "Fretes" },
     { id: "notificacoes", nome: "Notificações" },
     { id: "loja", nome: "Loja" }
   ].map(item => (
@@ -1370,6 +1559,252 @@ if (loadingAuth) {
             </div>
           </div>
         ))}
+    </div>
+  </div>
+)}
+
+{abaAdmin === "fretes" && (
+  <div
+    style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      boxShadow: "0 4px 16px rgba(0,0,0,0.05)",
+      border: "1px solid #f1f1f1"
+    }}
+  >
+    <h2
+      style={{
+        marginTop: 0,
+        marginBottom: 16,
+        fontSize: 24,
+        fontWeight: 800,
+        color: "#111"
+      }}
+    >
+      Frete por bairro
+    </h2>
+
+    {/* FORMULÁRIO */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr auto auto",
+        gap: 10,
+        alignItems: "center",
+        marginBottom: 16
+      }}
+    >
+      <input
+        value={bairroFrete}
+        onChange={(e) => setBairroFrete(e.target.value)}
+        placeholder="Nome do bairro"
+        style={{
+          width: "100%",
+          height: 46,
+          borderRadius: 14,
+          border: "1px solid #e5e5e5",
+          padding: "0 14px",
+          fontSize: 14,
+          outline: "none",
+          boxSizing: "border-box",
+          background: "#fff",
+          color: "#111"
+        }}
+      />
+
+      <input
+        value={valorFrete}
+        onChange={(e) => setValorFrete(e.target.value)}
+        placeholder="Valor do frete"
+        style={{
+          width: "100%",
+          height: 46,
+          borderRadius: 14,
+          border: "1px solid #e5e5e5",
+          padding: "0 14px",
+          fontSize: 14,
+          outline: "none",
+          boxSizing: "border-box",
+          background: "#fff",
+          color: "#111"
+        }}
+      />
+
+      <button
+        onClick={salvarFrete}
+        disabled={loadingFrete}
+        style={{
+          height: 46,
+          minWidth: 150,
+          padding: "0 18px",
+          borderRadius: 14,
+          border: "none",
+          background: "#ea1d2c",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: 14,
+          cursor: loadingFrete ? "not-allowed" : "pointer",
+          opacity: loadingFrete ? 0.7 : 1,
+          boxShadow: "0 8px 20px rgba(234,29,44,0.18)"
+        }}
+      >
+        {loadingFrete
+          ? "Salvando..."
+          : freteEditandoId
+          ? "Salvar alteração"
+          : "Adicionar bairro"}
+      </button>
+
+      {freteEditandoId && (
+        <button
+          onClick={limparFormularioFrete}
+          style={{
+            height: 46,
+            minWidth: 110,
+            padding: "0 16px",
+            borderRadius: 14,
+            border: "1px solid #e5e5e5",
+            background: "#fff",
+            color: "#111",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
+          Cancelar
+        </button>
+      )}
+    </div>
+
+    {/* LISTA */}
+    <div style={{ marginTop: 10 }}>
+      {fretes.length === 0 && (
+        <div
+          style={{
+            fontSize: 14,
+            color: "#777",
+            padding: "12px 0"
+          }}
+        >
+          Nenhum bairro cadastrado.
+        </div>
+      )}
+
+      {fretes.map((item) => (
+        <div
+          key={item.id}
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            padding: "12px 14px",
+            marginBottom: 10,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            border: "1px solid #f1f1f1",
+            flexWrap: isMobile ? "wrap" : "nowrap"
+          }}
+        >
+          {/* INFORMAÇÕES */}
+          <div style={{ flex: 1, minWidth: 180 }}>
+            <strong
+              style={{
+                display: "block",
+                fontSize: 15,
+                color: "#111",
+                fontWeight: 700
+              }}
+            >
+              {item?.bairro || "Sem bairro"}
+            </strong>
+
+            <div
+              style={{
+                fontSize: 13,
+                color: "#555",
+                marginTop: 4
+              }}
+            >
+              Frete: <strong>{formatarReal(Number(item?.valor || 0))}</strong>
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                marginTop: 4,
+                color: item?.ativo === false ? "#888" : "#15803d",
+                fontWeight: 700
+              }}
+            >
+              {item?.ativo === false ? "Desativado" : "Ativo"}
+            </div>
+          </div>
+
+          {/* AÇÕES */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              justifyContent: isMobile ? "flex-start" : "flex-end"
+            }}
+          >
+            <button
+              onClick={() => abrirEdicaoFrete(item)}
+              style={{
+                height: 38,
+                padding: "0 14px",
+                borderRadius: 12,
+                border: "1px solid #dcdcdc",
+                background: "#fff",
+                color: "#111",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer"
+              }}
+            >
+              Editar
+            </button>
+
+            <button
+              onClick={() => alternarStatusFrete(item)}
+              style={{
+                height: 38,
+                padding: "0 14px",
+                borderRadius: 12,
+                border: "1px solid #e5e5e5",
+                background: item?.ativo === false ? "#ecfdf3" : "#fff7ed",
+                color: item?.ativo === false ? "#166534" : "#9a3412",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer"
+              }}
+            >
+              {item?.ativo === false ? "Ativar" : "Desativar"}
+            </button>
+
+            <button
+              onClick={() => excluirFrete(item.id)}
+              style={{
+                height: 38,
+                padding: "0 14px",
+                borderRadius: 12,
+                border: "none",
+                background: "#ea1d2c",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer"
+              }}
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   </div>
 )}
