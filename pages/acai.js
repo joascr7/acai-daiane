@@ -329,6 +329,8 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
 
 
+
+
   const [enviandoWhatsapp, setEnviandoWhatsapp] = useState(false);
 
   const [extrasGlobais, setExtrasGlobais] = useState([]);
@@ -430,6 +432,9 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   const [carrinho, setCarrinho] = useState([]);
   const [notificacoes, setNotificacoes] = useState([]);
   const [temNotificacao, setTemNotificacao] = useState(false);
+  const temNotificacaoAtiva =
+  Array.isArray(notificacoes) &&
+  notificacoes.some((n) => n?.lida !== true);
   const [editandoIndex, setEditandoIndex] = useState(null);
 // 🔥 forma de pagamento
   const [formaPagamento, setFormaPagamento] = useState(null);
@@ -773,39 +778,40 @@ useEffect(() => {
 
 
 useEffect(() => {
+  if (!user) {
+    setNotificacoes([]);
+    return;
+  }
+
   const q = query(collection(db, "notificacoes"));
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-
-    if (!user) return; // 🔥 valida aqui dentro
-
     const lista = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
- const filtradas = lista.filter(n => {
-  if (!n.ativo) return false;
+    const filtradas = lista.filter(n => {
+      if (!n?.ativo) return false;
 
-  // 🔥 TODOS
-  if (n.para === "todos") return true;
+      if (n?.para === "todos") return true;
 
-  // 🔥 GARANTE QUE EXISTE UID
-  if (n.para === "usuario" && n.uid && String(n.uid) === String(user.uid)) {
-    return true;
-  }
+      if (
+        n?.para === "usuario" &&
+        n?.uid &&
+        String(n.uid) === String(user.uid)
+      ) {
+        return true;
+      }
 
-  return false;
-});
-
-    console.log("FILTRADAS:", filtradas);
+      return false;
+    });
 
     setNotificacoes(filtradas);
   });
 
   return () => unsubscribe();
 }, [user]);
-
 
   
 
@@ -1356,120 +1362,156 @@ const precoFinalProduto = (p) => {
 };
 
 
+function abrirProdutoDaNotificacao(notificacao) {
+  if (!notificacao?.produtoId) return;
+
+  const produtoEncontrado = produtos.find(
+    (p) => String(p.id) === String(notificacao.produtoId)
+  );
+
+  if (!produtoEncontrado) {
+    mostrarMensagemPagamento("Esse produto não está mais disponível.", "erro");
+    return;
+  }
+
+  setProduto(produtoEncontrado);
+  setAba("home");
+  setStep(2);
+}
+
+
 // notificar
 function NotificacaoItem({ n }) {
-
   async function marcarUmaComoLida() {
-    if (n.lida) return;
+    if (n?.lida) return;
 
-    await updateDoc(doc(db, "notificacoes", n.id), {
-      lida: true
-    });
+    try {
+      await updateDoc(doc(db, "notificacoes", n.id), {
+        lida: true
+      });
+    } catch (e) {
+      console.log("Erro ao marcar notificação como lida:", e);
+    }
   }
 
   return (
-
-
-    
-
     <div
-      onClick={marcarUmaComoLida}
+      onClick={async () => {
+        await marcarUmaComoLida();
+        abrirProdutoDaNotificacao(n);
+      }}
       style={{
-        background: !n.lida
+        background: !n?.lida
           ? (dark ? "rgba(147,51,234,0.15)" : "rgba(147,51,234,0.08)")
           : (dark ? "#1a1a1a" : "#fff"),
         borderRadius: 16,
         padding: 15,
         marginBottom: 12,
         position: "relative",
-        cursor: "pointer",
+        cursor: n?.produtoId ? "pointer" : "default",
         transition: "all 0.2s ease",
-        border: !n.lida
+        border: !n?.lida
           ? "1px solid #9333ea"
           : "1px solid transparent",
         animation: "slideUp 0.3s ease",
         boxShadow: "0 6px 20px rgba(0,0,0,0.15)"
       }}
-
-      onMouseEnter={e => e.currentTarget.style.transform = "scale(1.01)"}
-      onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+      onMouseEnter={(e) => {
+        if (n?.produtoId) {
+          e.currentTarget.style.transform = "scale(1.01)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "scale(1)";
+      }}
     >
-
-      {/* 🔥 TIPO */}
-      <div style={{
-        fontSize: 12,
-        marginBottom: 6,
-        color: n.para === "todos" ? "#ea3f33" : "#fa846f3f",
-        fontWeight: "bold"
-      }}>
-        {n.para === "todos" ? "📢 Aviso" : "📦 Pedido"}
+      <div
+        style={{
+          fontSize: 12,
+          marginBottom: 6,
+          color: n?.para === "todos" ? "#ea1d2c" : "#666",
+          fontWeight: 700
+        }}
+      >
+        {n?.para === "todos" ? "Aviso" : "Pedido"}
       </div>
 
-      {/* 🔥 IMAGEM (BANNER) */}
-      {n.imagem && (
+      {n?.imagem && (
         <img
           src={n.imagem}
-          onClick={(e) => {
-          e.stopPropagation();
-
-          if (n.produtoId && produtos) {
-
-          const produtoEncontrado = produtos.find(
-          p => p.id === n.produtoId
-          );
-
-          if (produtoEncontrado) {
-          setProduto(produtoEncontrado);
-
-           // 🔥 ESSAS LINHAS FALTAVAM
-          setAba("home");
-          setStep(2);
-            }
-          }
-         }}
-
+          alt={n?.produtoNome || "Notificação"}
           style={{
             width: "100%",
             height: 130,
             objectFit: "cover",
             borderRadius: 12,
             marginBottom: 10,
-            cursor: "pointer"
+            display: "block"
           }}
         />
       )}
 
-      {/* 🔥 TEXTO */}
-      <div style={{
-        fontSize: 14,
-        fontWeight: 500,
-        lineHeight: "18px"
-      }}>
-        {n.texto}
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 500,
+          lineHeight: "18px",
+          color: dark ? "#fff" : "#111"
+        }}
+      >
+        {n?.texto}
       </div>
 
-      {/* 🔥 DATA */}
-      <div style={{
-        fontSize: 11,
-        opacity: 0.5,
-        marginTop: 6
-      }}>
-        {n.data ? new Date(n.data).toLocaleString() : ""}
-      </div>
-
-      {/* 🔴 INDICADOR */}
-      {!n.lida && (
-        <span style={{
-          position: "absolute",
-          top: 12,
-          right: 12,
-          width: 8,
-          height: 8,
-          background: "#ea4833",
-          borderRadius: "50%"
-        }} />
+      {n?.produtoNome && (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#666",
+            marginTop: 8,
+            fontWeight: 600
+          }}
+        >
+          Produto: {n.produtoNome}
+        </div>
       )}
 
+      {n?.produtoId && (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#ea1d2c",
+            marginTop: 8,
+            fontWeight: 700
+          }}
+        >
+          Toque para abrir o produto
+        </div>
+      )}
+
+      <div
+        style={{
+          fontSize: 11,
+          opacity: 0.5,
+          marginTop: 8,
+          color: dark ? "#ddd" : "#555"
+        }}
+      >
+        {n?.data ? new Date(n.data).toLocaleString("pt-BR") : ""}
+      </div>
+
+      {!n?.lida && (
+        <span
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            width: 8,
+            height: 8,
+            background: "#ea1d2c",
+            borderRadius: "50%"
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1477,18 +1519,22 @@ function NotificacaoItem({ n }) {
 
 
 
-// marca tudo como lido
 async function marcarComoLida() {
+  try {
+    const pendentes = notificacoes.filter((n) => n?.lida !== true);
 
-  notificacoes.forEach(async (n) => {
-    if (!n.lida) {
-      await updateDoc(doc(db, "notificacoes", n.id), {
-        lida: true
-      });
-    }
-  });
+    await Promise.all(
+      pendentes.map((n) =>
+        updateDoc(doc(db, "notificacoes", n.id), {
+          lida: true
+        })
+      )
+    );
 
-  setTemNotificacao(false);
+    setTemNotificacao(false);
+  } catch (e) {
+    console.log("Erro ao marcar notificações como lidas:", e);
+  }
 }
 
 
@@ -3575,20 +3621,20 @@ return (
         >
           <Bell size={18} color="#111" />
 
-          {temNotificacao && (
-            <div
-              style={{
-                position: "absolute",
-                top: 5,
-                right: 5,
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "#ea1d2c",
-                boxShadow: "0 0 0 2px #fff"
-              }}
-            />
-          )}
+     {temNotificacaoAtiva && (
+     <div
+    style={{
+      position: "absolute",
+      top: 5,
+      right: 5,
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      background: "#ea1d2c",
+      boxShadow: "0 0 0 2px #fff"
+       }}
+        />
+        )}
         </div>
       </div>
 
@@ -6381,9 +6427,10 @@ return (
             Hoje
           </div>
 
-          {grupos.hoje.map(n => (
+          {grupos.hoje.map((n) => (
             <div
               key={n.id}
+              onClick={() => abrirProdutoDaNotificacao(n)}
               style={{
                 marginBottom: 10,
                 borderRadius: 16,
@@ -6392,7 +6439,8 @@ return (
                 boxShadow: n.lida
                   ? "0 2px 8px rgba(0,0,0,0.04)"
                   : "0 4px 12px rgba(234,29,44,0.08)",
-                border: n.lida ? "1px solid #eee" : "1px solid #ffd4d8"
+                border: n.lida ? "1px solid #eee" : "1px solid #ffd4d8",
+                cursor: n?.produtoId ? "pointer" : "default"
               }}
             >
               <NotificacaoItem n={n} />
@@ -6415,16 +6463,18 @@ return (
             Anteriores
           </div>
 
-          {grupos.antigas.map(n => (
+          {grupos.antigas.map((n) => (
             <div
               key={n.id}
+              onClick={() => abrirProdutoDaNotificacao(n)}
               style={{
                 marginBottom: 10,
                 borderRadius: 16,
                 background: "#fff",
                 padding: 12,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                border: "1px solid #eee"
+                border: "1px solid #eee",
+                cursor: n?.produtoId ? "pointer" : "default"
               }}
             >
               <NotificacaoItem n={n} />

@@ -171,7 +171,7 @@ const [toast, setToast] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
 
-
+  const [notificacoesAdmin, setNotificacoesAdmin] = useState([]);
   const [fretes, setFretes] = useState([]);
 const [bairroFrete, setBairroFrete] = useState("");
 const [valorFrete, setValorFrete] = useState("");
@@ -231,6 +231,9 @@ useEffect(() => {
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [novoExtraNome, setNovoExtraNome] = useState("");
   const [novoExtraPreco, setNovoExtraPreco] = useState("");
+  const [produtoNotificacao, setProdutoNotificacao] = useState("");
+
+  
   
   // 🔍 CORTA IMAGEM ESTILO INSTA
 const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -384,47 +387,66 @@ async function salvarExtras() {
 
 
 async function enviarNotificacao() {
+  const texto = String(textoNotificacao || "").trim();
 
-  console.log("UID ENVIADO:", clienteSelecionado);
-
-  if (!textoNotificacao || !textoNotificacao.trim()) {
-    alert("Digite a mensagem");
+  if (!texto) {
+    setToast({
+      tipo: "erro",
+      texto: "Digite a mensagem."
+    });
+    setTimeout(() => setToast(null), 2000);
     return;
   }
 
   try {
+    const produtoSelecionadoObj = Array.isArray(produtos)
+      ? produtos.find((p) => String(p.id) === String(produtoNotificacao || ""))
+      : null;
 
-    // TODOS
-    if (!clienteSelecionado) {
+    console.log("PRODUTO SELECIONADO:", produtoSelecionadoObj);
 
-      await addDoc(collection(db, "notificacoes"), {
-        texto: textoNotificacao,
-        para: "todos",
-        uid: null,
-        data: Date.now(),
-        ativo: true,
-        lida: false
-      });
+    const imagemFinal =
+      imagemNotificacao ||
+      produtoSelecionadoObj?.imagem ||
+      "";
 
-      alert("Enviado para todos");
-      return;
-    }
-
-    // CLIENTE
-    await addDoc(collection(db, "notificacoes"), {
-      texto: textoNotificacao,
-      para: "usuario",
-      uid: String(clienteSelecionado), // 🔥 AQUI É O UID REAL
+    const payload = {
+      texto,
+      para: clienteSelecionado ? "usuario" : "todos",
+      uid: clienteSelecionado ? String(clienteSelecionado) : null,
       data: Date.now(),
       ativo: true,
-      lida: false
+      lida: false,
+      imagem: imagemFinal,
+      produtoId: produtoSelecionadoObj ? String(produtoSelecionadoObj.id) : null,
+      produtoNome: produtoSelecionadoObj?.nome || ""
+    };
+
+    console.log("PAYLOAD NOTIFICACAO:", payload);
+
+    await addDoc(collection(db, "notificacoes"), payload);
+
+    setToast({
+      tipo: "sucesso",
+      texto: clienteSelecionado
+        ? "Notificação enviada para o cliente."
+        : "Notificação enviada para todos."
     });
+    setTimeout(() => setToast(null), 2000);
 
-    alert("Enviado para cliente");
-
+    setTextoNotificacao("");
+    setImagemNotificacao("");
+    setImagemTemp(null);
+    setProdutoNotificacao("");
+    setClienteSelecionado("");
   } catch (e) {
     console.log("ERRO AO ENVIAR:", e);
-    alert("Erro ao enviar notificação");
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao enviar notificação."
+    });
+    setTimeout(() => setToast(null), 2000);
   }
 }
 
@@ -817,49 +839,18 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, "notificacoes"), (snapshot) => {
+    const lista = snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
 
-  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    lista.sort((a, b) => Number(b?.data || 0) - Number(a?.data || 0));
 
-    if (!user) return;
-
-    console.log("USER UID REAL:", user.uid);
-
-    const q = collection(db, "notificacoes");
-
-    const unsubscribeSnap = onSnapshot(q, (snapshot) => {
-
-      const lista = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      console.log("TODAS NOTIFICACOES:", lista);
-
-const filtradas = lista.filter(n => {
-  console.log("USER UID:", user?.uid);
-  console.log("NOTIF UID:", n.uid);
-
-  if (!n.ativo) return false;
-
-  if (n.para === "todos") return true;
-
-  if (n.para === "usuario" && String(n.uid) === String(user?.uid)) return true;
-
-  return false;
-});
-
-      console.log("FILTRADAS:", filtradas);
-
-      setNotificacoes(filtradas);
-
-    });
-
-    return () => unsubscribeSnap();
-
+    setNotificacoesAdmin(lista);
   });
 
-  return () => unsubscribeAuth();
-
+  return () => unsubscribe();
 }, []);
 
 
@@ -2078,8 +2069,8 @@ if (loadingAuth) {
   </div>
 )}
 
-      {/* NOTIFICAÇÕES */}
-      {abaAdmin === "notificacoes" && (
+     {/* NOTIFICAÇÕES */}
+{abaAdmin === "notificacoes" && (
   <div style={{
     marginTop: 15,
     padding: 18,
@@ -2110,7 +2101,7 @@ if (loadingAuth) {
         fontSize: 13,
         color: "#666"
       }}>
-        Envie avisos para todos os clientes ou para um cliente específico
+        Envie avisos para todos os clientes ou para um cliente específico.
       </p>
     </div>
 
@@ -2123,30 +2114,55 @@ if (loadingAuth) {
       boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
       border: "1px solid #ececec"
     }}>
-   <select
-  value={clienteSelecionado}
-  onChange={(e) => setClienteSelecionado(e.target.value)}
-  style={input}
->
-  <option value="">Selecionar cliente</option>
-
-  {usuarios.map(u => (
-    <option key={u.id} value={u.id}>
-      {u.clienteNome || u.clienteEmail || "Sem nome"}
-    </option>
-  ))}
-</select>
-
       <h3 style={{
-        marginTop: 16,
-        marginBottom: 10,
+        marginTop: 0,
+        marginBottom: 14,
         color: "#111"
       }}>
-        Enviar notificação
+        Nova notificação
       </h3>
 
+      <select
+        value={clienteSelecionado}
+        onChange={(e) => setClienteSelecionado(e.target.value)}
+        style={input}
+      >
+        <option value="">Selecionar cliente</option>
+
+        {usuarios.map((u) => (
+          <option key={u.id} value={u.id}>
+            {u.clienteNome || u.clienteEmail || "Sem nome"}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={produtoNotificacao}
+        onChange={(e) => {
+          const produtoId = e.target.value;
+          setProdutoNotificacao(produtoId);
+
+          const produtoEscolhido = produtos.find(
+            (p) => String(p.id) === String(produtoId)
+          );
+
+          if (produtoEscolhido?.imagem) {
+            setImagemNotificacao(produtoEscolhido.imagem);
+          }
+        }}
+        style={input}
+      >
+        <option value="">Selecionar produto (opcional)</option>
+
+        {produtos.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.nome}
+          </option>
+        ))}
+      </select>
+
       <input
-        placeholder="Digite a notificação..."
+        placeholder="Digite a mensagem..."
         value={textoNotificacao}
         onChange={(e) => setTextoNotificacao(e.target.value)}
         style={input}
@@ -2156,7 +2172,7 @@ if (loadingAuth) {
         type="file"
         accept="image/*"
         onChange={(e) => {
-          const file = e.target.files[0];
+          const file = e.target.files?.[0];
           if (!file) return;
 
           const reader = new FileReader();
@@ -2177,6 +2193,75 @@ if (loadingAuth) {
           border: "1px solid #ddd"
         }}
       />
+
+      {/* PREVIEW */}
+      {imagemNotificacao && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{
+            fontSize: 13,
+            color: "#666",
+            marginBottom: 8
+          }}>
+            Prévia da imagem
+          </div>
+
+          <img
+            src={imagemNotificacao}
+            style={{
+              width: "100%",
+              maxWidth: 320,
+              borderRadius: 16,
+              objectFit: "cover",
+              border: "1px solid #eee",
+              display: "block"
+            }}
+          />
+        </div>
+      )}
+
+      <div style={{
+        display: "flex",
+        gap: 10,
+        marginTop: 16,
+        flexWrap: "wrap"
+      }}>
+        <button
+          onClick={enviarNotificacao}
+          style={{
+            ...btnPrimary,
+            minWidth: 170
+          }}
+        >
+          Enviar notificação
+        </button>
+
+        {(imagemNotificacao || produtoNotificacao || clienteSelecionado || textoNotificacao) && (
+          <button
+  onClick={() => {
+    setTextoNotificacao("");
+    setImagemNotificacao("");
+    setImagemTemp(null);
+    setProdutoNotificacao("");
+    setClienteSelecionado("");
+  }}
+  style={{
+    minWidth: 140,
+    height: 46,
+    padding: "0 16px",
+    borderRadius: 14,
+    border: "1px solid #dcdcdc",
+    background: "#f8f8f8",
+    color: "#111",
+    fontWeight: 700,
+    fontSize: 14,
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+  }}
+>
+  Limpar campos
+</button>
+        )}
+      </div>
 
       {/* MODAL CROP */}
       {mostrarCrop && imagemTemp && (
@@ -2212,7 +2297,7 @@ if (loadingAuth) {
               max={3}
               step={0.1}
               value={zoom}
-              onChange={(e) => setZoom(e.target.value)}
+              onChange={(e) => setZoom(Number(e.target.value))}
               style={{ width: "100%" }}
             />
 
@@ -2222,7 +2307,10 @@ if (loadingAuth) {
               marginTop: 10
             }}>
               <button
-                onClick={() => setMostrarCrop(false)}
+                onClick={() => {
+                  setMostrarCrop(false);
+                  setImagemTemp(null);
+                }}
                 style={btnSecondary}
               >
                 Cancelar
@@ -2230,121 +2318,52 @@ if (loadingAuth) {
 
               <button
                 onClick={async () => {
-                  const canvas = document.createElement("canvas");
-                  const ctx = canvas.getContext("2d");
+                  try {
+                    const canvas = document.createElement("canvas");
+                    const ctx = canvas.getContext("2d");
 
-                  const img = new Image();
-                  img.src = imagemTemp;
+                    const img = new Image();
+                    img.src = imagemTemp;
 
-                  await new Promise(resolve => img.onload = resolve);
+                    await new Promise((resolve) => {
+                      img.onload = resolve;
+                    });
 
-                  canvas.width = croppedAreaPixels.width;
-                  canvas.height = croppedAreaPixels.height;
+                    canvas.width = croppedAreaPixels.width;
+                    canvas.height = croppedAreaPixels.height;
 
-                  ctx.drawImage(
-                    img,
-                    croppedAreaPixels.x,
-                    croppedAreaPixels.y,
-                    croppedAreaPixels.width,
-                    croppedAreaPixels.height,
-                    0,
-                    0,
-                    croppedAreaPixels.width,
-                    croppedAreaPixels.height
-                  );
+                    ctx.drawImage(
+                      img,
+                      croppedAreaPixels.x,
+                      croppedAreaPixels.y,
+                      croppedAreaPixels.width,
+                      croppedAreaPixels.height,
+                      0,
+                      0,
+                      croppedAreaPixels.width,
+                      croppedAreaPixels.height
+                    );
 
-                  const base64 = canvas.toDataURL("image/jpeg", 0.8);
+                    const base64 = canvas.toDataURL("image/jpeg", 0.82);
 
-                  setImagemNotificacao(base64);
-                  setMostrarCrop(false);
+                    setImagemNotificacao(base64);
+                    setMostrarCrop(false);
+                  } catch (e) {
+                    console.log("ERRO AO CORTAR IMAGEM:", e);
+                    setMostrarCrop(false);
+                  }
                 }}
                 style={btnPrimary}
               >
-                Salvar
+                Salvar imagem
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* PREVIEW IMAGEM */}
-      {imagemNotificacao && (
-        <div style={{
-          position: "relative",
-          marginTop: 14,
-          marginBottom: 12
-        }}>
-          <img
-            src={imagemNotificacao}
-            style={{
-              width: "100%",
-              height: 160,
-              objectFit: "cover",
-              borderRadius: 16,
-              border: "1px solid #ececec"
-            }}
-          />
-
-          <div
-            onClick={() => setImagemNotificacao("")}
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "rgba(0,0,0,0.6)",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              fontSize: 14
-            }}
-          >
-            ✕
-          </div>
-        </div>
-      )}
-
-      <select
-        value={produtoSelecionado}
-        onChange={(e) => setProdutoSelecionado(e.target.value)}
-        style={input}
-      >
-        <option value="">Selecionar produto (opcional)</option>
-
-        {produtos.map(p => (
-          <option key={p.id} value={p.id}>
-            {p.nome}
-          </option>
-        ))}
-      </select>
-
-      <div style={{
-        display: "flex",
-        gap: 10,
-        marginTop: 10,
-        flexWrap: "wrap"
-      }}>
-        <button
-          onClick={() => enviarNotificacao("todos")}
-          style={btnPrimary}
-        >
-          Enviar para todos
-        </button>
-
-        <button
-          onClick={enviarNotificacao}
-          style={btnSuccess}
-        >
-          Enviar para cliente
-        </button>
-      </div>
     </div>
 
-    {/* LISTA */}
+    {/* HISTÓRICO */}
     <div style={{
       background: "#fff",
       borderRadius: 20,
@@ -2357,61 +2376,101 @@ if (loadingAuth) {
         marginBottom: 14,
         color: "#111"
       }}>
-        Notificações enviadas
+        Histórico de notificações
       </h3>
 
-      {notificacoes.length === 0 && (
+      {notificacoesAdmin.length === 0 && (
         <div style={{
-          color: "#666",
-          textAlign: "center",
-          padding: 18,
-          background: "#fafafa",
-          borderRadius: 14,
-          border: "1px solid #eee"
+          fontSize: 14,
+          color: "#777"
         }}>
-          Nenhuma notificação
+          Nenhuma notificação enviada ainda.
         </div>
       )}
 
-      {notificacoes.map((n) => (
+      {notificacoesAdmin.map((n) => (
         <div
           key={n.id}
           style={{
-            background: "#fff",
-            padding: 14,
+            border: "1px solid #f1f1f1",
             borderRadius: 16,
-            marginBottom: 10,
+            padding: 14,
+            marginBottom: 12,
+            background: "#fff"
+          }}
+        >
+          <div style={{
+            fontSize: 14,
+            color: "#111",
+            fontWeight: 700,
+            lineHeight: 1.4
+          }}>
+            {n.texto || "Sem texto"}
+          </div>
+
+          {n.produtoNome && (
+            <div style={{
+              fontSize: 12,
+              color: "#666",
+              marginTop: 6
+            }}>
+              Produto vinculado: {n.produtoNome}
+            </div>
+          )}
+
+          {n.imagem && (
+            <img
+              src={n.imagem}
+              style={{
+                width: "100%",
+                maxWidth: 280,
+                marginTop: 10,
+                borderRadius: 14,
+                objectFit: "cover",
+                display: "block",
+                border: "1px solid #eee"
+              }}
+            />
+          )}
+
+          <div style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             gap: 10,
-            boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-            border: "1px solid #ececec"
-          }}
-        >
-          <div style={{ flex: 1 }}>
+            flexWrap: "wrap",
+            marginTop: 12
+          }}>
             <div style={{
-              fontSize: 14,
-              color: "#111",
-              marginBottom: 4
+              fontSize: 12,
+              color: "#666",
+              lineHeight: 1.4
             }}>
-              {n.texto}
+              <div>
+                Destino: {n.para === "todos" ? "Todos os clientes" : "Cliente específico"}
+              </div>
+              <div>
+                Status: {n.ativo === false ? "Desativada" : "Ativa"}
+              </div>
             </div>
 
-            <div style={{
-              fontSize: 11,
-              color: "#888"
-            }}>
-              {n.data ? new Date(n.data).toLocaleString() : ""}
-            </div>
+            <button
+              onClick={() => removerNotificacao(n.id)}
+              style={{
+                height: 38,
+                padding: "0 14px",
+                borderRadius: 12,
+                border: "none",
+                background: "#ea1d2c",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer"
+              }}
+            >
+              Excluir
+            </button>
           </div>
-
-          <button
-            onClick={() => removerNotificacao(n.id)}
-            style={btnDangerSmall}
-          >
-            Remover
-          </button>
         </div>
       ))}
     </div>
@@ -2922,7 +2981,7 @@ if (loadingAuth) {
       {/* PRODUTOS */}
       {abaAdmin === "produtos" && (
         <div className="card">
-          <h2>🍧 Produtos</h2>
+          <h2> Produtos</h2>
 
           <button
             onClick={() => setMostrarModalProduto(true)}
