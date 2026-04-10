@@ -7336,42 +7336,7 @@ return (
               </div>
             )}
 
-            {/* CATEGORIAS RÁPIDAS */}
-            {!busca && (
-              <div style={{
-                display: "flex",
-                gap: 10,
-                overflowX: "auto",
-                marginBottom: 14,
-                scrollbarWidth: "none"
-              }}>
-                {categorias
-                  .filter(c => ["acai", "promocoes", "bebidas", "combos"].includes(c.slug))
-                  .map(c => (
-                    <div
-                      key={c.id}
-                      onClick={() => {
-                        setCategoriaSelecionada(c.slug);
-                        setAba("home");
-                        setStep(9);
-                      }}
-                      style={{
-                        minWidth: 120,
-                        background: "#fff",
-                        borderRadius: 16,
-                        padding: "14px 12px",
-                        border: "1px solid #eee",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-                        textAlign: "center",
-                        fontWeight: 700,
-                        cursor: "pointer"
-                      }}
-                    >
-                      {c.nome}
-                    </div>
-                  ))}
-              </div>
-            )}
+            {/* TINHA SEGUNDA CATEGORIA AQUI */}
 
             {/* SUGESTÕES */}
             {busca && sugestoes.length > 0 && (
