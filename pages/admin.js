@@ -22,7 +22,19 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 
-import { Pencil, Trash2, Power } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Power,
+  PowerOff,
+  Package,
+  Star,
+  Layers3
+} from "lucide-react";
+
 
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -2980,133 +2992,375 @@ if (loadingAuth) {
 
       {/* PRODUTOS */}
       {abaAdmin === "produtos" && (
-        <div className="card">
-          <h2> Produtos</h2>
-
-          <button
-            onClick={() => setMostrarModalProduto(true)}
+  <div
+    style={{
+      marginTop: 15,
+      padding: 18,
+      background: "#f4f5f7",
+      borderRadius: 20
+    }}
+  >
+    {/* TOPO */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        marginBottom: 16,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap"
+        }}
+      >
+        <div>
+          <h2
             style={{
-              marginBottom: 10,
-              padding: 14,
-              borderRadius: 14,
-              background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              width: "100%",
-              fontWeight: "bold",
-              fontSize: 15,
-              boxShadow: "0 6px 20px rgba(234,29,44,0.3)"
+              margin: 0,
+              color: "#111",
+              fontSize: 24,
+              fontWeight: 800
             }}
           >
-            ➕ Novo Produto
-          </button>
+            Produtos
+          </h2>
 
-          {produtos.length === 0 ? (
-            <p style={{ opacity: 0.6 }}>Nenhum produto cadastrado</p>
-          ) : (
-            produtos.map(p => (
-              <div
-  key={p.id}
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 14,
-    padding: 14,
-    borderRadius: 18,
-    background: "#fff",
-    marginBottom: 12,
-    border: "1px solid #ececec",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.04)"
-  }}
->
-  <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
-    <img
-      src={p.imagem || "/acai.png"}
-      style={{
-        width: 64,
-        height: 64,
-        borderRadius: 16,
-        objectFit: "cover"
-      }}
-    />
+          <p
+            style={{
+              marginTop: 6,
+              marginBottom: 0,
+              fontSize: 13,
+              color: "#666"
+            }}
+          >
+            Gerencie os produtos da loja, altere status, edite e reorganize a ordem.
+          </p>
+        </div>
 
-    <div style={{ flex: 1 }}>
-      <strong style={{ fontSize: 15, color: "#111" }}>{p.nome}</strong>
-
-      <div style={{ fontSize: 13, color: "#666", marginTop: 4 }}>
-        {formatarReal(p.preco)} • {p.tamanho || "Sem tamanho"}
-      </div>
-
-      <div style={{
-        display: "flex",
-        gap: 8,
-        flexWrap: "wrap",
-        marginTop: 6
-      }}>
-        <span style={{
-          padding: "4px 8px",
-          borderRadius: 999,
-          fontSize: 11,
-          fontWeight: "bold",
-          background: p.ativo ? "#e8f7ec" : "#fdecec",
-          color: p.ativo ? "#15803d" : "#b91c1c"
-        }}>
-          {p.ativo ? "Ativo" : "Inativo"}
-        </span>
-
-        {p.maisVendido && (
-          <span style={{
-            padding: "4px 8px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: "bold",
-            background: "#fff1f2",
-            color: "#e11d48"
-          }}>
-            Mais vendido
-          </span>
-        )}
-
-        {p.extras?.length > 0 && (
-          <span style={{
-            padding: "4px 8px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: "bold",
-            background: "#f3f4f6",
-            color: "#555"
-          }}>
-            {p.extras.length} grupos de extras
-          </span>
-        )}
+        <button
+          onClick={() => setMostrarModalProduto(true)}
+          style={{
+            height: 48,
+            padding: "0 18px",
+            borderRadius: 14,
+            background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: 700,
+            fontSize: 14,
+            boxShadow: "0 8px 20px rgba(234,29,44,0.20)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8
+          }}
+        >
+          <Plus size={18} />
+          Novo produto
+        </button>
       </div>
     </div>
-  </div>
 
-  <div style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 44px)",
-    gap: 8
-  }}>
-    <button onClick={() => abrirEdicao(p)}>✏️</button>
-    <button onClick={() => toggleProduto(p)}>{p.ativo ? "🚫" : "✅"}</button>
-    <button onClick={() => moverProduto(p, -1)}>⬆️</button>
-    <button onClick={() => moverProduto(p, 1)}>⬇️</button>
-    <button onClick={() => excluirProduto(p)} style={{
-      gridColumn: "1 / span 2",
-      background: "#ef4444"
-    }}>
-      🗑️
-    </button>
-  </div>
-</div>
-            ))
+    {/* LISTA */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}
+    >
+      {produtos.length === 0 ? (
+        <div
+          style={{
+            padding: "24px 10px",
+            textAlign: "center",
+            color: "#777",
+            fontSize: 14
+          }}
+        >
+          Nenhum produto cadastrado.
+        </div>
+      ) : (
+        produtos.map((p) => (
+  <div
+    key={p.id}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 14,
+      padding: 12,
+      borderRadius: 16,
+      background: "#fff",
+      marginBottom: 10,
+      border: "1px solid #ececec",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+      flexWrap: isMobile ? "wrap" : "nowrap"
+    }}
+  >
+    {/* ESQUERDA */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        flex: 1,
+        minWidth: 0
+      }}
+    >
+      <img
+        src={p.imagem || "/acai.png"}
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 14,
+          objectFit: "cover",
+          border: "1px solid #eee",
+          flexShrink: 0
+        }}
+      />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 700,
+            color: "#111",
+            lineHeight: 1.2
+          }}
+        >
+          {p.nome}
+        </div>
+
+        <div
+          style={{
+            fontSize: 13,
+            color: "#555",
+            marginTop: 4,
+            lineHeight: 1.3
+          }}
+        >
+          {p.promocao === true &&
+          Number(p.precoPromocional || 0) > 0 &&
+          Number(p.precoPromocional || 0) < Number(p.preco || 0) ? (
+            <>
+              <span
+                style={{
+                  textDecoration: "line-through",
+                  color: "#999",
+                  marginRight: 6
+                }}
+              >
+                {formatarReal(Number(p.preco || 0))}
+              </span>
+              <strong style={{ color: "#ea1d2c" }}>
+                {formatarReal(Number(p.precoPromocional || 0))}
+              </strong>
+            </>
+          ) : (
+            <strong>{formatarReal(Number(p.preco || 0))}</strong>
+          )}
+
+          <span style={{ color: "#bbb", margin: "0 6px" }}>•</span>
+          <span>{p.tamanho || "Sem tamanho"}</span>
+        </div>
+
+        {!!p.descricao && (
+          <div
+            style={{
+              fontSize: 12,
+              color: "#777",
+              marginTop: 4,
+              lineHeight: 1.3,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "100%"
+            }}
+          >
+            {p.descricao}
+          </div>
+        )}
+
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            flexWrap: "wrap",
+            marginTop: 6
+          }}
+        >
+          <span
+            style={{
+              padding: "4px 8px",
+              borderRadius: 999,
+              fontSize: 11,
+              fontWeight: 700,
+              background: p.ativo ? "#e8f7ec" : "#fdecec",
+              color: p.ativo ? "#15803d" : "#b91c1c"
+            }}
+          >
+            {p.ativo ? "Ativo" : "Inativo"}
+          </span>
+
+          {p.maisVendido && (
+            <span
+              style={{
+                padding: "4px 8px",
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 700,
+                background: "#fff1f2",
+                color: "#e11d48"
+              }}
+            >
+              Mais vendido
+            </span>
+          )}
+
+          {Array.isArray(p.extras) && p.extras.length > 0 && (
+            <span
+              style={{
+                padding: "4px 8px",
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 700,
+                background: "#f3f4f6",
+                color: "#555"
+              }}
+            >
+              {p.extras.length} extras
+            </span>
           )}
         </div>
-      )}
+      </div>
+    </div>
 
+    {/* DIREITA */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: isMobile ? "wrap" : "nowrap",
+        justifyContent: isMobile ? "flex-start" : "flex-end"
+      }}
+    >
+      <button
+        onClick={() => abrirEdicao(p)}
+        title="Editar produto"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          border: "1px solid #e5e5e5",
+          background: "#fff",
+          color: "#111",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer"
+        }}
+      >
+        <Pencil size={17} />
+      </button>
+
+      <button
+        onClick={() => toggleProduto(p)}
+        title={p.ativo ? "Desativar produto" : "Ativar produto"}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          border: "1px solid #e5e5e5",
+          background: p.ativo ? "#fff7ed" : "#ecfdf3",
+          color: p.ativo ? "#9a3412" : "#166534",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer"
+        }}
+      >
+        {p.ativo ? <PowerOff size={17} /> : <Power size={17} />}
+      </button>
+
+      <button
+        onClick={() => moverProduto(p, -1)}
+        title="Mover para cima"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          border: "1px solid #e5e5e5",
+          background: "#fff",
+          color: "#111",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer"
+        }}
+      >
+        <ArrowUp size={17} />
+      </button>
+
+      <button
+        onClick={() => moverProduto(p, 1)}
+        title="Mover para baixo"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          border: "1px solid #e5e5e5",
+          background: "#fff",
+          color: "#111",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer"
+        }}
+      >
+        <ArrowDown size={17} />
+      </button>
+
+      <button
+        onClick={() => excluirProduto(p)}
+        title="Excluir produto"
+        style={{
+          height: 40,
+          padding: "0 12px",
+          borderRadius: 12,
+          border: "none",
+          background: "#ea1d2c",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: 13,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+          cursor: "pointer"
+        }}
+      >
+        <Trash2 size={15} />
+        Excluir
+      </button>
+       </div>
+       </div>
+       ))
+      )}
+    </div>
+  </div>
+)}
       {/* PEDIDOS */}
 {abaAdmin === "pedidos" && (
   <div style={{
