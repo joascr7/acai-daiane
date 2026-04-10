@@ -170,6 +170,9 @@ const inputStyle = {
   const [logoInput, setLogoInput] = useState("");
 
   const [usuarios, setUsuarios] = useState([]);
+
+  const [promocaoAtiva, setPromocaoAtiva] = useState(false);
+  const [novoPrecoPromocional, setNovoPrecoPromocional] = useState("");
   
   const [editandoCategoriaId, setEditandoCategoriaId] = useState(null);
   const [editandoCategoria, setEditandoCategoria] = useState({});
@@ -711,18 +714,38 @@ async function atualizarStatus(id, status) {
     console.error(e);
   }
 }
+
+
 // 🔥 EABRIR EDITACAO
 function abrirEdicao(p) {
   setProdutoEditandoId(p.id);
+
   setNovoNome(p.nome);
-  setNovoPreco((p.preco / 100).toFixed(2));
+
+  setNovoPreco(
+    (Number(p.preco || 0) / 100)
+      .toFixed(2)
+      .replace(".", ",")
+  );
+
   setNovoTamanho(p.tamanho || "");
   setNovaDescricao(p.descricao || "");
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
   setCategoria(p.categoria || "");
 
-  setExtras(p.extras || []); // 🔥 ESSENCIAL
+  setExtras(p.extras || []);
+
+  // 🔥 PROMOÇÃO (NOVO)
+  setPromocaoAtiva(p.promocao || false);
+
+  setNovoPrecoPromocional(
+    p.precoPromocional
+      ? (Number(p.precoPromocional) / 100)
+          .toFixed(2)
+          .replace(".", ",")
+      : ""
+  );
 
   setMostrarModalProduto(true);
 }
@@ -736,6 +759,14 @@ async function salvarProduto() {
   const dados = {
     nome: novoNome,
     preco: converterParaCentavos(novoPreco),
+
+    // 🔥 PROMOÇÃO
+    promocao: promocaoAtiva,
+    precoPromocional:
+      promocaoAtiva && novoPrecoPromocional
+        ? converterParaCentavos(novoPrecoPromocional)
+        : null,
+
     tamanho: novoTamanho,
     descricao: novaDescricao,
     imagem: novaImagem,
@@ -748,7 +779,6 @@ async function salvarProduto() {
 
   try {
     if (produtoEditandoId) {
-      // 🔥 EDITAR
       await updateDoc(
         doc(db, "produtos", produtoEditandoId),
         dados
@@ -756,7 +786,6 @@ async function salvarProduto() {
 
       alert("Produto atualizado!");
     } else {
-      // 🔥 NOVO
       await addDoc(collection(db, "produtos"), dados);
 
       alert("Produto criado!");
@@ -766,6 +795,8 @@ async function salvarProduto() {
     setProdutoEditandoId(null);
     setNovoNome("");
     setNovoPreco("");
+    setNovoPrecoPromocional("");
+    setPromocaoAtiva(false);
     setNovoTamanho("");
     setNovaDescricao("");
     setNovaImagem("");
@@ -2101,13 +2132,70 @@ if (loadingAuth) {
         ))}
       </select>
 
-      {/* PREÇO */}
-      <input
-        placeholder="Preço (ex: 12.90)"
-        value={novoPreco}
-        onChange={(e) => setNovoPreco(e.target.value)}
-        style={inputStyle}
-      />
+ {/* PREÇO */}
+<input
+  placeholder="Preço (ex: 12.90)"
+  value={novoPreco}
+  onChange={(e) => setNovoPreco(e.target.value)}
+  style={inputStyle}
+/>
+
+{/* BLOCO PROMOÇÃO */}
+<div
+  style={{
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 16,
+    background: "#fff",
+    border: promocaoAtiva
+      ? "1px solid #ea1d2c"
+      : "1px solid #eee",
+    boxShadow: promocaoAtiva
+      ? "0 6px 16px rgba(234,29,44,0.15)"
+      : "0 2px 8px rgba(0,0,0,0.04)",
+    transition: "0.2s"
+  }}
+>
+  {/* ATIVAR PROMOÇÃO */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between"
+    }}
+  >
+    <span
+      style={{
+        fontSize: 14,
+        fontWeight: 700,
+        color: promocaoAtiva ? "#ea1d2c" : "#333"
+      }}
+    >
+      🔥 Promoção
+    </span>
+
+    <input
+      type="checkbox"
+      checked={promocaoAtiva}
+      onChange={(e) => setPromocaoAtiva(e.target.checked)}
+    />
+  </div>
+
+  {/* PREÇO PROMOCIONAL */}
+  {promocaoAtiva && (
+     <input
+      value={novoPrecoPromocional}
+      onChange={(e) => setNovoPrecoPromocional(e.target.value)}
+      placeholder="Preço promocional"
+      style={{
+        ...inputStyle,
+        marginTop: 12,
+        border: "1px solid #ddd",
+        background: "#fafafa"
+      }}
+    />
+  )}
+</div>
 
       {/* TAMANHO */}
       <input
