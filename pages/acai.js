@@ -7705,6 +7705,7 @@ return (
   <div style={{
     maxWidth: larguraApp,
     margin: "0 auto",
+    paddingBottom: 80,
     minHeight: "100dvh",
     background: "#f7f7f7"
   }}>
@@ -8110,8 +8111,7 @@ return (
   background: "#fff",
   borderTop: "1px solid #eee",
 
-  paddingTop: 8,
-  paddingBottom: "env(safe-area-inset-bottom)",
+  height: 64, // 🔥 altura fixa estilo iFood
 
   display: "flex",
   justifyContent: "space-around",
@@ -8119,8 +8119,7 @@ return (
 
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
   zIndex: 999,
-  boxSizing: "border-box",
-  overflowX: "hidden"
+  boxSizing: "border-box"
 }}>
 
   {/* INICIO */}
