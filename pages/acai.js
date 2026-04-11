@@ -4490,7 +4490,7 @@ return (
     </div>
 
     <div style={{
-      height: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 48px)`,
+      height: 80,
       background: "#fff"
     }} />
 
@@ -8328,7 +8328,7 @@ return (
       bottom: -env(safe-area-inset-bottom),
 
       left: 0,
-      right: 80,
+      right: 0,
       margin: "0 auto",
 
       width: "100%",
