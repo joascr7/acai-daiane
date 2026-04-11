@@ -4532,7 +4532,7 @@ return (
         }}
         style={{
           position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 8px)",
+          top: "calc(env(safe-area-inset-top) + 0px)",
           left: 16,
           width: 40,
           height: 30,
