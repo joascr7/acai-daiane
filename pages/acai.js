@@ -8102,15 +8102,21 @@ return (
   bottom: 0,
   left: 0,
   right: 0,
+
   width: "100%",
   maxWidth: larguraNavbar,
   margin: "0 auto",
+
   background: "#fff",
   borderTop: "1px solid #eee",
-  padding: `8px 0 calc(env(safe-area-inset-bottom) + 6px)`,
+
+  paddingTop: 8,
+  paddingBottom: "env(safe-area-inset-bottom)",
+
   display: "flex",
   justifyContent: "space-around",
   alignItems: "center",
+
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
   zIndex: 999,
   boxSizing: "border-box",
