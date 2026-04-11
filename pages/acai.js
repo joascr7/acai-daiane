@@ -4530,10 +4530,10 @@ return (
         }}
         style={{
           position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 12px)",
+          top: "calc(env(safe-area-inset-top) + 8px)",
           left: 16,
-          width: 46,
-          height: 46,
+          width: 40,
+          height: 30,
           borderRadius: 16,
           border: "none",
           background: "rgba(255,255,255,0.96)",
@@ -4931,9 +4931,9 @@ return (
   onClick={adicionarCarrinho}
   disabled={!podeContinuar}
   style={{
-    width: "88%", // 🔥 controla a largura aqui
-    maxWidth: 360, // 🔥 limite pra web
-    height: 48,
+    width: "98%", // 🔥 controla a largura aqui
+    maxWidth: 960, // 🔥 limite pra web
+    height: 68,
     borderRadius: 14,
     background: podeContinuar ? "#ea1d2c" : "#d7d7d7",
     color: "#fff",
@@ -6814,12 +6814,15 @@ return (
       <div style={{
         position: "fixed",
         bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
+        transform: "translateX(2.4%)",
         left: 0,
         right: 0,
         maxWidth: larguraApp,
         margin: "0 auto",
         padding: "10px 16px",
         zIndex: 10,
+        
+        justifyContent: "center",
         boxSizing: "border-box"
       }}>
         <button
@@ -6840,7 +6843,7 @@ return (
          finalizarPedido();
          }}
           style={{
-            width: "93%",
+            width: "92%",
             height: 42,
             borderRadius: 14,
             background: "#ea1d2c",
@@ -6860,7 +6863,7 @@ return (
             setStep(3);
           }}
           style={{
-            width: "93%",
+            width: "92%",
             height: 36,
             borderRadius: 14,
             background: "#555555",
@@ -6868,6 +6871,7 @@ return (
             border: "none",
             marginTop: 8,
             cursor: "pointer"
+            
           }}
         >
           Voltar ao carrinho
