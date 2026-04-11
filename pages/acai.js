@@ -1242,6 +1242,42 @@ useEffect(() => {
 }, []);
 
 
+// tentando corrigir botao
+useEffect(() => {
+  const logOverflowingElements = () => {
+    const viewportWidth = window.innerWidth;
+    const all = Array.from(document.querySelectorAll("*"));
+
+    const overflowing = all.filter((el) => {
+      const rect = el.getBoundingClientRect();
+      return rect.width > viewportWidth + 1 || rect.right > viewportWidth + 1 || rect.left < -1;
+    });
+
+    if (overflowing.length) {
+      console.log("ELEMENTOS COM OVERFLOW:", overflowing.map((el) => ({
+        tag: el.tagName,
+        className: el.className,
+        id: el.id,
+        width: Math.round(el.getBoundingClientRect().width),
+        left: Math.round(el.getBoundingClientRect().left),
+        right: Math.round(el.getBoundingClientRect().right)
+      })));
+    } else {
+      console.log("Nenhum elemento com overflow detectado.");
+    }
+  };
+
+  const timer = setTimeout(logOverflowingElements, 300);
+
+  window.addEventListener("resize", logOverflowingElements);
+
+  return () => {
+    clearTimeout(timer);
+    window.removeEventListener("resize", logOverflowingElements);
+  };
+}, [aba, step, carrinho.length]);
+
+
 
 useEffect(() => {
   const unsubscribe = onSnapshot(collection(db, "fretes"), (snapshot) => {
@@ -4534,8 +4570,8 @@ return (
           position: "absolute",
           top: "calc(env(safe-area-inset-top) + 0px)",
           left: 16,
-          width: 40,
-          height: 30,
+          width: 20,
+          height: 20,
           borderRadius: 16,
           border: "none",
           background: "rgba(255,255,255,0.96)",
@@ -5312,7 +5348,7 @@ return (
     </div>
   </div>
 )}
-    </div>
+</div>
 
 {/* OBS ANTES DO RESUMO FIXO */}
 
@@ -8064,18 +8100,21 @@ return (
 <div style={{
   position: "fixed",
   bottom: 0,
-  left: "50%",
-  transform: "translateX(-50%)",
+  left: 0,
+  right: 0,
   width: "100%",
   maxWidth: larguraNavbar,
+  margin: "0 auto",
   background: "#fff",
   borderTop: "1px solid #eee",
   padding: `8px 0 calc(env(safe-area-inset-bottom) + 6px)`,
   display: "flex",
   justifyContent: "space-around",
+  alignItems: "center",
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
   zIndex: 999,
-  boxSizing: "border-box"
+  boxSizing: "border-box",
+  overflowX: "hidden"
 }}>
 
   {/* INICIO */}
@@ -8271,55 +8310,75 @@ return (
       </div>
 
       <ChevronRight size={18} color="#b3b3b3" />
-    </div>
-)}
-
-
-
 
 {toast && (
   <div
     style={{
       position: "fixed",
       bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "calc(100% - 32px)",
+
+      left: 0,
+      right: 0,
+      margin: "0 auto",
+
+      width: "100%",
       maxWidth: 420,
-      zIndex: 9999
+      padding: "0 16px",
+
+      zIndex: 9999,
+      display: "flex",
+      justifyContent: "center",
+      pointerEvents: "none"
     }}
   >
     <div
       style={{
+        width: "100%",
+        borderRadius: 16,
+        padding: "14px 16px",
+
         background:
           toast.tipo === "sucesso"
             ? "#ecfdf3"
             : toast.tipo === "erro"
             ? "#fef2f2"
             : "#f8fafc",
+
         color:
           toast.tipo === "sucesso"
             ? "#166534"
             : toast.tipo === "erro"
             ? "#b91c1c"
             : "#334155",
+
         border:
           toast.tipo === "sucesso"
             ? "1px solid #bbf7d0"
             : toast.tipo === "erro"
             ? "1px solid #fecaca"
             : "1px solid #e2e8f0",
-        borderRadius: 16,
-        padding: "14px 16px",
+
         boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
         fontSize: 14,
-        fontWeight: 600
+        fontWeight: 600,
+
+        pointerEvents: "auto"
       }}
     >
       {toast.texto}
     </div>
   </div>
 )}
+
+    </div>
+
+
+)}
+
+
+
+
+
 
 
 {/* 🔥 STYLES */}

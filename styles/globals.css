@@ -339,6 +339,31 @@ input {
   }
 }
 
+
+html,
+body,
+#__next {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 0 !important;
+  display: none !important;
+}
+
+body {
+  overscroll-behavior-x: none
+  }
+
+
 /* ============================= */
 /* BOTÃO INSTALAR */
 /* ============================= */
@@ -346,12 +371,29 @@ input {
 .btnInstall {
   position: fixed;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+
+  max-width: 320px;
+  width: calc(100% - 32px);
+
   background: var(--primary);
   color: white;
   border-radius: 30px;
   padding: 12px 18px;
   font-weight: bold;
   z-index: 9999;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+[style*="translateX(-50%)"] {
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  transform: none !important;
+}
+
