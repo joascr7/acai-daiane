@@ -4666,21 +4666,20 @@ return (
     style={{
       maxWidth: larguraApp,
       margin: "0 auto",
-      height: "100dvh",
-      display: "flex",
-      flexDirection: "column",
-      background: "#f6f7f9",
-      overflow: "hidden"
+      minHeight: "100vh",
+      background: "#f2f2f2",
+      position: "relative",
+      overflowX: "hidden"
     }}
   >
-    {/* TOPO FIXO */}
+    {/* HERO */}
     <div
       style={{
         position: "relative",
         width: "100%",
-        height: 190,
-        flexShrink: 0,
-        overflow: "hidden"
+        height: 255,
+        overflow: "hidden",
+        background: "#111"
       }}
     >
       <img
@@ -4696,79 +4695,79 @@ return (
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.65) 100%)"
+          background: "linear-gradient(180deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.45) 100%)"
         }}
       />
 
       {/* VOLTAR */}
-      <button
-        onClick={() => {
-          setAba("home");
-          setStep(1);
-          setEditandoIndex(null);
-          setExtrasSelecionados({});
-          setQuantidade(1);
-        }}
-        style={{
-          position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 0px)",
-          left: 16,
-          width: 20,
-          height: 20,
-          borderRadius: 16,
-          border: "none",
-          background: "rgba(255,255,255,0.96)",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 8px 22px rgba(0,0,0,0.18)",
-          fontSize: 20,
-          fontWeight: 700,
-          color: "#111",
-          backdropFilter: "blur(8px)"
-        }}
-      >
-        ←
-      </button>
+     {/* VOLTAR */}
+<button
+  onClick={() => {
+    setAba("home");
+    setStep(1);
+    setEditandoIndex(null);
+    setExtrasSelecionados({});
+    setQuantidade(1);
+  }}
+  style={{
+    position: "absolute",
+    top: "calc(env(safe-area-inset-top) + 16px)",
+    left: 16,
+    width: 52,
+    height: 52,
+    borderRadius: "50%",
+    border: "none",
+    background: "rgba(92,92,92,0.78)",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.16)",
+    padding: 0
+  }}
+>
+  <ChevronDown size={24} strokeWidth={3.2} />
+</button>
+    </div>
 
-      {/* SELO OFERTA */}
-      {produto?.promocao && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(env(safe-area-inset-top) + 14px)",
-            right: 16,
-            background: "#ea1d2c",
-            color: "#fff",
-            padding: "8px 12px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: "0.02em",
-            boxShadow: "0 8px 18px rgba(234,29,44,0.28)"
-          }}
-        >
-          Oferta
-        </div>
-      )}
-
-      {/* NOME + DESCRIÇÃO */}
+    {/* SHEET PRINCIPAL */}
+    <div
+      style={{
+        marginTop: -22,
+        background: "#fff",
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        minHeight: "calc(100vh - 180px)",
+        position: "relative",
+        zIndex: 2,
+        boxShadow: "0 -8px 24px rgba(0,0,0,0.05)"
+      }}
+    >
+      {/* CARD PRODUTO */}
       <div
         style={{
-          position: "absolute",
-          left: 16,
-          right: 16,
-          bottom: 18,
-          color: "#fff"
+          padding: "20px 20px 10px"
         }}
       >
         <div
           style={{
-            fontSize: 28,
+            fontSize: 16,
+            color: "#666",
+            marginBottom: 4
+          }}
+        >
+          {produto?.categoria || "Açaí"}
+        </div>
+
+        <div
+          style={{
+            fontSize: 23,
             fontWeight: 800,
-            lineHeight: 1.02,
-            letterSpacing: "-0.03em"
+            color: "#111",
+            lineHeight: 1.15
           }}
         >
           {produto?.nome}
@@ -4777,364 +4776,422 @@ return (
         {!!produto?.descricao && (
           <div
             style={{
-              marginTop: 8,
-              fontSize: 13,
-              lineHeight: 1.35,
-              color: "rgba(255,255,255,0.9)",
-              maxWidth: "92%",
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical"
+              marginTop: 10,
+              fontSize: 14,
+              color: "#666",
+              lineHeight: 1.38
             }}
           >
             {produto.descricao}
           </div>
         )}
-      </div>
-    </div>
-
-    {/* CONTEÚDO COM SCROLL */}
-    <div
-      style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: 14,
-        paddingBottom: 126,
-        boxSizing: "border-box"
-      }}
-    >
-      {/* CARD QUANTIDADE */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 22,
-          padding: 16,
-          marginBottom: 16,
-          boxShadow: "0 10px 24px rgba(0,0,0,0.05)",
-          border: "1px solid #efefef",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 16,
-              color: "#111",
-              fontWeight: 800
-            }}
-          >
-            Quantidade
-          </div>
-
-          <div
-            style={{
-              marginTop: 4,
-              fontSize: 12,
-              color: "#777"
-            }}
-          >
-            Ajuste quantas unidades deseja pedir
-          </div>
-        </div>
 
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10
+            marginTop: 18,
+            fontSize: 20,
+            fontWeight: 800,
+            color: "#111"
           }}
         >
-          <button
-            onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 14,
-              border: "1px solid #dcdcdc",
-              background: "#fff",
-              color: "#333",
-              fontSize: 22,
-              lineHeight: 1,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0
-            }}
-          >
-            −
-          </button>
-
-          <strong
-            style={{
-              fontSize: 16,
-              minWidth: 22,
-              textAlign: "center",
-              color: "#111"
-            }}
-          >
-            {quantidade}
-          </strong>
-
-          <button
-            onClick={() => setQuantidade((q) => q + 1)}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 14,
-              border: "none",
-              background: "#ea1d2c",
-              color: "#fff",
-              fontSize: 22,
-              lineHeight: 1,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-              boxShadow: "0 8px 18px rgba(234,29,44,0.22)"
-            }}
-          >
-            +
-          </button>
+          {formatarReal(Number(produto?.preco || 0))}
         </div>
       </div>
 
-      {/* EXTRAS */}
-      {extrasDoProduto.map((grupo) => {
-        const selecionados = extrasSelecionados?.[grupo.categoria] || [];
+      {/* CONTEÚDO */}
+      <div
+        style={{
+          paddingBottom: 150
+        }}
+      >
+        {extrasDoProduto.map((grupo) => {
+          const selecionados = extrasSelecionados?.[grupo.categoria] || [];
 
-        const totalSelecionado = selecionados.reduce(
-          (acc, e) => acc + (e.qtd || 0),
-          0
-        );
+          const totalSelecionado = selecionados.reduce(
+            (acc, e) => acc + Number(e.qtd || 0),
+            0
+          );
 
-        const atingiuLimite = totalSelecionado >= grupo.max;
+          const opcaoUnica = Number(grupo.max || 0) === 1;
 
-        return (
-          <div
-            key={grupo.categoria}
-            style={{
-              marginBottom: 18
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 10,
-                padding: "0 2px"
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    color: "#111",
-                    fontSize: 17,
-                    fontWeight: 800,
-                    lineHeight: 1.1
-                  }}
-                >
-                  {grupo.categoria}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 4,
-                    fontSize: 12,
-                    color: "#777"
-                  }}
-                >
-                  Escolha até {grupo.max}
-                </div>
-              </div>
-
+          return (
+            <div key={grupo.categoria} style={{ marginTop: 10 }}>
+              {/* HEADER DO GRUPO */}
               <div
                 style={{
-                  minWidth: 54,
-                  height: 30,
-                  padding: "0 10px",
-                  borderRadius: 999,
-                  background: atingiuLimite ? "#fff1f2" : "#eef1f4",
-                  color: atingiuLimite ? "#ea1d2c" : "#666",
-                  fontSize: 12,
-                  fontWeight: 800,
+                  background: "#f3f3f3",
+                  padding: "16px 20px",
+                  borderTop: "1px solid #ececec",
+                  borderBottom: "1px solid #ececec",
                   display: "flex",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  justifyContent: "center"
+                  gap: 12
                 }}
               >
-                {totalSelecionado}/{grupo.max}
-              </div>
-            </div>
-
-            {grupo.itens.map((item) => {
-              const itemSelecionado = selecionados.find((e) => e.nome === item.nome);
-              const qtd = itemSelecionado?.qtd || 0;
-              const podeAdicionar = qtd > 0 || totalSelecionado < grupo.max;
-
-              return (
-                <div
-                  key={item.nome}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "14px 14px",
-                    borderRadius: 20,
-                    marginBottom: 10,
-                    background: "#fff",
-                    border: qtd > 0 ? "1px solid #ffd7db" : "1px solid #ececec",
-                    boxShadow: qtd > 0
-                      ? "0 10px 22px rgba(234,29,44,0.08)"
-                      : "0 8px 18px rgba(0,0,0,0.04)"
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
-                    <div
-                      style={{
-                        color: "#111",
-                        fontSize: 15,
-                        fontWeight: 700,
-                        lineHeight: 1.2
-                      }}
-                    >
-                      {item.nome}
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#777",
-                        marginTop: 4
-                      }}
-                    >
-                      + {formatarReal(item.preco)}
-                    </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 800,
+                      color: "#666",
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {grupo.categoria}
                   </div>
 
                   <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8
+                      marginTop: 6,
+                      fontSize: 13,
+                      color: "#7a7a7a"
                     }}
                   >
-                    <button
-                      onClick={() => alterarExtra(grupo.categoria, item, -1, grupo.max)}
-                      disabled={qtd === 0}
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 14,
-                        border: "1px solid #dcdcdc",
-                        background: "#fafafa",
-                        color: "#333",
-                        fontSize: 20,
-                        lineHeight: 1,
-                        opacity: qtd === 0 ? 0.42 : 1,
-                        cursor: qtd === 0 ? "not-allowed" : "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: 0
-                      }}
-                    >
-                      −
-                    </button>
-
-                    <strong
-                      style={{
-                        minWidth: 20,
-                        textAlign: "center",
-                        fontSize: 15,
-                        color: "#111"
-                      }}
-                    >
-                      {qtd}
-                    </strong>
-
-                    <button
-                      onClick={() => {
-                        if (!podeAdicionar) return;
-                        alterarExtra(grupo.categoria, item, 1, grupo.max);
-                      }}
-                      disabled={!podeAdicionar}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 14,
-                        border: "none",
-                        background: podeAdicionar ? "#ea1d2c" : "#e4e4e4",
-                        color: "#fff",
-                        fontSize: 20,
-                        lineHeight: 1,
-                        cursor: podeAdicionar ? "pointer" : "not-allowed",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: 0,
-                        boxShadow: podeAdicionar
-                          ? "0 8px 18px rgba(234,29,44,0.22)"
-                          : "none"
-                      }}
-                    >
-                      +
-                    </button>
+                    {opcaoUnica
+                      ? "Escolha 1 opção"
+                      : `Escolha até ${grupo.max} opções`}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        );
-      })}
+
+                {Number(grupo.min || 0) > 0 && (
+                  <div
+                    style={{
+                      background: "#111",
+                      color: "#fff",
+                      fontSize: 11,
+                      fontWeight: 800,
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    OBRIGATÓRIO
+                  </div>
+                )}
+              </div>
+
+              {/* ITENS */}
+              <div style={{ background: "#fff" }}>
+                {grupo.itens.map((item, index) => {
+                  const itemSelecionado = selecionados.find(
+                    (e) => e.nome === item.nome
+                  );
+                  const qtd = Number(itemSelecionado?.qtd || 0);
+                  const ativo = qtd > 0;
+                  const podeAdicionar = qtd > 0 || totalSelecionado < grupo.max;
+
+                  return (
+                    <div
+                      key={item.nome}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        padding: "18px 20px",
+                        borderBottom:
+                          index !== grupo.itens.length - 1
+                            ? "1px solid #efefef"
+                            : "none"
+                      }}
+                    >
+                      {/* TEXTO */}
+                      <div
+                        style={{
+                          flex: 1,
+                          minWidth: 0
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 500,
+                            color: "#111",
+                            lineHeight: 1.25
+                          }}
+                        >
+                          {item.nome}
+                        </div>
+
+                        {!!item.descricao && (
+                          <div
+                            style={{
+                              marginTop: 4,
+                              fontSize: 13,
+                              color: "#777",
+                              lineHeight: 1.35
+                            }}
+                          >
+                            {item.descricao}
+                          </div>
+                        )}
+
+                        {Number(item.preco || 0) > 0 && (
+                          <div
+                            style={{
+                              marginTop: 5,
+                              fontSize: 14,
+                              color: "#666"
+                            }}
+                          >
+                            + {formatarReal(item.preco)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* IMAGEM */}
+                      {item.imagem && (
+                        <img
+                          src={item.imagem}
+                          style={{
+                            width: 82,
+                            height: 82,
+                            borderRadius: 12,
+                            objectFit: "cover",
+                            flexShrink: 0
+                          }}
+                        />
+                      )}
+
+                      {/* AÇÃO */}
+                      {opcaoUnica ? (
+                        <button
+                          onClick={() => {
+                            setExtrasSelecionados((prev) => ({
+                              ...prev,
+                              [grupo.categoria]: [{ ...item, qtd: 1 }]
+                            }));
+                          }}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: "50%",
+                            border: "2px solid #e2e2e2",
+                            background: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            cursor: "pointer"
+                          }}
+                        >
+                          {ativo && (
+                            <div
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: "50%",
+                                background: "#ea1d2c"
+                              }}
+                            />
+                          )}
+                        </button>
+                      ) : qtd > 0 ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            flexShrink: 0
+                          }}
+                        >
+                          <button
+                            onClick={() =>
+                              alterarExtra(grupo.categoria, item, -1, grupo.max)
+                            }
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              border: "1px solid #e0e0e0",
+                              background: "#fff",
+                              color: "#b6b6b6",
+                              fontSize: 22,
+                              lineHeight: 1,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              padding: 0
+                            }}
+                          >
+                            −
+                          </button>
+
+                          <strong
+                            style={{
+                              minWidth: 14,
+                              textAlign: "center",
+                              fontSize: 17,
+                              color: "#111"
+                            }}
+                          >
+                            {qtd}
+                          </strong>
+
+                          <button
+                            onClick={() => {
+                              if (!podeAdicionar) return;
+                              alterarExtra(grupo.categoria, item, 1, grupo.max);
+                            }}
+                            disabled={!podeAdicionar}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              border: "none",
+                              background: "#fff",
+                              color: "#ea1d2c",
+                              fontSize: 24,
+                              lineHeight: 1,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: podeAdicionar ? "pointer" : "not-allowed",
+                              padding: 0
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            if (!podeAdicionar) return;
+                            alterarExtra(grupo.categoria, item, 1, grupo.max);
+                          }}
+                          disabled={!podeAdicionar}
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 8,
+                            border: "none",
+                            background: "#fff",
+                            color: "#ea1d2c",
+                            fontSize: 26,
+                            lineHeight: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: podeAdicionar ? "pointer" : "not-allowed",
+                            padding: 0,
+                            flexShrink: 0
+                          }}
+                        >
+                          +
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
 
-    {/* BOTÃO FIXO */}
+    {/* BARRA FIXA */}
     <div
-  style={{
-    position: "fixed",
-    bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 10px)`,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100%",
-    maxWidth: larguraApp,
-    display: "flex",
-    justifyContent: "center",
-    zIndex: 30
-  }}
->
-     <button
-  onClick={adicionarCarrinho}
-  disabled={!podeContinuar}
-  style={{
-    width: "88%", // 🔥 controla a largura aqui
-    maxWidth: 960, // 🔥 limite pra web
-    height: 68,
-    borderRadius: 14,
-    background: podeContinuar ? "#ea1d2c" : "#d7d7d7",
-    color: "#fff",
-    border: "none",
-    fontWeight: 700,
-    fontSize: 14,
-    cursor: podeContinuar ? "pointer" : "not-allowed",
-    boxShadow: podeContinuar ? "0 8px 18px rgba(234,29,44,0.22)" : "none",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 14px"
-  }}
->
-  <span>Adicionar</span>
+      style={{
+        position: "fixed",
+        bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 10px)`,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: larguraApp,
+        padding: "0 16px",
+        boxSizing: "border-box",
+        zIndex: 30,
+        display: "flex",
+        justifyContent: "space-between",
+        gap: 12
+      }}
+    >
+      {/* QTD */}
+      <div
+        style={{
+          width: 116,
+          height: 58,
+          borderRadius: 14,
+          background: "#fff",
+          border: "1px solid #e8e8e8",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 14px",
+          boxSizing: "border-box"
+        }}
+      >
+        <button
+          onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+          style={{
+            width: 28,
+            height: 28,
+            border: "none",
+            background: "transparent",
+            color: "#d2d2d2",
+            fontSize: 24,
+            cursor: "pointer",
+            padding: 0
+          }}
+        >
+          −
+        </button>
 
-  <span style={{ fontWeight: 800 }}>
-    {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
-  </span>
-</button>
+        <strong
+          style={{
+            fontSize: 17,
+            color: "#111"
+          }}
+        >
+          {quantidade}
+        </strong>
+
+        <button
+          onClick={() => setQuantidade((q) => q + 1)}
+          style={{
+            width: 28,
+            height: 28,
+            border: "none",
+            background: "transparent",
+            color: "#ea1d2c",
+            fontSize: 24,
+            cursor: "pointer",
+            padding: 0
+          }}
+        >
+          +
+        </button>
+      </div>
+
+      {/* BOTÃO */}
+      <button
+        onClick={adicionarCarrinho}
+        disabled={!podeContinuar}
+        style={{
+          flex: 1,
+          height: 58,
+          borderRadius: 16,
+          background: podeContinuar ? "#ea1d2c" : "#e8e8e8",
+          color: podeContinuar ? "#fff" : "#a8a8a8",
+          border: "none",
+          fontWeight: 800,
+          fontSize: 16,
+          cursor: podeContinuar ? "pointer" : "not-allowed",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 18px",
+          boxSizing: "border-box"
+        }}
+      >
+        <span>Adicionar</span>
+        <span style={{ fontWeight: 900 }}>
+          {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
+        </span>
+      </button>
     </div>
   </div>
 )}
