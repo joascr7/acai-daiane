@@ -4124,25 +4124,41 @@ return (
                 </div>
 
                 <div style={{
-                  marginTop: 7,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "#111",
-                  minHeight: 32,
-                  lineHeight: 1.2,
-                  overflow: "hidden"
-                }}>
-                  {p.nome}
-                </div>
+  marginTop: 7,
+  fontSize: 13,
+  fontWeight: 700,
+  color: "#111",
+  minHeight: 15,
+  lineHeight: 1.2,
+  overflow: "hidden"
+}}>
+  {p.nome}
+</div>
 
-                <div style={{
-                  marginTop: 2,
-                  fontSize: 10,
-                  color: "#777",
-                  minHeight: 12
-                }}>
-                  {p.tamanho ? `• ${p.tamanho}` : ""}
-                </div>
+{!!p.descricao && (
+  <div style={{
+    marginTop: 4,
+    fontSize: 10,
+    color: "#666",
+    lineHeight: 1.3,
+    minHeight: 26,
+    overflow: "hidden",
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical"
+  }}>
+    {p.descricao}
+  </div>
+)}
+
+<div style={{
+  marginTop: 4,
+  fontSize: 10,
+  color: "#777",
+  minHeight: 12
+}}>
+  {p.tamanho ? `• ${p.tamanho}` : ""}
+</div>
 
                 <div style={{
                   marginTop: 8,
