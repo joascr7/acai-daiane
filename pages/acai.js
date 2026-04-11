@@ -332,6 +332,8 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
 const [banners, setBanners] = useState([]);
 const [bannerAtual, setBannerAtual] = useState(0);
 
+const [observacaoPedido, setObservacaoPedido] = useState("");
+
   const [enviandoWhatsapp, setEnviandoWhatsapp] = useState(false);
 
   const [extrasGlobais, setExtrasGlobais] = useState([]);
@@ -1702,6 +1704,8 @@ const gerarPix = async () => {
       total: Number(totalFinalComFrete || 0),
 
       formaPagamento: "pix",
+      observacao: String(observacaoPedido || "").trim(),
+
       statusPagamento: "aguardando_pagamento",
       status: "aguardando_pagamento",
 
@@ -2631,6 +2635,7 @@ async function finalizarPedido() {
       formaPagamento,
       status: "preparando",
       data: Date.now(),
+      observacao: String(observacaoPedido || "").trim(),
       cupom: cupomAplicado
         ? {
             id: cupomAplicado.id,
@@ -2680,6 +2685,9 @@ const enviarWhatsApp = async (pedido) => {
   const codigo = pedido?.codigo || Date.now();
   const itens = Array.isArray(pedido?.itens) ? pedido.itens : [];
   const total = Number(pedido?.total || 0);
+  const subtotal = Number(pedido?.subtotal || 0);
+  const taxaEntrega = Number(pedido?.taxaEntrega || 0);
+  const descontoCupom = Number(pedido?.cupom?.desconto || 0);
   const forma = pedido?.formaPagamento || formaPagamento || "Não informado";
 
   const nomeCliente =
@@ -2693,6 +2701,15 @@ const enviarWhatsApp = async (pedido) => {
 
   const numeroCliente =
     pedido?.cliente?.numero || clienteNumeroCasa || "-";
+
+  const bairroCliente =
+    pedido?.cliente?.bairro || clienteBairro || "";
+
+  const observacao =
+    pedido?.observacao || observacaoPedido || "";
+
+  const codigoCupom =
+    pedido?.cupom?.codigo || pedido?.cupom?.nome || "";
 
   let mensagem = `*Pedido #${codigo}*\n\n`;
 
@@ -2738,6 +2755,26 @@ const enviarWhatsApp = async (pedido) => {
   });
 
   mensagem += `━━━━━━━━━━━━━━━\n`;
+
+  if (subtotal > 0) {
+    mensagem += `*Subtotal:* ${(subtotal / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    })}\n`;
+  }
+
+  if (descontoCupom > 0) {
+    mensagem += `*Desconto${codigoCupom ? ` (${codigoCupom})` : ""}:* -${(descontoCupom / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    })}\n`;
+  }
+
+  mensagem += `*Entrega:* ${(taxaEntrega / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  })}\n`;
+
   mensagem += `*Total:* ${(total / 100).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
@@ -2755,8 +2792,18 @@ const enviarWhatsApp = async (pedido) => {
     mensagem += `*Pagamento:* ${forma}\n`;
   }
 
-  mensagem += `\n*Endereço:*\n${enderecoCliente}, Nº ${numeroCliente}\n`;
-  mensagem += `\n*Cliente:*\n${nomeCliente}\n${telefoneCliente}`;
+  mensagem += `\n*Endereço:*\n${enderecoCliente}, Nº ${numeroCliente}`;
+
+  if (bairroCliente) {
+    mensagem += `\nBairro: ${bairroCliente}`;
+  }
+
+  mensagem += `\n\n*Cliente:*\n${nomeCliente}\n${telefoneCliente}`;
+
+  if (observacao && observacao.trim()) {
+    mensagem += `\n\n━━━━━━━━━━━━━━━\n`;
+    mensagem += `*Observações:*\n${observacao.trim()}`;
+  }
 
   const url = `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
 
@@ -5073,6 +5120,60 @@ return (
   </div>
 )}
     </div>
+
+{/* OBS ANTES DO RESUMO FIXO */}
+
+    <div
+  style={{
+    background: "#fff",
+    padding: 14,
+    borderRadius: 16,
+    marginTop: 10,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+  }}
+>
+  <div
+    style={{
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#111",
+      marginBottom: 8
+    }}
+  >
+    Observações do pedido
+  </div>
+
+  <textarea
+    value={observacaoPedido}
+    onChange={(e) => setObservacaoPedido(e.target.value)}
+    placeholder="Ex.: sem granola, entregar na portaria, tocar interfone"
+    maxLength={200}
+    style={{
+      width: "100%",
+      minHeight: 90,
+      resize: "none",
+      borderRadius: 14,
+      border: "1px solid #e5e5e5",
+      padding: 12,
+      fontSize: 14,
+      color: "#111",
+      outline: "none",
+      boxSizing: "border-box",
+      background: "#fff"
+    }}
+  />
+
+  <div
+    style={{
+      marginTop: 8,
+      fontSize: 12,
+      color: "#777",
+      textAlign: "right"
+    }}
+  >
+    {observacaoPedido.length}/200
+  </div>
+</div>
 
     {/* RESUMO FIXO */}
     <div
