@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { total, pedidoId, email, nome } = req.body;
+    const { total, pedidoId, nome, email } = req.body;
 
     if (!total || Number(total) <= 0) {
       return res.status(400).json({
@@ -43,8 +43,7 @@ export default async function handler(req, res) {
 
     if (!qrData) {
       return res.status(500).json({
-        erro: "Erro ao gerar QR Code",
-        detalhe: result
+        erro: "Erro ao gerar QR Code"
       });
     }
 
@@ -56,7 +55,6 @@ export default async function handler(req, res) {
     });
   } catch (e) {
     console.log("ERRO PIX COMPLETO:", e);
-    console.log("ERRO PIX RESPONSE:", e?.cause || e?.response || null);
 
     return res.status(500).json({
       erro: "Erro ao gerar Pix",

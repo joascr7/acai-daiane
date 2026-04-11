@@ -1682,8 +1682,10 @@ const gerarPix = async () => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        total: valorPix,
-        pedidoId
+      total: valorPix,
+      pedidoId,
+      nome: clienteNome || "Cliente",
+      email: user?.email || "cliente@email.com"
       })
     });
 
@@ -6811,73 +6813,77 @@ return (
       </div>
 
       {/* BOTÕES */}
-      <div style={{
-        position: "fixed",
-        bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
-        left: 0,
-        right: 0,
-        maxWidth: larguraApp,
-        margin: "0 auto",
-        padding: "10px 16px",
-        zIndex: 10,
-        
-        justifyContent: "center",
-        boxSizing: "border-box"
-      }}>
-        <button
-          onClick={() => {
-         if (!formaPagamento) {
+<div
+  style={{
+    position: "fixed",
+    bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "100%",
+    maxWidth: larguraApp,
+    padding: "10px 14px",
+    zIndex: 10,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    boxSizing: "border-box"
+  }}
+>
+  <button
+    onClick={() => {
+      if (!formaPagamento) {
         alert("Escolha uma forma de pagamento");
         return;
-         }
+      }
 
-         if (formaPagamento === "pix") {
-          setQrBase64(null);
-          setQrCode(null);
-          setPaymentId(null);
-          setMostrarPagamento(true);
-          return;
-          }
+      if (formaPagamento === "pix") {
+        setQrBase64(null);
+        setQrCode(null);
+        setPaymentId(null);
+        setMostrarPagamento(true);
+        return;
+      }
 
-         finalizarPedido();
-         }}
-          style={{
-            width: "92%",
-            height: 42,
-            transform: "translateX(2.4%)",
-            borderRadius: 14,
-            background: "#ea1d2c",
-            color: "#fff",
-            border: "none",
-            fontWeight: "bold",
-            fontSize: 15,
-            cursor: "pointer"
-          }}
-        >
-          Finalizar pedido • {formatarReal(totalFinalComFrete)}
-        </button>
+      finalizarPedido();
+    }}
+    style={{
+      width: "100%",
+      maxWidth: 860,
+      height: 46,
+      borderRadius: 14,
+      background: "#ea1d2c",
+      color: "#fff",
+      border: "none",
+      fontWeight: 700,
+      fontSize: 14,
+      cursor: "pointer",
+      boxShadow: "0 6px 16px rgba(234,29,44,0.25)"
+    }}
+  >
+    Finalizar pedido • {formatarReal(totalFinalComFrete)}
+  </button>
 
-        <button
-          onClick={() => {
-            setAba("carrinho");
-            setStep(3);
-          }}
-          style={{
-            width: "92%",
-            height: 36,
-            transform: "translateX(2.4%)",
-            borderRadius: 14,
-            background: "#555555",
-            color: "#fff",
-            border: "none",
-            marginTop: 8,
-            cursor: "pointer"
-            
-          }}
-        >
-          Voltar ao carrinho
-        </button>
-      </div>
+  <button
+    onClick={() => {
+      setAba("carrinho");
+      setStep(3);
+    }}
+    style={{
+      width: "100%",
+      maxWidth: 860,
+      height: 40,
+      borderRadius: 12,
+      background: "#555",
+      color: "#fff",
+      border: "none",
+      marginTop: 8,
+      cursor: "pointer",
+      fontSize: 13
+    }}
+  >
+    Voltar ao carrinho
+  </button>
+</div>
     </div>
   </>
 )}
