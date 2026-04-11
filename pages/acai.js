@@ -8311,68 +8311,7 @@ return (
 
       <ChevronRight size={18} color="#b3b3b3" />
 
-{toast && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
-
-      left: 0,
-      right: 0,
-      margin: "0 auto",
-
-      width: "100%",
-      maxWidth: 420,
-      padding: "0 16px",
-
-      zIndex: 9999,
-      display: "flex",
-      justifyContent: "center",
-      pointerEvents: "none"
-    }}
-  >
-    <div
-      style={{
-        width: "100%",
-        borderRadius: 16,
-        padding: "14px 16px",
-
-        background:
-          toast.tipo === "sucesso"
-            ? "#ecfdf3"
-            : toast.tipo === "erro"
-            ? "#fef2f2"
-            : "#f8fafc",
-
-        color:
-          toast.tipo === "sucesso"
-            ? "#166534"
-            : toast.tipo === "erro"
-            ? "#b91c1c"
-            : "#334155",
-
-        border:
-          toast.tipo === "sucesso"
-            ? "1px solid #bbf7d0"
-            : toast.tipo === "erro"
-            ? "1px solid #fecaca"
-            : "1px solid #e2e8f0",
-
-        boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-        fontSize: 14,
-        fontWeight: 600,
-
-        pointerEvents: "auto"
-      }}
-    >
-      {toast.texto}
     </div>
-  </div>
-)}
-
-    </div>
-
-
 )}
 
 
