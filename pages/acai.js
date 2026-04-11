@@ -313,6 +313,7 @@ useEffect(() => {
 const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
+
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
 
@@ -1631,6 +1632,14 @@ async function marcarComoLida() {
 
 const gerarPix = async () => {
   try {
+    if (!validarLojaAberta()) return;
+
+    if (!user) {
+      localStorage.setItem("redirectAfterLogin", "finalizar");
+      router.push("/login");
+      return;
+    }
+
     if (pedidoPixAberto) {
       console.log("Fluxo de pedido existente: gerarPix bloqueado");
       return;
@@ -1657,7 +1666,10 @@ const gerarPix = async () => {
     const valorPix = Number(totalFinalComFrete) / 100;
     const pedidoId = Date.now().toString();
 
+    console.log("USER LOGADO:", user?.uid);
     console.log("INICIANDO PEDIDO:", pedidoId);
+    console.log("TOTAL FINAL COM FRETE:", totalFinalComFrete);
+    console.log("OBSERVACAO:", observacaoPedido);
 
     setQrBase64(null);
     setQrCode(null);
@@ -1676,6 +1688,9 @@ const gerarPix = async () => {
     });
 
     const data = await res.json();
+
+    console.log("STATUS API PIX:", res.status);
+    console.log("RESPOSTA API PIX:", data);
 
     if (!data?.payment_id) {
       mostrarMensagemPagamento("Não foi possível gerar o Pix agora. Tente novamente.", "erro");
@@ -1701,7 +1716,7 @@ const gerarPix = async () => {
         endereco: clienteEndereco || "",
         numero: clienteNumeroCasa || "",
         bairro: clienteBairro || "",
-        uid: user?.uid || null
+        uid: user.uid
       },
 
       itens: (carrinho || []).map(item => ({
@@ -1767,7 +1782,7 @@ const gerarPix = async () => {
       "sucesso"
     );
   } catch (e) {
-    console.log("ERRO GERAL:", e);
+    console.log("ERRO GERAL PIX:", e);
     mostrarMensagemPagamento("Ocorreu um erro ao gerar o Pix. Tente novamente.", "erro");
   }
 };
@@ -4466,23 +4481,27 @@ return (
 
 
 {aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
-  <div style={{
-    maxWidth: larguraApp,
-    margin: "0 auto",
-    height: "100dvh",
-    display: "flex",
-    flexDirection: "column",
-    background: "#fff",
-    overflow: "hidden"
-  }}>
-
+  <div
+    style={{
+      maxWidth: larguraApp,
+      margin: "0 auto",
+      height: "100dvh",
+      display: "flex",
+      flexDirection: "column",
+      background: "#f6f7f9",
+      overflow: "hidden"
+    }}
+  >
     {/* TOPO FIXO */}
-    <div style={{
-      position: "relative",
-      width: "100%",
-      height: 220,
-      flexShrink: 0
-    }}>
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: 190,
+        flexShrink: 0,
+        overflow: "hidden"
+      }}
+    >
       <img
         src={produto?.imagem || "/acai.png"}
         style={{
@@ -4492,11 +4511,13 @@ return (
         }}
       />
 
-      <div style={{
-        position: "absolute",
-        inset: 0,
-        background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent)"
-      }} />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.65) 100%)"
+        }}
+      />
 
       {/* VOLTAR */}
       <button
@@ -4509,21 +4530,22 @@ return (
         }}
         style={{
           position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 10px)",
+          top: "calc(env(safe-area-inset-top) + 12px)",
           left: 16,
-          width: 42,
-          height: 42,
-          borderRadius: 14,
+          width: 46,
+          height: 46,
+          borderRadius: 16,
           border: "none",
-          background: "#fff",
+          background: "rgba(255,255,255,0.96)",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+          boxShadow: "0 8px 22px rgba(0,0,0,0.18)",
           fontSize: 20,
-          fontWeight: "bold",
-          color: "#111"
+          fontWeight: 700,
+          color: "#111",
+          backdropFilter: "blur(8px)"
         }}
       >
         ←
@@ -4531,71 +4553,129 @@ return (
 
       {/* SELO OFERTA */}
       {produto?.promocao && (
-        <div style={{
-          position: "absolute",
-          top: "calc(env(safe-area-inset-top) + 12px)",
-          right: 16,
-          background: "#ea1d2c",
-          color: "#fff",
-          padding: "6px 10px",
-          borderRadius: 999,
-          fontSize: 11,
-          fontWeight: 700,
-          boxShadow: "0 4px 12px rgba(234,29,44,0.25)"
-        }}>
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(env(safe-area-inset-top) + 14px)",
+            right: 16,
+            background: "#ea1d2c",
+            color: "#fff",
+            padding: "8px 12px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 800,
+            letterSpacing: "0.02em",
+            boxShadow: "0 8px 18px rgba(234,29,44,0.28)"
+          }}
+        >
           Oferta
         </div>
       )}
 
-      {/* NOME */}
-      <div style={{
-        position: "absolute",
-        bottom: 16,
-        left: 16,
-        right: 16,
-        color: "#fff"
-      }}>
-        <h2 style={{ margin: 0 }}>
+      {/* NOME + DESCRIÇÃO */}
+      <div
+        style={{
+          position: "absolute",
+          left: 16,
+          right: 16,
+          bottom: 18,
+          color: "#fff"
+        }}
+      >
+        <div
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            lineHeight: 1.02,
+            letterSpacing: "-0.03em"
+          }}
+        >
           {produto?.nome}
-        </h2>
+        </div>
+
+        {!!produto?.descricao && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 13,
+              lineHeight: 1.35,
+              color: "rgba(255,255,255,0.9)",
+              maxWidth: "92%",
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical"
+            }}
+          >
+            {produto.descricao}
+          </div>
+        )}
       </div>
     </div>
 
     {/* CONTEÚDO COM SCROLL */}
-    <div style={{
-      flex: 1,
-      overflowY: "auto",
-      padding: 16,
-      paddingBottom: 140,
-      boxSizing: "border-box"
-    }}>
-
-      {/* QUANTIDADE */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20
-      }}>
-        <span style={{ fontSize: 15, color: "#111", fontWeight: 600 }}>
-          Quantidade
-        </span>
-
-        <div style={{
+    <div
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: 14,
+        paddingBottom: 126,
+        boxSizing: "border-box"
+      }}
+    >
+      {/* CARD QUANTIDADE */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 22,
+          padding: 16,
+          marginBottom: 16,
+          boxShadow: "0 10px 24px rgba(0,0,0,0.05)",
+          border: "1px solid #efefef",
           display: "flex",
-          alignItems: "center",
-          gap: 10
-        }}>
-          <button
-            onClick={() => setQuantidade(q => Math.max(1, q - 1))}
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
+        <div>
+          <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
+              fontSize: 16,
+              color: "#111",
+              fontWeight: 800
+            }}
+          >
+            Quantidade
+          </div>
+
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 12,
+              color: "#777"
+            }}
+          >
+            Ajuste quantas unidades deseja pedir
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10
+          }}
+        >
+          <button
+            onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 14,
               border: "1px solid #dcdcdc",
               background: "#fff",
               color: "#333",
-              fontSize: 20,
+              fontSize: 22,
               lineHeight: 1,
               cursor: "pointer",
               display: "flex",
@@ -4604,34 +4684,37 @@ return (
               padding: 0
             }}
           >
-            -
+            −
           </button>
 
-          <strong style={{
-            fontSize: 15,
-            minWidth: 18,
-            textAlign: "center",
-            color: "#111"
-          }}>
+          <strong
+            style={{
+              fontSize: 16,
+              minWidth: 22,
+              textAlign: "center",
+              color: "#111"
+            }}
+          >
             {quantidade}
           </strong>
 
           <button
-            onClick={() => setQuantidade(q => q + 1)}
+            onClick={() => setQuantidade((q) => q + 1)}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
+              width: 38,
+              height: 38,
+              borderRadius: 14,
               border: "none",
               background: "#ea1d2c",
               color: "#fff",
-              fontSize: 20,
+              fontSize: 22,
               lineHeight: 1,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: 0
+              padding: 0,
+              boxShadow: "0 8px 18px rgba(234,29,44,0.22)"
             }}
           >
             +
@@ -4640,7 +4723,7 @@ return (
       </div>
 
       {/* EXTRAS */}
-      {extrasDoProduto.map(grupo => {
+      {extrasDoProduto.map((grupo) => {
         const selecionados = extrasSelecionados?.[grupo.categoria] || [];
 
         const totalSelecionado = selecionados.reduce(
@@ -4648,30 +4731,70 @@ return (
           0
         );
 
-        return (
-          <div key={grupo.categoria} style={{ marginBottom: 20 }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 10,
-              alignItems: "center"
-            }}>
-              <strong style={{ color: "#111", fontSize: 15 }}>
-                {grupo.categoria}
-              </strong>
+        const atingiuLimite = totalSelecionado >= grupo.max;
 
-              <span style={{
-                fontSize: 12,
-                color: totalSelecionado >= grupo.max ? "#ea1d2c" : "#777",
-                fontWeight: 600
-              }}>
+        return (
+          <div
+            key={grupo.categoria}
+            style={{
+              marginBottom: 18
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 10,
+                padding: "0 2px"
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    color: "#111",
+                    fontSize: 17,
+                    fontWeight: 800,
+                    lineHeight: 1.1
+                  }}
+                >
+                  {grupo.categoria}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 12,
+                    color: "#777"
+                  }}
+                >
+                  Escolha até {grupo.max}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  minWidth: 54,
+                  height: 30,
+                  padding: "0 10px",
+                  borderRadius: 999,
+                  background: atingiuLimite ? "#fff1f2" : "#eef1f4",
+                  color: atingiuLimite ? "#ea1d2c" : "#666",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
                 {totalSelecionado}/{grupo.max}
-              </span>
+              </div>
             </div>
 
-            {grupo.itens.map(item => {
-              const itemSelecionado = selecionados.find(e => e.nome === item.nome);
+            {grupo.itens.map((item) => {
+              const itemSelecionado = selecionados.find((e) => e.nome === item.nome);
               const qtd = itemSelecionado?.qtd || 0;
+              const podeAdicionar = qtd > 0 || totalSelecionado < grupo.max;
 
               return (
                 <div
@@ -4680,52 +4803,59 @@ return (
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    padding: "10px 12px",
-                    borderRadius: 14,
-                    marginBottom: 8,
+                    padding: "14px 14px",
+                    borderRadius: 20,
+                    marginBottom: 10,
                     background: "#fff",
-                    border: qtd > 0 ? "1px solid #f7c8cd" : "1px solid #eee",
-                    boxShadow: qtd > 0 ? "0 4px 10px rgba(234,29,44,0.06)" : "none"
+                    border: qtd > 0 ? "1px solid #ffd7db" : "1px solid #ececec",
+                    boxShadow: qtd > 0
+                      ? "0 10px 22px rgba(234,29,44,0.08)"
+                      : "0 8px 18px rgba(0,0,0,0.04)"
                   }}
                 >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <strong style={{
-                      color: "#111",
-                      fontSize: 14,
-                      display: "block",
-                      lineHeight: 1.2
-                    }}>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 10 }}>
+                    <div
+                      style={{
+                        color: "#111",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        lineHeight: 1.2
+                      }}
+                    >
                       {item.nome}
-                    </strong>
+                    </div>
 
-                    <div style={{
-                      fontSize: 12,
-                      color: "#777",
-                      marginTop: 3
-                    }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#777",
+                        marginTop: 4
+                      }}
+                    >
                       + {formatarReal(item.preco)}
                     </div>
                   </div>
 
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginLeft: 10
-                  }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8
+                    }}
+                  >
                     <button
                       onClick={() => alterarExtra(grupo.categoria, item, -1, grupo.max)}
                       disabled={qtd === 0}
                       style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: "50%",
+                        width: 34,
+                        height: 34,
+                        borderRadius: 14,
                         border: "1px solid #dcdcdc",
-                        background: "#fff",
+                        background: "#fafafa",
                         color: "#333",
-                        fontSize: 18,
+                        fontSize: 20,
                         lineHeight: 1,
-                        opacity: qtd === 0 ? 0.45 : 1,
+                        opacity: qtd === 0 ? 0.42 : 1,
                         cursor: qtd === 0 ? "not-allowed" : "pointer",
                         display: "flex",
                         alignItems: "center",
@@ -4733,35 +4863,43 @@ return (
                         padding: 0
                       }}
                     >
-                      -
+                      −
                     </button>
 
-                    <strong style={{
-                      minWidth: 16,
-                      textAlign: "center",
-                      fontSize: 14,
-                      color: "#111"
-                    }}>
+                    <strong
+                      style={{
+                        minWidth: 20,
+                        textAlign: "center",
+                        fontSize: 15,
+                        color: "#111"
+                      }}
+                    >
                       {qtd}
                     </strong>
 
                     <button
-                      onClick={() => alterarExtra(grupo.categoria, item, 1, grupo.max)}
+                      onClick={() => {
+                        if (!podeAdicionar) return;
+                        alterarExtra(grupo.categoria, item, 1, grupo.max);
+                      }}
+                      disabled={!podeAdicionar}
                       style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: "50%",
+                        width: 36,
+                        height: 36,
+                        borderRadius: 14,
                         border: "none",
-                        background: "#ea1d2c",
+                        background: podeAdicionar ? "#ea1d2c" : "#e4e4e4",
                         color: "#fff",
-                        fontSize: 18,
+                        fontSize: 20,
                         lineHeight: 1,
-                        cursor: "pointer",
+                        cursor: podeAdicionar ? "pointer" : "not-allowed",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         padding: 0,
-                        boxShadow: "0 4px 10px rgba(234,29,44,0.18)"
+                        boxShadow: podeAdicionar
+                          ? "0 8px 18px rgba(234,29,44,0.22)"
+                          : "none"
                       }}
                     >
                       +
@@ -4776,44 +4914,47 @@ return (
     </div>
 
     {/* BOTÃO FIXO */}
-    <div style={{
-      position: "fixed",
-      bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 8px)`,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "100%",
-      maxWidth: larguraApp,
-      padding: "0 16px",
-      zIndex: 20,
-      boxSizing: "border-box"
-    }}>
-      <button
-        onClick={adicionarCarrinho}
-        disabled={!podeContinuar}
-        style={{
-          width: "92%",
-          height: 52,
-          borderRadius: 14,
-          background: podeContinuar ? "#ea1d2c" : "#d6d6d6",
-          color: "#fff",
-          border: "none",
-          fontWeight: 700,
-          fontSize: 15,
-          cursor: podeContinuar ? "pointer" : "not-allowed",
-          boxShadow: podeContinuar ? "0 8px 20px rgba(234,29,44,0.22)" : "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 16px"
-        }}
-      >
-        <span>Adicionar</span>
-        <span>
-          {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
-        </span>
-      </button>
-    </div>
+    <div
+  style={{
+    position: "fixed",
+    bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 10px)`,
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "100%",
+    maxWidth: larguraApp,
+    display: "flex",
+    justifyContent: "center",
+    zIndex: 30
+  }}
+>
+     <button
+  onClick={adicionarCarrinho}
+  disabled={!podeContinuar}
+  style={{
+    width: "88%", // 🔥 controla a largura aqui
+    maxWidth: 360, // 🔥 limite pra web
+    height: 48,
+    borderRadius: 14,
+    background: podeContinuar ? "#ea1d2c" : "#d7d7d7",
+    color: "#fff",
+    border: "none",
+    fontWeight: 700,
+    fontSize: 14,
+    cursor: podeContinuar ? "pointer" : "not-allowed",
+    boxShadow: podeContinuar ? "0 8px 18px rgba(234,29,44,0.22)" : "none",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 14px"
+  }}
+>
+  <span>Adicionar</span>
 
+  <span style={{ fontWeight: 800 }}>
+    {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
+  </span>
+</button>
+    </div>
   </div>
 )}
 

@@ -5,17 +5,14 @@ const client = new MercadoPagoConfig({
 });
 
 export default async function handler(req, res) {
-
   if (req.method !== "POST") {
     return res.status(405).json({ erro: "Método não permitido" });
   }
 
   try {
+    const { total, pedidoId, email, nome } = req.body;
 
-    const { total, pedidoId } = req.body;
-
-    // 🔥 VALIDAÇÕES
-    if (!total || total <= 0) {
+    if (!total || Number(total) <= 0) {
       return res.status(400).json({
         erro: "Valor inválido"
       });
@@ -34,23 +31,20 @@ export default async function handler(req, res) {
         transaction_amount: Number(total),
         description: "Pedido Açaí",
         payment_method_id: "pix",
-
-        // 🔥 ESSENCIAL PARA WEBHOOK
         external_reference: String(pedidoId),
-
         payer: {
-        email: user?.email,
-        first_name: user?.nome || "Cliente"
+          email: email || "cliente@email.com",
+          first_name: nome || "Cliente"
         }
       }
     });
 
-    // 🔥 GARANTE QUE O PIX FOI GERADO
-    const qrData = result.point_of_interaction?.transaction_data;
+    const qrData = result?.point_of_interaction?.transaction_data;
 
     if (!qrData) {
       return res.status(500).json({
-        erro: "Erro ao gerar QR Code"
+        erro: "Erro ao gerar QR Code",
+        detalhe: result
       });
     }
 
@@ -60,14 +54,13 @@ export default async function handler(req, res) {
       qr_code: qrData.qr_code,
       qr_code_base64: qrData.qr_code_base64
     });
-
   } catch (e) {
-
     console.log("ERRO PIX COMPLETO:", e);
+    console.log("ERRO PIX RESPONSE:", e?.cause || e?.response || null);
 
     return res.status(500).json({
       erro: "Erro ao gerar Pix",
-      detalhe: e.message
+      detalhe: e?.message || "Erro interno"
     });
   }
 }
