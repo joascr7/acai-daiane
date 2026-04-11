@@ -861,6 +861,24 @@ useEffect(() => {
   return () => unsubscribe();
 }, [user]);
 
+
+
+function BannerSlideImage({ src, isMobile }) {
+  return (
+    <img
+      src={src}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: isMobile ? "cover" : "contain",
+        objectPosition: "center",
+        display: "block",
+        background: "#111"
+      }}
+    />
+  );
+}
+
   
 
 // 🔥 HISTÓRICO DE BUSCA
@@ -3842,123 +3860,74 @@ return (
     position: "relative",
     boxShadow: "0 10px 24px rgba(0,0,0,0.08)",
     width: "100%",
-    height: isMobile ? 160 : 300,
+    height: isMobile ? 170 : 325,
     background: "#111"
   }}
 >
   {Array.isArray(banners) && banners.length > 0 ? (
     <>
-      <div
-        style={{
-          display: "flex",
-          width: `${banners.length * 100}%`,
-          height: "100%",
-          transform: `translateX(-${bannerIndex * (100 / banners.length)}%)`,
-          transition: "transform 0.45s ease"
-        }}
-      >
-        {banners.map((b) => (
-          <div
-            key={b.id}
+      {banners.map((b, i) => (
+        <div
+          key={b.id}
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: i === bannerIndex ? 1 : 0,
+            transition: "opacity 0.45s ease",
+            pointerEvents: i === bannerIndex ? "auto" : "none"
+          }}
+        >
+          <img
+            src={b.imagem}
             style={{
-              width: `${100 / banners.length}%`,
+              width: "100%",
               height: "100%",
-              flexShrink: 0,
-              position: "relative"
+              objectFit: "cover",
+              objectPosition: "center",
+              display: "block"
+            }}
+          />
+
+          <div
+            style={{
+              position: "absolute",
+              left: 16,
+              bottom: 14,
+              zIndex: 2
             }}
           >
-            <img
-              src={b.imagem}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center",
-                display: "block"
+            <button
+              onClick={() => {
+                setCategoriaSelecionada(b.categoria || "promocoes");
+                setAba("home");
+                setStep(9);
               }}
-            />
-
-            <div
               style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.14) 100%)",
-                zIndex: 1
-              }}
-            />
-
-            <div
-              style={{
-                position: "absolute",
-                left: 20,
-                top: 20,
-                zIndex: 2,
+                height: 38,
+                padding: "0 16px",
+                borderRadius: 999,
+                border: "none",
+                background: "#ea1d2c",
                 color: "#fff",
-                maxWidth: isMobile ? "52%" : "42%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start"
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
               }}
             >
-              <strong
-                style={{
-                  fontSize: isMobile ? 18 : 24,
-                  lineHeight: 1.1,
-                  fontWeight: 800,
-                  color: "#fff"
-                }}
-              >
-                {b.titulo || "Ofertas especiais"}
-              </strong>
-
-              {!!b.subtitulo && (
-                <p
-                  style={{
-                    fontSize: isMobile ? 12 : 16,
-                    marginTop: 8,
-                    marginBottom: 0,
-                    lineHeight: 1.3,
-                    color: "rgba(255,255,255,0.92)"
-                  }}
-                >
-                  {b.subtitulo}
-                </p>
-              )}
-
-              <button
-                onClick={() => {
-                  setCategoriaSelecionada(b.categoria || "promocoes");
-                  setAba("home");
-                  setStep(9);
-                }}
-                style={{
-                  marginTop: 14,
-                  padding: isMobile ? "8px 14px" : "10px 18px",
-                  borderRadius: 999,
-                  border: "none",
-                  background: "#ea1d2c",
-                  color: "#fff",
-                  fontSize: isMobile ? 12 : 14,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 8px 22px rgba(234,29,44,0.35)"
-                }}
-              >
-                Ver ofertas
-              </button>
-            </div>
+              Ver ofertas
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
       {banners.length > 1 && (
         <div
           style={{
             position: "absolute",
-            bottom: 12,
-            left: 0,
-            right: 0,
+            bottom: 14,
+            left: "50%",
+            transform: "translateX(-50%)",
             display: "flex",
             justifyContent: "center",
             gap: 6,
@@ -3972,7 +3941,8 @@ return (
                 width: i === bannerIndex ? 18 : 7,
                 height: 7,
                 borderRadius: 999,
-                background: i === bannerIndex ? "#fff" : "rgba(255,255,255,0.45)",
+                background: i === bannerIndex ? "#fff" : "rgba(255,255,255,0.55)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
                 transition: "all 0.25s ease"
               }}
             />
@@ -3996,49 +3966,11 @@ return (
       <div
         style={{
           position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(90deg, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.14) 100%)",
-          zIndex: 1
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: 20,
-          top: 20,
-          zIndex: 2,
-          color: "#fff",
-          maxWidth: isMobile ? "52%" : "42%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start"
+          left: 16,
+          bottom: 14,
+          zIndex: 2
         }}
       >
-        <strong
-          style={{
-            fontSize: isMobile ? 18 : 24,
-            lineHeight: 1.1,
-            fontWeight: 800,
-            color: "#fff"
-          }}
-        >
-          Ofertas especiais
-        </strong>
-
-        <p
-          style={{
-            fontSize: isMobile ? 12 : 16,
-            marginTop: 8,
-            marginBottom: 0,
-            lineHeight: 1.3,
-            color: "rgba(255,255,255,0.92)"
-          }}
-        >
-          Descontos imperdíveis hoje
-        </p>
-
         <button
           onClick={() => {
             setCategoriaSelecionada("promocoes");
@@ -4046,16 +3978,16 @@ return (
             setStep(9);
           }}
           style={{
-            marginTop: 14,
-            padding: isMobile ? "8px 14px" : "10px 18px",
+            height: 38,
+            padding: "0 16px",
             borderRadius: 999,
             border: "none",
             background: "#ea1d2c",
             color: "#fff",
-            fontSize: isMobile ? 12 : 14,
+            fontSize: 13,
             fontWeight: 700,
             cursor: "pointer",
-            boxShadow: "0 8px 22px rgba(234,29,44,0.35)"
+            boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
           }}
         >
           Ver ofertas
