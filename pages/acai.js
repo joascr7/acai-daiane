@@ -8325,7 +8325,7 @@ return (
   <div
     style={{
       position: "fixed",
-      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
+      bottom: -env(safe-area-inset-bottom),
 
       left: 0,
       right: 0,
