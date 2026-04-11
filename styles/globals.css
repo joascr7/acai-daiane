@@ -371,29 +371,14 @@ body {
 .btnInstall {
   position: fixed;
   bottom: 20px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-
-  max-width: 320px;
-  width: calc(100% - 32px);
-
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--primary);
   color: white;
   border-radius: 30px;
   padding: 12px 18px;
   font-weight: bold;
   z-index: 9999;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
-[style*="translateX(-50%)"] {
-  left: 0 !important;
-  right: 0 !important;
-  margin: 0 auto !important;
-  transform: none !important;
-}
 
