@@ -76,6 +76,8 @@ import {
   ChevronRight,
   Star,
   Gem,
+  Pencil,
+  Trash2,
   CheckCircle
   
 } from "lucide-react";
@@ -3986,7 +3988,7 @@ return (
             boxShadow: "0 6px 14px rgba(0,0,0,0.03)"
           }}
         >
-          Você ganhou ofertas especiais no app!
+          Peça agora e receba essa explosão de sabor na sua casa!
 
           <span
             style={{
@@ -5143,587 +5145,782 @@ return (
     style={{
       maxWidth: larguraApp,
       margin: "0 auto",
-      minHeight: "100dvh",
-      background: "#f7f7f7",
-      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 220px)`,
+      minHeight: "100vh",
+      background: "#efefef",
+      paddingBottom: 240,
       boxSizing: "border-box"
     }}
   >
-    {/* HEADER */}
+    {/* TOPO ESCURO / FUNDO */}
     <div
       style={{
-        padding: "calc(env(safe-area-inset-top) + 14px) 16px 16px",
+        height: 12,
+        background: "#f5f5f5"
+      }}
+    />
+
+    {/* SHEET PRINCIPAL */}
+    <div
+      style={{
+        marginTop: 0,
         background: "#fff",
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
+        borderTopLeftRadius: 22,
+        borderTopRightRadius: 22,
+        minHeight: "calc(100vh - 12px)",
+        boxShadow: "0 -6px 18px rgba(0,0,0,0.08)",
+        overflow: "hidden"
       }}
     >
+      {/* HEADER */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12
+          padding: "18px 18px 16px",
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          background: "#fff"
         }}
       >
-        <button
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "40px 1fr auto",
+            alignItems: "center",
+            gap: 12
+          }}
+        >
+          <button
+            onClick={() => {
+              setAba("home");
+              setStep(1);
+            }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              border: "none",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#ea1d2c",
+              cursor: "pointer"
+            }}
+          >
+            <ChevronDown size={20} />
+          </button>
+
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: 20,
+              fontWeight: 800,
+              color: "#111",
+              letterSpacing: "-0.02em"
+            }}
+          >
+            SACOLA
+          </div>
+
+          <button
+            onClick={() => setCarrinho([])}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "#ea1d2c",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer"
+            }}
+          >
+            Limpar
+          </button>
+        </div>
+      </div>
+
+      {/* CONTEÚDO */}
+      <div
+        style={{
+          padding: "6px 18px 24px"
+        }}
+      >
+        
+
+        {/* TÍTULO ITENS */}
+        <div
+          style={{
+            fontSize: 19,
+            fontWeight: 800,
+            color: "#111",
+            marginBottom: 16
+          }}
+        >
+          Itens adicionados
+        </div>
+
+        {/* ITENS */}
+        {carrinho.map((item, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              gap: 14,
+              alignItems: "flex-start",
+              marginBottom: 22
+            }}
+          >
+            {/* IMAGEM */}
+            <div
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: 20,
+                overflow: "hidden",
+                background: "#f5f5f5",
+                position: "relative",
+                flexShrink: 0
+              }}
+            >
+              <img
+                src={item.produto?.imagem || item.imagem || "/acai.png"}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block"
+                }}
+              />
+
+              {item.produto?.categoria === "acai" && (
+                <button
+                  onClick={() => editarItem(i)}
+                  style={{
+                    position: "absolute",
+                    top: 14,
+                    left: 10,
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    border: "none",
+                    background: "#fff",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.10)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#ea1d2c",
+                    cursor: "pointer"
+                  }}
+                >
+                  <Pencil size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* DADOS */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#111",
+                  lineHeight: 1.2
+                }}
+              >
+                {item.produto?.nome || "Produto"}
+              </div>
+
+              {!!item.produto?.descricao && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    color: "#777",
+                    lineHeight: 1.35,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical"
+                  }}
+                >
+                  {item.produto.descricao}
+                </div>
+              )}
+
+              {item.extras?.length > 0 && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    color: "#666",
+                    lineHeight: 1.35
+                  }}
+                >
+                  {item.extras.map((e) => `+ ${e.nome}`).join(", ")}
+                </div>
+              )}
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap"
+                }}
+              >
+                {produtoEmPromocao?.(item.produto) && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "#f97316",
+                        fontSize: 18
+                      }}
+                    >
+                      %
+                    </span>
+
+                    <strong
+                      style={{
+                        fontSize: 17,
+                        color: "#111",
+                        fontWeight: 900
+                      }}
+                    >
+                      {formatarReal(item.total)}
+                    </strong>
+
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "#aaa",
+                        textDecoration: "line-through"
+                      }}
+                    >
+                      {formatarReal((item.produto?.preco || 0) * (item.quantidade || 1))}
+                    </span>
+                  </div>
+                )}
+
+                {!produtoEmPromocao?.(item.produto) && (
+                  <strong
+                    style={{
+                      fontSize: 17,
+                      color: "#111",
+                      fontWeight: 900
+                    }}
+                  >
+                    {formatarReal(item.total)}
+                  </strong>
+                )}
+              </div>
+            </div>
+
+            {/* CONTROLE */}
+            <div
+              style={{
+                minWidth: 118,
+                background: "#f7f7f7",
+                borderRadius: 18,
+                padding: "10px 12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                flexShrink: 0
+              }}
+            >
+              <button
+                onClick={() => removerItem(i)}
+                style={{
+                  width: 24,
+                  height: 24,
+                  border: "none",
+                  background: "transparent",
+                  color: "#ea1d2c",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer"
+                }}
+              >
+                <Trash2 size={17} />
+              </button>
+
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: "#111",
+                  minWidth: 16,
+                  textAlign: "center"
+                }}
+              >
+                {item.quantidade}
+              </div>
+
+              <button
+                onClick={() => alterarQuantidade(i, "mais")}
+                style={{
+                  width: 24,
+                  height: 24,
+                  border: "none",
+                  background: "transparent",
+                  color: "#ea1d2c",
+                  fontSize: 28,
+                  lineHeight: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer"
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {/* ADICIONAR MAIS */}
+        <div
           onClick={() => {
             setAba("home");
             setStep(1);
           }}
           style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
-            border: "none",
-            background: "#fff",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+            marginTop: 8,
+            textAlign: "center",
+            fontSize: 17,
+            fontWeight: 800,
+            color: "#ea1d2c",
+            cursor: "pointer"
           }}
         >
-          <ArrowLeft size={20} color="#111" />
-        </button>
+          Adicionar mais itens
+        </div>
 
-        <h3 style={{ margin: 0, color: "#111" }}>Sacola</h3>
-      </div>
-    </div>
-
-    <div style={{ padding: 16 }}>
-      {/* ITENS */}
-      {carrinho.map((item, i) => (
+        {/* CUPOM */}
         <div
-          key={i}
           style={{
+            marginTop: 26,
             background: "#fff",
-            padding: 14,
-            borderRadius: 18,
-            marginBottom: 12,
+            borderRadius: 20,
+            padding: 18,
+            boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
+            border: "1px solid #f0f0f0",
             display: "flex",
-            gap: 12,
+            justifyContent: "space-between",
             alignItems: "center",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            gap: 14,
+            cursor: carrinho.length ? "pointer" : "not-allowed",
+            opacity: carrinho.length ? 1 : 0.65
+          }}
+          onClick={() => {
+            if (!carrinho.length) return;
+            aplicarMelhorCupom();
           }}
         >
-          <img
-            src={item.produto?.imagem || item.imagem || "/acai.png"}
+          <div
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: 14,
-              objectFit: "cover",
-              flexShrink: 0
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              minWidth: 0
             }}
-          />
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <strong
+          >
+            <div
               style={{
-                fontSize: 14,
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                background: "#fff4f4",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 color: "#111",
-                display: "block",
-                lineHeight: 1.25
+                flexShrink: 0
               }}
             >
-              {item.produto?.nome || "Produto"}
-            </strong>
+              <Tag size={18} />
+            </div>
 
-            {item.extras?.length > 0 && (
+            <div style={{ minWidth: 0 }}>
               <div
                 style={{
-                  marginTop: 6,
-                  fontSize: 11,
-                  color: "#777",
-                  lineHeight: 1.35
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#111"
                 }}
               >
-                {item.extras.map(e => `+ ${e.nome}`).join(", ")}
+                Cupom
               </div>
-            )}
 
+              <div
+                style={{
+                  fontSize: 14,
+                  color: "#777",
+                  marginTop: 2
+                }}
+              >
+                Codigo aplica automaticamente.
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              color: "#ea1d2c",
+              flexShrink: 0
+            }}
+          >
+            Adicionar
+          </div>
+        </div>
+
+        {/* CUPOM ATIVO */}
+        {cupomAplicado && (
+          <div
+            style={{
+              marginTop: 12,
+              borderRadius: 18,
+              background: "#ffffff",
+              border: "1px solid #e6f4ea",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
+              padding: 14
+            }}
+          >
             <div
               style={{
                 display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
                 gap: 12,
-                marginTop: 8,
-                fontSize: 12
+                flexWrap: "wrap"
               }}
             >
-              {item.produto?.categoria === "acai" && (
-                <span
-                  onClick={() => editarItem(i)}
-                  style={{
-                    color: "#ea1d2c",
-                    cursor: "pointer",
-                    fontWeight: 600
-                  }}
-                >
-                  Editar
-                </span>
-              )}
-
-              <span
-                onClick={() => removerItem(i)}
+              <div
                 style={{
-                  color: "#999",
-                  cursor: "pointer"
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "center",
+                  flex: 1,
+                  minWidth: 0
                 }}
               >
+                <div
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    background: "#ecfdf3",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid #d1fae5",
+                    flexShrink: 0
+                  }}
+                >
+                  <Tag size={18} color="#16a34a" />
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#111",
+                      lineHeight: 1.2
+                    }}
+                  >
+                    Cupom aplicado
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#16a34a",
+                      fontWeight: 600,
+                      marginTop: 2
+                    }}
+                  >
+                    {cupomAplicado.codigo || cupomAplicado.nome || "Desconto"}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "#666",
+                      marginTop: 4
+                    }}
+                  >
+                    Economia de {formatarReal(descontoCalculado)}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setCupomAplicado(null);
+                  setDesconto(0);
+                }}
+                style={{
+                  height: 38,
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "1px solid #e5e5e5",
+                  background: "#fff",
+                  color: "#ea1d2c",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6
+                }}
+              >
+                <X size={14} />
                 Remover
-              </span>
-            </div>
-
-            <div
-              style={{
-                marginTop: 8,
-                fontWeight: 700,
-                fontSize: 15,
-                color: "#111"
-              }}
-            >
-              {formatarReal(item.total)}
+              </button>
             </div>
           </div>
+        )}
 
-          {/* QUANTIDADE */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              border: "1px solid #e8e8e8",
-              borderRadius: 999,
-              overflow: "hidden",
-              flexShrink: 0
-            }}
-          >
-            <button
-              onClick={() => alterarQuantidade(i, "menos")}
-              style={{
-                width: 38,
-                height: 38,
-                border: "none",
-                background: "#fff",
-                color: "#666",
-                fontSize: 20,
-                cursor: "pointer"
-              }}
-            >
-              -
-            </button>
-
-            <div
-              style={{
-                minWidth: 32,
-                textAlign: "center",
-                fontSize: 15,
-                fontWeight: 700,
-                color: "#111"
-              }}
-            >
-              {item.quantidade}
-            </div>
-
-            <button
-              onClick={() => alterarQuantidade(i, "mais")}
-              style={{
-                width: 38,
-                height: 38,
-                border: "none",
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 20,
-                cursor: "pointer"
-              }}
-            >
-              +
-            </button>
-          </div>
-        </div>
-      ))}
-
-      {/* CUPOM */}
-      <div
-        style={{
-          background: "#fff",
-          padding: 14,
-          borderRadius: 16,
-          marginTop: 10,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          cursor: carrinho.length ? "pointer" : "not-allowed",
-          opacity: carrinho.length ? 1 : 0.65
-        }}
-        onClick={() => {
-          if (!carrinho.length) return;
-          aplicarMelhorCupom();
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 10,
-              background: "#fff5f5",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#ea1d2c"
-            }}
-          >
-            <Tag size={14} />
-          </div>
-
-          <strong style={{ color: "#111" }}>Adicionar cupom</strong>
-        </div>
-
-        <span style={{ color: "#999", fontSize: 22, lineHeight: 1 }}>
-          ›
-        </span>
-      </div>
-
-      {/* CUPOM ATIVO */}
-      {cupomAplicado && (
-  <div
-    style={{
-      marginTop: 12,
-      borderRadius: 18,
-      background: "#ffffff",
-      border: "1px solid #e6f4ea",
-      boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
-      padding: 14
-    }}
-  >
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12
-      }}
-    >
-      {/* ESQUERDA */}
-      <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
-        
-        {/* ÍCONE */}
+        {/* OBS */}
         <div
           style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            background: "#ecfdf3",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "1px solid #d1fae5"
+            marginTop: 22,
+            background: "#fff",
+            borderRadius: 22,
+            padding: 18,
+            boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
+            border: "1px solid #f0f0f0"
           }}
         >
-          <Tag size={18} color="#16a34a" />
-        </div>
-
-        {/* TEXTO */}
-        <div style={{ flex: 1 }}>
           <div
             style={{
-              fontSize: 14,
-              fontWeight: 700,
+              fontSize: 16,
+              fontWeight: 800,
               color: "#111",
-              lineHeight: 1.2
+              marginBottom: 10
             }}
           >
-            Cupom aplicado
+            Observações do pedido
           </div>
+
+          <textarea
+            value={observacaoPedido}
+            onChange={(e) => setObservacaoPedido(e.target.value)}
+            placeholder="Ex.: sem granola, entregar na portaria, tocar interfone"
+            maxLength={200}
+            style={{
+              width: "100%",
+              minHeight: 96,
+              resize: "none",
+              borderRadius: 16,
+              border: "1px solid #ececec",
+              padding: 14,
+              fontSize: 14,
+              color: "#111",
+              outline: "none",
+              boxSizing: "border-box",
+              background: "#fff"
+            }}
+          />
 
           <div
             style={{
-              fontSize: 13,
-              color: "#16a34a",
-              fontWeight: 600,
-              marginTop: 2
-            }}
-          >
-            {cupomAplicado.codigo || cupomAplicado.nome || "Desconto"}
-          </div>
-
-          <div
-            style={{
+              marginTop: 8,
               fontSize: 12,
-              color: "#666",
-              marginTop: 4
+              color: "#777",
+              textAlign: "right"
             }}
           >
-            Economia de {formatarReal(descontoCalculado)}
+            {observacaoPedido.length}/200
           </div>
         </div>
-      </div>
 
-      {/* DIREITA */}
-      <button
-        onClick={() => {
-          setCupomAplicado(null);
-          setDesconto(0);
-        }}
-        style={{
-          height: 38,
-          padding: "0 14px",
-          borderRadius: 12,
-          border: "1px solid #e5e5e5",
-          background: "#fff",
-          color: "#ea1d2c",
-          fontWeight: 700,
-          fontSize: 13,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: 6
-        }}
-      >
-        <X size={14} />
-        Remover
-      </button>
-    </div>
-  </div>
-)}
-</div>
-
-{/* OBS ANTES DO RESUMO FIXO */}
-
-    <div
-  style={{
-    background: "#fff",
-    padding: 14,
-    borderRadius: 16,
-    marginTop: 10,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-  }}
->
-  <div
-    style={{
-      fontSize: 14,
-      fontWeight: 700,
-      color: "#111",
-      marginBottom: 8
-    }}
-  >
-    Observações do pedido
-  </div>
-
-  <textarea
-    value={observacaoPedido}
-    onChange={(e) => setObservacaoPedido(e.target.value)}
-    placeholder="Ex.: sem granola, entregar na portaria, tocar interfone"
-    maxLength={200}
-    style={{
-      width: "100%",
-      minHeight: 90,
-      resize: "none",
-      borderRadius: 14,
-      border: "1px solid #e5e5e5",
-      padding: 12,
-      fontSize: 14,
-      color: "#111",
-      outline: "none",
-      boxSizing: "border-box",
-      background: "#fff"
-    }}
-  />
-
-  <div
-    style={{
-      marginTop: 8,
-      fontSize: 12,
-      color: "#777",
-      textAlign: "right"
-    }}
-  >
-    {observacaoPedido.length}/200
-  </div>
-</div>
-
-    {/* RESUMO FIXO */}
-    <div
-      style={{
-        position: "fixed",
-        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + ${isMobile ? 18 : 10}px)`,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        maxWidth: larguraApp,
-        padding: "0 16px",
-        boxSizing: "border-box",
-        zIndex: 20
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 20,
-          padding: 16,
-          paddingBottom: `calc(16px + env(safe-area-inset-bottom))`,
-          boxShadow: "0 -4px 18px rgba(0,0,0,0.08)",
-          border: "1px solid #efefef"
-        }}
-      >
-        {/* SUBTOTAL */}
+        {/* RESUMO DE VALORES */}
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 13,
-            color: "#555"
+            marginTop: 24
           }}
         >
-          <span>Subtotal</span>
-          <span>{formatarReal(subtotalProdutos)}</span>
-        </div>
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#111",
+              marginBottom: 14
+            }}
+          >
+            Resumo de valores
+          </div>
 
-        {/* 🔥 ENTREGA */}
-<div style={{
-  display: "flex",
-  justifyContent: "space-between",
-  marginTop: 6,
-  fontSize: 13,
-  color: "#555"
-}}>
-  <span>Entrega</span>
-
-  <span style={{
-    color: taxaEntrega === 0 ? "#16a34a" : "#111",
-    fontWeight: 700
-  }}>
-    {subtotalProdutos >= LIMITE_FRETE_GRATIS
-      ? "Grátis"
-      : formatarReal(taxaEntrega)}
-  </span>
-</div>
-
-
-{/* 🔥 MENSAGEM FRETE */}
-{faltaFreteGratis > 0 && (
-  <div
-    style={{
-      marginTop: 10,
-      padding: "10px 12px",
-      borderRadius: 12,
-      background: "#fff7ed",
-      border: "1px solid #fed7aa",
-      fontSize: 12,
-      color: "#9a3412",
-      fontWeight: 600
-    }}
-  >
-    Faltam {formatarReal(faltaFreteGratis)} para ganhar frete grátis
-  </div>
-)}
-
-{faltaFreteGratis === 0 && subtotalProdutos > 0 && (
-  <div
-    style={{
-      marginTop: 10,
-      padding: "10px 12px",
-      borderRadius: 12,
-      background: "#ecfdf3",
-      border: "1px solid #bbf7d0",
-      fontSize: 12,
-      color: "#15803d",
-      fontWeight: 700
-    }}
-  >
-    Frete grátis liberado para este pedido.
-  </div>
-)}
-
-        {/* DESCONTO */}
-        {descontoCalculado > 0 && (
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              color: "#00a650",
-              fontSize: 13,
-              marginTop: 6
+              fontSize: 15,
+              color: "#666",
+              marginBottom: 10
             }}
           >
-            <span>Desconto</span>
-            <span>-{formatarReal(descontoCalculado)}</span>
+            <span>Subtotal</span>
+            <span>{formatarReal(subtotalProdutos)}</span>
           </div>
-        )}
 
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 15,
+              color: "#666",
+              marginBottom: 10
+            }}
+          >
+            <span>Entrega</span>
+            <span
+              style={{
+                color: taxaEntrega === 0 ? "#16a34a" : "#111",
+                fontWeight: 700
+              }}
+            >
+              {subtotalProdutos >= LIMITE_FRETE_GRATIS
+                ? "Grátis"
+                : formatarReal(taxaEntrega)}
+            </span>
+          </div>
 
-        {/* TOTAL */}
+          {descontoCalculado > 0 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                color: "#16a34a",
+                fontSize: 15,
+                marginBottom: 10
+              }}
+            >
+              <span>Desconto</span>
+              <span>-{formatarReal(descontoCalculado)}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* BARRA FIXA FINAL */}
+    <div
+      style={{
+        position: "fixed",
+        bottom: 84,
+        left: 0,
+        right: 0,
+        maxWidth: larguraApp,
+        margin: "0 auto",
+        padding: "0 16px 12px",
+        zIndex: 30,
+        boxSizing: "border-box"
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 22,
+          boxShadow: "0 10px 26px rgba(0,0,0,0.12)",
+          border: "1px solid #efefef",
+          padding: 16
+        }}
+      >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            marginTop: 10,
-            alignItems: "center"
+            alignItems: "center",
+            gap: 12
           }}
         >
-          <strong style={{ fontSize: 15, color: "#111" }}>Total</strong>
-          <strong style={{ fontSize: 16, color: "#ea1d2c" }}>
-            {formatarReal(totalFinalComFrete)}
-          </strong>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 15,
+                color: "#666",
+                lineHeight: 1.1
+              }}
+            >
+              Total do pedido
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 18,
+                fontWeight: 900,
+                color: "#111"
+              }}
+            >
+              {formatarReal(totalFinalComFrete)}
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!user) {
+                localStorage.setItem("redirectAfterLogin", "carrinho");
+                router.push("/login");
+                return;
+              }
+
+              if (!clienteNome || !clienteTelefone) {
+                mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
+                setAba("perfil");
+                setStep(4);
+                setAbaPerfil("dados");
+                return;
+              }
+
+              if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+                mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
+                setAba("perfil");
+                setStep(4);
+                setAbaPerfil("endereco");
+                return;
+              }
+
+              setAba("pagamentos");
+              setStep(6);
+            }}
+            style={{
+              minWidth: 150,
+              height: 50,
+              borderRadius: 18,
+              background: "#ea1d2c",
+              color: "#fff",
+              border: "none",
+              fontWeight: 800,
+              fontSize: 16,
+              cursor: "pointer",
+              boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
+            }}
+          >
+            Continuar
+          </button>
         </div>
-
-        <button
-          onClick={() => {
-            if (!user) {
-              localStorage.setItem("redirectAfterLogin", "carrinho");
-              router.push("/login");
-              return;
-            }
-
-            if (!clienteNome || !clienteTelefone) {
-              mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
-              setAba("perfil");
-              setStep(4);
-              setAbaPerfil("dados");
-              return;
-            }
-
-            if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
-              mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
-              setAba("perfil");
-              setStep(4);
-              setAbaPerfil("endereco");
-              return;
-            }
-
-            setAba("pagamentos");
-            setStep(6);
-          }}
-          style={{
-            display: "block",
-            width: "100%",
-            boxSizing: "border-box",
-            marginTop: 12,
-            height: 52,
-            borderRadius: 16,
-            background: "#ea1d2c",
-            color: "#fff",
-            border: "none",
-            fontWeight: 700,
-            fontSize: 15,
-            cursor: "pointer",
-            boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
-          }}
-        >
-          Continuar pedido
-        </button>
       </div>
     </div>
- 
 
     {/* ANIMAÇÃO */}
     <style>
       {`
         .fade-slide {
-          animation: fadeUp 0.4s ease;
+          animation: fadeUp 0.35s ease;
         }
 
         @keyframes fadeUp {
