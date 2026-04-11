@@ -20,7 +20,12 @@ import {
   deleteDoc,
   updateDoc,
   onSnapshot,
+  
 } from 'firebase/firestore';
+
+
+
+
 
 import {
   Plus,
@@ -32,7 +37,10 @@ import {
   PowerOff,
   Package,
   Star,
-  Layers3
+  Layers3,
+  ChevronUp,
+  ChevronDown,
+  ImagePlus
 } from "lucide-react";
 
 
@@ -183,6 +191,16 @@ const [toast, setToast] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
 
+
+const [banners, setBanners] = useState([]);
+const [bannerTitulo, setBannerTitulo] = useState("");
+const [bannerSubtitulo, setBannerSubtitulo] = useState("");
+const [bannerImagemFile, setBannerImagemFile] = useState(null);
+const [bannerPreview, setBannerPreview] = useState("");
+const [bannerLoading, setBannerLoading] = useState(false);
+const [bannerEditandoId, setBannerEditandoId] = useState(null);
+
+
   const [notificacoesAdmin, setNotificacoesAdmin] = useState([]);
   const [fretes, setFretes] = useState([]);
 const [bairroFrete, setBairroFrete] = useState("");
@@ -285,6 +303,190 @@ function tocarSom() {
   // 🔥 se quiser som real depois:
   // const audio = new Audio("/notificacao.mp3");
   // audio.play();
+}
+
+
+
+useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, "banners"), (snapshot) => {
+    const lista = snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
+
+    lista.sort((a, b) => Number(a?.ordem || 0) - Number(b?.ordem || 0));
+
+    setBanners(lista);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
+
+
+function limparFormularioBanner() {
+  setBannerTitulo("");
+  setBannerSubtitulo("");
+  setBannerImagemFile(null);
+  setBannerPreview("");
+  setBannerEditandoId(null);
+}
+
+function abrirEdicaoBanner(item) {
+  setBannerEditandoId(item.id);
+  setBannerTitulo(item?.titulo || "");
+  setBannerSubtitulo(item?.subtitulo || "");
+  setBannerPreview(item?.imagem || "");
+  setBannerImagemFile(null);
+}
+
+async function salvarBanner() {
+  const titulo = String(bannerTitulo || "").trim();
+  const subtitulo = String(bannerSubtitulo || "").trim();
+
+  if (!titulo) {
+    setToast({
+      tipo: "erro",
+      texto: "Preencha o título do banner."
+    });
+    setTimeout(() => setToast(null), 2200);
+    return;
+  }
+
+  if (!bannerPreview) {
+    setToast({
+      tipo: "erro",
+      texto: "Selecione uma imagem para o banner."
+    });
+    setTimeout(() => setToast(null), 2200);
+    return;
+  }
+
+  try {
+    setBannerLoading(true);
+
+    const payload = {
+      titulo,
+      subtitulo,
+      imagem: bannerPreview,
+      ativo: true,
+      ordem: Date.now(),
+      criadoEm: Date.now()
+    };
+
+    if (bannerEditandoId) {
+      await updateDoc(doc(db, "banners", bannerEditandoId), {
+        titulo,
+        subtitulo,
+        imagem: bannerPreview
+      });
+
+      setToast({
+        tipo: "sucesso",
+        texto: "Banner atualizado com sucesso."
+      });
+    } else {
+      await addDoc(collection(db, "banners"), payload);
+
+      setToast({
+        tipo: "sucesso",
+        texto: "Banner adicionado com sucesso."
+      });
+    }
+
+    setTimeout(() => setToast(null), 2200);
+    limparFormularioBanner();
+  } catch (e) {
+    console.log("ERRO AO SALVAR BANNER:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao salvar banner."
+    });
+    setTimeout(() => setToast(null), 2200);
+  } finally {
+    setBannerLoading(false);
+  }
+}
+
+async function alternarStatusBanner(item) {
+  try {
+    await updateDoc(doc(db, "banners", item.id), {
+      ativo: item?.ativo === false ? true : false
+    });
+
+    setToast({
+      tipo: "sucesso",
+      texto: item?.ativo === false
+        ? "Banner ativado."
+        : "Banner desativado."
+    });
+    setTimeout(() => setToast(null), 2200);
+  } catch (e) {
+    console.log("ERRO AO ATUALIZAR BANNER:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao atualizar banner."
+    });
+    setTimeout(() => setToast(null), 2200);
+  }
+}
+
+async function excluirBanner(item) {
+  try {
+    if (item?.imagem && item.imagem.includes("firebasestorage")) {
+      try {
+        const caminho = decodeURIComponent(item.imagem.split("/o/")[1].split("?")[0]);
+        const imagemRef = ref(storage, caminho);
+        await deleteObject(imagemRef);
+      } catch (e) {
+        console.log("Não foi possível remover imagem do Storage:", e);
+      }
+    }
+
+    await deleteDoc(doc(db, "banners", item.id));
+
+    if (bannerEditandoId === item.id) {
+      limparFormularioBanner();
+    }
+
+    setToast({
+      tipo: "sucesso",
+      texto: "Banner removido com sucesso."
+    });
+    setTimeout(() => setToast(null), 2200);
+  } catch (e) {
+    console.log("ERRO AO EXCLUIR BANNER:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao excluir banner."
+    });
+    setTimeout(() => setToast(null), 2200);
+  }
+}
+
+async function moverBanner(item, direcao) {
+  const index = banners.findIndex((b) => b.id === item.id);
+  const novoIndex = index + direcao;
+
+  if (novoIndex < 0 || novoIndex >= banners.length) return;
+
+  const bannerDestino = banners[novoIndex];
+
+  try {
+    await updateDoc(doc(db, "banners", item.id), {
+      ordem: bannerDestino.ordem
+    });
+
+    await updateDoc(doc(db, "banners", bannerDestino.id), {
+      ordem: item.ordem
+    });
+  } catch (e) {
+    console.log("ERRO AO MOVER BANNER:", e);
+  }
 }
 
 
@@ -558,6 +760,16 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, []);
+
+
+
+function limparFormularioBanner() {
+  setBannerTitulo("");
+  setBannerSubtitulo("");
+  setBannerImagemFile(null);
+  setBannerPreview("");
+  setBannerEditandoId(null);
+}
 
 
 
@@ -1258,6 +1470,7 @@ if (loadingAuth) {
     { id: "cupons", nome: "Cupons" },
     { id: "fretes", nome: "Fretes" },
     { id: "notificacoes", nome: "Notificações" },
+    { id: "banners", nome: "Banner" },
     { id: "loja", nome: "Loja" }
   ].map(item => (
     <button
@@ -3722,6 +3935,407 @@ if (loadingAuth) {
           )}
       </div>
 
+    </div>
+  </div>
+)}
+
+
+{abaAdmin === "banners" && (
+  <div
+    style={{
+      marginTop: 15,
+      padding: 18,
+      background: "#f4f5f7",
+      borderRadius: 20
+    }}
+  >
+    {/* TOPO */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        marginBottom: 16,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}
+    >
+      <h2
+        style={{
+          margin: 0,
+          color: "#111",
+          fontSize: 24,
+          fontWeight: 800
+        }}
+      >
+        Banners
+      </h2>
+
+      <p
+        style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}
+      >
+        Adicione banners promocionais com imagem direto do celular.
+      </p>
+    </div>
+
+    {/* FORMULÁRIO */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        marginBottom: 16,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}
+    >
+      <h3
+        style={{
+          marginTop: 0,
+          marginBottom: 14,
+          color: "#111",
+          fontSize: 18,
+          fontWeight: 800
+        }}
+      >
+        {bannerEditandoId ? "Editar banner" : "Novo banner"}
+      </h3>
+
+      <input
+        value={bannerTitulo}
+        onChange={(e) => setBannerTitulo(e.target.value)}
+        placeholder="Título do banner"
+        style={input}
+      />
+
+      <input
+        value={bannerSubtitulo}
+        onChange={(e) => setBannerSubtitulo(e.target.value)}
+        placeholder="Subtítulo do banner"
+        style={input}
+      />
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          setBannerImagemFile(file);
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            setBannerPreview(reader.result);
+          };
+          reader.readAsDataURL(file);
+        }}
+        style={{
+          ...input,
+          background: "#fff",
+          cursor: "pointer"
+        }}
+      />
+
+      {bannerPreview && (
+        <div style={{ marginTop: 14 }}>
+          <img
+            src={bannerPreview}
+            style={{
+              width: "100%",
+              maxWidth: 420,
+              height: 180,
+              objectFit: "cover",
+              borderRadius: 18,
+              border: "1px solid #eee",
+              display: "block"
+            }}
+          />
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          marginTop: 16,
+          flexWrap: "wrap"
+        }}
+      >
+        <button
+          onClick={salvarBanner}
+          disabled={bannerLoading}
+          style={{
+            ...btnPrimary,
+            minWidth: 170,
+            opacity: bannerLoading ? 0.7 : 1,
+            cursor: bannerLoading ? "not-allowed" : "pointer"
+          }}
+        >
+          {bannerLoading
+            ? "Salvando..."
+            : bannerEditandoId
+            ? "Salvar alteração"
+            : "Adicionar banner"}
+        </button>
+
+        {bannerEditandoId && (
+          <button
+            onClick={limparFormularioBanner}
+            style={{
+              height: 46,
+              minWidth: 120,
+              padding: "0 16px",
+              borderRadius: 14,
+              border: "1px solid #dcdcdc",
+              background: "#f8f8f8",
+              color: "#111",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+            }}
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+
+    {/* LISTA */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}
+    >
+      <h3
+        style={{
+          marginTop: 0,
+          marginBottom: 14,
+          color: "#111",
+          fontSize: 18,
+          fontWeight: 800
+        }}
+      >
+        Banners cadastrados
+      </h3>
+
+      {banners.length === 0 && (
+        <div
+          style={{
+            color: "#777",
+            fontSize: 14
+          }}
+        >
+          Nenhum banner cadastrado.
+        </div>
+      )}
+
+      {banners.map((item) => (
+        <div
+          key={item.id}
+          style={{
+            display: "flex",
+            gap: 14,
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: 12,
+            borderRadius: 16,
+            border: "1px solid #eee",
+            marginBottom: 12,
+            background: "#fff",
+            flexWrap: isMobile ? "wrap" : "nowrap"
+          }}
+        >
+          {/* ESQUERDA */}
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              alignItems: "center",
+              flex: 1,
+              minWidth: 0
+            }}
+          >
+            <img
+              src={item.imagem}
+              style={{
+                width: 110,
+                height: 64,
+                objectFit: "cover",
+                borderRadius: 12,
+                border: "1px solid #eee",
+                flexShrink: 0
+              }}
+            />
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "#111",
+                  lineHeight: 1.2
+                }}
+              >
+                {item.titulo}
+              </div>
+
+              {!!item.subtitulo && (
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    marginTop: 4,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  {item.subtitulo}
+                </div>
+              )}
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  color: item.ativo === false ? "#888" : "#15803d",
+                  fontWeight: 700
+                }}
+              >
+                {item.ativo === false ? "Desativado" : "Ativo"}
+              </div>
+            </div>
+          </div>
+
+          {/* DIREITA */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              justifyContent: isMobile ? "flex-start" : "flex-end"
+            }}
+          >
+            <button
+              onClick={() => abrirEdicaoBanner(item)}
+              title="Editar banner"
+              style={{
+                height: 40,
+                padding: "0 12px",
+                borderRadius: 12,
+                border: "1px solid #e5e5e5",
+                background: "#fff",
+                color: "#111",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: 13
+              }}
+            >
+              <ImagePlus size={15} />
+              Editar
+            </button>
+
+            <button
+              onClick={() => alternarStatusBanner(item)}
+              title={item?.ativo === false ? "Ativar banner" : "Desativar banner"}
+              style={{
+                height: 40,
+                padding: "0 12px",
+                borderRadius: 12,
+                border: "1px solid #e5e5e5",
+                background: item?.ativo === false ? "#ecfdf3" : "#fff7ed",
+                color: item?.ativo === false ? "#166534" : "#9a3412",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: 13
+              }}
+            >
+              {item?.ativo === false ? <Power size={15} /> : <PowerOff size={15} />}
+              {item?.ativo === false ? "Ativar" : "Desativar"}
+            </button>
+
+            <button
+              onClick={() => moverBanner(item, -1)}
+              title="Mover para cima"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                border: "1px solid #e5e5e5",
+                background: "#fff",
+                color: "#111",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer"
+              }}
+            >
+              <ChevronUp size={16} />
+            </button>
+
+            <button
+              onClick={() => moverBanner(item, 1)}
+              title="Mover para baixo"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                border: "1px solid #e5e5e5",
+                background: "#fff",
+                color: "#111",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer"
+              }}
+            >
+              <ChevronDown size={16} />
+            </button>
+
+            <button
+              onClick={() => excluirBanner(item)}
+              title="Excluir banner"
+              style={{
+                height: 40,
+                padding: "0 12px",
+                borderRadius: 12,
+                border: "none",
+                background: "#ea1d2c",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: 13
+              }}
+            >
+              <Trash2 size={15} />
+              Excluir
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   </div>
 )}
