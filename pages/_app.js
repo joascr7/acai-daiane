@@ -8,14 +8,19 @@ import { onAuthStateChanged } from "firebase/auth";
 import { authCliente as auth } from "@/services/firebaseDual";
 
 export default function App({ Component, pageProps }) {
-
   const [dark, setDark] = useState(true);
   const [user, setUser] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
+      console.log("AUTH STATE:", u);
+      console.log("UID REAL:", u?.uid || null);
+
       setUser(u || null);
+      setLoadingAuth(false);
     });
+
     return () => unsub();
   }, []);
 
@@ -37,40 +42,30 @@ export default function App({ Component, pageProps }) {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
- return (
-  <>
-    <Head>
-      <title>Açaí da Daiane</title>
+  if (loadingAuth) return null;
 
-      {/* 🔥 VIEWPORT CORRETO */}
-      <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1, viewport-fit=cover"
-      />
+  return (
+    <>
+      <Head>
+        <title>Açaí da Daiane</title>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#ea1d2c" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="icon" href="/favicon.ico?v=2" />
+      </Head>
 
-      {/* 🔥 COR DO APP (IMPORTANTE) */}
-      <meta name="theme-color" content="#ea1d2c" />
-
-      {/* 🔥 PWA IOS */}
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta
-        name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent"
-      />
-
-      {/* 🔥 MANIFEST (CLIENTE APENAS) */}
-      <link rel="manifest" href="/manifest.json" />
-
-      {/* 🔥 ÍCONE IOS */}
-      <link rel="apple-touch-icon" href="/icon-192.png" />
-
-      {/* 🔥 FAVICON */}
-      <link rel="icon" href="/favicon.ico?v=2" />
-    </Head>
-
-    <Layout dark={dark}>
-      <Component {...pageProps} user={user} />
-    </Layout>
-  </>
-);
+      <Layout dark={dark}>
+        <Component {...pageProps} user={user} />
+      </Layout>
+    </>
+  );
 }

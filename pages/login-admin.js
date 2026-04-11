@@ -1,12 +1,9 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { authAdmin as auth } from "../services/firebaseDual";
-import { db } from '../services/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
 export default function LoginAdmin() {
-
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -14,22 +11,20 @@ export default function LoginAdmin() {
   const [loading, setLoading] = useState(false);
 
   async function entrar() {
-
     try {
       setLoading(true);
 
+      const emailAdmin = "admin@acai.com";
+
       const userCred = await signInWithEmailAndPassword(auth, email, senha);
-      const uid = userCred.user.uid;
+      const user = userCred.user;
 
-      const snap = await getDoc(doc(db, "admins", uid));
-
-      if (!snap.exists()) {
+      if ((user?.email || "").toLowerCase() !== emailAdmin.toLowerCase()) {
         alert("Sem permissão de admin");
         return;
       }
 
-      router.push('/admin');
-
+      router.push("/admin");
     } catch (e) {
       console.log(e);
 
@@ -38,7 +33,6 @@ export default function LoginAdmin() {
       } else {
         alert("Erro: " + e.message);
       }
-
     } finally {
       setLoading(false);
     }
@@ -46,28 +40,25 @@ export default function LoginAdmin() {
 
   return (
     <div className="container">
-
       <div className="box">
-
         <h2>Admin Login</h2>
 
         <input
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value.trim().toLowerCase())}
+          onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
         />
 
         <input
           type="password"
           placeholder="Senha"
           value={senha}
-          onChange={e => setSenha(e.target.value)}
+          onChange={(e) => setSenha(e.target.value)}
         />
 
         <button onClick={entrar}>
           {loading ? "Entrando..." : "Entrar"}
         </button>
-
       </div>
 
       <style jsx>{`
@@ -76,7 +67,7 @@ export default function LoginAdmin() {
           display: flex;
           justify-content: center;
           align-items: center;
-          background: linear-gradient(180deg,#0a0014,#000);
+          background: linear-gradient(180deg, #0a0014, #000);
         }
 
         .box {
@@ -86,7 +77,7 @@ export default function LoginAdmin() {
           border-radius: 20px;
           color: white;
           text-align: center;
-          box-shadow: 0 0 20px rgba(122,0,255,0.3);
+          box-shadow: 0 0 20px rgba(122, 0, 255, 0.3);
         }
 
         input {
@@ -104,13 +95,12 @@ export default function LoginAdmin() {
           margin-top: 15px;
           padding: 12px;
           border-radius: 12px;
-          background: linear-gradient(90deg,#6a00ff,#7a00ff);
+          background: linear-gradient(90deg, #6a00ff, #7a00ff);
           color: white;
           border: none;
           font-weight: bold;
         }
       `}</style>
-
     </div>
   );
 }

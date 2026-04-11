@@ -1,15 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-
 import Cropper from "react-easy-crop";
-
-import { db } from '../services/firebase';
-import { setDoc } from "firebase/firestore";
-import { authAdmin as auth } from "../services/firebaseDual";
 import Head from "next/head";
 
-
-
+import { dbAdmin as db, authAdmin as auth } from "../services/firebaseDual";
 
 import {
   collection,
@@ -20,11 +14,13 @@ import {
   deleteDoc,
   updateDoc,
   onSnapshot,
-  
+  setDoc
 } from 'firebase/firestore';
 
-
-
+import {
+  onAuthStateChanged,
+  signOut
+} from 'firebase/auth';
 
 
 import {
@@ -44,7 +40,7 @@ import {
 } from "lucide-react";
 
 
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+
 
 import {
   getStorage,
@@ -965,31 +961,33 @@ useEffect(() => {
   }
 }, [novosPedidos]);
 
+
+
 // 🔒 AUTH
 useEffect(() => {
-
   if (typeof window === "undefined") return;
 
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
-
-    if (!user) return router.push('/login-admin');
-
-    try {
-      const snap = await getDoc(doc(db, "admins", user.uid));
-
-      if (!snap.exists()) return router.push('/login-admin');
-
+    if (!user) {
       setLoadingAuth(false);
-
-    } catch {
-      router.push('/login-admin');
+      router.push("/login-admin");
+      return;
     }
 
+    const emailAdmin = "admin@acai.com";
+    
+
+    if ((user.email || "").toLowerCase() !== emailAdmin.toLowerCase()) {
+      setLoadingAuth(false);
+      router.push("/login-admin");
+      return;
+    }
+
+    setLoadingAuth(false);
   });
 
   return () => unsubscribe();
-
-}, []);
+}, [router]);
 
 
 // 🔥 PEDIDOS + CUPONS (ÚNICO — CORRIGIDO)

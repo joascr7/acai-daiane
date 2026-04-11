@@ -2,9 +2,6 @@
 
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-
-
-// 🔥 ADICIONAR ISSO
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -17,7 +14,6 @@ const firebaseConfig = {
   measurementId: "G-TWVZ9NPED1"
 };
 
-
 // CLIENTE
 const appCliente =
   getApps().find(app => app.name === "cliente") ||
@@ -28,9 +24,8 @@ const appAdmin =
   getApps().find(app => app.name === "admin") ||
   initializeApp(firebaseConfig, "admin");
 
-// 🔥 AUTH
 export const authCliente = getAuth(appCliente);
 export const authAdmin = getAuth(appAdmin);
 
-// 🔥 DB CORRETO (MESMO APP DO CLIENTE)
 export const dbCliente = getFirestore(appCliente);
+export const dbAdmin = getFirestore(appAdmin);
