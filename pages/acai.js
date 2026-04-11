@@ -8125,18 +8125,7 @@ return (
   zIndex: 999,
   boxSizing: "border-box"
 }}>
-{/* desce botao */}
-  <div
-  style={{
-    position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "env(safe-area-inset-bottom)",
-    background: "#fff",
-    zIndex: 998
-  }}
-/>
+
 
   {/* INICIO */}
   <div
@@ -8394,7 +8383,18 @@ return (
 </div>
 )}
 
-
+{/* desce botao */}
+  <div
+  style={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "env(safe-area-inset-bottom)",
+    background: "#fff",
+    zIndex: 998
+  }}
+/>
 
 
 
