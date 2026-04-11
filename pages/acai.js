@@ -313,6 +313,9 @@ useEffect(() => {
 const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
+const [installPrompt, setInstallPrompt] = useState(null);
+const [podeInstalar, setPodeInstalar] = useState(false);
+
   // 🔥 USER
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -663,6 +666,22 @@ useEffect(() => {
   });
 
   return () => unsub();
+}, []);
+
+
+
+useEffect(() => {
+  const handleBeforeInstallPrompt = (e) => {
+    e.preventDefault();
+    setInstallPrompt(e);
+    setPodeInstalar(true);
+  };
+
+  window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+  return () => {
+    window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  };
 }, []);
 
 
@@ -1902,12 +1921,15 @@ function calcularMaisVendido(pedidos) {
 
  // 🔥 instalar app
 async function instalarApp() {
-  if (!promptInstall) return;
+  if (!installPrompt) return;
 
-  promptInstall.prompt();
-  await promptInstall.userChoice;
+  installPrompt.prompt();
 
-  setPromptInstall(null);
+  const escolha = await installPrompt.userChoice;
+  console.log("Resultado da instalação:", escolha);
+
+  setInstallPrompt(null);
+  setPodeInstalar(false);
 }
 
   // 🔥 FUNÇÕES
@@ -2823,6 +2845,10 @@ const enviarWhatsApp = async (pedido) => {
 
 
 return (
+
+
+
+  
 
 
   
@@ -3823,6 +3849,27 @@ return (
         </p>
       </div>
 
+
+{/* INSTALAR APP */}
+      {podeInstalar && (
+  <button
+    onClick={instalarApp}
+    style={{
+      height: 44,
+      padding: "0 16px",
+      borderRadius: 14,
+      border: "none",
+      background: "#ea1d2c",
+      color: "#fff",
+      fontWeight: 700,
+      fontSize: 14,
+      cursor: "pointer"
+    }}
+  >
+    Instalar app
+  </button>
+)}
+
       {/* CATEGORIAS */}
       <div style={{
         display: "grid",
@@ -4414,6 +4461,9 @@ return (
     </style>
   </>
 )}
+
+
+
 
 {aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
   <div style={{
@@ -8071,6 +8121,8 @@ return (
       <ChevronRight size={18} color="#b3b3b3" />
     </div>
 )}
+
+
 
 
 {toast && (
