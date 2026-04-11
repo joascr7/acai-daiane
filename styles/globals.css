@@ -6,7 +6,7 @@ html, body, #__next {
   height: 100%;
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  background: #ffffff !important;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
 }
@@ -21,7 +21,7 @@ body {
 /* ============================= */
 
 :root {
-  --bg: #0a0014;
+  --bg: #ffffff;
   --card: #111;
   --text: #ffffff;
   --subtext: #aaaaaa;
