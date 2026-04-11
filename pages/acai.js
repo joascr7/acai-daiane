@@ -4700,8 +4700,7 @@ return (
       />
 
       {/* VOLTAR */}
-     {/* VOLTAR */}
-<button
+     <button
   onClick={() => {
     setAba("home");
     setStep(1);
@@ -4713,23 +4712,30 @@ return (
     position: "absolute",
     top: "calc(env(safe-area-inset-top) + 16px)",
     left: 16,
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: "50%",
     border: "none",
-    background: "rgba(92,92,92,0.78)",
+    background: "rgba(0,0,0,0.45)",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.16)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
+    transition: "all 0.2s ease",
     padding: 0
   }}
+  onTouchStart={(e) => {
+    e.currentTarget.style.transform = "scale(0.92)";
+  }}
+  onTouchEnd={(e) => {
+    e.currentTarget.style.transform = "scale(1)";
+  }}
 >
-  <ChevronDown size={24} strokeWidth={3.2} />
+  <ArrowLeft size={22} strokeWidth={2.5} />
 </button>
     </div>
 
