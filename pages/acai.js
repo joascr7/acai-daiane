@@ -4931,7 +4931,7 @@ return (
   onClick={adicionarCarrinho}
   disabled={!podeContinuar}
   style={{
-    width: "98%", // 🔥 controla a largura aqui
+    width: "88%", // 🔥 controla a largura aqui
     maxWidth: 960, // 🔥 limite pra web
     height: 68,
     borderRadius: 14,
@@ -6814,7 +6814,6 @@ return (
       <div style={{
         position: "fixed",
         bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
-        transform: "translateX(2.4%)",
         left: 0,
         right: 0,
         maxWidth: larguraApp,
@@ -6845,6 +6844,7 @@ return (
           style={{
             width: "92%",
             height: 42,
+            transform: "translateX(2.4%)",
             borderRadius: 14,
             background: "#ea1d2c",
             color: "#fff",
@@ -6865,6 +6865,7 @@ return (
           style={{
             width: "92%",
             height: 36,
+            transform: "translateX(2.4%)",
             borderRadius: 14,
             background: "#555555",
             color: "#fff",
