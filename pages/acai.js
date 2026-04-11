@@ -2294,41 +2294,64 @@ async function registrarUsoCupom() {
 
 async function aplicarMelhorCupom() {
   if (!carrinho.length) {
-    alert("Adicione um produto antes de aplicar cupom");
+    setCupomAplicado(null);
+    setDesconto(0);
+
+    setToast({
+      tipo: "info",
+      texto: "Adicione um produto antes de aplicar cupom."
+    });
+    setTimeout(() => setToast(null), 2200);
     return;
   }
 
   if (!cupons || !cupons.length) {
-    alert("Nenhum cupom disponível");
+    setCupomAplicado(null);
+    setDesconto(0);
+
+    setToast({
+      tipo: "info",
+      texto: "Nenhum cupom disponível."
+    });
+    setTimeout(() => setToast(null), 2200);
     return;
   }
 
   const totalPedido = Number(total || 0);
-  const cpfLimpo = (clienteCpf || "").replace(/\D/g, "");
-  const hoje = new Date();
+  const cpfLimpo = String(clienteCpf || "").replace(/\D/g, "");
+  const agora = Date.now();
 
-  const validos = cupons.filter(c => {
-    if (!c.ativo) return false;
+  const validos = cupons.filter((c) => {
+    if (!c?.ativo) return false;
 
-    if (c.validade && new Date(c.validade) < hoje) return false;
+    if (c?.validade) {
+      const validadeMs = new Date(c.validade).getTime();
+      if (!Number.isNaN(validadeMs) && validadeMs < agora) return false;
+    }
 
-    // 🔥 minimo no mesmo padrão do resto do app
-    if (totalPedido < Number(c.minimo || 0)) return false;
+    if (totalPedido < Number(c?.minimo || 0)) return false;
 
-    if (cpfLimpo && c.usos && c.usos[cpfLimpo]) return false;
+    if (cpfLimpo && c?.usos && c.usos[cpfLimpo]) return false;
 
     return true;
   });
 
   if (!validos.length) {
-    alert("Nenhum cupom disponível para esse pedido");
+    setCupomAplicado(null);
+    setDesconto(0);
+
+    setToast({
+      tipo: "info",
+      texto: "Nenhum cupom disponível para este pedido."
+    });
+    setTimeout(() => setToast(null), 2200);
     return;
   }
 
   let melhor = null;
   let maiorDesconto = 0;
 
-  validos.forEach(c => {
+  validos.forEach((c) => {
     let descontoTemp = 0;
 
     if (c.tipo === "porcentagem") {
@@ -2345,12 +2368,28 @@ async function aplicarMelhorCupom() {
     }
   });
 
+  if (!melhor) {
+    setCupomAplicado(null);
+    setDesconto(0);
+
+    setToast({
+      tipo: "info",
+      texto: "Nenhum cupom disponível para este pedido."
+    });
+    setTimeout(() => setToast(null), 2200);
+    return;
+  }
+
   maiorDesconto = Math.min(maiorDesconto, totalPedido);
 
   setCupomAplicado(melhor);
   setDesconto(maiorDesconto);
 
-  alert(`Cupom aplicado: ${melhor.codigo || melhor.nome || "desconto"}`);
+  setToast({
+    tipo: "sucesso",
+    texto: `Cupom aplicado: ${melhor.codigo || melhor.nome || "desconto"}`
+  });
+  setTimeout(() => setToast(null), 2200);
 }
 
 // marcar notificao
@@ -2668,12 +2707,12 @@ const enviarWhatsApp = async (pedido) => {
   });
 };
 
+
+
 return (
 
 
   
-
-
 
 // CONTAINER ///
 <div style={{
@@ -4771,44 +4810,106 @@ return (
 
       {/* CUPOM ATIVO */}
       {cupomAplicado && (
+  <div
+    style={{
+      marginTop: 12,
+      borderRadius: 18,
+      background: "#ffffff",
+      border: "1px solid #e6f4ea",
+      boxShadow: "0 6px 18px rgba(0,0,0,0.04)",
+      padding: 14
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12
+      }}
+    >
+      {/* ESQUERDA */}
+      <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1 }}>
+        
+        {/* ÍCONE */}
         <div
           style={{
-            marginTop: 10,
-            padding: 12,
-            borderRadius: 14,
-            background: "#e8f5e9",
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            background: "#ecfdf3",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid #d1fae5"
           }}
         >
-          <div>
-            <strong style={{ color: "#00a650" }}>
-              {cupomAplicado.nome}
-            </strong>
+          <Tag size={18} color="#16a34a" />
+        </div>
 
-            <div style={{ fontSize: 12, marginTop: 3 }}>
-              Economizou {formatarReal(descontoCalculado)}
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              setCupomAplicado(null);
-              setDesconto(0);
-            }}
+        {/* TEXTO */}
+        <div style={{ flex: 1 }}>
+          <div
             style={{
-              background: "none",
-              border: "none",
-              color: "#ea1d2c",
+              fontSize: 14,
               fontWeight: 700,
-              cursor: "pointer"
+              color: "#111",
+              lineHeight: 1.2
             }}
           >
-            Remover
-          </button>
+            Cupom aplicado
+          </div>
+
+          <div
+            style={{
+              fontSize: 13,
+              color: "#16a34a",
+              fontWeight: 600,
+              marginTop: 2
+            }}
+          >
+            {cupomAplicado.codigo || cupomAplicado.nome || "Desconto"}
+          </div>
+
+          <div
+            style={{
+              fontSize: 12,
+              color: "#666",
+              marginTop: 4
+            }}
+          >
+            Economia de {formatarReal(descontoCalculado)}
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* DIREITA */}
+      <button
+        onClick={() => {
+          setCupomAplicado(null);
+          setDesconto(0);
+        }}
+        style={{
+          height: 38,
+          padding: "0 14px",
+          borderRadius: 12,
+          border: "1px solid #e5e5e5",
+          background: "#fff",
+          color: "#ea1d2c",
+          fontWeight: 700,
+          fontSize: 13,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 6
+        }}
+      >
+        <X size={14} />
+        Remover
+      </button>
+    </div>
+  </div>
+)}
     </div>
 
     {/* RESUMO FIXO */}
@@ -7706,6 +7807,51 @@ return (
 
       <ChevronRight size={18} color="#b3b3b3" />
     </div>
+)}
+
+
+{toast && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "calc(100% - 32px)",
+      maxWidth: 420,
+      zIndex: 9999
+    }}
+  >
+    <div
+      style={{
+        background:
+          toast.tipo === "sucesso"
+            ? "#ecfdf3"
+            : toast.tipo === "erro"
+            ? "#fef2f2"
+            : "#f8fafc",
+        color:
+          toast.tipo === "sucesso"
+            ? "#166534"
+            : toast.tipo === "erro"
+            ? "#b91c1c"
+            : "#334155",
+        border:
+          toast.tipo === "sucesso"
+            ? "1px solid #bbf7d0"
+            : toast.tipo === "erro"
+            ? "1px solid #fecaca"
+            : "1px solid #e2e8f0",
+        borderRadius: 16,
+        padding: "14px 16px",
+        boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+        fontSize: 14,
+        fontWeight: 600
+      }}
+    >
+      {toast.texto}
+    </div>
+  </div>
 )}
 
 
