@@ -4758,15 +4758,7 @@ return (
           padding: "20px 20px 10px"
         }}
       >
-        <div
-          style={{
-            fontSize: 16,
-            color: "#666",
-            marginBottom: 4
-          }}
-        >
-          {produto?.categoria || "Açaí"}
-        </div>
+        
 
         <div
           style={{
