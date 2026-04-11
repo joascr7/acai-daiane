@@ -8328,7 +8328,7 @@ return (
       bottom: -env(safe-area-inset-bottom),
 
       left: 0,
-      right: 0,
+      right: 80,
       margin: "0 auto",
 
       width: "100%",
