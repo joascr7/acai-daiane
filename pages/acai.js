@@ -75,6 +75,7 @@ import {
   Wallet,
   ChevronRight,
   Star,
+  Gem,
   CheckCircle
   
 } from "lucide-react";
@@ -3776,723 +3777,863 @@ return (
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
   <>
-    {/* HEADER */}
+    {/* ÁREA PRINCIPAL */}
     <div
       className="fade-slide"
       style={{
         maxWidth: larguraApp,
         margin: "0 auto",
-        padding: "calc(env(safe-area-inset-top) + 10px) 16px 14px",
-        background: "#fff",
-        position: "sticky",
-        top: 0,
-        zIndex: 20,
-        boxShadow: "0 4px 18px rgba(0,0,0,0.05)"
+        background: "#f5f5f5",
+        minHeight: "100vh",
+        boxSizing: "border-box",
+        paddingBottom: 110
       }}
     >
-      {/* TOPO */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 10
-      }}>
-        {/* ENDEREÇO MENOR */}
+      {/* HEADER PREMIUM */}
+      <div
+        style={{
+          padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
+          background: "#f5f5f5"
+        }}
+      >
+        {/* TOPO */}
         <div
-          onClick={() => {
-            setAba("perfil");
-            setStep(4);
-            setAbaPerfil("endereco");
-          }}
           style={{
-            flex: 1,
             display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 6,
-            cursor: "pointer",
-            minWidth: 0
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 12
           }}
         >
-          <MapPin size={14} color="#666" />
+          {/* ESQUERDA */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0
+            }}
+          >
+            <div
+              style={{
+                fontSize: 14,
+                color: "#777",
+                fontWeight: 500,
+                marginBottom: 6
+              }}
+            >
+              Olá, {clienteNome ? clienteNome.split(" ")[0] : "cliente"}
+            </div>
 
-          <span style={{
+            <div
+              onClick={() => {
+                setAba("perfil");
+                setStep(4);
+                setAbaPerfil("endereco");
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+                maxWidth: "100%"
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#111",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: 220
+                }}
+              >
+                {clienteEndereco
+                  ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
+                  : "Adicionar endereço"}
+              </span>
+
+              <ChevronDown size={16} color="#666" />
+            </div>
+          </div>
+
+          {/* DIREITA */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexShrink: 0
+            }}
+          >
+            {/* INSTALAR */}
+            {podeInstalar && (
+              <button
+                onClick={instalarApp}
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "#f2e8fb",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
+                }}
+              >
+                <Gem size={24} color="#b35ae6" />
+              </button>
+            )}
+
+            {/* NOTIFICAÇÃO */}
+            <div
+              onClick={() => {
+                setAba("notificacao");
+                setStep(7);
+              }}
+              style={{
+                position: "relative",
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                background: "#f2f2f2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
+              }}
+            >
+              <Bell size={24} color="#111" />
+
+              {temNotificacaoAtiva && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5,
+                    minWidth: 22,
+                    height: 22,
+                    borderRadius: 999,
+                    background: "#ea1d2c",
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 0 0 3px #f5f5f5",
+                    padding: "0 6px"
+                  }}
+                >
+                  1
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* HEADLINE */}
+        <div style={{ marginTop: 18 }}>
+          <div
+            style={{
+              fontSize: 17,
+              fontWeight: 800,
+              color: "#111",
+              lineHeight: 1.15
+            }}
+          >
+            Peça seu açaí
+          </div>
+
+          <div
+            style={{
+              fontSize: 17,
+              fontWeight: 900,
+              color: "#ea1d2c",
+              lineHeight: 1.15
+            }}
+          >
+            favorito hoje
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 13,
+              color: "#666",
+              lineHeight: 1.35
+            }}
+          >
+            Qualidade, sabor e entrega rápida pertinho de você.
+          </div>
+        </div>
+
+        {/* MINI ALERTA / BENEFÍCIO */}
+        <div
+          style={{
+            marginTop: 18,
+            background: "#f2e8fb",
+            color: "#a24be0",
+            borderRadius: 999,
+            padding: "14px 18px",
             fontSize: 13,
-            fontWeight: 600,
-            color: "#111",
-            maxWidth: 145,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis"
-          }}>
-            {clienteEndereco
-              ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
-              : "Adicionar endereço"}
+            fontWeight: 700,
+            textAlign: "center",
+            position: "relative",
+            boxShadow: "0 6px 14px rgba(0,0,0,0.03)"
+          }}
+        >
+          Você ganhou ofertas especiais no app!
+
+          <span
+            style={{
+              position: "absolute",
+              right: 16,
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: 24,
+              lineHeight: 1,
+              color: "#b35ae6",
+              cursor: "pointer"
+            }}
+          >
+            ×
           </span>
         </div>
 
-        {/* NOTIFICAÇÃO */}
+        {/* CATEGORIAS */}
         <div
-          onClick={() => {
-            setAba("notificacao");
-            setStep(7);
-          }}
           style={{
-            position: "relative",
-            cursor: "pointer",
-            width: 34,
-            height: 34,
-            borderRadius: 10,
-            background: "#f7f7f7",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0
+            display: "grid",
+            gridTemplateColumns: isMobile ? "repeat(4, 1fr)" : "repeat(4, 1fr)",
+            gap: 14,
+            marginTop: 18
           }}
         >
-          <Bell size={18} color="#111" />
+          {categorias
+            .filter((c) =>
+              ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
+            )
+            .sort((a, b) => {
+              const ordem = ["acai", "promocoes", "bebidas", "combos"];
+              return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
+            })
+            .map((c) => {
+              const config = {
+                acai: { icone: <IceCream size={28} />, cor: "#7c3aed", bg: "#f4ecff" },
+                promocoes: { icone: <Tag size={28} />, cor: "#7c3aed", bg: "#f4ecff" },
+                bebidas: { icone: <CupSoda size={28} />, cor: "#7c3aed", bg: "#f4ecff" },
+                combos: { icone: <Star size={28} />, cor: "#7c3aed", bg: "#f4ecff" }
+              };
 
-     {temNotificacaoAtiva && (
-     <div
-    style={{
-      position: "absolute",
-      top: 5,
-      right: 5,
-      width: 8,
-      height: 8,
-      borderRadius: "50%",
-      background: "#ea1d2c",
-      boxShadow: "0 0 0 2px #fff"
-       }}
-        />
-        )}
+              const item = config[c.slug];
+              if (!item) return null;
+
+              return (
+                <div
+                  key={c.id}
+                  onClick={() => {
+                    setCategoriaSelecionada(c.slug);
+                    setAba("home");
+                    setStep(9);
+                  }}
+                  style={{
+                    background: "#fff",
+                    borderRadius: 22,
+                    padding: "16px 8px 14px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: 18,
+                      background: item.bg,
+                      color: item.cor,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 10
+                    }}
+                  >
+                    {item.icone}
+                  </div>
+
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "#222",
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {c.nome}
+                  </span>
+                </div>
+              );
+            })}
+        </div>
+
+        {/* BANNER */}
+        <div
+          style={{
+            marginTop: 20,
+            borderRadius: 28,
+            overflow: "hidden",
+            position: "relative",
+            boxShadow: "0 14px 30px rgba(0,0,0,0.10)",
+            width: "100%",
+            height: isMobile ? 245 : 340,
+            background: "#111"
+          }}
+        >
+          {Array.isArray(banners) && banners.length > 0 ? (
+            <>
+              {banners.map((b, i) => (
+                <div
+                  key={b.id}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    opacity: i === bannerIndex ? 1 : 0,
+                    transition: "opacity 0.45s ease",
+                    pointerEvents: i === bannerIndex ? "auto" : "none"
+                  }}
+                >
+                  <img
+                    src={b.imagem}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      objectPosition: "center",
+                      display: "block"
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 18,
+                      bottom: 18,
+                      zIndex: 2
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        setCategoriaSelecionada(b.categoria || "promocoes");
+                        setAba("home");
+                        setStep(9);
+                      }}
+                      style={{
+                        height: 44,
+                        padding: "0 18px",
+                        borderRadius: 999,
+                        border: "none",
+                        background: "#ea1d2c",
+                        color: "#fff",
+                        fontSize: 14,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
+                      }}
+                    >
+                      Ver ofertas
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {banners.length > 1 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 14,
+                    left: 18,
+                    right: 18,
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 8,
+                    zIndex: 3
+                  }}
+                >
+                  {banners.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: i === bannerIndex ? 46 : 16,
+                        height: 6,
+                        borderRadius: 999,
+                        background:
+                          i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
+                        transition: "all 0.25s ease"
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <img
+                src="/t1.jpg"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  display: "block"
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  left: 18,
+                  bottom: 18,
+                  zIndex: 2
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setCategoriaSelecionada("promocoes");
+                    setAba("home");
+                    setStep(9);
+                  }}
+                  style={{
+                    height: 44,
+                    padding: "0 18px",
+                    borderRadius: 999,
+                    border: "none",
+                    background: "#ea1d2c",
+                    color: "#fff",
+                    fontSize: 14,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
+                  }}
+                >
+                  Ver ofertas
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      {/* TÍTULO */}
-      <div style={{ marginTop: 14 }}>
-        <h1 style={{
-          margin: 0,
-          fontSize: 16,
-          fontWeight: 700,
-          color: "#111",
-          lineHeight: 1.2
-        }}>
-          Peça seu açaí
-        </h1>
-
-        <h1 style={{
-          margin: 0,
-          fontSize: 16,
-          fontWeight: 800,
-          color: "#ea1d2c",
-          lineHeight: 1.2
-        }}>
-          favorito hoje
-        </h1>
-
-        <p style={{
-          marginTop: 6,
-          marginBottom: 0,
-          fontSize: 13,
-          color: "#666",
-          lineHeight: 1.3
-        }}>
-          Qualidade, sabor e entrega rápida pertinho de você.
-        </p>
-      </div>
-
-
-{/* INSTALAR APP */}
-      {podeInstalar && (
-  <button
-    onClick={instalarApp}
-    style={{
-      height: 44,
-      padding: "0 16px",
-      borderRadius: 14,
-      border: "none",
-      background: "#ea1d2c",
-      color: "#fff",
-      fontWeight: 700,
-      fontSize: 14,
-      cursor: "pointer"
-    }}
-  >
-    Instalar app
-  </button>
-)}
-
-      {/* CATEGORIAS */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "repeat(4, 1fr)" : "repeat(4, 140px)",
-        justifyContent: isMobile ? "initial" : "center",
-        gap: 10,
-        marginTop: 16
-      }}>
-        {categorias
-          .filter(c =>
-            ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
-          )
-          .sort((a, b) => {
-            const ordem = ["acai", "promocoes", "bebidas", "combos"];
-            return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
-          })
-          .map((c) => {
-            const config = {
-              acai: { icone: <IceCream size={18} />, cor: "#7c3aed" },
-              promocoes: { icone: <Tag size={18} />, cor: "#7c3aed" },
-              bebidas: { icone: <CupSoda size={18} />, cor: "#7c3aed" },
-              combos: { icone: <Star size={18} />, cor: "#7c3aed" }
-            };
-
-            const item = config[c.slug];
-            if (!item) return null;
-
-            return (
-              <div
-                key={c.id}
-                onClick={() => {
-                  setCategoriaSelecionada(c.slug);
-                  setAba("home");
-                  setStep(9);
-                }}
-                style={{
-                  background: "#fff",
-                  borderRadius: 16,
-                  padding: "12px 6px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "1px solid #f1f1f1",
-                  boxShadow: "0 6px 14px rgba(0,0,0,0.04)"
-                }}
-              >
-                <div style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 10,
-                  background: "#f4ecff",
-                  color: item.cor,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 6
-                }}>
-                  {item.icone}
-                </div>
-
-                <span style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: "#222"
-                }}>
-                  {c.nome}
-                </span>
-              </div>
-            );
-          })}
-      </div>
-
-{/* BANNER */}
-<div
-  style={{
-    marginTop: 16,
-    borderRadius: 22,
-    overflow: "hidden",
-    position: "relative",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.08)",
-    width: "100%",
-    height: isMobile ? 170 : 325,
-    background: "#111"
-  }}
->
-  {Array.isArray(banners) && banners.length > 0 ? (
-    <>
-      {banners.map((b, i) => (
+      {/* CONTEÚDO BRANCO */}
+      <div
+        style={{
+          background: "#fff",
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          padding: "24px 12px 0",
+          boxSizing: "border-box",
+          minHeight: 300
+        }}
+      >
+        {/* TÍTULO */}
         <div
-          key={b.id}
           style={{
-            position: "absolute",
-            inset: 0,
-            opacity: i === bannerIndex ? 1 : 0,
-            transition: "opacity 0.45s ease",
-            pointerEvents: i === bannerIndex ? "auto" : "none"
+            marginBottom: 14,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 6px"
           }}
         >
-          <img
-            src={b.imagem}
+          <strong
             style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center",
-              display: "block"
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#111"
+            }}
+          >
+            Mais pedidos
+          </strong>
+
+          <span
+            onClick={() => {
+              setAba("home");
+              setStep(9);
+            }}
+            style={{
+              color: "#ea1d2c",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            Ver todos
+          </span>
+        </div>
+
+        {/* PRODUTOS */}
+        <div
+          style={{
+            display: "flex",
+            gap: isMobile ? 12 : 14,
+            overflowX: "auto",
+            paddingBottom: 12,
+            paddingLeft: 6,
+            scrollbarWidth: "none",
+            scrollBehavior: "smooth"
+          }}
+        >
+          {produtos
+            .filter((p) => p.ativo !== false)
+            .map((p, i) => {
+              return (
+                <div
+                  key={i}
+                  style={{
+                    minWidth: isMobile ? 162 : 190,
+                    maxWidth: isMobile ? 162 : 190,
+                    flex: "0 0 auto",
+                    background: "#fff",
+                    borderRadius: 24,
+                    padding: 10,
+                    position: "relative",
+                    boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
+                    border: "1px solid #f2f2f2"
+                  }}
+                >
+                  {produtoEmPromocao(p) ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        background: "#ea1d2c",
+                        color: "#fff",
+                        fontSize: 9,
+                        padding: "4px 9px",
+                        borderRadius: 999,
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                        zIndex: 2
+                      }}
+                    >
+                      Oferta
+                    </div>
+                  ) : p.maisVendido ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        background: "#f97316",
+                        color: "#fff",
+                        fontSize: 9,
+                        padding: "4px 9px",
+                        borderRadius: 999,
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                        zIndex: 2
+                      }}
+                    >
+                      Mais vendido
+                    </div>
+                  ) : null}
+
+                  <div
+                    style={{
+                      width: "100%",
+                      height: 110,
+                      borderRadius: 18,
+                      background: "#f7f7f7",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden"
+                    }}
+                  >
+                    <img
+                      src={p.imagem || "/acai.png"}
+                      style={{
+                        width: 98,
+                        height: 98,
+                        objectFit: "contain"
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 14,
+                      fontWeight: 800,
+                      color: "#111",
+                      minHeight: 34,
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {p.nome}
+                  </div>
+
+                  {!!p.descricao && (
+                    <div
+                      style={{
+                        marginTop: 4,
+                        fontSize: 11,
+                        color: "#666",
+                        lineHeight: 1.35,
+                        minHeight: 30,
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical"
+                      }}
+                    >
+                      {p.descricao}
+                    </div>
+                  )}
+
+                  <div
+                    style={{
+                      marginTop: 5,
+                      fontSize: 11,
+                      color: "#888",
+                      minHeight: 14
+                    }}
+                  >
+                    {p.tamanho ? `• ${p.tamanho}` : ""}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-end",
+                      gap: 8
+                    }}
+                  >
+                    <div>
+                      {produtoEmPromocao(p) ? (
+                        <>
+                          <div
+                            style={{
+                              fontSize: 10,
+                              color: "#999",
+                              textDecoration: "line-through",
+                              lineHeight: 1.1
+                            }}
+                          >
+                            {formatarReal(p.preco || 0)}
+                          </div>
+
+                          <strong
+                            style={{
+                              fontSize: 18,
+                              color: "#ea1d2c",
+                              lineHeight: 1.1,
+                              fontWeight: 900
+                            }}
+                          >
+                            {formatarReal(precoFinalProduto(p))}
+                          </strong>
+                        </>
+                      ) : (
+                        <strong
+                          style={{
+                            fontSize: 18,
+                            color: "#111",
+                            lineHeight: 1.1,
+                            fontWeight: 900
+                          }}
+                        >
+                          {formatarReal(p.preco || 0)}
+                        </strong>
+                      )}
+                    </div>
+
+                    <div
+                      onClick={() => {
+                        if (!validarLojaAberta()) return;
+
+                        if (categoriaTemExtras(p.categoria)) {
+                          setProduto({
+                            ...p,
+                            preco: precoFinalProduto(p)
+                          });
+                          setAba("home");
+                          setStep(2);
+                          return;
+                        }
+
+                        if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                          setCarrinho((prev) => [
+                            ...prev,
+                            {
+                              produto: {
+                                ...p,
+                                preco: precoFinalProduto(p)
+                              },
+                              quantidade: 1,
+                              extras: [],
+                              total: Number(precoFinalProduto(p) || 0)
+                            }
+                          ]);
+                          setAba("carrinho");
+                          setStep(3);
+                        }
+                      }}
+                      style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: "50%",
+                        background: "#ea1d2c",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontSize: 22,
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        boxShadow: "0 10px 20px rgba(234,29,44,0.25)"
+                      }}
+                    >
+                      +
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+
+        {/* INFO BAR */}
+        <div
+          style={{
+            marginTop: 20,
+            background: "#fff",
+            padding: isMobile ? "18px 12px" : "18px 24px",
+            borderRadius: 26,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 10px 24px rgba(0,0,0,0.05)",
+            border: "1px solid #f2f2f2"
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              textAlign: "center"
+            }}
+          >
+            <Clock size={21} color="#7c3aed" />
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                marginTop: 6,
+                color: "#111"
+              }}
+            >
+              25-35 min
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#888"
+              }}
+            >
+              Tempo de entrega
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: 1,
+              height: 42,
+              background: "#ececec"
             }}
           />
 
           <div
             style={{
-              position: "absolute",
-              left: 16,
-              bottom: 14,
-              zIndex: 2
+              flex: 1,
+              textAlign: "center"
             }}
           >
-            <button
-              onClick={() => {
-                setCategoriaSelecionada(b.categoria || "promocoes");
-                setAba("home");
-                setStep(9);
-              }}
+            <Bike size={21} color="#7c3aed" />
+            <div
               style={{
-                height: 38,
-                padding: "0 16px",
-                borderRadius: 999,
-                border: "none",
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
+                fontSize: 14,
+                fontWeight: 800,
+                marginTop: 6,
+                color: "#111"
               }}
             >
-              Ver ofertas
-            </button>
-          </div>
-        </div>
-      ))}
-
-      {banners.length > 1 && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 14,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            justifyContent: "center",
-            gap: 6,
-            zIndex: 3
-          }}
-        >
-          {banners.map((_, i) => (
+              Entrega grátis
+            </div>
             <div
-              key={i}
               style={{
-                width: i === bannerIndex ? 18 : 7,
-                height: 7,
-                borderRadius: 999,
-                background: i === bannerIndex ? "#fff" : "rgba(255,255,255,0.55)",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-                transition: "all 0.25s ease"
+                fontSize: 11,
+                color: "#888"
               }}
-            />
-          ))}
-        </div>
-      )}
-    </>
-  ) : (
-    <>
-      <img
-        src="/t1.jpg"
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
-          display: "block"
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: 16,
-          bottom: 14,
-          zIndex: 2
-        }}
-      >
-        <button
-          onClick={() => {
-            setCategoriaSelecionada("promocoes");
-            setAba("home");
-            setStep(9);
-          }}
-          style={{
-            height: 38,
-            padding: "0 16px",
-            borderRadius: 999,
-            border: "none",
-            background: "#ea1d2c",
-            color: "#fff",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
-          }}
-        >
-          Ver ofertas
-        </button>
-      </div>
-    </>
-  )}
-</div>
-
-    </div>
-
-    {/* CONTEÚDO */}
-    <div style={{
-      maxWidth: larguraApp,
-      margin: "0 auto",
-      background: "#fff",
-      padding: "16px 10px 0",
-      boxSizing: "border-box"
-    }}>
-      {/* TÍTULO */}
-      <div style={{
-        marginBottom: 12,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 6px"
-      }}>
-        <strong style={{
-          fontSize: 17,
-          fontWeight: 700,
-          color: "#111"
-        }}>
-          Mais pedidos
-        </strong>
-
-     <span
-      onClick={() => {
-      setAba("home");
-      setStep(9);
-       }}
-       style={{
-       color: "#ea1d2c",
-       fontSize: 13,
-       fontWeight: 600,
-       cursor: "pointer"
-       }}
-        >
-        Ver todos
-       </span>
-      </div>
-
-      {/* PRODUTOS */}
-      <div style={{
-        display: "flex",
-        gap: isMobile ? 10 : 14,
-        overflowX: "auto",
-        paddingBottom: 10,
-        paddingLeft: 6,
-        scrollbarWidth: "none",
-        scrollBehavior: "smooth"
-      }}>
-        {produtos
-          .filter(p => p.ativo !== false)
-          .map((p, i) => {
-            return (
-              <div
-                key={i}
-                style={{
-                  minWidth: isMobile ? 122 : 170,
-                  maxWidth: isMobile ? 122 : 170,
-                  flex: "0 0 auto",
-                  background: "#fff",
-                  borderRadius: 16,
-                  padding: 7,
-                  border: "1px solid #f0f0f0",
-                  position: "relative",
-                  boxShadow: "0 8px 18px rgba(0,0,0,0.05)"
-                }}
-              >
-                {produtoEmPromocao(p) ? (
-                  <div style={{
-                    position: "absolute",
-                    top: 6,
-                    left: 6,
-                    background: "#ea1d2c",
-                    color: "#fff",
-                    fontSize: 8,
-                    padding: "3px 8px",
-                    borderRadius: 20,
-                    fontWeight: 700,
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
-                    zIndex: 2
-                  }}>
-                    Oferta
-                  </div>
-                ) : p.maisVendido ? (
-                  <div style={{
-                    position: "absolute",
-                    top: 6,
-                    left: 6,
-                    background: "#ee660b",
-                    color: "#fff",
-                    fontSize: 8,
-                    padding: "3px 8px",
-                    borderRadius: 20,
-                    fontWeight: 700,
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
-                    zIndex: 2
-                  }}>
-                    Mais vendido
-                  </div>
-                ) : null}
-
-                <div style={{
-                  width: "100%",
-                  height: 76,
-                  borderRadius: 12,
-                  background: "#fafafa",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden"
-                }}>
-                  <img
-                    src={p.imagem || "/acai.png"}
-                    style={{
-                      width: 72,
-                      height: 72,
-                      objectFit: "contain"
-                    }}
-                  />
-                </div>
-
-                <div style={{
-  marginTop: 7,
-  fontSize: 13,
-  fontWeight: 700,
-  color: "#111",
-  minHeight: 15,
-  lineHeight: 1.2,
-  overflow: "hidden"
-}}>
-  {p.nome}
-</div>
-
-{!!p.descricao && (
-  <div style={{
-    marginTop: 4,
-    fontSize: 10,
-    color: "#666",
-    lineHeight: 1.3,
-    minHeight: 26,
-    overflow: "hidden",
-    display: "-webkit-box",
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: "vertical"
-  }}>
-    {p.descricao}
-  </div>
-)}
-
-<div style={{
-  marginTop: 4,
-  fontSize: 10,
-  color: "#777",
-  minHeight: 12
-}}>
-  {p.tamanho ? `• ${p.tamanho}` : ""}
-</div>
-
-                <div style={{
-                  marginTop: 8,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-end",
-                  gap: 6
-                }}>
-                  <div>
-                    {produtoEmPromocao(p) ? (
-                      <>
-                        <div style={{
-                          fontSize: 9,
-                          color: "#999",
-                          textDecoration: "line-through",
-                          lineHeight: 1.1
-                        }}>
-                          {formatarReal(p.preco || 0)}
-                        </div>
-
-                        <strong style={{
-                          fontSize: 12,
-                          color: "#ea1d2c",
-                          lineHeight: 1.1
-                        }}>
-                          {formatarReal(precoFinalProduto(p))}
-                        </strong>
-                      </>
-                    ) : (
-                      <strong style={{
-                        fontSize: 12,
-                        color: "#111",
-                        lineHeight: 1.1
-                      }}>
-                        {formatarReal(p.preco || 0)}
-                      </strong>
-                    )}
-                  </div>
-
-                  <div
-                    onClick={() => {
-                      if (!validarLojaAberta()) return;
-
-                      if (categoriaTemExtras(p.categoria)) {
-                        setProduto({
-                          ...p,
-                          preco: precoFinalProduto(p)
-                        });
-                        setAba("home");
-                        setStep(2);
-                        return;
-                      }
-
-                      if (categoriaVaiDiretoCarrinho(p.categoria)) {
-                        setCarrinho(prev => [
-                          ...prev,
-                          {
-                            produto: {
-                              ...p,
-                              preco: precoFinalProduto(p)
-                            },
-                            quantidade: 1,
-                            extras: [],
-                            total: Number(precoFinalProduto(p) || 0)
-                          }
-                        ]);
-                        setAba("carrinho");
-                        setStep(3);
-                      }
-                    }}
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: "50%",
-                      background: "#ea1d2c",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontSize: 17,
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                      boxShadow: "0 6px 14px rgba(234,29,44,0.3)"
-                    }}
-                  >
-                    +
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-      </div>
-
-
-    
-      {/* INFO BAR */}
-      <div style={{
-        marginTop: 18,
-        background: "#fff",
-        padding: isMobile ? "16px 10px" : "18px 24px",
-        borderRadius: 22,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
-      }}>
-        <div style={{
-          flex: 1,
-          textAlign: "center"
-        }}>
-          <Clock size={20} color="#7c3aed" />
-          <div style={{
-            fontSize: 13,
-            fontWeight: 600,
-            marginTop: 4,
-            color: "#111"
-          }}>
-            25-35 min
+            >
+              Acima de R$30
+            </div>
           </div>
-          <div style={{
-            fontSize: 11,
-            color: "#888"
-          }}>
-            Tempo de entrega
-          </div>
-        </div>
 
-        <div style={{
-          width: 1,
-          height: 40,
-          background: "#ececec"
-        }} />
+          <div
+            style={{
+              width: 1,
+              height: 42,
+              background: "#ececec"
+            }}
+          />
 
-        <div style={{
-          flex: 1,
-          textAlign: "center"
-        }}>
-          <Bike size={20} color="#7c3aed" />
-          <div style={{
-            fontSize: 13,
-            fontWeight: 600,
-            marginTop: 4,
-            color: "#111"
-          }}>
-            Entrega grátis
-          </div>
-          <div style={{
-            fontSize: 11,
-            color: "#888"
-          }}>
-            Acima de R$30
-          </div>
-        </div>
-
-        <div style={{
-          width: 1,
-          height: 40,
-          background: "#ececec"
-        }} />
-
-        <div style={{
-          flex: 1,
-          textAlign: "center"
-        }}>
-          <ShieldCheck size={20} color="#7c3aed" />
-          <div style={{
-            fontSize: 13,
-            fontWeight: 600,
-            marginTop: 4,
-            color: "#111"
-          }}>
-            Compra segura
-          </div>
-          <div style={{
-            fontSize: 11,
-            color: "#888"
-          }}>
-            Seus dados protegidos
+          <div
+            style={{
+              flex: 1,
+              textAlign: "center"
+            }}
+          >
+            <ShieldCheck size={21} color="#7c3aed" />
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                marginTop: 6,
+                color: "#111"
+              }}
+            >
+              Compra segura
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#888"
+              }}
+            >
+              Seus dados protegidos
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <div style={{
-      height: 80,
-      background: "#fff"
-    }} />
 
     <style>
       {`
