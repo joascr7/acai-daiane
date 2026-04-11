@@ -4490,7 +4490,7 @@ return (
     </div>
 
     <div style={{
-      height: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 88px)`,
+      height: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 48px)`,
       background: "#fff"
     }} />
 
@@ -6198,6 +6198,7 @@ return (
       maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100dvh",
+      paddingBottom: 80,
       background: "#f7f7f7",
       paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 24px)`,
       boxSizing: "border-box"
@@ -6737,6 +6738,7 @@ return (
       maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100dvh",
+      paddingBottom: 80,
       display: "flex",
       flexDirection: "column",
       background: "#f5f5f5",
@@ -6928,6 +6930,7 @@ return (
     maxWidth: larguraApp,
     margin: "0 auto",
     height: `calc(100dvh - ${NAVBAR}px - env(safe-area-inset-bottom))`,
+    paddingBottom: 80,
     display: "flex",
     flexDirection: "column",
     background: "#f7f7f7",
@@ -7119,7 +7122,7 @@ return (
     style={{
       maxWidth: larguraApp,
       margin: "0 auto",
-      paddingBottom: 140,
+      paddingBottom: 80,
       background: "#f7f7f7"
     }}
 
@@ -7340,6 +7343,7 @@ return (
     maxWidth: larguraApp,
     margin: "0 auto",
     height: "100dvh",
+    paddingBottom: 80,
     display: "flex",
     flexDirection: "column",
     background: "#f7f7f7"
