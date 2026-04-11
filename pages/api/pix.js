@@ -39,7 +39,8 @@ export default async function handler(req, res) {
         external_reference: String(pedidoId),
 
         payer: {
-          email: "teste@test.com"
+        email: user?.email,
+        first_name: user?.nome || "Cliente"
         }
       }
     });
