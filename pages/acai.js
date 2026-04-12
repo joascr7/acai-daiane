@@ -4071,7 +4071,7 @@ return (
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch",
           scrollSnapType: "x mandatory",
-          touchAction: "pan-x",
+          touchAction: "auto",
           msOverflowStyle: "none",
           scrollbarWidth: "none"
         }}
@@ -4231,7 +4231,7 @@ return (
     overflowY: "hidden",
     padding: "4px 6px 14px",
     WebkitOverflowScrolling: "touch",
-    touchAction: "pan-x",
+    touchAction: "auto",
     msOverflowStyle: "none",
     scrollbarWidth: "none",
     scrollSnapType: "x proximity"
@@ -7686,9 +7686,9 @@ return (
           setStep(1);
         }}
         style={{
-          width: 42,
-          height: 42,
-          borderRadius: 14,
+          width: 22,
+          height: 22,
+          borderRadius: 28,
           border: "none",
           background: "#fff",
           cursor: "pointer",
