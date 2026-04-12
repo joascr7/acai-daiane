@@ -2894,6 +2894,10 @@ return (
   
 
 
+
+  
+
+
   
 
 // CONTAINER ///
@@ -2912,10 +2916,6 @@ return (
     boxSizing: "border-box",
     background: "#fff"
 
-
-
-
-    
   }}>
 
 
@@ -4614,8 +4614,6 @@ return (
     </style>
   </>
 )}
-
-
 
 
 {aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
@@ -7084,47 +7082,112 @@ return (
 
 {aba === "pagamentos" && step === 6 && (
   <>
-    <div style={{
-      maxWidth: larguraApp,
-      margin: "0 auto",
-      minHeight: "100dvh",
-      paddingBottom: 80,
-      display: "flex",
-      flexDirection: "column",
-      background: "#f5f5f5",
-      paddingBottom: BOTTOM_SPACE,
-      boxSizing: "border-box"
-    }}>
-
+    <div
+      style={{
+        maxWidth: larguraApp,
+        margin: "0 auto",
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        background: "#f5f5f5",
+        paddingBottom: BOTTOM_SPACE,
+        boxSizing: "border-box"
+      }}
+    >
       {/* HEADER */}
-      <div style={{
-        padding: "calc(env(safe-area-inset-top) + 16px) 16px 16px",
-        background: "#fff",
-        borderBottom: "1px solid #eee",
-        position: "sticky",
-        top: 0,
-        zIndex: 10
-      }}>
-        <h3 style={{ margin: 0 }}>Pagamento</h3>
+      <div
+        style={{
+          padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
+          background: "#f5f5f5",
+          position: "sticky",
+          top: 0,
+          zIndex: 10
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12
+          }}
+        >
+          <button
+            onClick={() => {
+              setAba("carrinho");
+              setStep(3);
+            }}
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 28,
+              border: "none",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+              cursor: "pointer"
+            }}
+          >
+            <ArrowLeft size={20} color="#111" />
+          </button>
+
+          <div>
+            <div
+              style={{
+                fontSize: 26,
+                fontWeight: 800,
+                color: "#111",
+                lineHeight: 1.1
+              }}
+            >
+              Pagamento
+            </div>
+
+            <div
+              style={{
+                fontSize: 13,
+                color: "#777",
+                marginTop: 4
+              }}
+            >
+              Escolha como deseja pagar seu pedido
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* CONTEÚDO */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: 16,
-        paddingBottom: 140,
-        boxSizing: "border-box"
-      }}>
-
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: 16,
+          paddingBottom: 150,
+          boxSizing: "border-box"
+        }}
+      >
         {/* RESUMO */}
-        <div style={{
-          background: "#fff",
-          padding: 14,
-          borderRadius: 14,
-          marginBottom: 12
-        }}>
-          <strong>Resumo do pedido</strong>
+        <div
+          style={{
+            background: "#fff",
+            padding: 18,
+            borderRadius: 22,
+            marginBottom: 14,
+            border: "1px solid #ececec",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#111",
+              marginBottom: 14
+            }}
+          >
+            Resumo do pedido
+          </div>
 
           {carrinho.map((item, i) => (
             <div
@@ -7132,146 +7195,379 @@ return (
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                fontSize: 13,
-                marginTop: 6
+                gap: 12,
+                fontSize: 14,
+                color: "#444",
+                marginTop: i === 0 ? 0 : 8
               }}
             >
-              <span>{item.quantidade}x {item.produto.nome}</span>
+              <span>
+                {item.quantidade}x {item.produto.nome}
+              </span>
               <span>{formatarReal(item.total)}</span>
             </div>
           ))}
 
-          <div style={{ margin: "10px 0", borderTop: "1px solid #eee" }} />
+          <div
+            style={{
+              height: 1,
+              background: "#efefef",
+              margin: "14px 0"
+            }}
+          />
 
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontWeight: "bold"
-          }}>
-            <span>Total</span>
-            <span style={{ color: "#ea1d2c" }}>
-              {formatarReal(totalFinalComFrete)}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 14,
+              color: "#555"
+            }}
+          >
+            <span>Subtotal</span>
+            <span>{formatarReal(subtotalProdutos)}</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 14,
+              color: "#555",
+              marginTop: 10
+            }}
+          >
+            <span>Entrega</span>
+            <span
+              style={{
+                color: Number(taxaEntrega || 0) === 0 ? "#16a34a" : "#111",
+                fontWeight: 700
+              }}
+            >
+              {Number(taxaEntrega || 0) === 0
+                ? "Grátis"
+                : formatarReal(taxaEntrega)}
             </span>
+          </div>
+
+          {descontoCalculado > 0 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 14,
+                color: "#16a34a",
+                marginTop: 10
+              }}
+            >
+              <span>Desconto</span>
+              <span>- {formatarReal(descontoCalculado)}</span>
+            </div>
+          )}
+
+          <div
+            style={{
+              height: 1,
+              background: "#efefef",
+              margin: "14px 0"
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}
+          >
+            <strong
+              style={{
+                fontSize: 17,
+                color: "#111"
+              }}
+            >
+              Total
+            </strong>
+
+            <strong
+              style={{
+                fontSize: 20,
+                color: "#ea1d2c",
+                fontWeight: 900
+              }}
+            >
+              {formatarReal(totalFinalComFrete)}
+            </strong>
           </div>
         </div>
 
-        {/* PAGAMENTO */}
-        <div style={{
-          background: "#fff",
-          padding: 14,
-          borderRadius: 14
-        }}>
-          <strong>Forma de pagamento</strong>
+        {/* FORMA DE PAGAMENTO */}
+        <div
+          style={{
+            background: "#fff",
+            padding: 18,
+            borderRadius: 22,
+            border: "1px solid #ececec",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#111",
+              marginBottom: 14
+            }}
+          >
+            Forma de pagamento
+          </div>
 
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            marginTop: 12
-          }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12
+            }}
+          >
             {[
-              { id: "pix", nome: "Pix" },
-              { id: "cartao", nome: "Cartão" },
-              { id: "dinheiro", nome: "Dinheiro" }
-            ].map(p => (
+              {
+                id: "pix",
+                nome: "Pix",
+                descricao: "Aprovação rápida",
+                icone: <QrCode size={20} color={formaPagamento === "pix" ? "#ea1d2c" : "#666"} />
+              },
+              {
+                id: "cartao",
+                nome: "Cartão",
+                descricao: "Pagar na entrega",
+                icone: <CreditCard size={20} color={formaPagamento === "cartao" ? "#ea1d2c" : "#666"} />
+              },
+              {
+                id: "dinheiro",
+                nome: "Dinheiro",
+                descricao: "Pagar na entrega",
+                icone: <Wallet size={20} color={formaPagamento === "dinheiro" ? "#ea1d2c" : "#666"} />
+              }
+            ].map((p) => (
               <div
                 key={p.id}
                 onClick={() => {
                   setFormaPagamento(p.id);
                 }}
                 style={{
-                  padding: 14,
-                  borderRadius: 12,
-                  border: formaPagamento === p.id
-                    ? "2px solid #ea1d2c"
-                    : "1px solid #eee",
-                  background: formaPagamento === p.id
-                    ? "#fff5f5"
-                    : "#fff",
+                  padding: "16px 16px",
+                  borderRadius: 18,
+                  border:
+                    formaPagamento === p.id
+                      ? "2px solid #ea1d2c"
+                      : "1px solid #e7e7e7",
+                  background:
+                    formaPagamento === p.id
+                      ? "#fff5f5"
+                      : "#fff",
                   cursor: "pointer",
-                  fontWeight: formaPagamento === p.id ? "bold" : "normal"
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12
                 }}
               >
-                {p.nome}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    minWidth: 0
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 14,
+                      background:
+                        formaPagamento === p.id ? "#ffe9ec" : "#f5f5f5",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0
+                    }}
+                  >
+                    {p.icone}
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "#111"
+                      }}
+                    >
+                      {p.nome}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#777",
+                        marginTop: 4
+                      }}
+                    >
+                      {p.descricao}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    border:
+                      formaPagamento === p.id
+                        ? "6px solid #ea1d2c"
+                        : "2px solid #d6d6d6",
+                    background: "#fff",
+                    boxSizing: "border-box",
+                    flexShrink: 0
+                  }}
+                />
               </div>
             ))}
           </div>
         </div>
 
+        {/* ENTREGA */}
+        <div
+          style={{
+            background: "#fff",
+            padding: 18,
+            borderRadius: 22,
+            marginTop: 14,
+            border: "1px solid #ececec",
+            boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
+          }}
+        >
+          <div
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#111",
+              marginBottom: 10
+            }}
+          >
+            Entrega
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10
+            }}
+          >
+            <MapPin size={18} color="#666" style={{ marginTop: 2, flexShrink: 0 }} />
+
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  color: "#555",
+                  lineHeight: 1.45
+                }}
+              >
+                {clienteEndereco || "Endereço não informado"}
+                {clienteNumeroCasa ? `, ${clienteNumeroCasa}` : ""}
+                {clienteBairro ? ` • ${clienteBairro}` : ""}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 12
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 14,
+                    color: "#666"
+                  }}
+                >
+                  Taxa de entrega
+                </span>
+
+                <strong
+                  style={{
+                    fontSize: 15,
+                    color: Number(taxaEntrega || 0) === 0 ? "#16a34a" : "#111"
+                  }}
+                >
+                  {Number(taxaEntrega || 0) === 0
+                    ? "Grátis"
+                    : formatarReal(taxaEntrega)}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* BOTÕES */}
-<div
-  style={{
-    position: "fixed",
-    bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100%",
-    maxWidth: larguraApp,
-    padding: "10px 14px",
-    zIndex: 10,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    boxSizing: "border-box"
-  }}
->
-  <button
-    onClick={() => {
-      if (!formaPagamento) {
-        alert("Escolha uma forma de pagamento");
-        return;
-      }
+      <div
+        style={{
+          position: "fixed",
+          bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "100%",
+          maxWidth: larguraApp,
+          padding: "10px 14px",
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          boxSizing: "border-box"
+        }}
+      >
+        <button
+          onClick={() => {
+            if (!formaPagamento) {
+              mostrarToast("Escolha uma forma de pagamento", "erro");
+              return;
+            }
 
-      if (formaPagamento === "pix") {
-        setQrBase64(null);
-        setQrCode(null);
-        setPaymentId(null);
-        setMostrarPagamento(true);
-        return;
-      }
+            if (formaPagamento === "pix") {
+              setQrBase64(null);
+              setQrCode(null);
+              setPaymentId(null);
+              setMostrarPagamento(true);
+              return;
+            }
 
-      finalizarPedido();
-    }}
-    style={{
-      width: "100%",
-      maxWidth: 860,
-      height: 46,
-      borderRadius: 14,
-      background: "#ea1d2c",
-      color: "#fff",
-      border: "none",
-      fontWeight: 700,
-      fontSize: 14,
-      cursor: "pointer",
-      boxShadow: "0 6px 16px rgba(234,29,44,0.25)"
-    }}
-  >
-    Finalizar pedido • {formatarReal(totalFinalComFrete)}
-  </button>
+            finalizarPedido();
+          }}
+          style={{
+            width: "100%",
+            maxWidth: 860,
+            height: 52,
+            borderRadius: 16,
+            background: "#ea1d2c",
+            color: "#fff",
+            border: "none",
+            fontWeight: 800,
+            fontSize: 15,
+            cursor: "pointer",
+            boxShadow: "0 8px 20px rgba(234,29,44,0.25)"
+          }}
+        >
+          Finalizar pedido • {formatarReal(totalFinalComFrete)}
+        </button>
 
-  <button
-    onClick={() => {
-      setAba("carrinho");
-      setStep(3);
-    }}
-    style={{
-      width: "100%",
-      maxWidth: 860,
-      height: 40,
-      borderRadius: 12,
-      background: "#555",
-      color: "#fff",
-      border: "none",
-      marginTop: 8,
-      cursor: "pointer",
-      fontSize: 13
-    }}
-  >
-    Voltar ao carrinho
-  </button>
-</div>
+      </div>
     </div>
   </>
 )}
@@ -8743,6 +9039,7 @@ return (
 />
 
 
+
 {/* 🔥 LOJA FECHADA*/}
 {toast && (
   <div
@@ -8798,7 +9095,6 @@ return (
     </div>
   </div>
 )}
-
 
 
 
