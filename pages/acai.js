@@ -4213,13 +4213,13 @@ return (
 >
   <strong
     style={{
-      fontSize: 18,
+      fontSize: 14,
       fontWeight: 800,
       color: "#111",
       letterSpacing: "-0.02em"
     }}
   >
-    Mais pedidos
+    Personalize ou Peça Pronto: O sabor é garantido de qualquer forma.
   </strong>
 </div>
 
