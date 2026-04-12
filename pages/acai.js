@@ -6010,9 +6010,9 @@ return (
             setStep(1);
           }}
           style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
+            width: 22,
+            height: 22,
+            borderRadius: 28,
             border: "none",
             background: "#fff",
             cursor: "pointer",
@@ -6603,9 +6603,9 @@ return (
             setStep(1);
           }}
           style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
+            width: 22,
+            height: 22,
+            borderRadius: 28,
             border: "none",
             background: "#fff",
             display: "flex",
@@ -7317,7 +7317,7 @@ return (
       flexDirection: "column"
     }}
   >
-    {/* HEADER */}
+    {/* HEADER PREMIUM */}
     <div
       style={{
         background: "#fff",
@@ -7327,16 +7327,14 @@ return (
         top: 0,
         zIndex: 20
       }}
-    >
+    >  
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "40px 1fr auto",
+          display: "flex",
           alignItems: "center",
-          gap: 10
+          justifyContent: "space-between"
         }}
       >
-        {/* VOLTAR */}
         <button
           onClick={() => {
             setAba("home");
@@ -7357,10 +7355,8 @@ return (
           <ArrowLeft size={20} color="#e11d48" strokeWidth={2.5} />
         </button>
 
-        {/* TITULO */}
         <div
           style={{
-            textAlign: "center",
             fontSize: 16,
             fontWeight: 700,
             color: "#111"
@@ -7369,27 +7365,10 @@ return (
           Notificações
         </div>
 
-        {/* BOTÃO MARCAR TODAS */}
-        {notificacoes.some(n => !n.lida) ? (
-          <button
-            onClick={marcarComoLida}
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#e11d48",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              whiteSpace: "nowrap"
-            }}
-          >
-            Marcar lidas
-          </button>
-        ) : (
-          <div style={{ width: 40 }} />
-        )}
+        <div style={{ width: 40 }} />
       </div>
     </div>
+
 
     {/* LISTA */}
     <div
@@ -7425,6 +7404,7 @@ return (
                 padding: 14,
                 boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
                 cursor: n?.produtoId ? "pointer" : "default",
+                transition: "all 0.2s ease",
                 border: !n?.lida
                   ? "1px solid #e11d48"
                   : "1px solid transparent"
@@ -7435,6 +7415,7 @@ return (
           ))}
         </>
       )}
+
 
       {/* ANTIGAS */}
       {grupos.antigas.length > 0 && (
@@ -7469,7 +7450,7 @@ return (
         </>
       )}
 
-      {/* VAZIO */}
+      {/* VAZIO PREMIUM */}
       {grupos.hoje.length === 0 && grupos.antigas.length === 0 && (
         <div
           style={{
@@ -7478,7 +7459,14 @@ return (
             color: "#777"
           }}
         >
-          <div style={{ fontSize: 42, marginBottom: 14 }}>🔔</div>
+          <div
+            style={{
+              fontSize: 42,
+              marginBottom: 14
+            }}
+          >
+            🔔
+          </div>
 
           <div
             style={{
@@ -8163,9 +8151,9 @@ return (
                   setStep(1);
                 }}
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 14,
+                  width: 22,
+                  height: 22,
+                  borderRadius: 28,
                   border: "none",
                   background: "#fff",
                   display: "flex",
