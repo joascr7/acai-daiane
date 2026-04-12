@@ -909,7 +909,15 @@ function BannerSlideImage({ src, isMobile }) {
   );
 }
 
-  
+ 
+
+function mostrarToast(texto, tipo = "erro") {
+  setToast({ texto, tipo });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
+}
 
 // 🔥 HISTÓRICO DE BUSCA
 function salvarBuscaHistorico(valor) {
@@ -2258,7 +2266,7 @@ function alterarQuantidade(index, tipo) {
 
 function validarLojaAberta() {
   if (!lojaAberta) {
-    alert("🚫 Loja fechada no momento");
+    mostrarToast("Loja fechada no momento", "erro");
     return false;
   }
 
@@ -8733,6 +8741,63 @@ return (
     zIndex: 998
   }}
 />
+
+
+{/* 🔥 LOJA FECHADA*/}
+{toast && (
+  <div
+    style={{
+      position: "fixed",
+      top: "calc(env(safe-area-inset-top) + 12px)",
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: 9999,
+      width: "90%",
+      maxWidth: 420
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "14px 16px",
+        borderRadius: 14,
+        background:
+          toast.tipo === "erro"
+            ? "#fff1f2"
+            : "#ecfdf3",
+        border:
+          toast.tipo === "erro"
+            ? "1px solid #fecdd3"
+            : "1px solid #bbf7d0",
+        color:
+          toast.tipo === "erro"
+            ? "#b91c1c"
+            : "#166534",
+        fontWeight: 600,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+        animation: "fadeDown 0.3s ease"
+      }}
+    >
+      <div
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background:
+            toast.tipo === "erro"
+              ? "#ea1d2c"
+              : "#22c55e"
+        }}
+      />
+
+      <span style={{ fontSize: 14 }}>
+        {toast.texto}
+      </span>
+    </div>
+  </div>
+)}
 
 
 
