@@ -470,6 +470,7 @@ const [mensagemPagamento, setMensagemPagamento] = useState("");
 const [tipoMensagemPagamento, setTipoMensagemPagamento] = useState("info");
 
 const [bannerIndex, setBannerIndex] = useState(0);
+const bannerRef = useRef(null);
 
 
 const [historicoBusca, setHistoricoBusca] = useState([]);
@@ -692,11 +693,18 @@ useEffect(() => {
 
 useEffect(() => {
   if (!Array.isArray(banners) || banners.length <= 1) return;
+  if (!bannerRef.current) return;
 
   const interval = setInterval(() => {
     setBannerIndex((prev) => {
-      const proximo = prev + 1;
-      return proximo >= banners.length ? 0 : proximo;
+      const next = prev + 1 >= banners.length ? 0 : prev + 1;
+
+      bannerRef.current?.scrollTo({
+        left: bannerRef.current.clientWidth * next,
+        behavior: "smooth"
+      });
+
+      return next;
     });
   }, 3500);
 
@@ -721,17 +729,16 @@ useEffect(() => {
   return () => unsubscribe();
 }, []);
 
+const handleBannerScroll = () => {
+  if (!bannerRef.current) return;
 
+  const width = bannerRef.current.clientWidth;
+  const index = Math.round(bannerRef.current.scrollLeft / width);
 
-useEffect(() => {
-  if (!banners.length || banners.length === 1) return;
-
-  const timer = setInterval(() => {
-    setBannerAtual((prev) => (prev + 1) % banners.length);
-  }, 4000);
-
-  return () => clearInterval(timer);
-}, [banners]);
+  if (index !== bannerIndex) {
+    setBannerIndex(index);
+  }
+};
 
 
 useEffect(() => {
@@ -4090,6 +4097,8 @@ return (
   {Array.isArray(banners) && banners.length > 0 ? (
     <>
       <div
+        ref={bannerRef}
+        onScroll={handleBannerScroll}
         style={{
           display: "flex",
           width: "100%",
@@ -4104,7 +4113,7 @@ return (
           scrollbarWidth: "none"
         }}
       >
-        {banners.map((b, i) => (
+        {banners.map((b) => (
           <div
             key={b.id}
             onClick={() => {
@@ -4202,6 +4211,15 @@ return (
         }}
       />
 
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
+        }}
+      />
+   
       <div
         style={{
           position: "absolute",
