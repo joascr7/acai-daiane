@@ -472,7 +472,7 @@ const [tipoMensagemPagamento, setTipoMensagemPagamento] = useState("info");
 const [bannerIndex, setBannerIndex] = useState(0);
 const bannerRef = useRef(null);
 
-
+const [toastLojaFechada, setToastLojaFechada] = useState(false);
 const [historicoBusca, setHistoricoBusca] = useState([]);
 const [filtroBusca, setFiltroBusca] = useState("todos");
 
@@ -2264,9 +2264,18 @@ function alterarQuantidade(index, tipo) {
   });
 }
 
+
+function mostrarLojaFechada() {
+  setToastLojaFechada(true);
+
+  setTimeout(() => {
+    setToastLojaFechada(false);
+  }, 2500);
+}
+
 function validarLojaAberta() {
   if (!lojaAberta) {
-    mostrarToast("Loja fechada no momento", "erro");
+    mostrarLojaFechada();("Loja fechada no momento", "erro");
     return false;
   }
 
@@ -7520,7 +7529,7 @@ return (
       <div
         style={{
           position: "fixed",
-          bottom: `calc(${NAVBAR}px + ${SAFE_BOTTOM} + 6px)`,
+          bottom: `calc(${SAFE_BOTTOM} + 60px)`,
           left: "50%",
           transform: "translateX(-50%)",
           width: "100%",
@@ -7552,7 +7561,7 @@ return (
           }}
           style={{
             width: "100%",
-            maxWidth: 860,
+            maxWidth: 860,   
             height: 52,
             borderRadius: 16,
             background: "#ea1d2c",
@@ -9041,7 +9050,7 @@ return (
 
 
 {/* 🔥 LOJA FECHADA*/}
-{toast && (
+{toastLojaFechada && (
   <div
     style={{
       position: "fixed",
@@ -9060,21 +9069,11 @@ return (
         gap: 10,
         padding: "14px 16px",
         borderRadius: 14,
-        background:
-          toast.tipo === "erro"
-            ? "#fff1f2"
-            : "#ecfdf3",
-        border:
-          toast.tipo === "erro"
-            ? "1px solid #fecdd3"
-            : "1px solid #bbf7d0",
-        color:
-          toast.tipo === "erro"
-            ? "#b91c1c"
-            : "#166534",
+        background: "#fff1f2",
+        border: "1px solid #fecdd3",
+        color: "#b91c1c",
         fontWeight: 600,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-        animation: "fadeDown 0.3s ease"
+        boxShadow: "0 10px 30px rgba(0,0,0,0.15)"
       }}
     >
       <div
@@ -9082,15 +9081,12 @@ return (
           width: 8,
           height: 8,
           borderRadius: "50%",
-          background:
-            toast.tipo === "erro"
-              ? "#ea1d2c"
-              : "#22c55e"
+          background: "#ea1d2c"
         }}
       />
 
       <span style={{ fontSize: 14 }}>
-        {toast.texto}
+        Loja fechada no momento
       </span>
     </div>
   </div>
