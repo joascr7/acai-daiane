@@ -1546,8 +1546,7 @@ function NotificacaoItem({ n }) {
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 14,
-        position: "relative"
+        gap: 14
       }}
     >
       {/* IMAGEM */}
@@ -1568,8 +1567,7 @@ function NotificacaoItem({ n }) {
       <div
         style={{
           flex: 1,
-          minWidth: 0,
-          paddingRight: 10
+          minWidth: 0
         }}
       >
         <div
@@ -1596,34 +1594,39 @@ function NotificacaoItem({ n }) {
         </div>
       </div>
 
-      {/* HORA / DATA */}
+      {/* DIREITA (HORA + BOLINHA) */}
       <div
         style={{
-          flexShrink: 0,
-          fontSize: 12,
-          color: "#333",
-          fontWeight: 500,
-          minWidth: 44,
-          textAlign: "right"
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 6,
+          minWidth: 44
         }}
       >
-        {exibicaoTempo}
-      </div>
-
-      {/* BOLINHA NÃO LIDA */}
-      {!n?.lida && (
-        <span
+        {/* HORA */}
+        <div
           style={{
-            position: "absolute",
-            top: 2,
-            right: -2,
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: "#ea1d2c"
+            fontSize: 12,
+            color: "#333",
+            fontWeight: 500
           }}
-        />
-      )}
+        >
+          {exibicaoTempo}
+        </div>
+
+        {/* 🔴 BOLINHA */}
+        {!n?.lida && (
+          <div
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: "#ea1d2c"
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -7309,7 +7312,7 @@ return (
       maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100vh",
-      background: "#f3f3f3",
+      background: "#f7f7f7",
       display: "flex",
       flexDirection: "column"
     }}
@@ -7318,8 +7321,8 @@ return (
     <div
       style={{
         background: "#fff",
-        padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
-        borderBottom: "1px solid #efefef",
+        padding: "calc(env(safe-area-inset-top) + 14px) 16px 16px",
+        borderBottom: "1px solid #eee",
         position: "sticky",
         top: 0,
         zIndex: 20
@@ -7328,10 +7331,12 @@ return (
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "40px 1fr 40px",
-          alignItems: "center"
+          gridTemplateColumns: "40px 1fr auto",
+          alignItems: "center",
+          gap: 10
         }}
       >
+        {/* VOLTAR */}
         <button
           onClick={() => {
             setAba("home");
@@ -7340,31 +7345,49 @@ return (
           style={{
             width: 40,
             height: 40,
+            borderRadius: 12,
             border: "none",
-            background: "transparent",
+            background: "#f3f3f3",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            cursor: "pointer",
-            padding: 0
+            cursor: "pointer"
           }}
         >
-          <ArrowLeft size={22} color="#e11d48" strokeWidth={2.6} />
+          <ArrowLeft size={20} color="#e11d48" strokeWidth={2.5} />
         </button>
 
+        {/* TITULO */}
         <div
           style={{
             textAlign: "center",
             fontSize: 16,
-            fontWeight: 500,
-            color: "#111",
-            letterSpacing: "0.02em"
+            fontWeight: 700,
+            color: "#111"
           }}
         >
-          NOTIFICAÇÕES
+          Notificações
         </div>
 
-        <div />
+        {/* BOTÃO MARCAR TODAS */}
+        {notificacoes.some(n => !n.lida) ? (
+          <button
+            onClick={marcarComoLida}
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#e11d48",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap"
+            }}
+          >
+            Marcar lidas
+          </button>
+        ) : (
+          <div style={{ width: 40 }} />
+        )}
       </div>
     </div>
 
@@ -7374,46 +7397,89 @@ return (
         flex: 1,
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
-        padding: "10px 0 110px"
+        paddingBottom: 110
       }}
     >
       {/* HOJE */}
-      {grupos.hoje.map((n) => (
-        <div
-          key={n.id}
-          onClick={() => abrirProdutoDaNotificacao(n)}
-          style={{
-            padding: "18px 16px",
-            cursor: n?.produtoId ? "pointer" : "default"
-          }}
-        >
-          <NotificacaoItem n={n} />
-        </div>
-      ))}
+      {grupos.hoje.length > 0 && (
+        <>
+          <div
+            style={{
+              padding: "14px 16px 6px",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#999"
+            }}
+          >
+            HOJE
+          </div>
+
+          {grupos.hoje.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => abrirProdutoDaNotificacao(n)}
+              style={{
+                margin: "8px 12px",
+                borderRadius: 16,
+                background: "#fff",
+                padding: 14,
+                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+                cursor: n?.produtoId ? "pointer" : "default",
+                border: !n?.lida
+                  ? "1px solid #e11d48"
+                  : "1px solid transparent"
+              }}
+            >
+              <NotificacaoItem n={n} />
+            </div>
+          ))}
+        </>
+      )}
 
       {/* ANTIGAS */}
-      {grupos.antigas.map((n) => (
-        <div
-          key={n.id}
-          onClick={() => abrirProdutoDaNotificacao(n)}
-          style={{
-            padding: "18px 16px",
-            cursor: n?.produtoId ? "pointer" : "default"
-          }}
-        >
-          <NotificacaoItem n={n} />
-        </div>
-      ))}
+      {grupos.antigas.length > 0 && (
+        <>
+          <div
+            style={{
+              padding: "18px 16px 6px",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#999"
+            }}
+          >
+            ANTERIORES
+          </div>
+
+          {grupos.antigas.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => abrirProdutoDaNotificacao(n)}
+              style={{
+                margin: "8px 12px",
+                borderRadius: 16,
+                background: "#fff",
+                padding: 14,
+                boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
+                cursor: n?.produtoId ? "pointer" : "default"
+              }}
+            >
+              <NotificacaoItem n={n} />
+            </div>
+          ))}
+        </>
+      )}
 
       {/* VAZIO */}
       {grupos.hoje.length === 0 && grupos.antigas.length === 0 && (
         <div
           style={{
             textAlign: "center",
-            padding: "90px 24px",
+            padding: "120px 24px",
             color: "#777"
           }}
         >
+          <div style={{ fontSize: 42, marginBottom: 14 }}>🔔</div>
+
           <div
             style={{
               fontSize: 16,
@@ -7421,17 +7487,17 @@ return (
               color: "#111"
             }}
           >
-            Nenhuma notificação ainda
+            Nenhuma notificação
           </div>
 
           <div
             style={{
               fontSize: 14,
-              marginTop: 8,
+              marginTop: 6,
               lineHeight: 1.4
             }}
           >
-            Quando houver novidades, elas aparecerão aqui.
+            Quando tiver novidades, elas aparecem aqui.
           </div>
         </div>
       )}
