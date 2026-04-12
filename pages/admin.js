@@ -620,35 +620,52 @@ async function enviarNotificacao() {
       produtoSelecionadoObj?.imagem ||
       "";
 
+    // 🔥 CORREÇÃO DEFINITIVA
+    let para = "todos";
+    let uid = null;
+
+    if (clienteSelecionado && clienteSelecionado.trim() !== "") {
+      para = "usuario";
+      uid = String(clienteSelecionado);
+    }
+
+    console.log("🔥 FINAL:", { para, uid });
+
     const payload = {
       texto,
-      para: clienteSelecionado ? "usuario" : "todos",
-      uid: clienteSelecionado ? String(clienteSelecionado) : null,
+      para,
+      ...(uid && { uid }),
       data: Date.now(),
       ativo: true,
       lida: false,
       imagem: imagemFinal,
-      produtoId: produtoSelecionadoObj ? String(produtoSelecionadoObj.id) : null,
+      produtoId: produtoSelecionadoObj
+        ? String(produtoSelecionadoObj.id)
+        : null,
       produtoNome: produtoSelecionadoObj?.nome || ""
     };
 
-    console.log("PAYLOAD NOTIFICACAO:", payload);
+    console.log("PAYLOAD:", payload);
 
     await addDoc(collection(db, "notificacoes"), payload);
 
     setToast({
       tipo: "sucesso",
-      texto: clienteSelecionado
-        ? "Notificação enviada para o cliente."
-        : "Notificação enviada para todos."
+      texto:
+        para === "usuario"
+          ? "Notificação enviada para o cliente."
+          : "Notificação enviada para todos."
     });
+
     setTimeout(() => setToast(null), 2000);
 
+    // 🔥 limpar tudo
     setTextoNotificacao("");
     setImagemNotificacao("");
     setImagemTemp(null);
     setProdutoNotificacao("");
     setClienteSelecionado("");
+
   } catch (e) {
     console.log("ERRO AO ENVIAR:", e);
 
@@ -656,6 +673,7 @@ async function enviarNotificacao() {
       tipo: "erro",
       texto: "Erro ao enviar notificação."
     });
+
     setTimeout(() => setToast(null), 2000);
   }
 }
@@ -937,6 +955,8 @@ useEffect(() => {
   }
 }, [categorias]);
 // 🔥 cadastro produto categoria
+
+
 useEffect(() => {
   const unsub = onSnapshot(collection(db, "categorias"), (snap) => {
     setCategorias(
@@ -1059,6 +1079,10 @@ useEffect(() => {
   return () => unsub();
 
 }, []);
+
+
+
+
 
 useEffect(() => {
   const unsubscribe = onSnapshot(collection(db, "notificacoes"), (snapshot) => {
@@ -2346,18 +2370,24 @@ if (loadingAuth) {
       </h3>
 
       <select
-        value={clienteSelecionado}
-        onChange={(e) => setClienteSelecionado(e.target.value)}
-        style={input}
-      >
-        <option value="">Selecionar cliente</option>
+  value={clienteSelecionado || ""}
+  onChange={(e) => {
+    const valor = e.target.value;
 
-        {usuarios.map((u) => (
-          <option key={u.id} value={u.id}>
-            {u.clienteNome || u.clienteEmail || "Sem nome"}
-          </option>
-        ))}
-      </select>
+    console.log("🔥 SELECT:", valor);
+
+    setClienteSelecionado(valor);
+  }}
+  style={input}
+>
+  <option value="">Enviar para TODOS</option>
+
+  {usuarios.map((u) => (
+    <option key={u.uid} value={String(u.uid)}>
+      {u.clienteNome || u.clienteEmail || "Sem nome"}
+    </option>
+  ))}
+</select>
 
       <select
         value={produtoNotificacao}
