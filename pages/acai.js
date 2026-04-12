@@ -1250,42 +1250,6 @@ useEffect(() => {
 }, []);
 
 
-// tentando corrigir botao
-useEffect(() => {
-  const logOverflowingElements = () => {
-    const viewportWidth = window.innerWidth;
-    const all = Array.from(document.querySelectorAll("*"));
-
-    const overflowing = all.filter((el) => {
-      const rect = el.getBoundingClientRect();
-      return rect.width > viewportWidth + 1 || rect.right > viewportWidth + 1 || rect.left < -1;
-    });
-
-    if (overflowing.length) {
-      console.log("ELEMENTOS COM OVERFLOW:", overflowing.map((el) => ({
-        tag: el.tagName,
-        className: el.className,
-        id: el.id,
-        width: Math.round(el.getBoundingClientRect().width),
-        left: Math.round(el.getBoundingClientRect().left),
-        right: Math.round(el.getBoundingClientRect().right)
-      })));
-    } else {
-      console.log("Nenhum elemento com overflow detectado.");
-    }
-  };
-
-  const timer = setTimeout(logOverflowingElements, 300);
-
-  window.addEventListener("resize", logOverflowingElements);
-
-  return () => {
-    clearTimeout(timer);
-    window.removeEventListener("resize", logOverflowingElements);
-  };
-}, [aba, step, carrinho.length]);
-
-
 
 useEffect(() => {
   const unsubscribe = onSnapshot(collection(db, "fretes"), (snapshot) => {
