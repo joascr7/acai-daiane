@@ -2,18 +2,28 @@
 /* BASE */
 /* ============================= */
 
-html, body, #__next {
+html,
+body,
+#__next {
   height: 100%;
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   padding: 0;
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
-  overscroll-behavior: none;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: auto;
 }
 
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
+  overscroll-behavior-x: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ============================= */
@@ -39,21 +49,15 @@ body {
 }
 
 /* ============================= */
-/* SCROLL */
-/* ============================= */
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 10px;
-}
-
-/* ============================= */
 /* RESET ELEMENTOS */
 /* ============================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
 img {
   max-width: 100%;
@@ -69,7 +73,9 @@ button {
   justify-content: center;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-size: 16px;
 }
 
@@ -78,7 +84,6 @@ input, textarea, select {
 /* ============================= */
 
 input {
-  
   padding: 10px;
   border-radius: 10px;
   border: none;
@@ -98,7 +103,7 @@ input {
   color: #fff;
   font-weight: 500;
   font-size: 14px;
-  transition: 0.2s;
+  transition: transform 0.18s ease;
 }
 
 .btn:active {
@@ -159,6 +164,7 @@ input {
 .listaPedidos {
   max-height: 500px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .gridPedidos {
@@ -247,8 +253,7 @@ input {
 .modalConfirmacao {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.55);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -269,13 +274,13 @@ input {
 /* ============================= */
 
 .fade-slide {
-  animation: fadeSlide 0.3s ease;
+  animation: fadeSlide 0.22s ease;
 }
 
 @keyframes fadeSlide {
   from {
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -284,13 +289,13 @@ input {
 }
 
 .slide-enter {
-  animation: slideEnter 0.3s ease;
+  animation: slideEnter 0.22s ease;
 }
 
 @keyframes slideEnter {
   from {
     opacity: 0;
-    transform: translateX(40px);
+    transform: translateX(24px);
   }
   to {
     opacity: 1;
@@ -299,13 +304,13 @@ input {
 }
 
 .slide-back {
-  animation: slideBack 0.3s ease;
+  animation: slideBack 0.22s ease;
 }
 
 @keyframes slideBack {
   from {
     opacity: 0;
-    transform: translateX(-40px);
+    transform: translateX(-24px);
   }
   to {
     opacity: 1;
@@ -329,7 +334,12 @@ input {
   position: absolute;
   width: 100px;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.45),
+    transparent
+  );
   animation: shimmer 1.2s infinite;
 }
 
@@ -339,30 +349,24 @@ input {
   }
 }
 
+/* ============================= */
+/* SCROLL */
+/* ============================= */
 
-html,
-body,
-#__next {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+::-webkit-scrollbar-thumb {
+  background: transparent;
 }
 
 ::-webkit-scrollbar:horizontal {
   height: 0 !important;
   display: none !important;
 }
-
-body {
-  overscroll-behavior-x: none
-  }
-
 
 /* ============================= */
 /* BOTÃO INSTALAR */
@@ -379,14 +383,4 @@ body {
   padding: 12px 18px;
   font-weight: bold;
   z-index: 9999;
-}
-
-
-::-webkit-scrollbar {
-  display: none;
-}
-
-html, body {
-  touch-action: manipulation;
-  overscroll-behavior: none;
 }
