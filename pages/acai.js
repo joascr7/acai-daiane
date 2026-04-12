@@ -4285,7 +4285,7 @@ return (
   {produtos
     .filter((p) => p.ativo !== false)
     .map((p, i) => {
-      const abrirProdutoOuAdicionar = () => {
+      const abrirProduto = () => {
         if (!validarLojaAberta()) return;
 
         if (categoriaTemExtras(p.categoria)) {
@@ -4319,7 +4319,6 @@ return (
       return (
         <div
           key={i}
-          onClick={abrirProdutoOuAdicionar}
           style={{
             minWidth: isMobile ? 176 : 220,
             maxWidth: isMobile ? 176 : 220,
@@ -4331,13 +4330,10 @@ return (
             position: "relative",
             boxShadow: "0 14px 30px rgba(0,0,0,0.08)",
             border: "1px solid #f2f2f2",
-            cursor: "pointer",
             userSelect: "none",
-            WebkitUserSelect: "none",
-            transition: "transform 0.18s ease, box-shadow 0.18s ease"
+            WebkitUserSelect: "none"
           }}
         >
-          {/* BADGE */}
           {produtoEmPromocao(p) ? (
             <div
               style={{
@@ -4376,15 +4372,17 @@ return (
             </div>
           ) : null}
 
-          {/* IMAGEM */}
+          {/* IMAGEM CLICÁVEL */}
           <div
+            onClick={abrirProduto}
             style={{
               width: "100%",
               height: 150,
               borderRadius: 20,
               overflow: "hidden",
               background: "#f6f6f6",
-              position: "relative"
+              position: "relative",
+              cursor: "pointer"
             }}
           >
             <img
@@ -4402,13 +4400,13 @@ return (
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.04) 100%)"
+                background: "linear-gradient(180deg, rgba(0,0,0,0) 58%, rgba(0,0,0,0.05) 100%)"
               }}
             />
           </div>
 
           {/* CONTEÚDO */}
-          <div style={{ padding: "2px 2px 0" }}>
+          <div style={{ padding: "4px 4px 0" }}>
             <div
               style={{
                 marginTop: 12,
@@ -4456,14 +4454,13 @@ return (
               {p.tamanho ? `• ${p.tamanho}` : ""}
             </div>
 
-            {/* PREÇO + CTA */}
+            {/* PREÇO */}
             <div
               style={{
-                marginTop: 14,
+                marginTop: 16,
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "flex-end",
-                gap: 10
+                alignItems: "flex-end"
               }}
             >
               <div style={{ minWidth: 0 }}>
@@ -4507,31 +4504,6 @@ return (
                   </strong>
                 )}
               </div>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  abrirProdutoOuAdicionar();
-                }}
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "#ea1d2c",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontSize: 26,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  boxShadow: "0 12px 22px rgba(234,29,44,0.24)",
-                  flexShrink: 0
-                }}
-              >
-                +
-              </button>
             </div>
           </div>
         </div>
@@ -7369,9 +7341,9 @@ return (
             setStep(1);
           }}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
+            width: 22,
+            height: 22,
+            borderRadius: 28,
             border: "none",
             background: "#f3f3f3",
             display: "flex",
