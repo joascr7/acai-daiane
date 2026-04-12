@@ -24,6 +24,27 @@ export default function App({ Component, pageProps }) {
     return () => unsub();
   }, []);
 
+
+  useEffect(() => {
+  let lastTouchEnd = 0;
+
+  const handler = (e) => {
+    const now = Date.now();
+
+    if (now - lastTouchEnd <= 300) {
+      e.preventDefault();
+    }
+
+    lastTouchEnd = now;
+  };
+
+  document.addEventListener("touchend", handler, { passive: false });
+
+  return () => {
+    document.removeEventListener("touchend", handler);
+  };
+}, []);
+
   useEffect(() => {
     if (!dark) {
       document.body.classList.add("light");
@@ -48,11 +69,15 @@ export default function App({ Component, pageProps }) {
     <>
       <Head>
         <title>Açaí da Daiane</title>
+
         <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
-        <meta name="theme-color" content="#ea1d2c" />
+       name="viewport"
+       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+       />
+
+       <meta name="theme-color" content="#ea1d2c" />
+
+      
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
@@ -69,3 +94,5 @@ export default function App({ Component, pageProps }) {
     </>
   );
 }
+
+

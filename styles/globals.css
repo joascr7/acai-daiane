@@ -382,3 +382,11 @@ body {
 }
 
 
+::-webkit-scrollbar {
+  display: none;
+}
+
+html, body {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}

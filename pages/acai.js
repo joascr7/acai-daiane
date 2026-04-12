@@ -4075,160 +4075,145 @@ return (
         </div>
 
         {/* BANNER */}
+<div
+  style={{
+    marginTop: 20,
+    borderRadius: 28,
+    overflow: "hidden",
+    position: "relative",
+    boxShadow: "0 14px 30px rgba(0,0,0,0.10)",
+    width: "100%",
+    height: isMobile ? 245 : 340,
+    background: "#111"
+  }}
+>
+  {Array.isArray(banners) && banners.length > 0 ? (
+    <>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          overflowX: "auto",
+          overflowY: "hidden",
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling: "touch",
+          scrollBehavior: "smooth",
+          touchAction: "pan-x",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none"
+        }}
+      >
+        {banners.map((b, i) => (
+          <div
+            key={b.id}
+            onClick={() => {
+              setCategoriaSelecionada(b.categoria || "promocoes");
+              setAba("home");
+              setStep(9);
+            }}
+            style={{
+              minWidth: "100%",
+              width: "100%",
+              height: "100%",
+              flex: "0 0 100%",
+              scrollSnapAlign: "start",
+              position: "relative",
+              cursor: "pointer"
+            }}
+          >
+            <img
+              src={b.imagem}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center",
+                display: "block",
+                pointerEvents: "none"
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {banners.length > 1 && (
         <div
           style={{
-            marginTop: 20,
-            borderRadius: 28,
-            overflow: "hidden",
-            position: "relative",
-            boxShadow: "0 14px 30px rgba(0,0,0,0.10)",
-            width: "100%",
-            height: isMobile ? 245 : 340,
-            background: "#111"
+            position: "absolute",
+            bottom: 14,
+            left: 18,
+            right: 18,
+            display: "flex",
+            justifyContent: "center",
+            gap: 8,
+            zIndex: 3,
+            pointerEvents: "none"
           }}
         >
-          {Array.isArray(banners) && banners.length > 0 ? (
-            <>
-              {banners.map((b, i) => (
-                <div
-                  key={b.id}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    opacity: i === bannerIndex ? 1 : 0,
-                    transition: "opacity 0.45s ease",
-                    pointerEvents: i === bannerIndex ? "auto" : "none"
-                  }}
-                >
-                  <img
-                    src={b.imagem}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      objectPosition: "center",
-                      display: "block"
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 18,
-                      bottom: 18,
-                      zIndex: 2
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        setCategoriaSelecionada(b.categoria || "promocoes");
-                        setAba("home");
-                        setStep(9);
-                      }}
-                      style={{
-                        height: 44,
-                        padding: "0 18px",
-                        borderRadius: 999,
-                        border: "none",
-                        background: "#ea1d2c",
-                        color: "#fff",
-                        fontSize: 14,
-                        fontWeight: 800,
-                        cursor: "pointer",
-                        boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
-                      }}
-                    >
-                      Ver ofertas
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {banners.length > 1 && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 14,
-                    left: 18,
-                    right: 18,
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 8,
-                    zIndex: 3
-                  }}
-                >
-                  {banners.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: i === bannerIndex ? 46 : 16,
-                        height: 6,
-                        borderRadius: 999,
-                        background:
-                          i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
-                        transition: "all 0.25s ease"
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <img
-                src="/t1.jpg"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center",
-                  display: "block"
-                }}
-              />
-
-              <div
-                style={{
-                  position: "absolute",
-                  left: 18,
-                  bottom: 18,
-                  zIndex: 2
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setCategoriaSelecionada("promocoes");
-                    setAba("home");
-                    setStep(9);
-                  }}
-                  style={{
-                    height: 44,
-                    padding: "0 18px",
-                    borderRadius: 999,
-                    border: "none",
-                    background: "#ea1d2c",
-                    color: "#fff",
-                    fontSize: 14,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    boxShadow: "0 8px 22px rgba(234,29,44,0.28)"
-                  }}
-                >
-                  Ver ofertas
-                </button>
-              </div>
-            </>
-          )}
+          {banners.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: i === bannerIndex ? 46 : 16,
+                height: 6,
+                borderRadius: 999,
+                background:
+                  i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
+                transition: "all 0.25s ease"
+              }}
+            />
+          ))}
         </div>
-      </div>
+      )}
+    </>
+  ) : (
+    <div
+      onClick={() => {
+        setCategoriaSelecionada("promocoes");
+        setAba("home");
+        setStep(9);
+      }}
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        cursor: "pointer"
+      }}
+    >
+      <img
+        src="/t1.jpg"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
+          display: "block",
+          pointerEvents: "none"
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
+        }}
+      />
+    </div>
+  )}
+</div>
+</div>
 
       {/* CONTEÚDO BRANCO */}
 <div
@@ -4242,156 +4227,170 @@ return (
   }}
 >
   {/* TÍTULO */}
-  <div
+<div
+  style={{
+    marginBottom: 14,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0 6px"
+  }}
+>
+  <strong
     style={{
-      marginBottom: 14,
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "0 6px"
+      fontSize: 18,
+      fontWeight: 800,
+      color: "#111",
+      letterSpacing: "-0.02em"
     }}
   >
-    <strong
-      style={{
-        fontSize: 18,
-        fontWeight: 800,
-        color: "#111"
-      }}
-    >
-      Mais pedidos
-    </strong>
-  </div>
+    Mais pedidos
+  </strong>
+</div>
 
-  {/* PRODUTOS */}
-  <div
-    style={{
-      display: "flex",
-      gap: isMobile ? 12 : 14,
-      overflowX: "auto",
-      overflowY: "hidden",
-      paddingBottom: 14,
-      paddingLeft: 6,
-      paddingRight: 6,
-      WebkitOverflowScrolling: "touch",
-      scrollBehavior: "smooth",
-      scrollbarWidth: "none",
-      touchAction: "pan-x"
-    }}
-  >
-    {produtos
-      .filter((p) => p.ativo !== false)
-      .map((p, i) => {
-        const abrirProdutoOuAdicionar = () => {
-          if (!validarLojaAberta()) return;
+{/* PRODUTOS NÍVEL IFOOD */}
+<div
+  style={{
+    display: "flex",
+    gap: isMobile ? 12 : 16,
+    overflowX: "auto",
+    overflowY: "hidden",
+    padding: "4px 6px 16px",
+    WebkitOverflowScrolling: "touch",
+    scrollBehavior: "smooth",
+    touchAction: "pan-x",
+    msOverflowStyle: "none",
+    scrollbarWidth: "none",
+    scrollSnapType: "x proximity"
+  }}
+>
+  {produtos
+    .filter((p) => p.ativo !== false)
+    .map((p, i) => {
+      const abrirProdutoOuAdicionar = () => {
+        if (!validarLojaAberta()) return;
 
-          if (categoriaTemExtras(p.categoria)) {
-            setProduto({
-              ...p,
-              preco: precoFinalProduto(p)
-            });
-            setAba("home");
-            setStep(2);
-            return;
-          }
+        if (categoriaTemExtras(p.categoria)) {
+          setProduto({
+            ...p,
+            preco: precoFinalProduto(p)
+          });
+          setAba("home");
+          setStep(2);
+          return;
+        }
 
-          if (categoriaVaiDiretoCarrinho(p.categoria)) {
-            setCarrinho((prev) => [
-              ...prev,
-              {
-                produto: {
-                  ...p,
-                  preco: precoFinalProduto(p)
-                },
-                quantidade: 1,
-                extras: [],
-                total: Number(precoFinalProduto(p) || 0)
-              }
-            ]);
-            setAba("carrinho");
-            setStep(3);
-          }
-        };
+        if (categoriaVaiDiretoCarrinho(p.categoria)) {
+          setCarrinho((prev) => [
+            ...prev,
+            {
+              produto: {
+                ...p,
+                preco: precoFinalProduto(p)
+              },
+              quantidade: 1,
+              extras: [],
+              total: Number(precoFinalProduto(p) || 0)
+            }
+          ]);
+          setAba("carrinho");
+          setStep(3);
+        }
+      };
 
-        return (
-          <div
-            key={i}
-            onClick={abrirProdutoOuAdicionar}
-            style={{
-              minWidth: isMobile ? 168 : 210,
-              maxWidth: isMobile ? 168 : 210,
-              flex: "0 0 auto",
-              background: "#fff",
-              borderRadius: 24,
-              padding: 10,
-              position: "relative",
-              boxShadow: "0 12px 28px rgba(0,0,0,0.07)",
-              border: "1px solid #f1f1f1",
-              cursor: "pointer"
-            }}
-          >
-            {produtoEmPromocao(p) ? (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 12,
-                  left: 12,
-                  background: "#ea1d2c",
-                  color: "#fff",
-                  fontSize: 9,
-                  padding: "5px 10px",
-                  borderRadius: 999,
-                  fontWeight: 800,
-                  whiteSpace: "nowrap",
-                  zIndex: 2,
-                  boxShadow: "0 6px 14px rgba(234,29,44,0.22)"
-                }}
-              >
-                Oferta
-              </div>
-            ) : p.maisVendido ? (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 12,
-                  left: 12,
-                  background: "#f97316",
-                  color: "#fff",
-                  fontSize: 9,
-                  padding: "5px 10px",
-                  borderRadius: 999,
-                  fontWeight: 800,
-                  whiteSpace: "nowrap",
-                  zIndex: 2,
-                  boxShadow: "0 6px 14px rgba(249,115,22,0.22)"
-                }}
-              >
-                Mais vendido
-              </div>
-            ) : null}
-
-            {/* IMAGEM */}
+      return (
+        <div
+          key={i}
+          onClick={abrirProdutoOuAdicionar}
+          style={{
+            minWidth: isMobile ? 176 : 220,
+            maxWidth: isMobile ? 176 : 220,
+            flex: "0 0 auto",
+            scrollSnapAlign: "start",
+            background: "#fff",
+            borderRadius: 26,
+            padding: 10,
+            position: "relative",
+            boxShadow: "0 14px 30px rgba(0,0,0,0.08)",
+            border: "1px solid #f2f2f2",
+            cursor: "pointer",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            transition: "transform 0.18s ease, box-shadow 0.18s ease"
+          }}
+        >
+          {/* BADGE */}
+          {produtoEmPromocao(p) ? (
             <div
               style={{
-                width: "100%",
-                height: 138,
-                borderRadius: 18,
-                overflow: "hidden",
-                background: "#f6f6f6",
-                boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.02)"
+                position: "absolute",
+                top: 12,
+                left: 12,
+                background: "#ea1d2c",
+                color: "#fff",
+                fontSize: 9,
+                padding: "6px 10px",
+                borderRadius: 999,
+                fontWeight: 800,
+                zIndex: 3,
+                boxShadow: "0 8px 18px rgba(234,29,44,0.24)"
               }}
             >
-              <img
-                src={p.imagem || "/acai.png"}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block"
-                }}
-              />
+              Oferta
             </div>
+          ) : p.maisVendido ? (
+            <div
+              style={{
+                position: "absolute",
+                top: 12,
+                left: 12,
+                background: "#ff7a00",
+                color: "#fff",
+                fontSize: 9,
+                padding: "6px 10px",
+                borderRadius: 999,
+                fontWeight: 800,
+                zIndex: 3,
+                boxShadow: "0 8px 18px rgba(255,122,0,0.22)"
+              }}
+            >
+              Mais vendido
+            </div>
+          ) : null}
 
-            {/* NOME */}
+          {/* IMAGEM */}
+          <div
+            style={{
+              width: "100%",
+              height: 150,
+              borderRadius: 20,
+              overflow: "hidden",
+              background: "#f6f6f6",
+              position: "relative"
+            }}
+          >
+            <img
+              src={p.imagem || "/acai.png"}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+                pointerEvents: "none"
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.04) 100%)"
+              }}
+            />
+          </div>
+
+          {/* CONTEÚDO */}
+          <div style={{ padding: "2px 2px 0" }}>
             <div
               style={{
                 marginTop: 12,
@@ -4403,13 +4402,13 @@ return (
                 overflow: "hidden",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical"
+                WebkitBoxOrient: "vertical",
+                letterSpacing: "-0.01em"
               }}
             >
               {p.nome}
             </div>
 
-            {/* DESCRIÇÃO */}
             {!!p.descricao && (
               <div
                 style={{
@@ -4428,10 +4427,9 @@ return (
               </div>
             )}
 
-            {/* TAMANHO */}
             <div
               style={{
-                marginTop: 6,
+                marginTop: 7,
                 fontSize: 11,
                 color: "#8b8b8b",
                 minHeight: 14
@@ -4440,14 +4438,14 @@ return (
               {p.tamanho ? `• ${p.tamanho}` : ""}
             </div>
 
-            {/* PREÇO + BOTÃO */}
+            {/* PREÇO + CTA */}
             <div
               style={{
                 marginTop: 14,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-end",
-                gap: 8
+                gap: 10
               }}
             >
               <div style={{ minWidth: 0 }}>
@@ -4456,10 +4454,10 @@ return (
                     <div
                       style={{
                         fontSize: 10,
-                        color: "#a1a1a1",
+                        color: "#a3a3a3",
                         textDecoration: "line-through",
                         lineHeight: 1.1,
-                        marginBottom: 3
+                        marginBottom: 4
                       }}
                     >
                       {formatarReal(p.preco || 0)}
@@ -4469,9 +4467,9 @@ return (
                       style={{
                         fontSize: 19,
                         color: "#ea1d2c",
-                        lineHeight: 1.1,
+                        lineHeight: 1.05,
                         fontWeight: 900,
-                        letterSpacing: "-0.02em"
+                        letterSpacing: "-0.03em"
                       }}
                     >
                       {formatarReal(precoFinalProduto(p))}
@@ -4482,9 +4480,9 @@ return (
                     style={{
                       fontSize: 19,
                       color: "#111",
-                      lineHeight: 1.1,
+                      lineHeight: 1.05,
                       fontWeight: 900,
-                      letterSpacing: "-0.02em"
+                      letterSpacing: "-0.03em"
                     }}
                   >
                     {formatarReal(p.preco || 0)}
@@ -4518,9 +4516,10 @@ return (
               </button>
             </div>
           </div>
-        );
-      })}
-  </div>
+        </div>
+      );
+    })}
+</div>
 
   {/* INFO BAR */}
   <div
