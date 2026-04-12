@@ -4045,16 +4045,16 @@ return (
             })}
         </div>
 
-        {/* BANNER */}
+        {/* BANNER OTIMIZADO */}
 <div
   style={{
     marginTop: 20,
     borderRadius: 28,
     overflow: "hidden",
     position: "relative",
-    boxShadow: "0 14px 30px rgba(0,0,0,0.10)",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.06)",
     width: "100%",
-    height: isMobile ? 245 : 340,
+    height: isMobile ? 230 : 320,
     background: "#111"
   }}
 >
@@ -4069,9 +4069,8 @@ return (
           height: "100%",
           overflowX: "auto",
           overflowY: "hidden",
-          scrollSnapType: "x mandatory",
           WebkitOverflowScrolling: "touch",
-          scrollBehavior: "smooth",
+          scrollSnapType: "x mandatory",
           touchAction: "pan-x",
           msOverflowStyle: "none",
           scrollbarWidth: "none"
@@ -4112,7 +4111,8 @@ return (
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
+                  "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.12) 100%)",
+                pointerEvents: "none"
               }}
             />
           </div>
@@ -4123,7 +4123,7 @@ return (
         <div
           style={{
             position: "absolute",
-            bottom: 14,
+            bottom: 12,
             left: 18,
             right: 18,
             display: "flex",
@@ -4137,12 +4137,12 @@ return (
             <div
               key={i}
               style={{
-                width: i === bannerIndex ? 46 : 16,
+                width: i === bannerIndex ? 26 : 8,
                 height: 6,
                 borderRadius: 999,
                 background:
                   i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
-                transition: "all 0.25s ease"
+                transition: "width 0.2s ease"
               }}
             />
           ))}
@@ -4180,16 +4180,8 @@ return (
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
-        }}
-      />
-   
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(90deg, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.02) 100%)"
+            "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.12) 100%)",
+          pointerEvents: "none"
         }}
       />
     </div>
@@ -4209,6 +4201,7 @@ return (
   }}
 >
   {/* TÍTULO */}
+{/* MAIS PEDIDOS OTIMIZADO */}
 <div
   style={{
     marginBottom: 14,
@@ -4230,16 +4223,14 @@ return (
   </strong>
 </div>
 
-{/* PRODUTOS NÍVEL IFOOD */}
 <div
   style={{
     display: "flex",
-    gap: isMobile ? 12 : 16,
+    gap: isMobile ? 12 : 14,
     overflowX: "auto",
     overflowY: "hidden",
-    padding: "4px 6px 16px",
+    padding: "4px 6px 14px",
     WebkitOverflowScrolling: "touch",
-    scrollBehavior: "smooth",
     touchAction: "pan-x",
     msOverflowStyle: "none",
     scrollbarWidth: "none",
@@ -4284,15 +4275,15 @@ return (
         <div
           key={i}
           style={{
-            minWidth: isMobile ? 176 : 220,
-            maxWidth: isMobile ? 176 : 220,
+            minWidth: isMobile ? 168 : 200,
+            maxWidth: isMobile ? 168 : 200,
             flex: "0 0 auto",
             scrollSnapAlign: "start",
             background: "#fff",
-            borderRadius: 26,
+            borderRadius: 22,
             padding: 10,
             position: "relative",
-            boxShadow: "0 14px 30px rgba(0,0,0,0.08)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
             border: "1px solid #f2f2f2",
             userSelect: "none",
             WebkitUserSelect: "none"
@@ -4302,16 +4293,15 @@ return (
             <div
               style={{
                 position: "absolute",
-                top: 12,
-                left: 12,
+                top: 10,
+                left: 10,
                 background: "#ea1d2c",
                 color: "#fff",
                 fontSize: 9,
-                padding: "6px 10px",
+                padding: "5px 10px",
                 borderRadius: 999,
                 fontWeight: 800,
-                zIndex: 3,
-                boxShadow: "0 8px 18px rgba(234,29,44,0.24)"
+                zIndex: 2
               }}
             >
               Oferta
@@ -4320,16 +4310,15 @@ return (
             <div
               style={{
                 position: "absolute",
-                top: 12,
-                left: 12,
+                top: 10,
+                left: 10,
                 background: "#ff7a00",
                 color: "#fff",
                 fontSize: 9,
-                padding: "6px 10px",
+                padding: "5px 10px",
                 borderRadius: 999,
                 fontWeight: 800,
-                zIndex: 3,
-                boxShadow: "0 8px 18px rgba(255,122,0,0.22)"
+                zIndex: 2
               }}
             >
               Mais vendido
@@ -4341,11 +4330,10 @@ return (
             onClick={abrirProduto}
             style={{
               width: "100%",
-              height: 150,
-              borderRadius: 20,
+              height: 132,
+              borderRadius: 18,
               overflow: "hidden",
               background: "#f6f6f6",
-              position: "relative",
               cursor: "pointer"
             }}
           >
@@ -4359,21 +4347,12 @@ return (
                 pointerEvents: "none"
               }}
             />
-
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0) 58%, rgba(0,0,0,0.05) 100%)"
-              }}
-            />
           </div>
 
-          {/* CONTEÚDO */}
-          <div style={{ padding: "4px 4px 0" }}>
+          <div style={{ padding: "4px 2px 0" }}>
             <div
               style={{
-                marginTop: 12,
+                marginTop: 10,
                 fontSize: 14,
                 fontWeight: 800,
                 color: "#111",
@@ -4382,8 +4361,7 @@ return (
                 overflow: "hidden",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                letterSpacing: "-0.01em"
+                WebkitBoxOrient: "vertical"
               }}
             >
               {p.nome}
@@ -4409,7 +4387,7 @@ return (
 
             <div
               style={{
-                marginTop: 7,
+                marginTop: 6,
                 fontSize: 11,
                 color: "#8b8b8b",
                 minHeight: 14
@@ -4418,10 +4396,9 @@ return (
               {p.tamanho ? `• ${p.tamanho}` : ""}
             </div>
 
-            {/* PREÇO */}
             <div
               style={{
-                marginTop: 16,
+                marginTop: 14,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-end"
