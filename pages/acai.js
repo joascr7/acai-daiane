@@ -2532,7 +2532,7 @@ const limparHistoricoBusca = () => {
 };
 
 
-function alterarExtra(categoria, item, delta, max = Infinity) {
+function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = false) {
   setExtrasSelecionados(prev => {
     const lista = prev[categoria] || [];
     const index = lista.findIndex(e => e.nome === item.nome);
@@ -2544,38 +2544,58 @@ function alterarExtra(categoria, item, delta, max = Infinity) {
       0
     );
 
-    if (index >= 0) {
-      const atual = novaLista[index];
-      const novaQtd = (atual.qtd || 0) + delta;
+    // REMOVER
+    if (delta < 0) {
+      if (index >= 0) {
+        const atual = novaLista[index];
+        const novaQtd = (atual.qtd || 0) - 1;
 
-      if (novaQtd <= 0) {
-        novaLista.splice(index, 1);
-      } else {
-        novaLista[index] = {
-          ...atual,
-          qtd: novaQtd
-        };
+        if (novaQtd <= 0) {
+          novaLista.splice(index, 1);
+        } else {
+          novaLista[index] = {
+            ...atual,
+            qtd: novaQtd
+          };
+        }
       }
-    } else if (delta > 0) {
-      if (totalAtualCategoria >= max) {
+
+      return {
+        ...prev,
+        [categoria]: novaLista
+      };
+    }
+
+    // ADICIONAR
+    if (totalAtualCategoria >= Number(max || 1)) {
+      return prev;
+    }
+
+    if (index >= 0) {
+      // se não pode repetir, bloqueia
+      if (!permitirRepetir) {
         return prev;
       }
 
-      novaLista.push({
-        ...item,
-        categoria,
-        qtd: 1
-      });
+      // se pode repetir, soma quantidade
+      const atual = novaLista[index];
+      novaLista[index] = {
+        ...atual,
+        qtd: (atual.qtd || 0) + 1
+      };
+
+      return {
+        ...prev,
+        [categoria]: novaLista
+      };
     }
 
-    const totalDepois = novaLista.reduce(
-      (acc, e) => acc + (e.qtd || 0),
-      0
-    );
-
-    if (totalDepois > max) {
-      return prev;
-    }
+    // item novo
+    novaLista.push({
+      ...item,
+      categoria,
+      qtd: 1
+    });
 
     return {
       ...prev,
@@ -4891,10 +4911,10 @@ return (
                             }));
                           }}
                           style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: "50%",
-                            border: "2px solid #e2e2e2",
+                            width: 15,
+                            height: 0,
+                            borderRadius: "40%",
+                            border: "1px solid #e2e2e2",
                             background: "#fff",
                             display: "flex",
                             alignItems: "center",

@@ -187,6 +187,8 @@ const [toast, setToast] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
 
+  const [produtoOrigemExtras, setProdutoOrigemExtras] = useState("");
+
 
 const [banners, setBanners] = useState([]);
 const [bannerTitulo, setBannerTitulo] = useState("");
@@ -1157,11 +1159,23 @@ async function salvarProduto() {
     return alert("Preencha os campos");
   }
 
+  const extrasFormatados = (extras || []).map((grupo) => ({
+    categoria: String(grupo.categoria || "").trim(),
+    min: Number(grupo.min || 0),
+    max: Number(grupo.max || 1),
+    permitirRepetir: grupo.permitirRepetir === true,
+    itens: (grupo.itens || [])
+      .filter((item) => String(item.nome || "").trim() !== "")
+      .map((item) => ({
+        nome: String(item.nome || "").trim(),
+        preco: Number(item.preco || 0)
+      }))
+  }));
+
   const dados = {
     nome: novoNome,
     preco: converterParaCentavos(novoPreco),
 
-    // 🔥 PROMOÇÃO
     promocao: promocaoAtiva,
     precoPromocional:
       promocaoAtiva && novoPrecoPromocional
@@ -1174,15 +1188,18 @@ async function salvarProduto() {
     ativo: true,
     maisVendido,
     categoria,
-    extras,
-    ordem: Date.now()
+    extras: extrasFormatados,
+    ordem: produtoEditandoId ? undefined : Date.now()
   };
 
   try {
     if (produtoEditandoId) {
+      const dadosAtualizados = { ...dados };
+      delete dadosAtualizados.ordem;
+
       await updateDoc(
         doc(db, "produtos", produtoEditandoId),
-        dados
+        dadosAtualizados
       );
 
       alert("Produto atualizado!");
@@ -1192,7 +1209,6 @@ async function salvarProduto() {
       alert("Produto criado!");
     }
 
-    // 🔥 LIMPA
     setProdutoEditandoId(null);
     setNovoNome("");
     setNovoPreco("");
@@ -1204,13 +1220,28 @@ async function salvarProduto() {
     setMaisVendido(false);
     setCategoria("");
     setExtras([]);
-
+    setNovaCategoria("");
     setMostrarModalProduto(false);
 
   } catch (e) {
     console.log(e);
     alert("Erro ao salvar");
   }
+}
+
+
+function copiarExtrasDeProduto(produtoId) {
+  if (!produtoId) return;
+
+  const produtoBase = produtos.find((p) => String(p.id) === String(produtoId));
+
+  if (!produtoBase) return;
+
+  const extrasCopiados = JSON.parse(
+    JSON.stringify(Array.isArray(produtoBase.extras) ? produtoBase.extras : [])
+  );
+
+  setExtras(extrasCopiados);
 }
 
 
@@ -2879,70 +2910,68 @@ if (loadingAuth) {
         ))}
       </select>
 
- {/* PREÇO */}
-<input
-  placeholder="Preço (ex: 12.90)"
-  value={novoPreco}
-  onChange={(e) => setNovoPreco(e.target.value)}
-  style={inputStyle}
-/>
+      {/* PREÇO */}
+      <input
+        placeholder="Preço (ex: 12.90)"
+        value={novoPreco}
+        onChange={(e) => setNovoPreco(e.target.value)}
+        style={inputStyle}
+      />
 
-{/* BLOCO PROMOÇÃO */}
-<div
-  style={{
-    marginTop: 14,
-    padding: 14,
-    borderRadius: 16,
-    background: "#fff",
-    border: promocaoAtiva
-      ? "1px solid #ea1d2c"
-      : "1px solid #eee",
-    boxShadow: promocaoAtiva
-      ? "0 6px 16px rgba(234,29,44,0.15)"
-      : "0 2px 8px rgba(0,0,0,0.04)",
-    transition: "0.2s"
-  }}
->
-  {/* ATIVAR PROMOÇÃO */}
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between"
-    }}
-  >
-    <span
-      style={{
-        fontSize: 14,
-        fontWeight: 700,
-        color: promocaoAtiva ? "#ea1d2c" : "#333"
-      }}
-    >
-      🔥 Promoção
-    </span>
+      {/* BLOCO PROMOÇÃO */}
+      <div
+        style={{
+          marginTop: 14,
+          padding: 14,
+          borderRadius: 16,
+          background: "#fff",
+          border: promocaoAtiva
+            ? "1px solid #ea1d2c"
+            : "1px solid #eee",
+          boxShadow: promocaoAtiva
+            ? "0 6px 16px rgba(234,29,44,0.15)"
+            : "0 2px 8px rgba(0,0,0,0.04)",
+          transition: "0.2s"
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: promocaoAtiva ? "#ea1d2c" : "#333"
+            }}
+          >
+            Promoção
+          </span>
 
-    <input
-      type="checkbox"
-      checked={promocaoAtiva}
-      onChange={(e) => setPromocaoAtiva(e.target.checked)}
-    />
-  </div>
+          <input
+            type="checkbox"
+            checked={promocaoAtiva}
+            onChange={(e) => setPromocaoAtiva(e.target.checked)}
+          />
+        </div>
 
-  {/* PREÇO PROMOCIONAL */}
-  {promocaoAtiva && (
-     <input
-      value={novoPrecoPromocional}
-      onChange={(e) => setNovoPrecoPromocional(e.target.value)}
-      placeholder="Preço promocional"
-      style={{
-        ...inputStyle,
-        marginTop: 12,
-        border: "1px solid #ddd",
-        background: "#fafafa"
-      }}
-    />
-  )}
-</div>
+        {promocaoAtiva && (
+          <input
+            value={novoPrecoPromocional}
+            onChange={(e) => setNovoPrecoPromocional(e.target.value)}
+            placeholder="Preço promocional"
+            style={{
+              ...inputStyle,
+              marginTop: 12,
+              border: "1px solid #ddd",
+              background: "#fafafa"
+            }}
+          />
+        )}
+      </div>
 
       {/* TAMANHO */}
       <input
@@ -2960,191 +2989,328 @@ if (loadingAuth) {
         style={inputStyle}
       />
 
-      {/* EXTRAS */}
-      <div style={{
-        marginTop: 18,
-        marginBottom: 10,
-        padding: 14,
-        borderRadius: 18,
-        background: "#f8f8f8",
-        border: "1px solid #ececec"
-      }}>
-        <h3 style={{
-          margin: 0,
-          marginBottom: 10,
-          color: "#111",
-          fontSize: 18
-        }}>
-          ⚙️ Extras
-        </h3>
+{/* COPIAR EXTRAS DE OUTRO PRODUTO */}
+<div
+  style={{
+    marginTop: 16,
+    marginBottom: 14,
+    padding: 14,
+    borderRadius: 16,
+    background: "#f8f8f8",
+    border: "1px solid #ececec"
+  }}
+>
+  <div
+    style={{
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#111",
+      marginBottom: 10
+    }}
+  >
+    Copiar extras de outro produto
+  </div>
 
-        {/* NOVA CATEGORIA DE EXTRA */}
-        <div style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          marginBottom: 10
-        }}>
+  <div
+    style={{
+      display: "flex",
+      gap: 8,
+      alignItems: "center",
+      flexWrap: isMobile ? "wrap" : "nowrap"
+    }}
+  >
+    <select
+      value={produtoOrigemExtras}
+      onChange={(e) => setProdutoOrigemExtras(e.target.value)}
+      style={{
+        ...inputStyle,
+        flex: 1,
+        marginBottom: 0
+      }}
+    >
+      <option value="">Selecionar produto</option>
+
+      {produtos
+        .filter((p) => p.id !== produtoEditandoId)
+        .map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.nome}
+          </option>
+        ))}
+    </select>
+
+    <button
+      onClick={() => copiarExtrasDeProduto(produtoOrigemExtras)}
+      style={{
+        height: 46,
+        padding: "0 14px",
+        borderRadius: 12,
+        border: "none",
+        background: "#111",
+        color: "#fff",
+        fontWeight: 700,
+        cursor: "pointer",
+        whiteSpace: "nowrap"
+      }}
+    >
+      Copiar extras
+    </button>
+  </div>
+
+  <div
+    style={{
+      marginTop: 8,
+      fontSize: 12,
+      color: "#666",
+      lineHeight: 1.4
+    }}
+  >
+    Isso substitui os extras atuais do produto aberto pelos extras do produto selecionado.
+  </div>
+</div>
+
+
+      {/* EXTRAS */}
+<div style={{
+  marginTop: 18,
+  marginBottom: 10,
+  padding: 14,
+  borderRadius: 18,
+  background: "#f8f8f8",
+  border: "1px solid #ececec"
+}}>
+  <h3 style={{
+    margin: 0,
+    marginBottom: 10,
+    color: "#111",
+    fontSize: 18
+  }}>
+    ⚙️ Extras
+  </h3>
+
+  {/* NOVA CATEGORIA */}
+  <div style={{
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+    marginBottom: 10
+  }}>
+    <input
+      placeholder="Categoria (ex: Complementos)"
+      value={novaCategoria}
+      onChange={e => setNovaCategoria(e.target.value)}
+      style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+    />
+
+    <button
+      onClick={() => {
+        if (!novaCategoria) return;
+
+        setExtras(prev => [
+          ...prev,
+          {
+            categoria: novaCategoria.trim(),
+            min: 0,
+            max: 5,
+            permitirRepetir: false,
+            itens: []
+          }
+        ]);
+
+        setNovaCategoria("");
+      }}
+      style={{
+        width: 46,
+        height: 46,
+        borderRadius: 12,
+        border: "none",
+        background: "#ea1d2c",
+        color: "#fff",
+        fontWeight: "bold",
+        cursor: "pointer"
+      }}
+    >
+      ➕
+    </button>
+  </div>
+
+  {/* LISTA GRUPOS */}
+  {extras.map((grupo, i) => (
+    <div
+      key={i}
+      style={{
+        background: "#fff",
+        padding: 12,
+        borderRadius: 16,
+        marginTop: 12,
+        border: "1px solid #ececec",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+      }}
+    >
+      {/* TOPO */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10
+      }}>
+        <strong style={{ color: "#111" }}>
+          {grupo.categoria}
+        </strong>
+
+        <button
+          onClick={() => {
+            setExtras(prev => prev.filter((_, index) => index !== i));
+          }}
+          style={{
+            border: "none",
+            background: "#fee2e2",
+            color: "#b91c1c",
+            borderRadius: 10,
+            padding: "6px 10px",
+            cursor: "pointer"
+          }}
+        >
+          ❌
+        </button>
+      </div>
+
+      {/* 🔥 MIN / MAX */}
+      <div style={{
+        display: "flex",
+        gap: 8,
+        marginBottom: 10
+      }}>
+        <input
+          type="number"
+          placeholder="Min"
+          value={grupo.min}
+          onChange={(e) => {
+            const novo = [...extras];
+            novo[i].min = Number(e.target.value);
+            setExtras(novo);
+          }}
+          style={{ ...inputStyle, marginBottom: 0 }}
+        />
+
+        <input
+          type="number"
+          placeholder="Max"
+          value={grupo.max}
+          onChange={(e) => {
+            const novo = [...extras];
+            novo[i].max = Number(e.target.value);
+            setExtras(novo);
+          }}
+          style={{ ...inputStyle, marginBottom: 0 }}
+        />
+      </div>
+
+      {/* 🔥 PERMITIR REPETIR */}
+      <div style={{ marginBottom: 10 }}>
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 13,
+            color: "#111",
+            fontWeight: 600
+          }}
+        >
           <input
-            placeholder="Categoria (ex: Complementos)"
-            value={novaCategoria}
-            onChange={e => setNovaCategoria(e.target.value)}
+            type="checkbox"
+            checked={grupo.permitirRepetir === true}
+            onChange={(e) => {
+              const novo = [...extras];
+              novo[i].permitirRepetir = e.target.checked;
+              setExtras(novo);
+            }}
+          />
+          Permitir repetir item
+        </label>
+      </div>
+
+      {/* ITENS */}
+      {(grupo.itens || []).map((item, j) => (
+        <div
+          key={j}
+          style={{
+            display: "flex",
+            gap: 6,
+            marginTop: 8,
+            alignItems: "center"
+          }}
+        >
+          <input
+            placeholder="Nome"
+            value={item.nome}
+            onChange={(e) => {
+              const novo = [...extras];
+              novo[i].itens[j].nome = e.target.value;
+              setExtras(novo);
+            }}
             style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+          />
+
+          <input
+            type="number"
+            placeholder="R$"
+            value={item.preco / 100}
+            onChange={(e) => {
+              const novo = [...extras];
+              novo[i].itens[j].preco = Math.round(Number(e.target.value) * 100);
+              setExtras(novo);
+            }}
+            style={{
+              width: 80,
+              ...inputStyle,
+              marginBottom: 0
+            }}
           />
 
           <button
             onClick={() => {
-              if (!novaCategoria) return;
-
-              setExtras(prev => [
-                ...prev,
-                {
-                  categoria: novaCategoria,
-                  min: 0,
-                  max: 5,
-                  itens: []
-                }
-              ]);
-
-              setNovaCategoria("");
+              const novo = [...extras];
+              novo[i].itens.splice(j, 1);
+              setExtras(novo);
             }}
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 12,
               border: "none",
-              background: "#ea1d2c",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              flexShrink: 0
+              background: "#fee2e2",
+              color: "#b91c1c",
+              borderRadius: 10,
+              padding: "10px 12px",
+              cursor: "pointer"
             }}
           >
-            ➕
+            ❌
           </button>
         </div>
+      ))}
 
-        {/* LISTA DOS GRUPOS */}
-        {extras.map((grupo, i) => (
-          <div
-            key={i}
-            style={{
-              background: "#fff",
-              padding: 12,
-              borderRadius: 16,
-              marginTop: 12,
-              border: "1px solid #ececec",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
-            }}
-          >
-            {/* TOPO DO GRUPO */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 10
-            }}>
-              <strong style={{ color: "#111" }}>
-                {grupo.categoria}
-              </strong>
-
-              <button
-                onClick={() => {
-                  setExtras(prev => prev.filter((_, index) => index !== i));
-                }}
-                style={{
-                  border: "none",
-                  background: "#fee2e2",
-                  color: "#b91c1c",
-                  borderRadius: 10,
-                  padding: "6px 10px",
-                  cursor: "pointer"
-                }}
-              >
-                ❌
-              </button>
-            </div>
-
-            {/* ITENS */}
-            {(grupo.itens || []).map((item, j) => (
-              <div
-                key={j}
-                style={{
-                  display: "flex",
-                  gap: 6,
-                  marginTop: 8,
-                  alignItems: "center"
-                }}
-              >
-                <input
-                  placeholder="Nome"
-                  value={item.nome}
-                  onChange={(e) => {
-                    const novo = [...extras];
-                    novo[i].itens[j].nome = e.target.value;
-                    setExtras(novo);
-                  }}
-                  style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
-                />
-
-                <input
-                  type="number"
-                  placeholder="R$"
-                  value={item.preco / 100}
-                  onChange={(e) => {
-                    const novo = [...extras];
-                    novo[i].itens[j].preco = Math.round(Number(e.target.value) * 100);
-                    setExtras(novo);
-                  }}
-                  style={{
-                    width: 80,
-                    ...inputStyle,
-                    marginBottom: 0
-                  }}
-                />
-
-                <button
-                  onClick={() => {
-                    const novo = [...extras];
-                    novo[i].itens.splice(j, 1);
-                    setExtras(novo);
-                  }}
-                  style={{
-                    border: "none",
-                    background: "#fee2e2",
-                    color: "#b91c1c",
-                    borderRadius: 10,
-                    padding: "10px 12px",
-                    cursor: "pointer"
-                  }}
-                >
-                  ❌
-                </button>
-              </div>
-            ))}
-
-            <button
-              onClick={() => {
-                const novo = [...extras];
-                novo[i].itens.push({ nome: "", preco: 0 });
-                setExtras(novo);
-              }}
-              style={{
-                marginTop: 10,
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: "1px solid #ddd",
-                background: "#fff",
-                color: "#111",
-                cursor: "pointer",
-                fontWeight: "bold"
-              }}
-            >
-              ➕ Item
-            </button>
-          </div>
-        ))}
-      </div>
+      <button
+        onClick={() => {
+          const novo = [...extras];
+          novo[i].itens.push({ nome: "", preco: 0 });
+          setExtras(novo);
+        }}
+        style={{
+          marginTop: 10,
+          padding: "10px 12px",
+          borderRadius: 12,
+          border: "1px solid #ddd",
+          background: "#fff",
+          color: "#111",
+          cursor: "pointer",
+          fontWeight: "bold"
+        }}
+      >
+        ➕ Item
+      </button>
+    </div>
+  ))}
+</div>
 
       {/* IMAGEM */}
       <div style={{
@@ -3207,7 +3373,7 @@ if (loadingAuth) {
           checked={maisVendido}
           onChange={(e) => setMaisVendido(e.target.checked)}
         />
-        🔥 Mais vendido
+        Mais vendido
       </label>
 
       {/* BOTÕES */}
@@ -3217,7 +3383,7 @@ if (loadingAuth) {
         marginTop: 4
       }}>
         <button onClick={salvarProduto} style={btnPrimary}>
-          💾 Salvar
+          Salvar
         </button>
 
         <button
@@ -3230,7 +3396,6 @@ if (loadingAuth) {
     </div>
   </div>
 )}
-
       {/* PRODUTOS */}
       {abaAdmin === "produtos" && (
   <div
