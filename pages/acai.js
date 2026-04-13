@@ -4549,69 +4549,135 @@ return (
 
       {/* BARRA FLUTUANTE DO CARRINHO */}
       {carrinho.length > 0 && (
-        <div
-  style={{
-    position: "fixed",
-    left: "50%",
-    transform: "translateX(-50%)",
-    bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 10px)`,
-    width: "100%",
-    maxWidth: larguraApp,
-    padding: "0 14px",
-    boxSizing: "border-box",
-    zIndex: 30
-  }}
->
   <div
     style={{
+      position: "fixed",
+      left: "50%",
+      transform: "translateX(-50%)",
+      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom))`,
+      width: "100%",
+      maxWidth: larguraApp,
       background: "#fff",
-      borderRadius: 26,
-      padding: 10,
-      boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-      border: "1px solid #f0f0f0"
+      borderTop: "1px solid #ececec",
+      padding: "12px 14px",
+      boxSizing: "border-box",
+      zIndex: 30
     }}
   >
-    <button
-      onClick={() => {
-        setAba("carrinho");
-        setStep(3);
-      }}
+    <div
       style={{
-        width: "100%",
-        height: 60,
-        borderRadius: 999,
-        border: "none",
-        background: "linear-gradient(90deg,#ea1d2c,#ff2a2a)",
-        color: "#fff",
-        fontWeight: 800,
-        fontSize: 15,
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        cursor: "pointer",
-        boxShadow: "0 10px 25px rgba(234,29,44,0.30)",
-        transition: "all 0.2s ease"
+        justifyContent: "space-between",
+        gap: 12
       }}
     >
-      <span>
-        Ver carrinho •{" "}
-        {formatarReal(
-          typeof totalFinalComFrete !== "undefined"
-            ? subtotalProdutos
-            : carrinho.reduce(
-                (acc, item) => acc + Number(item.total || 0),
-                0
-              )
-        )}
-      </span>
+      {/* ESQUERDA */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          minWidth: 0,
+          flex: 1
+        }}
+      >
+        <div
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: "50%",
+            overflow: "hidden",
+            flexShrink: 0,
+            background: "#f4f4f4",
+            border: "1px solid #eee"
+          }}
+        >
+          <img
+            src={logo || "/acai.png"}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block"
+            }}
+          />
+        </div>
 
-      <ChevronRight size={20} />
-    </button>
+        <div
+          style={{
+            minWidth: 0
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              color: "#666",
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis"
+            }}
+          >
+            {subtotalProdutos >= 3000
+              ? "Total com entrega grátis"
+              : "Total do pedido"}
+          </div>
+
+          <div
+            style={{
+              marginTop: 2,
+              fontSize: 16,
+              fontWeight: 800,
+              color: "#111",
+              lineHeight: 1.2,
+              whiteSpace: "nowrap"
+            }}
+          >
+            {formatarReal(
+              typeof subtotalProdutos !== "undefined"
+                ? subtotalProdutos
+                : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+            )}{" "}
+            <span
+              style={{
+                fontWeight: 500,
+                color: "#666"
+              }}
+            >
+              / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
+              {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0) > 1 ? "s" : ""}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* DIREITA */}
+      <button
+        onClick={() => {
+          setAba("carrinho");
+          setStep(3);
+        }}
+        style={{
+          minWidth: 168,
+          height: 56,
+          padding: "0 24px",
+          borderRadius: 18,
+          border: "none",
+          background: "#ea1d2c",
+          color: "#fff",
+          fontSize: 16,
+          fontWeight: 800,
+          cursor: "pointer",
+          boxShadow: "0 6px 16px rgba(234,29,44,0.20)",
+          flexShrink: 0
+        }}
+      >
+        Ver sacola
+      </button>
+    </div>
   </div>
-</div>
-          
-      )}
+)}
     </div>
 
     <style>
