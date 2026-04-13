@@ -5241,7 +5241,7 @@ return (
       maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100vh",
-      background: "#efefef",
+      background: "#ffffff",
       paddingBottom: 240,
       boxSizing: "border-box"
     }}
