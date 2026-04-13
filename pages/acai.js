@@ -5876,105 +5876,104 @@ return (
     </div>
 
     {/* BARRA FIXA FINAL */}
-    <div
-      style={{
-        position: "fixed",
-        bottom: 84,
-        left: 0,
-        right: 0,
-        maxWidth: larguraApp,
-        margin: "0 auto",
-        padding: "0 16px 12px",
-        zIndex: 30,
-        boxSizing: "border-box"
-      }}
-    >
+<div
+  style={{
+    position: "fixed",
+    bottom: `calc(${NAVBAR}px)`,
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "100%",
+    maxWidth: isMobile ? larguraApp : 720,
+    background: "#fff",
+    borderTop: "1px solid #eee",
+    zIndex: 30,
+    boxSizing: "border-box",
+    padding: isMobile ? "10px 12px" : "10px 16px"
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: isMobile ? 12 : 18
+    }}
+  >
+    <div style={{ minWidth: 0, flex: 1 }}>
       <div
         style={{
-          background: "#fff",
-          borderRadius: 22,
-          boxShadow: "0 10px 26px rgba(0,0,0,0.12)",
-          border: "1px solid #efefef",
-          padding: 16
+          fontSize: isMobile ? 14 : 13,
+          color: "#666",
+          lineHeight: 1.1
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12
-          }}
-        >
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 15,
-                color: "#666",
-                lineHeight: 1.1
-              }}
-            >
-              Total do pedido
-            </div>
+        Total do pedido
+      </div>
 
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 18,
-                fontWeight: 900,
-                color: "#111"
-              }}
-            >
-              {formatarReal(totalFinalComFrete)}
-            </div>
-          </div>
-
-          <button
-            onClick={() => {
-              if (!user) {
-                localStorage.setItem("redirectAfterLogin", "carrinho");
-                router.push("/login");
-                return;
-              }
-
-              if (!clienteNome || !clienteTelefone) {
-                mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
-                setAba("perfil");
-                setStep(4);
-                setAbaPerfil("dados");
-                return;
-              }
-
-              if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
-                mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
-                setAba("perfil");
-                setStep(4);
-                setAbaPerfil("endereco");
-                return;
-              }
-
-              setAba("pagamentos");
-              setStep(6);
-            }}
-            style={{
-              minWidth: 150,
-              height: 50,
-              borderRadius: 18,
-              background: "#ea1d2c",
-              color: "#fff",
-              border: "none",
-              fontWeight: 800,
-              fontSize: 16,
-              cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(234,29,44,0.22)"
-            }}
-          >
-            Continuar
-          </button>
-        </div>
+      <div
+        style={{
+          marginTop: 4,
+          fontSize: isMobile ? 18 : 17,
+          fontWeight: 900,
+          color: "#111",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        }}
+      >
+        {formatarReal(totalFinalComFrete)}
       </div>
     </div>
 
+    <button
+      onClick={() => {
+        if (!user) {
+          localStorage.setItem("redirectAfterLogin", "carrinho");
+          router.push("/login");
+          return;
+        }
+
+        if (!clienteNome || !clienteTelefone) {
+          mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
+          setAba("perfil");
+          setStep(4);
+          setAbaPerfil("dados");
+          return;
+        }
+
+        if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+          mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
+          setAba("perfil");
+          setStep(4);
+          setAbaPerfil("endereco");
+          return;
+        }
+
+        setAba("pagamentos");
+        setStep(6);
+      }}
+      style={{
+        minWidth: isMobile ? 140 : 118,
+        height: isMobile ? 50 : 42,
+        borderRadius: isMobile ? 18 : 14,
+        background: "#ea1d2c",
+        color: "#fff",
+        border: "none",
+        fontWeight: 800,
+        fontSize: isMobile ? 16 : 14,
+        cursor: "pointer",
+        boxShadow: "0 6px 16px rgba(234,29,44,0.18)",
+        padding: isMobile ? "0 18px" : "0 14px",
+        whiteSpace: "nowrap",
+        flexShrink: 0
+      }}
+    >
+      Continuar
+    </button>
+  </div>
+</div>
+
+    
     {/* ANIMAÇÃO */}
     <style>
       {`
