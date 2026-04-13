@@ -7625,49 +7625,55 @@ return (
   style={{
     position: "fixed",
     bottom: `calc(${NAVBAR}px)`,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100%",
-    maxWidth: isMobile ? larguraApp : 600,
-    padding: "6px 12px",
+    left: 0,
+    right: 0,
+    display: "flex",
+    justifyContent: "center", // 🔥 CENTRALIZA DE VERDADE
     background: "#fff",
     borderTop: "1px solid #eee",
-    zIndex: 20,
-    boxSizing: "border-box"
+    padding: "8px 12px",
+    zIndex: 20
   }}
 >
-  <button
-    onClick={() => {
-      if (!formaPagamento) {
-        mostrarToast("Escolha uma forma de pagamento", "erro");
-        return;
-      }
-
-      if (formaPagamento === "pix") {
-        setQrBase64(null);
-        setQrCode(null);
-        setPaymentId(null);
-        setMostrarPagamento(true);
-        return;
-      }
-
-      finalizarPedido();
-    }}
+  <div
     style={{
       width: "100%",
-      height: isMobile ? 44 : 40, // 🔥 MENOR
-      borderRadius: 12, // 🔥 menos arredondado
-      background: "#ea1d2c",
-      color: "#fff",
-      border: "none",
-      fontWeight: 700, // 🔥 menos pesado
-      fontSize: 14, // 🔥 menor
-      cursor: "pointer",
-      boxShadow: "0 4px 12px rgba(234,29,44,0.18)" // 🔥 mais leve
+      maxWidth: isMobile ? larguraApp : 600
     }}
   >
-    Finalizar pedido • {formatarReal(totalFinalComFrete)}
-  </button>
+    <button
+      onClick={() => {
+        if (!formaPagamento) {
+          mostrarToast("Escolha uma forma de pagamento", "erro");
+          return;
+        }
+
+        if (formaPagamento === "pix") {
+          setQrBase64(null);
+          setQrCode(null);
+          setPaymentId(null);
+          setMostrarPagamento(true);
+          return;
+        }
+
+        finalizarPedido();
+      }}
+      style={{
+        width: "100%",
+        height: 44,
+        borderRadius: 12,
+        background: "#ea1d2c",
+        color: "#fff",
+        border: "none",
+        fontWeight: 700,
+        fontSize: 14,
+        cursor: "pointer",
+        boxShadow: "0 4px 12px rgba(234,29,44,0.18)"
+      }}
+    >
+      Finalizar pedido • {formatarReal(totalFinalComFrete)}
+    </button>
+  </div>
 </div>
     </div>
   </>
