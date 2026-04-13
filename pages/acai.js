@@ -3783,7 +3783,9 @@ return (
         background: "#f5f5f5",
         minHeight: "100vh",
         boxSizing: "border-box",
-        paddingBottom: carrinho.length > 0 ? 190 : 110
+        paddingBottom: carrinho.length > 0
+        ? (isMobile ? 180 : 150)
+        : 110
       }}
     >
       {/* HEADER */}
@@ -4516,14 +4518,14 @@ return (
   <div
     style={{
       position: "fixed",
-      left: 0,
-      right: 0,
-      bottom: `calc(${NAVBAR}px)`, // 🔥 COLADO NA NAVBAR
+      left: "50%",
+      transform: "translateX(-50%)",
+      bottom: `calc(${NAVBAR}px)`,
       width: "100%",
       maxWidth: larguraApp,
-      margin: "0 auto",
       background: "#fff",
       borderTop: "1px solid #eee",
+      boxSizing: "border-box",
       zIndex: 30
     }}
   >
@@ -4532,8 +4534,8 @@ return (
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 10,
-        padding: "10px 12px"
+        gap: isMobile ? 10 : 16,
+        padding: isMobile ? "10px 12px" : "12px 18px"
       }}
     >
       {/* ESQUERDA */}
@@ -4541,34 +4543,38 @@ return (
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
+          gap: isMobile ? 10 : 12,
           flex: 1,
           minWidth: 0
         }}
       >
-        {/* LOGO */}
         <img
           src={logo || "/acai.png"}
           style={{
-            width: 42,
-            height: 42,
+            width: isMobile ? 42 : 46,
+            height: isMobile ? 42 : 46,
             borderRadius: "50%",
             objectFit: "cover",
             flexShrink: 0
           }}
         />
 
-        {/* TEXTO */}
-        <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            minWidth: 0,
+            flex: 1
+          }}
+        >
           <div
             style={{
-              fontSize: 11,
+              fontSize: isMobile ? 11 : 12,
               color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
               fontWeight: 600,
               lineHeight: 1.2,
               whiteSpace: "nowrap",
               overflow: "hidden",
-              textOverflow: "ellipsis"
+              textOverflow: "ellipsis",
+              maxWidth: "100%"
             }}
           >
             {faltaFreteGratis > 0
@@ -4578,10 +4584,14 @@ return (
 
           <div
             style={{
-              fontSize: 14,
+              fontSize: isMobile ? 14 : 16,
               fontWeight: 800,
               color: "#111",
-              marginTop: 2
+              marginTop: 2,
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis"
             }}
           >
             {formatarReal(
@@ -4589,8 +4599,14 @@ return (
                 ? subtotalProdutos
                 : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
             )}{" "}
-            <span style={{ fontWeight: 500, color: "#666" }}>
+            <span
+              style={{
+                fontWeight: 500,
+                color: "#666"
+              }}
+            >
               / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
+              {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0) > 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -4603,13 +4619,14 @@ return (
           setStep(3);
         }}
         style={{
-          height: 46,
-          padding: "0 18px", // 🔥 NÃO usar width fixa
-          borderRadius: 14,
+          height: isMobile ? 46 : 44,
+          minWidth: isMobile ? 120 : 140,
+          padding: isMobile ? "0 16px" : "0 20px",
+          borderRadius: isMobile ? 14 : 12,
           border: "none",
           background: "#ea1d2c",
           color: "#fff",
-          fontSize: 14,
+          fontSize: isMobile ? 14 : 15,
           fontWeight: 800,
           cursor: "pointer",
           flexShrink: 0
