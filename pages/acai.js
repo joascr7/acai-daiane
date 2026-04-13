@@ -4554,12 +4554,12 @@ return (
       position: "fixed",
       left: "50%",
       transform: "translateX(-50%)",
-      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom))`,
+      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 8px)`,
       width: "100%",
       maxWidth: larguraApp,
       background: "#fff",
       borderTop: "1px solid #ececec",
-      padding: "12px 14px",
+      padding: "10px 14px 12px",
       boxSizing: "border-box",
       zIndex: 30
     }}
@@ -4572,20 +4572,19 @@ return (
         gap: 12
       }}
     >
-      {/* ESQUERDA */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 10,
           minWidth: 0,
           flex: 1
         }}
       >
         <div
           style={{
-            width: 52,
-            height: 52,
+            width: 48,
+            height: 48,
             borderRadius: "50%",
             overflow: "hidden",
             flexShrink: 0,
@@ -4604,33 +4603,27 @@ return (
           />
         </div>
 
-        <div
-          style={{
-            minWidth: 0
-          }}
-        >
+        <div style={{ minWidth: 0 }}>
           <div
             style={{
-              fontSize: 12,
+              fontSize: 11,
               color: "#666",
-              lineHeight: 1.2,
+              lineHeight: 1.15,
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis"
             }}
           >
-            {subtotalProdutos >= 3000
-              ? "Total com entrega grátis"
-              : "Total do pedido"}
+            {subtotalProdutos >= 3000 ? "Total com entrega grátis" : "Total do pedido"}
           </div>
 
           <div
             style={{
               marginTop: 2,
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: 800,
               color: "#111",
-              lineHeight: 1.2,
+              lineHeight: 1.15,
               whiteSpace: "nowrap"
             }}
           >
@@ -4652,24 +4645,22 @@ return (
         </div>
       </div>
 
-      {/* DIREITA */}
       <button
         onClick={() => {
           setAba("carrinho");
           setStep(3);
         }}
         style={{
-          width: isMobile ? 170 : 220,
-          height: 56,
-          padding: "0 20px",
-          borderRadius: 20,
+          width: 170,
+          height: 52,
+          borderRadius: 18,
           border: "none",
           background: "#ea1d2c",
           color: "#fff",
-          fontSize: 16,
+          fontSize: 15,
           fontWeight: 800,
           cursor: "pointer",
-          boxShadow: "0 6px 16px rgba(234,29,44,0.20)",
+          boxShadow: "0 6px 16px rgba(234,29,44,0.18)",
           flexShrink: 0
         }}
       >
