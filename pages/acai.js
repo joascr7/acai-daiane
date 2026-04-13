@@ -9122,6 +9122,116 @@ return (
 )}
 
 
+{/* 🔥 BARRA SACOLA GLOBAL */}
+    {carrinho.length > 0 &&
+ !(aba === "carrinho" && step === 3) &&
+ !(aba === "home" && step === 2) &&
+ !(aba === "pagamentos" && step === 6) && (
+  <div style={{ 
+          position: "fixed",
+          bottom: `calc(${NAVBAR}px)`,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          zIndex: 30
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: isMobile ? larguraApp : 720,
+            background: "#fff",
+            borderTop: "1px solid #eee",
+            borderRadius: isMobile ? 0 : 16,
+            boxShadow: isMobile ? "none" : "0 8px 30px rgba(0,0,0,0.08)",
+            padding: isMobile ? "10px 12px" : "12px 18px",
+            boxSizing: "border-box"
+          }}
+        >
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 14
+          }}>
+
+            {/* ESQUERDA */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              flex: 1,
+              minWidth: 0
+            }}>
+              <img
+                src={logo || "/acai.png"}
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: "50%",
+                  objectFit: "cover"
+                }}
+              />
+
+              <div style={{ minWidth: 0 }}>
+                <div style={{
+                  fontSize: 12,
+                  color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}>
+                  {faltaFreteGratis > 0
+                    ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+                    : "Entrega grátis aplicada"}
+                </div>
+
+                <div style={{
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#111",
+                  marginTop: 2
+                }}>
+                  {formatarReal(
+                    typeof subtotalProdutos !== "undefined"
+                      ? subtotalProdutos
+                      : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+                  )}{" "}
+                  <span style={{ fontWeight: 500, color: "#666" }}>
+                    / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* BOTÃO */}
+            <button
+              onClick={() => {
+                setAba("carrinho");
+                setStep(3);
+              }}
+              style={{
+                height: 46,
+                padding: "0 22px",
+                borderRadius: 14,
+                border: "none",
+                background: "#ea1d2c",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer"
+              }}
+            >
+              Ver sacola
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+
 
 
 {/* 🔥 STYLES */}
