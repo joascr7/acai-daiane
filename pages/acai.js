@@ -4659,10 +4659,10 @@ return (
           setStep(3);
         }}
         style={{
-          minWidth: 168,
+          width: isMobile ? 170 : 220,
           height: 56,
-          padding: "0 24px",
-          borderRadius: 18,
+          padding: "0 20px",
+          borderRadius: 20,
           border: "none",
           background: "#ea1d2c",
           color: "#fff",
