@@ -1855,6 +1855,8 @@ if (cupomAplicado) {
 const totalFinal = Math.max(0, total - descontoCalculado);
 
 // 🔥 FRETE GRÁTIS
+const temItens = carrinho.length > 0;
+
 const LIMITE_FRETE_GRATIS = 3000; // R$ 30,00
 
 const subtotalProdutos = Array.isArray(carrinho)
@@ -5486,11 +5488,11 @@ return (
                 minWidth: 118,
                 background: "#f7f7f7",
                 borderRadius: 18,
-                padding: "10px 12px",
+                padding: "1px 1px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 10,
+                gap: 3,
                 flexShrink: 0
               }}
             >
@@ -5835,27 +5837,29 @@ return (
             <span>{formatarReal(subtotalProdutos)}</span>
           </div>
 
+          {carrinho.length > 0 && (
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 15,
-              color: "#666",
-              marginBottom: 10
-            }}
-          >
-            <span>Entrega</span>
-            <span
-              style={{
-                color: taxaEntrega === 0 ? "#16a34a" : "#111",
-                fontWeight: 700
-              }}
-            >
-              {subtotalProdutos >= LIMITE_FRETE_GRATIS
-                ? "Grátis"
-                : formatarReal(taxaEntrega)}
-            </span>
-          </div>
+          style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 15,
+          color: "#666",
+          marginBottom: 10
+         }}
+         >
+        <span>Entrega</span>
+       <span
+        style={{
+        color: taxaEntrega === 0 ? "#16a34a" : "#111",
+        fontWeight: 700
+        }}
+        >
+       {subtotalProdutos >= LIMITE_FRETE_GRATIS
+        ? "Grátis"
+        : formatarReal(taxaEntrega)}
+        </span>
+        </div>
+        )}
 
           {descontoCalculado > 0 && (
             <div
@@ -5883,12 +5887,12 @@ return (
     left: "50%",
     transform: "translateX(-50%)",
     width: "100%",
-    maxWidth: isMobile ? larguraApp : 700,
+    maxWidth: isMobile ? larguraApp : 720,
     background: "#fff",
     borderTop: "1px solid #eee",
     zIndex: 30,
     boxSizing: "border-box",
-    padding: isMobile ? "10px 12px" : "10px 16px"
+    padding: isMobile ? "8px 12px" : "8px 16px"
   }}
 >
   <div
@@ -5896,35 +5900,54 @@ return (
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      gap: isMobile ? 12 : 18
+      gap: 14
     }}
   >
+    {/* INFO */}
     <div style={{ minWidth: 0, flex: 1 }}>
-      <div
-        style={{
-          fontSize: isMobile ? 14 : 13,
-          color: "#666",
-          lineHeight: 1.1
-        }}
-      >
-        Total do pedido
-      </div>
+  {carrinho.length > 0 && (
+    <>
+      {faltaFreteGratis > 0 ? (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#666",
+            marginBottom: 2
+          }}
+        >
+          Faltam{" "}
+          <strong style={{ color: "#111" }}>
+            {formatarReal(faltaFreteGratis)}
+          </strong>{" "}
+          para entrega grátis
+        </div>
+      ) : (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#16a34a",
+            fontWeight: 700,
+            marginBottom: 2
+          }}
+        >
+          Entrega grátis aplicada
+        </div>
+      )}
+    </>
+  )}
 
-      <div
-        style={{
-          marginTop: 4,
-          fontSize: isMobile ? 18 : 17,
-          fontWeight: 900,
-          color: "#111",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis"
-        }}
-      >
-        {formatarReal(totalFinalComFrete)}
-      </div>
-    </div>
+  <div
+    style={{
+      fontSize: isMobile ? 16 : 15,
+      fontWeight: 900,
+      color: "#111"
+    }}
+  >
+    {formatarReal(carrinho.length > 0 ? totalFinalComFrete : 0)}
+  </div>
+</div>
 
+    {/* BOTÃO */}
     <button
       onClick={() => {
         if (!user) {
@@ -5953,18 +5976,17 @@ return (
         setStep(6);
       }}
       style={{
-        minWidth: isMobile ? 140 : 118,
-        height: isMobile ? 50 : 42,
-        borderRadius: isMobile ? 18 : 14,
+        minWidth: isMobile ? 130 : 110,
+        height: isMobile ? 46 : 40,
+        borderRadius: 14,
         background: "#ea1d2c",
         color: "#fff",
         border: "none",
         fontWeight: 800,
-        fontSize: isMobile ? 16 : 14,
+        fontSize: isMobile ? 14 : 13,
         cursor: "pointer",
-        boxShadow: "0 6px 16px rgba(234,29,44,0.18)",
-        padding: isMobile ? "0 18px" : "0 14px",
-        whiteSpace: "nowrap",
+        boxShadow: "0 6px 14px rgba(234,29,44,0.18)",
+        padding: "0 14px",
         flexShrink: 0
       }}
     >
