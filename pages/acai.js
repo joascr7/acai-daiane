@@ -3934,43 +3934,7 @@ return (
           </div>
         </div>
 
-        {/* HEADLINE */}
-        <div style={{ marginTop: 22 }}>
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 800,
-              color: "#111",
-              lineHeight: 1.15
-            }}
-          >
-            Peça seu açaí
-          </div>
-
-          <div
-            style={{
-              fontSize: 15,
-              fontWeight: 900,
-              color: "#ea1d2c",
-              lineHeight: 1.15
-            }}
-          >
-            favorito hoje
-          </div>
-
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 13,
-              color: "#666",
-              lineHeight: 1.4,
-              maxWidth: 290
-            }}
-          >
-            Qualidade, sabor e entrega rápida pertinho de você.
-          </div>
-        </div>
-
+        
         {/* ALERTA */}
         <div
           style={{
