@@ -7620,59 +7620,68 @@ return (
         </div>
       </div>
 
-      {/* BOTÃO FIXO FINAL */}
+   {/* BOTÃO FIXO FINAL */}
 <div
   style={{
     position: "fixed",
-    bottom: `calc(${NAVBAR}px)`,
+    bottom: NAVBAR,
     left: 0,
     right: 0,
-    display: "flex",
-    justifyContent: "center", // 🔥 CENTRALIZA DE VERDADE
-    background: "#fff",
-    borderTop: "1px solid #eee",
-    padding: "8px 12px",
-    zIndex: 20
+    zIndex: 30,
+    pointerEvents: "none"
   }}
 >
   <div
     style={{
       width: "100%",
-      maxWidth: isMobile ? larguraApp : 600
+      display: "flex",
+      justifyContent: "center",
+      padding: "8px 12px",
+      boxSizing: "border-box"
     }}
   >
-    <button
-      onClick={() => {
-        if (!formaPagamento) {
-          mostrarToast("Escolha uma forma de pagamento", "erro");
-          return;
-        }
-
-        if (formaPagamento === "pix") {
-          setQrBase64(null);
-          setQrCode(null);
-          setPaymentId(null);
-          setMostrarPagamento(true);
-          return;
-        }
-
-        finalizarPedido();
-      }}
+    <div
       style={{
         width: "100%",
-        height: 44,
-        borderRadius: 12,
-        background: "#ea1d2c",
-        color: "#fff",
-        border: "none",
-        fontWeight: 700,
-        fontSize: 14,
-        cursor: "pointer",
-        boxShadow: "0 4px 12px rgba(234,29,44,0.18)"
+        maxWidth: isMobile ? larguraApp : 640,
+        pointerEvents: "auto"
       }}
     >
-      Finalizar pedido • {formatarReal(totalFinalComFrete)}
-    </button>
+      <button
+        onClick={() => {
+          if (!formaPagamento) {
+            mostrarToast("Escolha uma forma de pagamento", "erro");
+            return;
+          }
+
+          if (formaPagamento === "pix") {
+            setQrBase64(null);
+            setQrCode(null);
+            setPaymentId(null);
+            setMostrarPagamento(true);
+            return;
+          }
+
+          finalizarPedido();
+        }}
+        style={{
+          display: "block",
+          width: "100%",
+          height: isMobile ? 44 : 40,
+          borderRadius: 12,
+          background: "#ea1d2c",
+          color: "#fff",
+          border: "none",
+          fontWeight: 700,
+          fontSize: isMobile ? 14 : 13,
+          cursor: "pointer",
+          boxShadow: "0 4px 12px rgba(234,29,44,0.16)",
+          boxSizing: "border-box"
+        }}
+      >
+        Finalizar pedido • {formatarReal(totalFinalComFrete)}
+      </button>
+    </div>
   </div>
 </div>
     </div>
