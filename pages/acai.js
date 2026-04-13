@@ -4410,7 +4410,7 @@ return (
                     </div>
 
                     {/* BOTÃO */}
-                    <div
+                 {/*   <div
                       onClick={abrirProduto}
                       style={{
                         width: 52,
@@ -4429,7 +4429,7 @@ return (
                       }}
                     >
                       +
-                    </div>
+                    </div>*/}
                   </div>
                 </div>
               );
