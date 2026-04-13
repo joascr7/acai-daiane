@@ -4518,122 +4518,115 @@ return (
   <div
     style={{
       position: "fixed",
-      left: "50%",
-      transform: "translateX(-50%)",
       bottom: `calc(${NAVBAR}px)`,
-      width: "100%",
-      maxWidth: larguraApp,
-      background: "#fff",
-      borderTop: "1px solid #eee",
-      boxSizing: "border-box",
+      left: 0,
+      right: 0,
+      display: "flex",
+      justifyContent: "center", // 🔥 CENTRALIZA NA WEB
       zIndex: 30
     }}
   >
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: isMobile ? 10 : 16,
-        padding: isMobile ? "10px 12px" : "12px 18px"
+        width: "100%",
+        maxWidth: isMobile ? larguraApp : 720, // 🔥 AQUI MUDA TUDO
+        background: "#fff",
+        borderTop: "1px solid #eee",
+        borderRadius: isMobile ? 0 : 16, // 🔥 borda só na web
+        boxShadow: isMobile
+          ? "none"
+          : "0 8px 30px rgba(0,0,0,0.08)", // 🔥 sombra desktop
+        padding: isMobile ? "10px 12px" : "12px 18px",
+        boxSizing: "border-box"
       }}
     >
-      {/* ESQUERDA */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
-          gap: isMobile ? 10 : 12,
-          flex: 1,
-          minWidth: 0
+          justifyContent: "space-between",
+          gap: 14
         }}
       >
-        <img
-          src={logo || "/acai.png"}
-          style={{
-            width: isMobile ? 42 : 46,
-            height: isMobile ? 42 : 46,
-            borderRadius: "50%",
-            objectFit: "cover",
-            flexShrink: 0
-          }}
-        />
-
+        {/* ESQUERDA */}
         <div
           style={{
-            minWidth: 0,
-            flex: 1
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flex: 1,
+            minWidth: 0
           }}
         >
-          <div
+          <img
+            src={logo || "/bg.png"}
             style={{
-              fontSize: isMobile ? 11 : 12,
-              color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
-              fontWeight: 600,
-              lineHeight: 1.2,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              maxWidth: "100%"
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              objectFit: "cover",
+              flexShrink: 0
             }}
-          >
-            {faltaFreteGratis > 0
-              ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-              : "Entrega grátis aplicada"}
-          </div>
+          />
 
-          <div
-            style={{
-              fontSize: isMobile ? 14 : 16,
-              fontWeight: 800,
-              color: "#111",
-              marginTop: 2,
-              lineHeight: 1.2,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis"
-            }}
-          >
-            {formatarReal(
-              typeof subtotalProdutos !== "undefined"
-                ? subtotalProdutos
-                : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
-            )}{" "}
-            <span
+          <div style={{ minWidth: 0 }}>
+            <div
               style={{
-                fontWeight: 500,
-                color: "#666"
+                fontSize: 10,
+                color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
               }}
             >
-              / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
-              {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0) > 1 ? "s" : ""}
-            </span>
+              {faltaFreteGratis > 0
+                ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+                : "Entrega grátis aplicada"}
+            </div>
+
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#111",
+                marginTop: 2
+              }}
+            >
+              {formatarReal(
+                typeof subtotalProdutos !== "undefined"
+                  ? subtotalProdutos
+                  : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+              )}{" "}
+              <span style={{ fontWeight: 500, color: "#666" }}>
+                / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* BOTÃO */}
-      <button
-        onClick={() => {
-          setAba("carrinho");
-          setStep(3);
-        }}
-        style={{
-          height: isMobile ? 46 : 44,
-          minWidth: isMobile ? 120 : 140,
-          padding: isMobile ? "0 16px" : "0 20px",
-          borderRadius: isMobile ? 14 : 12,
-          border: "none",
-          background: "#ea1d2c",
-          color: "#fff",
-          fontSize: isMobile ? 14 : 15,
-          fontWeight: 800,
-          cursor: "pointer",
-          flexShrink: 0
-        }}
-      >
-        Ver sacola
-      </button>
+        {/* BOTÃO */}
+        <button
+          onClick={() => {
+            setAba("carrinho");
+            setStep(3);
+          }}
+          style={{
+            height: 46,
+            padding: "0 22px",
+            borderRadius: 14,
+            border: "none",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 800,
+            cursor: "pointer",
+            flexShrink: 0
+          }}
+        >
+          Ver sacola
+        </button>
+      </div>
     </div>
   </div>
 )}
