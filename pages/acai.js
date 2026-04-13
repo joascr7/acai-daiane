@@ -1026,6 +1026,40 @@ useEffect(() => {
 }, []);
 
 
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  const salvo = localStorage.getItem("carrinho");
+
+  if (!salvo) return;
+
+  try {
+    const carrinhoParseado = JSON.parse(salvo);
+
+    if (Array.isArray(carrinhoParseado)) {
+      setCarrinho(carrinhoParseado);
+    }
+  } catch (error) {
+    console.log("Erro ao carregar carrinho:", error);
+    localStorage.removeItem("carrinho");
+  }
+}, []);
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  if (!Array.isArray(carrinho)) return;
+
+  if (carrinho.length === 0) {
+    localStorage.removeItem("carrinho");
+    return;
+  }
+
+  localStorage.setItem("carrinho", JSON.stringify(carrinho));
+}, [carrinho]);
+
+
 // 🔥 CUPONS
 useEffect(() => {
 
@@ -9197,7 +9231,7 @@ return (
               minWidth: 0
             }}>
               <img
-                src={logo || "/acai.png"}
+                src={logo || "/bg.png"}
                 style={{
                   width: 42,
                   height: 42,
