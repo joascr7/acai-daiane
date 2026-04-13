@@ -4000,105 +4000,11 @@ return (
               cursor: "pointer"
             }}
           >
-            ×
+            
           </span>
         </div>
 
-        {/* CATEGORIAS */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: 12,
-            marginTop: 18
-          }}
-        >
-          {categorias
-            .filter((c) =>
-              ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
-            )
-            .sort((a, b) => {
-              const ordem = ["acai", "promocoes", "bebidas", "combos"];
-              return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
-            })
-            .map((c) => {
-              const config = {
-                acai: {
-                  icone: <IceCream size={25} />,
-                  cor: "#8b4de8",
-                  bg: "#f2e8ff"
-                },
-                promocoes: {
-                  icone: <Tag size={25} />,
-                  cor: "#8b4de8",
-                  bg: "#f2e8ff"
-                },
-                bebidas: {
-                  icone: <CupSoda size={25} />,
-                  cor: "#8b4de8",
-                  bg: "#f2e8ff"
-                },
-                combos: {
-                  icone: <Star size={25} />,
-                  cor: "#8b4de8",
-                  bg: "#f2e8ff"
-                }
-              };
-
-              const item = config[c.slug];
-              if (!item) return null;
-
-              return (
-                <div
-                  key={c.id}
-                  onClick={() => {
-                    setCategoriaSelecionada(c.slug);
-                    setAba("home");
-                    setStep(9);
-                  }}
-                  style={{
-                    background: "#fff",
-                    borderRadius: 22,
-                    padding: "16px 8px 14px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 18,
-                      background: item.bg,
-                      color: item.cor,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: 10
-                    }}
-                  >
-                    {item.icone}
-                  </div>
-
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: "#222",
-                      lineHeight: 1.2
-                    }}
-                  >
-                    {c.nome}
-                  </span>
-                </div>
-              );
-            })}
-        </div>
+        
 
         {/* BANNER */}
         <div
