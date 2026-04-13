@@ -4518,12 +4518,11 @@ return (
       position: "fixed",
       left: "50%",
       transform: "translateX(-50%)",
-      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 8px)`,
+      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom))`,
       width: "100%",
       maxWidth: larguraApp,
       background: "#fff",
       borderTop: "1px solid #ececec",
-      padding: "10px 14px 12px",
       boxSizing: "border-box",
       zIndex: 30
     }}
@@ -4533,9 +4532,11 @@ return (
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 12
+        gap: 12,
+        padding: "12px 14px"
       }}
     >
+      {/* ESQUERDA */}
       <div
         style={{
           display: "flex",
@@ -4567,18 +4568,26 @@ return (
           />
         </div>
 
-        <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            minWidth: 0,
+            flex: 1
+          }}
+        >
           <div
             style={{
               fontSize: 11,
-              color: "#666",
-              lineHeight: 1.15,
+              color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
+              fontWeight: 600,
+              lineHeight: 1.2,
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis"
             }}
           >
-            {subtotalProdutos >= 3000 ? "Total com entrega grátis" : "Total do pedido"}
+            {faltaFreteGratis > 0
+              ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+              : "Entrega grátis aplicada"}
           </div>
 
           <div
@@ -4587,7 +4596,7 @@ return (
               fontSize: 15,
               fontWeight: 800,
               color: "#111",
-              lineHeight: 1.15,
+              lineHeight: 1.2,
               whiteSpace: "nowrap"
             }}
           >
@@ -4609,22 +4618,22 @@ return (
         </div>
       </div>
 
+      {/* DIREITA */}
       <button
         onClick={() => {
           setAba("carrinho");
           setStep(3);
         }}
         style={{
-          width: 170,
+          width: isMobile ? 160 : 190,
           height: 52,
-          borderRadius: 18,
+          borderRadius: 16,
           border: "none",
           background: "#ea1d2c",
           color: "#fff",
           fontSize: 15,
           fontWeight: 800,
           cursor: "pointer",
-          boxShadow: "0 6px 16px rgba(234,29,44,0.18)",
           flexShrink: 0
         }}
       >
