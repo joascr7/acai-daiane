@@ -7266,7 +7266,7 @@ return (
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: 16,
+          padding: 8,
           paddingBottom: 150,
           boxSizing: "border-box"
         }}
@@ -7620,58 +7620,55 @@ return (
         </div>
       </div>
 
-      {/* BOTÕES */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: `calc(${SAFE_BOTTOM} + 60px)`,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "100%",
-          maxWidth: larguraApp,
-          padding: "10px 14px",
-          zIndex: 10,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          boxSizing: "border-box"
-        }}
-      >
-        <button
-          onClick={() => {
-            if (!formaPagamento) {
-              mostrarToast("Escolha uma forma de pagamento", "erro");
-              return;
-            }
+      {/* BOTÃO FIXO FINAL */}
+<div
+  style={{
+    position: "fixed",
+    bottom: `calc(${NAVBAR}px)`,
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "100%",
+    maxWidth: isMobile ? larguraApp : 700,
+    background: "#fff",
+    borderTop: "1px solid #eee",
+    padding: isMobile ? "10px 12px" : "10px 16px",
+    zIndex: 20,
+    boxSizing: "border-box"
+  }}
+>
+  <button
+    onClick={() => {
+      if (!formaPagamento) {
+        mostrarToast("Escolha uma forma de pagamento", "erro");
+        return;
+      }
 
-            if (formaPagamento === "pix") {
-              setQrBase64(null);
-              setQrCode(null);
-              setPaymentId(null);
-              setMostrarPagamento(true);
-              return;
-            }
+      if (formaPagamento === "pix") {
+        setQrBase64(null);
+        setQrCode(null);
+        setPaymentId(null);
+        setMostrarPagamento(true);
+        return;
+      }
 
-            finalizarPedido();
-          }}
-          style={{
-            width: "100%",
-            maxWidth: 860,   
-            height: 52,
-            borderRadius: 16,
-            background: "#ea1d2c",
-            color: "#fff",
-            border: "none",
-            fontWeight: 800,
-            fontSize: 15,
-            cursor: "pointer",
-            boxShadow: "0 8px 20px rgba(234,29,44,0.25)"
-          }}
-        >
-          Finalizar pedido • {formatarReal(totalFinalComFrete)}
-        </button>
-
-      </div>
+      finalizarPedido();
+    }}
+    style={{
+      width: "100%",
+      height: isMobile ? 48 : 42,
+      borderRadius: isMobile ? 14 : 18,
+      background: "#ea1d2c",
+      color: "#fff",
+      border: "none",
+      fontWeight: 800,
+      fontSize: isMobile ? 15 : 15,
+      cursor: "pointer",
+      boxShadow: "0 6px 16px rgba(234,29,44,0.18)"
+    }}
+  >
+    Finalizar pedido • {formatarReal(totalFinalComFrete)}
+  </button>
+</div>
     </div>
   </>
 )}
