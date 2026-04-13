@@ -5215,8 +5215,8 @@ return (
     {/* TOPO ESCURO / FUNDO */}
     <div
       style={{
-        height: 12,
-        background: "#f5f5f5"
+        height: 1,
+        background: "#ffffff"
       }}
     />
 
