@@ -3775,7 +3775,6 @@ return (
 {/* STEP 1 */}
 {aba === "home" && step === 1 && (
   <>
-    {/* ÁREA PRINCIPAL */}
     <div
       className="fade-slide"
       style={{
@@ -3784,10 +3783,10 @@ return (
         background: "#f5f5f5",
         minHeight: "100vh",
         boxSizing: "border-box",
-        paddingBottom: 110
+        paddingBottom: carrinho.length > 0 ? 190 : 110
       }}
     >
-      {/* HEADER PREMIUM */}
+      {/* HEADER */}
       <div
         style={{
           padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
@@ -3812,8 +3811,8 @@ return (
           >
             <div
               style={{
-                fontSize: 14,
-                color: "#777",
+                fontSize: 13,
+                color: "#7a7a7a",
                 fontWeight: 500,
                 marginBottom: 6
               }}
@@ -3830,15 +3829,17 @@ return (
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 6,
+                gap: 7,
                 cursor: "pointer",
                 maxWidth: "100%"
               }}
             >
+              <MapPin size={16} color="#8b8b8b" />
+
               <span
                 style={{
-                  fontSize: 16,
-                  fontWeight: 800,
+                  fontSize: 15,
+                  fontWeight: 700,
                   color: "#111",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
@@ -3864,28 +3865,26 @@ return (
               flexShrink: 0
             }}
           >
-            {/* INSTALAR */}
             {podeInstalar && (
               <button
                 onClick={instalarApp}
                 style={{
-                  width: 52,
-                  height: 52,
+                  width: 50,
+                  height: 50,
                   borderRadius: "50%",
                   border: "none",
-                  background: "#f2e8fb",
+                  background: "#efe5fb",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
                 }}
               >
-                <Gem size={24} color="#b35ae6" />
+                <Gem size={22} color="#a24be0" />
               </button>
             )}
 
-            {/* NOTIFICAÇÃO */}
             <div
               onClick={() => {
                 setAba("notificacao");
@@ -3893,18 +3892,18 @@ return (
               }}
               style={{
                 position: "relative",
-                width: 52,
-                height: 52,
+                width: 50,
+                height: 50,
                 borderRadius: "50%",
-                background: "#f2f2f2",
+                background: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 cursor: "pointer",
-                boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
               }}
             >
-              <Bell size={24} color="#111" />
+              <Bell size={23} color="#111" />
 
               {temNotificacaoAtiva && (
                 <div
@@ -3912,21 +3911,23 @@ return (
                     position: "absolute",
                     top: 5,
                     right: 5,
-                    minWidth: 22,
-                    height: 22,
+                    minWidth: 20,
+                    height: 20,
                     borderRadius: 999,
                     background: "#ea1d2c",
                     color: "#fff",
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 700,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     boxShadow: "0 0 0 3px #f5f5f5",
-                    padding: "0 6px"
+                    padding: "0 5px"
                   }}
                 >
-                  1
+                  {notificacoes.filter((n) => !n?.lida).length > 0
+                    ? notificacoes.filter((n) => !n?.lida).length
+                    : 1}
                 </div>
               )}
             </div>
@@ -3934,10 +3935,10 @@ return (
         </div>
 
         {/* HEADLINE */}
-        <div style={{ marginTop: 18 }}>
+        <div style={{ marginTop: 22 }}>
           <div
             style={{
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: 800,
               color: "#111",
               lineHeight: 1.15
@@ -3948,7 +3949,7 @@ return (
 
           <div
             style={{
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: 900,
               color: "#ea1d2c",
               lineHeight: 1.15
@@ -3962,26 +3963,27 @@ return (
               marginTop: 8,
               fontSize: 13,
               color: "#666",
-              lineHeight: 1.35
+              lineHeight: 1.4,
+              maxWidth: 290
             }}
           >
             Qualidade, sabor e entrega rápida pertinho de você.
           </div>
         </div>
 
-        {/* MINI ALERTA / BENEFÍCIO */}
+        {/* ALERTA */}
         <div
           style={{
             marginTop: 18,
-            background: "#f2e8fb",
-            color: "#a24be0",
+            background: "#efe2fb",
+            color: "#9b4de0",
             borderRadius: 999,
             padding: "14px 18px",
             fontSize: 13,
             fontWeight: 700,
             textAlign: "center",
             position: "relative",
-            boxShadow: "0 6px 14px rgba(0,0,0,0.03)"
+            boxShadow: "0 4px 12px rgba(0,0,0,0.03)"
           }}
         >
           Onde você estiver, a gente chega. Peça agora!
@@ -3992,7 +3994,7 @@ return (
               right: 16,
               top: "50%",
               transform: "translateY(-50%)",
-              fontSize: 24,
+              fontSize: 22,
               lineHeight: 1,
               color: "#b35ae6",
               cursor: "pointer"
@@ -4006,8 +4008,8 @@ return (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "repeat(4, 1fr)" : "repeat(4, 1fr)",
-            gap: 14,
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 12,
             marginTop: 18
           }}
         >
@@ -4021,10 +4023,26 @@ return (
             })
             .map((c) => {
               const config = {
-                acai: { icone: <IceCream size={28} />, cor: "#7c3aed", bg: "#f4ecff" },
-                promocoes: { icone: <Tag size={28} />, cor: "#7c3aed", bg: "#f4ecff" },
-                bebidas: { icone: <CupSoda size={28} />, cor: "#7c3aed", bg: "#f4ecff" },
-                combos: { icone: <Star size={28} />, cor: "#7c3aed", bg: "#f4ecff" }
+                acai: {
+                  icone: <IceCream size={25} />,
+                  cor: "#8b4de8",
+                  bg: "#f2e8ff"
+                },
+                promocoes: {
+                  icone: <Tag size={25} />,
+                  cor: "#8b4de8",
+                  bg: "#f2e8ff"
+                },
+                bebidas: {
+                  icone: <CupSoda size={25} />,
+                  cor: "#8b4de8",
+                  bg: "#f2e8ff"
+                },
+                combos: {
+                  icone: <Star size={25} />,
+                  cor: "#8b4de8",
+                  bg: "#f2e8ff"
+                }
               };
 
               const item = config[c.slug];
@@ -4048,7 +4066,7 @@ return (
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 8px 20px rgba(0,0,0,0.04)"
+                    boxShadow: "0 6px 16px rgba(0,0,0,0.04)"
                   }}
                 >
                   <div
@@ -4069,7 +4087,7 @@ return (
 
                   <span
                     style={{
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: 700,
                       color: "#222",
                       lineHeight: 1.2
@@ -4082,526 +4100,610 @@ return (
             })}
         </div>
 
-        {/* BANNER OTIMIZADO */}
-<div
-  style={{
-    marginTop: 20,
-    borderRadius: 28,
-    overflow: "hidden",
-    position: "relative",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.06)",
-    width: "100%",
-    height: isMobile ? 230 : 320,
-    background: "#111"
-  }}
->
-  {Array.isArray(banners) && banners.length > 0 ? (
-    <>
-      <div
-        ref={bannerRef}
-        onScroll={handleBannerScroll}
-        style={{
-          display: "flex",
-          width: "100%",
-          height: "100%",
-          overflowX: "auto",
-          overflowY: "hidden",
-          WebkitOverflowScrolling: "touch",
-          scrollSnapType: "x mandatory",
-          touchAction: "auto",
-          msOverflowStyle: "none",
-          scrollbarWidth: "none"
-        }}
-      >
-        {banners.map((b) => (
-          <div
-            key={b.id}
-            onClick={() => {
-              setCategoriaSelecionada(b.categoria || "promocoes");
-              setAba("home");
-              setStep(9);
-            }}
-            style={{
-              minWidth: "100%",
-              width: "100%",
-              height: "100%",
-              flex: "0 0 100%",
-              scrollSnapAlign: "start",
-              position: "relative",
-              cursor: "pointer"
-            }}
-          >
-            <img
-              src={b.imagem}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "center",
-                display: "block",
-                pointerEvents: "none"
-              }}
-            />
-
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.12) 100%)",
-                pointerEvents: "none"
-              }}
-            />
-          </div>
-        ))}
-      </div>
-
-      {banners.length > 1 && (
+        {/* BANNER */}
         <div
           style={{
-            position: "absolute",
-            bottom: 12,
-            left: 18,
-            right: 18,
-            display: "flex",
-            justifyContent: "center",
-            gap: 8,
-            zIndex: 3,
-            pointerEvents: "none"
-          }}
-        >
-          {banners.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                width: i === bannerIndex ? 26 : 8,
-                height: 6,
-                borderRadius: 999,
-                background:
-                  i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
-                transition: "width 0.2s ease"
-              }}
-            />
-          ))}
-        </div>
-      )}
-    </>
-  ) : (
-    <div
-      onClick={() => {
-        setCategoriaSelecionada("promocoes");
-        setAba("home");
-        setStep(9);
-      }}
-      style={{
-        width: "100%",
-        height: "100%",
-        position: "relative",
-        cursor: "pointer"
-      }}
-    >
-      <img
-        src="/t1.jpg"
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center",
-          display: "block",
-          pointerEvents: "none"
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.12) 100%)",
-          pointerEvents: "none"
-        }}
-      />
-    </div>
-  )}
-</div>
-</div>
-
-      {/* CONTEÚDO BRANCO */}
-<div
-  style={{
-    background: "#fff",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: "24px 12px 0",
-    boxSizing: "border-box",
-    minHeight: 300
-  }}
->
-  {/* TÍTULO */}
-{/* MAIS PEDIDOS OTIMIZADO */}
-<div
-  style={{
-    marginBottom: 14,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0 6px"
-  }}
->
-  <strong
-    style={{
-      fontSize: 14,
-      fontWeight: 800,
-      color: "#111",
-      letterSpacing: "-0.02em"
-    }}
-  >
-    Personalize ou Peça Pronto: O sabor é garantido de qualquer forma.
-  </strong>
-</div>
-
-<div
-  style={{
-    display: "flex",
-    gap: isMobile ? 12 : 14,
-    overflowX: "auto",
-    overflowY: "hidden",
-    padding: "4px 6px 14px",
-    WebkitOverflowScrolling: "touch",
-    touchAction: "auto",
-    msOverflowStyle: "none",
-    scrollbarWidth: "none",
-    scrollSnapType: "x proximity"
-  }}
->
-  {produtos
-    .filter((p) => p.ativo !== false)
-    .map((p, i) => {
-      const abrirProduto = () => {
-        if (!validarLojaAberta()) return;
-
-        if (categoriaTemExtras(p.categoria)) {
-          setProduto({
-            ...p,
-            preco: precoFinalProduto(p)
-          });
-          setAba("home");
-          setStep(2);
-          return;
-        }
-
-        if (categoriaVaiDiretoCarrinho(p.categoria)) {
-          setCarrinho((prev) => [
-            ...prev,
-            {
-              produto: {
-                ...p,
-                preco: precoFinalProduto(p)
-              },
-              quantidade: 1,
-              extras: [],
-              total: Number(precoFinalProduto(p) || 0)
-            }
-          ]);
-          setAba("carrinho");
-          setStep(3);
-        }
-      };
-
-      return (
-        <div
-          key={i}
-          style={{
-            minWidth: isMobile ? 168 : 200,
-            maxWidth: isMobile ? 168 : 200,
-            flex: "0 0 auto",
-            scrollSnapAlign: "start",
-            background: "#fff",
-            borderRadius: 22,
-            padding: 10,
+            marginTop: 20,
+            borderRadius: 30,
+            overflow: "hidden",
             position: "relative",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            border: "1px solid #f2f2f2",
-            userSelect: "none",
-            WebkitUserSelect: "none"
+            boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+            width: "100%",
+            height: isMobile ? 220 : 320,
+            background: "#111"
           }}
         >
-          {produtoEmPromocao(p) ? (
-            <div
-              style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 9,
-                padding: "5px 10px",
-                borderRadius: 999,
-                fontWeight: 800,
-                zIndex: 2
-              }}
-            >
-              Oferta
-            </div>
-          ) : p.maisVendido ? (
-            <div
-              style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                background: "#ff7a00",
-                color: "#fff",
-                fontSize: 9,
-                padding: "5px 10px",
-                borderRadius: 999,
-                fontWeight: 800,
-                zIndex: 2
-              }}
-            >
-              Mais vendido
-            </div>
-          ) : null}
-
-          {/* IMAGEM CLICÁVEL */}
-          <div
-            onClick={abrirProduto}
-            style={{
-              width: "100%",
-              height: 132,
-              borderRadius: 18,
-              overflow: "hidden",
-              background: "#f6f6f6",
-              cursor: "pointer"
-            }}
-          >
-            <img
-              src={p.imagem || "/acai.png"}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-                pointerEvents: "none"
-              }}
-            />
-          </div>
-
-          <div style={{ padding: "4px 2px 0" }}>
-            <div
-              style={{
-                marginTop: 10,
-                fontSize: 14,
-                fontWeight: 800,
-                color: "#111",
-                minHeight: 34,
-                lineHeight: 1.2,
-                overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical"
-              }}
-            >
-              {p.nome}
-            </div>
-
-            {!!p.descricao && (
+          {Array.isArray(banners) && banners.length > 0 ? (
+            <>
               <div
+                ref={bannerRef}
+                onScroll={handleBannerScroll}
                 style={{
-                  marginTop: 6,
-                  fontSize: 11,
-                  color: "#666",
-                  lineHeight: 1.35,
-                  minHeight: 30,
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical"
+                  display: "flex",
+                  width: "100%",
+                  height: "100%",
+                  overflowX: "auto",
+                  overflowY: "hidden",
+                  WebkitOverflowScrolling: "touch",
+                  scrollSnapType: "x mandatory",
+                  touchAction: "auto",
+                  msOverflowStyle: "none",
+                  scrollbarWidth: "none"
                 }}
               >
-                {p.descricao}
-              </div>
-            )}
-
-            <div
-              style={{
-                marginTop: 6,
-                fontSize: 11,
-                color: "#8b8b8b",
-                minHeight: 14
-              }}
-            >
-              {p.tamanho ? `• ${p.tamanho}` : ""}
-            </div>
-
-            <div
-              style={{
-                marginTop: 14,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end"
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                {produtoEmPromocao(p) ? (
-                  <>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "#a3a3a3",
-                        textDecoration: "line-through",
-                        lineHeight: 1.1,
-                        marginBottom: 4
-                      }}
-                    >
-                      {formatarReal(p.preco || 0)}
-                    </div>
-
-                    <strong
-                      style={{
-                        fontSize: 19,
-                        color: "#ea1d2c",
-                        lineHeight: 1.05,
-                        fontWeight: 900,
-                        letterSpacing: "-0.03em"
-                      }}
-                    >
-                      {formatarReal(precoFinalProduto(p))}
-                    </strong>
-                  </>
-                ) : (
-                  <strong
+                {banners.map((b) => (
+                  <div
+                    key={b.id}
+                    onClick={() => {
+                      setCategoriaSelecionada(b.categoria || "promocoes");
+                      setAba("home");
+                      setStep(9);
+                    }}
                     style={{
-                      fontSize: 19,
-                      color: "#111",
-                      lineHeight: 1.05,
-                      fontWeight: 900,
-                      letterSpacing: "-0.03em"
+                      minWidth: "100%",
+                      width: "100%",
+                      height: "100%",
+                      flex: "0 0 100%",
+                      scrollSnapAlign: "start",
+                      position: "relative",
+                      cursor: "pointer"
                     }}
                   >
-                    {formatarReal(p.preco || 0)}
-                  </strong>
-                )}
+                    <img
+                      src={b.imagem}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                        display: "block",
+                        pointerEvents: "none"
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.10) 100%)",
+                        pointerEvents: "none"
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
+
+              {banners.length > 1 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 14,
+                    left: 18,
+                    right: 18,
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 8,
+                    zIndex: 3,
+                    pointerEvents: "none"
+                  }}
+                >
+                  {banners.map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: i === bannerIndex ? 28 : 8,
+                        height: 6,
+                        borderRadius: 999,
+                        background:
+                          i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
+                        transition: "width 0.2s ease"
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div
+              onClick={() => {
+                setCategoriaSelecionada("promocoes");
+                setAba("home");
+                setStep(9);
+              }}
+              style={{
+                width: "100%",
+                height: "100%",
+                position: "relative",
+                cursor: "pointer"
+              }}
+            >
+              <img
+                src="/t1.jpg"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                  display: "block",
+                  pointerEvents: "none"
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.10) 100%)",
+                  pointerEvents: "none"
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* CONTEÚDO BRANCO */}
+      <div
+        style={{
+          background: "#fff",
+          borderTopLeftRadius: 30,
+          borderTopRightRadius: 30,
+          padding: "24px 12px 0",
+          boxSizing: "border-box",
+          minHeight: 300,
+          marginTop: 8
+        }}
+      >
+        {/* TÍTULO */}
+        <div
+          style={{
+            marginBottom: 14,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0 6px"
+          }}
+        >
+          <strong
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              color: "#111",
+              letterSpacing: "-0.02em",
+              lineHeight: 1.2
+            }}
+          >
+            Personalize ou peça pronto
+          </strong>
+        </div>
+
+        <div
+          style={{
+            padding: "0 6px",
+            marginTop: -4,
+            marginBottom: 14,
+            fontSize: 13,
+            color: "#666",
+            lineHeight: 1.4
+          }}
+        >
+          O sabor é garantido de qualquer forma.
+        </div>
+
+        {/* LISTA DE PRODUTOS HORIZONTAL */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            padding: "4px 6px 14px"
+          }}
+        >
+          {produtos
+            .filter((p) => p.ativo !== false)
+            .map((p, i) => {
+              const abrirProduto = () => {
+                if (!validarLojaAberta()) return;
+
+                if (categoriaTemExtras(p.categoria)) {
+                  setProduto({
+                    ...p,
+                    preco: precoFinalProduto(p)
+                  });
+                  setAba("home");
+                  setStep(2);
+                  return;
+                }
+
+                if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                  setCarrinho((prev) => [
+                    ...prev,
+                    {
+                      produto: {
+                        ...p,
+                        preco: precoFinalProduto(p)
+                      },
+                      quantidade: 1,
+                      extras: [],
+                      total: Number(precoFinalProduto(p) || 0)
+                    }
+                  ]);
+                  setAba("carrinho");
+                  setStep(3);
+                }
+              };
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    background: "#fff",
+                    borderRadius: 24,
+                    padding: 12,
+                    border: "1px solid #f0f0f0",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12
+                    }}
+                  >
+                    {/* IMAGEM */}
+                    <div
+                      onClick={abrirProduto}
+                      style={{
+                        width: 104,
+                        height: 104,
+                        borderRadius: 18,
+                        overflow: "hidden",
+                        background: "#f6f6f6",
+                        flexShrink: 0,
+                        cursor: "pointer",
+                        position: "relative"
+                      }}
+                    >
+                      <img
+                        src={p.imagem || "/acai.png"}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                          pointerEvents: "none"
+                        }}
+                      />
+
+                      {produtoEmPromocao(p) ? (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            background: "#ea1d2c",
+                            color: "#fff",
+                            fontSize: 9,
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            fontWeight: 800
+                          }}
+                        >
+                          Oferta
+                        </div>
+                      ) : p.maisVendido ? (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            background: "#ff7a00",
+                            color: "#fff",
+                            fontSize: 9,
+                            padding: "4px 8px",
+                            borderRadius: 999,
+                            fontWeight: 800
+                          }}
+                        >
+                          Mais vendido
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* MEIO */}
+                    <div
+                      style={{
+                        flex: 1,
+                        minWidth: 0
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: "#111",
+                          lineHeight: 1.2
+                        }}
+                      >
+                        {p.nome}
+                      </div>
+
+                      {!!p.descricao && (
+                        <div
+                          style={{
+                            marginTop: 6,
+                            fontSize: 12,
+                            color: "#666",
+                            lineHeight: 1.35,
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical"
+                          }}
+                        >
+                          {p.descricao}
+                        </div>
+                      )}
+
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontSize: 12,
+                          color: "#8b8b8b"
+                        }}
+                      >
+                        {p.tamanho ? `• ${p.tamanho}` : ""}
+                      </div>
+
+                      <div style={{ marginTop: 10 }}>
+                        {produtoEmPromocao(p) ? (
+                          <>
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: "#a3a3a3",
+                                textDecoration: "line-through",
+                                lineHeight: 1.1,
+                                marginBottom: 4
+                              }}
+                            >
+                              {formatarReal(p.preco || 0)}
+                            </div>
+
+                            <strong
+                              style={{
+                                fontSize: 18,
+                                color: "#ea1d2c",
+                                lineHeight: 1.05,
+                                fontWeight: 900,
+                                letterSpacing: "-0.03em"
+                              }}
+                            >
+                              {formatarReal(precoFinalProduto(p))}
+                            </strong>
+                          </>
+                        ) : (
+                          <strong
+                            style={{
+                              fontSize: 18,
+                              color: "#111",
+                              lineHeight: 1.05,
+                              fontWeight: 900,
+                              letterSpacing: "-0.03em"
+                            }}
+                          >
+                            {formatarReal(precoFinalProduto(p))}
+                          </strong>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* BOTÃO */}
+                    <div
+                      onClick={abrirProduto}
+                      style={{
+                        width: 52,
+                        height: 52,
+                        borderRadius: 18,
+                        background: "#ea1d2c",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontSize: 30,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        boxShadow: "0 8px 18px rgba(234,29,44,0.20)"
+                      }}
+                    >
+                      +
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+
+        {/* INFO BAR */}
+        <div
+          style={{
+            marginTop: 18,
+            background: "#fff",
+            padding: isMobile ? "18px 12px" : "18px 24px",
+            borderRadius: 26,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 8px 18px rgba(0,0,0,0.04)",
+            border: "1px solid #f2f2f2"
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              textAlign: "center"
+            }}
+          >
+            <Clock size={20} color="#7c3aed" />
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 800,
+                marginTop: 6,
+                color: "#111"
+              }}
+            >
+              25-35 min
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#888"
+              }}
+            >
+              Tempo de entrega
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: 1,
+              height: 42,
+              background: "#ececec"
+            }}
+          />
+
+          <div
+            style={{
+              flex: 1,
+              textAlign: "center"
+            }}
+          >
+            <Bike size={20} color="#7c3aed" />
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 800,
+                marginTop: 6,
+                color: "#111"
+              }}
+            >
+              Entrega grátis
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#888"
+              }}
+            >
+              Acima de R$30
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: 1,
+              height: 42,
+              background: "#ececec"
+            }}
+          />
+
+          <div
+            style={{
+              flex: 1,
+              textAlign: "center"
+            }}
+          >
+            <ShieldCheck size={20} color="#7c3aed" />
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 800,
+                marginTop: 6,
+                color: "#111"
+              }}
+            >
+              Compra segura
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#888"
+              }}
+            >
+              Seus dados protegidos
             </div>
           </div>
         </div>
-      );
-    })}
-</div>
+      </div>
 
-  {/* INFO BAR */}
-  <div
-    style={{
-      marginTop: 20,
-      background: "#fff",
-      padding: isMobile ? "18px 12px" : "18px 24px",
-      borderRadius: 26,
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      boxShadow: "0 10px 24px rgba(0,0,0,0.05)",
-      border: "1px solid #f2f2f2"
-    }}
-  >
-    <div
-      style={{
-        flex: 1,
-        textAlign: "center"
-      }}
-    >
-      <Clock size={21} color="#7c3aed" />
-      <div
-        style={{
-          fontSize: 14,
-          fontWeight: 800,
-          marginTop: 6,
-          color: "#111"
-        }}
-      >
-        25-35 min
-      </div>
-      <div
-        style={{
-          fontSize: 11,
-          color: "#888"
-        }}
-      >
-        Tempo de entrega
-      </div>
+      {/* BARRA FLUTUANTE DO CARRINHO */}
+      {carrinho.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 10px)`,
+            width: "100%",
+            maxWidth: larguraApp,
+            padding: "0 14px",
+            boxSizing: "border-box",
+            zIndex: 30
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 26,
+              padding: 10,
+              boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
+              border: "1px solid #efefef"
+            }}
+          >
+            <button
+              onClick={() => {
+                setAba("carrinho");
+                setStep(3);
+              }}
+              style={{
+                width: "100%",
+                height: 58,
+                borderRadius: 999,
+                border: "none",
+                background: "#ea1d2c",
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: 15,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                boxShadow: "0 8px 20px rgba(234,29,44,0.22)",
+                cursor: "pointer"
+              }}
+            >
+              <span>
+                Ver carrinho •{" "}
+                {formatarReal(
+                  typeof totalFinalComFrete !== "undefined"
+                    ? subtotalProdutos
+                    : carrinho.reduce(
+                        (acc, item) => acc + Number(item.total || 0),
+                        0
+                      )
+                )}
+              </span>
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-
-    <div
-      style={{
-        width: 1,
-        height: 42,
-        background: "#ececec"
-      }}
-    />
-
-    <div
-      style={{
-        flex: 1,
-        textAlign: "center"
-      }}
-    >
-      <Bike size={21} color="#7c3aed" />
-      <div
-        style={{
-          fontSize: 14,
-          fontWeight: 800,
-          marginTop: 6,
-          color: "#111"
-        }}
-      >
-        Entrega grátis
-      </div>
-      <div
-        style={{
-          fontSize: 11,
-          color: "#888"
-        }}
-      >
-        Acima de R$30
-      </div>
-    </div>
-
-    <div
-      style={{
-        width: 1,
-        height: 42,
-        background: "#ececec"
-      }}
-    />
-
-    <div
-      style={{
-        flex: 1,
-        textAlign: "center"
-      }}
-    >
-      <ShieldCheck size={21} color="#7c3aed" />
-      <div
-        style={{
-          fontSize: 14,
-          fontWeight: 800,
-          marginTop: 6,
-          color: "#111"
-        }}
-      >
-        Compra segura
-      </div>
-      <div
-        style={{
-          fontSize: 11,
-          color: "#888"
-        }}
-      >
-        Seus dados protegidos
-      </div>
-    </div>
-  </div>
-</div>
-</div>
 
     <style>
       {`
