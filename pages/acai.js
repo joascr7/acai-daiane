@@ -5092,89 +5092,110 @@ return (
     transform: "translateX(-50%)",
     bottom: `calc(${NAVBAR}px)`,
     width: "100%",
-    maxWidth: larguraApp,
+    maxWidth: isMobile ? larguraApp : 980,
     background: "#fff",
     borderTop: "1px solid #eee",
-    padding: "10px 12px",
+    padding: isMobile ? "10px 12px" : "12px 18px",
     display: "flex",
-    gap: 10,
+    justifyContent: "center",
     zIndex: 50,
     boxSizing: "border-box"
   }}
 >
-  {/* QTD */}
   <div
     style={{
-      width: 110,
-      height: 52,
-      borderRadius: 14,
-      background: "#fff",
-      border: "1px solid #e8e8e8",
+      width: "100%",
+      maxWidth: isMobile ? "100%" : 920,
       display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "0 12px"
+      gap: 12,
+      alignItems: "center"
     }}
   >
-    <button
-      onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+    {/* QTD */}
+    <div
       style={{
-        border: "none",
-        background: "transparent",
-        color: "#d2d2d2",
-        fontSize: 22,
-        cursor: "pointer"
+        width: isMobile ? 110 : 118,
+        height: isMobile ? 52 : 54,
+        borderRadius: 14,
+        background: "#fff",
+        border: "1px solid #e8e8e8",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 12px",
+        boxSizing: "border-box",
+        flexShrink: 0
       }}
     >
-      −
-    </button>
+      <button
+        onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+        style={{
+          border: "none",
+          background: "transparent",
+          color: "#d2d2d2",
+          fontSize: 22,
+          cursor: "pointer",
+          padding: 0
+        }}
+      >
+        −
+      </button>
 
-    <strong style={{ fontSize: 16 }}>{quantidade}</strong>
+      <strong
+        style={{
+          fontSize: 16,
+          color: "#111"
+        }}
+      >
+        {quantidade}
+      </strong>
 
+      <button
+        onClick={() => setQuantidade((q) => q + 1)}
+        style={{
+          border: "none",
+          background: "transparent",
+          color: "#ea1d2c",
+          fontSize: 22,
+          cursor: "pointer",
+          padding: 0
+        }}
+      >
+        +
+      </button>
+    </div>
+
+    {/* BOTÃO */}
     <button
-      onClick={() => setQuantidade((q) => q + 1)}
+      onClick={adicionarCarrinho}
+      disabled={!podeContinuar}
       style={{
+        flex: 1,
+        height: isMobile ? 52 : 54,
+        borderRadius: 14,
+        background: podeContinuar ? "#ea1d2c" : "#e8e8e8",
+        color: podeContinuar ? "#fff" : "#a8a8a8",
         border: "none",
-        background: "transparent",
-        color: "#ea1d2c",
-        fontSize: 22,
-        cursor: "pointer"
+        fontWeight: 800,
+        fontSize: isMobile ? 15 : 16,
+        cursor: podeContinuar ? "pointer" : "not-allowed",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: isMobile ? "0 16px" : "0 18px",
+        boxSizing: "border-box",
+        maxWidth: isMobile ? "100%" : 790
       }}
     >
-      +
+      <span>Adicionar</span>
+
+      <span style={{ fontWeight: 900 }}>
+        {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
+      </span>
     </button>
   </div>
-
-  {/* BOTÃO */}
-  <button
-    onClick={adicionarCarrinho}
-    disabled={!podeContinuar}
-    style={{
-      flex: 1,
-      height: 52,
-      borderRadius: 14,
-      background: podeContinuar ? "#ea1d2c" : "#e8e8e8",
-      color: podeContinuar ? "#fff" : "#a8a8a8",
-      border: "none",
-      fontWeight: 800,
-      fontSize: 15,
-      cursor: podeContinuar ? "pointer" : "not-allowed",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "0 16px"
-    }}
-  >
-    <span>Adicionar</span>
-
-    <span style={{ fontWeight: 900 }}>
-      {formatarReal(
-        (Number(produto?.preco || 0) + totalExtras) * quantidade
-      )}
-    </span>
-  </button>
   </div>
-  </div>
+</div>
 )}
 
 {aba === "carrinho" && step === 3 && (
