@@ -7628,10 +7628,10 @@ return (
     left: "50%",
     transform: "translateX(-50%)",
     width: "100%",
-    maxWidth: isMobile ? larguraApp : 700,
+    maxWidth: isMobile ? larguraApp : 600,
+    padding: "6px 12px",
     background: "#fff",
     borderTop: "1px solid #eee",
-    padding: isMobile ? "10px 12px" : "10px 16px",
     zIndex: 20,
     boxSizing: "border-box"
   }}
@@ -7655,15 +7655,15 @@ return (
     }}
     style={{
       width: "100%",
-      height: isMobile ? 48 : 42,
-      borderRadius: isMobile ? 14 : 18,
+      height: isMobile ? 44 : 40, // 🔥 MENOR
+      borderRadius: 12, // 🔥 menos arredondado
       background: "#ea1d2c",
       color: "#fff",
       border: "none",
-      fontWeight: 800,
-      fontSize: isMobile ? 15 : 15,
+      fontWeight: 700, // 🔥 menos pesado
+      fontSize: 14, // 🔥 menor
       cursor: "pointer",
-      boxShadow: "0 6px 16px rgba(234,29,44,0.18)"
+      boxShadow: "0 4px 12px rgba(234,29,44,0.18)" // 🔥 mais leve
     }}
   >
     Finalizar pedido • {formatarReal(totalFinalComFrete)}
