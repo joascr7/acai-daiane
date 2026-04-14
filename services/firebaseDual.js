@@ -1,6 +1,6 @@
 // services/firebaseDual.js
 
-import { initializeApp, getApps } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -14,10 +14,16 @@ const firebaseConfig = {
   measurementId: "G-TWVZ9NPED1"
 };
 
-// 🔥 UM ÚNICO APP
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+// 🔥 EVITA ERRO NO NEXT (SSR + HOT RELOAD)
+let app;
 
-// 🔥 EXPORTA TUDO DO MESMO APP
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
+
+// 🔥 EXPORTS
 export const authCliente = getAuth(app);
 export const authAdmin = getAuth(app);
 
