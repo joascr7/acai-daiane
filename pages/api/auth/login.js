@@ -1,4 +1,4 @@
-import { dbAdmin } from "@/services/firebaseAdmin";
+import { dbCliente as dbAdmin } from "@/services/firebaseDual"; 
 import bcrypt from "bcryptjs";
 
 export default async function handler(req, res) {
