@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Cropper from "react-easy-crop";
 import Head from "next/head";
-
+import { getApp } from "firebase/app";
 import { dbAdmin as db, authAdmin as auth } from "../services/firebaseDual";
 
 import {
@@ -2125,68 +2125,7 @@ if (loadingAuth) {
 )}
 
 
-{/* 🔥 NAVBAR MOBILE ADMIN */}
-{isMobile && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "100%",
-      maxWidth: larguraApp,
-      background: "#fff",
-      borderTop: "1px solid #eee",
-      display: "flex",
-      justifyContent: "space-around",
-      padding: "8px 0",
-      zIndex: 999,
-      boxShadow: "0 -4px 20px rgba(0,0,0,0.06)"
-    }}
-  >
-    {[
-      { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
-      { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
-      { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
-      { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
-      { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
-    ].map(item => {
-      const ativo = abaAdmin === item.id;
 
-      return (
-        <div
-          key={item.id}
-          onClick={() => setAbaAdmin(item.id)}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            fontSize: 10,
-            fontWeight: 600,
-            color: ativo ? "#ea1d2c" : "#777",
-            cursor: "pointer"
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: ativo ? "#fff1f2" : "transparent",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
-          >
-            {item.icon}
-          </div>
-
-          {item.nome}
-        </div>
-      );
-    })}
-  </div>
-)}
 
 
 {abaAdmin === "gastos" && (
