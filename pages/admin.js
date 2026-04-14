@@ -43,6 +43,10 @@ import {
   TrendingUp,
   TrendingDown,
   Receipt,
+  ClipboardList,
+  ShoppingBag,
+  Tag,
+  ArrowRight,
   CircleDollarSign
 } from "lucide-react";
 
@@ -1724,21 +1728,21 @@ if (loadingAuth) {
       {abaAdmin === "dashboard" && (
   <div
     style={{
-      marginTop: 15,
-      padding: isMobile ? 14 : 20,
-      background: "#f3f4f6",
-      borderRadius: 28
+      marginTop: 16,
+      padding: isMobile ? 14 : 22,
+      background: "linear-gradient(180deg, #f5f6fa 0%, #eef1f6 100%)",
+      borderRadius: 30
     }}
   >
     {/* TOPO PREMIUM */}
     <div
       style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%)",
+        background: "linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%)",
         borderRadius: 28,
         padding: isMobile ? 18 : 24,
         marginBottom: 18,
-        boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
-        border: "1px solid #ececec",
+        boxShadow: "0 14px 40px rgba(15,23,42,0.08)",
+        border: "1px solid #ececf2",
         display: "flex",
         justifyContent: "space-between",
         alignItems: isMobile ? "flex-start" : "center",
@@ -1754,27 +1758,27 @@ if (loadingAuth) {
             gap: 8,
             padding: "7px 12px",
             borderRadius: 999,
-            background: "#fff4f4",
+            background: "#fff1f2",
             color: "#ea1d2c",
             fontSize: 12,
             fontWeight: 800,
             marginBottom: 12
           }}
         >
-          Painel financeiro
+          Dashboard financeiro
         </div>
 
         <h2
           style={{
             margin: 0,
             color: "#111827",
-            fontSize: isMobile ? 26 : 34,
+            fontSize: isMobile ? 28 : 36,
             fontWeight: 900,
-            letterSpacing: "-0.03em",
-            lineHeight: 1.05
+            letterSpacing: "-0.04em",
+            lineHeight: 1.02
           }}
         >
-          Dashboard da operação
+          Controle total da operação
         </h2>
 
         <p
@@ -1783,12 +1787,12 @@ if (loadingAuth) {
             marginBottom: 0,
             fontSize: 14,
             color: "#6b7280",
-            lineHeight: 1.45,
-            maxWidth: 560
+            lineHeight: 1.5,
+            maxWidth: 600
           }}
         >
-          Acompanhe faturamento, gastos, lucro e indicadores principais da loja
-          em um só lugar.
+          Acompanhe faturamento, gastos, lucro, pedidos e os principais
+          indicadores da loja em tempo real.
         </p>
       </div>
 
@@ -1819,7 +1823,7 @@ if (loadingAuth) {
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            boxShadow: "0 10px 24px rgba(17,24,39,0.12)",
+            boxShadow: "0 12px 24px rgba(17,24,39,0.16)",
             flex: isMobile ? 1 : "unset"
           }}
         >
@@ -1829,7 +1833,7 @@ if (loadingAuth) {
       </div>
     </div>
 
-    {/* CARDS FINANCEIROS */}
+    {/* CARDS PRINCIPAIS */}
     <div
       style={{
         display: "grid",
@@ -1838,21 +1842,21 @@ if (loadingAuth) {
         marginBottom: 20
       }}
     >
-      {/* FATURAMENTO */}
       <div
         style={{
-          background: "linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%)",
-          borderRadius: 24,
+          background: "linear-gradient(135deg, #ffffff 0%, #f8fffb 100%)",
+          borderRadius: 26,
           padding: 22,
-          border: "1px solid #ececec",
-          boxShadow: "0 10px 30px rgba(15,23,42,0.06)"
+          border: "1px solid #e8f4ec",
+          boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
         }}
       >
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
+            gap: 12,
             marginBottom: 14
           }}
         >
@@ -1874,14 +1878,14 @@ if (loadingAuth) {
                 color: "#9ca3af"
               }}
             >
-              Valor total vendido
+              Total vendido em pedidos
             </div>
           </div>
 
           <div
             style={{
-              width: 48,
-              height: 48,
+              width: 50,
+              height: 50,
               borderRadius: 16,
               background: "#ecfdf3",
               display: "flex",
@@ -1896,10 +1900,10 @@ if (loadingAuth) {
 
         <div
           style={{
-            fontSize: isMobile ? 32 : 38,
+            fontSize: isMobile ? 34 : 42,
             fontWeight: 900,
             color: "#111827",
-            letterSpacing: "-0.03em",
+            letterSpacing: "-0.04em",
             lineHeight: 1
           }}
         >
@@ -1911,28 +1915,28 @@ if (loadingAuth) {
             marginTop: 12,
             fontSize: 13,
             color: "#6b7280",
-            lineHeight: 1.4
+            lineHeight: 1.45
           }}
         >
-          Total vendido em pedidos registrados no painel.
+          Volume consolidado de pedidos registrados no painel.
         </div>
       </div>
 
-      {/* GASTOS */}
       <div
         style={{
-          background: "linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%)",
-          borderRadius: 24,
+          background: "linear-gradient(135deg, #ffffff 0%, #fff8f8 100%)",
+          borderRadius: 26,
           padding: 22,
-          border: "1px solid #ececec",
-          boxShadow: "0 10px 30px rgba(15,23,42,0.06)"
+          border: "1px solid #f8e2e5",
+          boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
         }}
       >
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
+            gap: 12,
             marginBottom: 14
           }}
         >
@@ -1954,14 +1958,14 @@ if (loadingAuth) {
                 color: "#9ca3af"
               }}
             >
-              Custos cadastrados
+              Custos operacionais
             </div>
           </div>
 
           <div
             style={{
-              width: 48,
-              height: 48,
+              width: 50,
+              height: 50,
               borderRadius: 16,
               background: "#fff1f2",
               display: "flex",
@@ -1976,10 +1980,10 @@ if (loadingAuth) {
 
         <div
           style={{
-            fontSize: isMobile ? 30 : 34,
+            fontSize: isMobile ? 32 : 38,
             fontWeight: 900,
             color: "#111827",
-            letterSpacing: "-0.03em",
+            letterSpacing: "-0.04em",
             lineHeight: 1
           }}
         >
@@ -1991,31 +1995,31 @@ if (loadingAuth) {
             marginTop: 12,
             fontSize: 13,
             color: "#6b7280",
-            lineHeight: 1.4
+            lineHeight: 1.45
           }}
         >
           Soma de todos os gastos cadastrados na operação.
         </div>
       </div>
 
-      {/* LUCRO */}
       <div
         style={{
           background:
             lucroTotal >= 0
-              ? "linear-gradient(180deg, #ffffff 0%, #f8fffb 100%)"
-              : "linear-gradient(180deg, #ffffff 0%, #fff8f8 100%)",
-          borderRadius: 24,
+              ? "linear-gradient(135deg, #ffffff 0%, #f6fff9 100%)"
+              : "linear-gradient(135deg, #ffffff 0%, #fff7f7 100%)",
+          borderRadius: 26,
           padding: 22,
           border: lucroTotal >= 0 ? "1px solid #dcfce7" : "1px solid #fee2e2",
-          boxShadow: "0 10px 30px rgba(15,23,42,0.06)"
+          boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
         }}
       >
         <div
           style={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
+            gap: 12,
             marginBottom: 14
           }}
         >
@@ -2043,8 +2047,8 @@ if (loadingAuth) {
 
           <div
             style={{
-              width: 48,
-              height: 48,
+              width: 50,
+              height: 50,
               borderRadius: 16,
               background: lucroTotal >= 0 ? "#ecfdf3" : "#fff1f2",
               display: "flex",
@@ -2059,10 +2063,10 @@ if (loadingAuth) {
 
         <div
           style={{
-            fontSize: isMobile ? 30 : 34,
+            fontSize: isMobile ? 32 : 38,
             fontWeight: 900,
             color: lucroTotal >= 0 ? "#16a34a" : "#dc2626",
-            letterSpacing: "-0.03em",
+            letterSpacing: "-0.04em",
             lineHeight: 1
           }}
         >
@@ -2074,7 +2078,7 @@ if (loadingAuth) {
             marginTop: 12,
             fontSize: 13,
             color: "#6b7280",
-            lineHeight: 1.4
+            lineHeight: 1.45
           }}
         >
           Margem estimada de <strong>{margemLucro}%</strong>.
@@ -2082,7 +2086,7 @@ if (loadingAuth) {
       </div>
     </div>
 
-    {/* CARDS OPERACIONAIS */}
+    {/* CARDS SECUNDÁRIOS */}
     <div
       style={{
         display: "grid",
@@ -2095,22 +2099,35 @@ if (loadingAuth) {
         {
           titulo: "Pedidos em andamento",
           valor: pedidosEmAndamento,
-          cor: "#111"
+          cor: "#111827",
+          icon: <ClipboardList size={18} color="#6b7280" />
         },
         {
           titulo: "Produtos ativos",
           valor: produtosAtivos,
-          cor: "#111"
+          cor: "#111827",
+          icon: <ShoppingBag size={18} color="#6b7280" />
         },
         {
           titulo: "Cupons cadastrados",
           valor: cupons.length,
-          cor: "#111"
+          cor: "#111827",
+          icon: <Tag size={18} color="#d97706" />
         },
         {
           titulo: "Status da loja",
-          valor: lojaAberta ? "Aberta" : "Fechada",
-          cor: lojaAberta ? "#16a34a" : "#dc2626"
+          valor: lojaAberta ? "Loja aberta" : "Loja fechada",
+          cor: lojaAberta ? "#16a34a" : "#dc2626",
+          icon: (
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: "50%",
+                background: lojaAberta ? "#16a34a" : "#dc2626"
+              }}
+            />
+          )
         }
       ].map((item, index) => (
         <div
@@ -2120,25 +2137,50 @@ if (loadingAuth) {
             borderRadius: 22,
             padding: 18,
             boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-            border: "1px solid #ececec",
+            border: "1px solid #ececf2",
             minHeight: 118
           }}
         >
           <div
             style={{
-              fontSize: 13,
-              color: "#6b7280",
-              fontWeight: 700
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 10
             }}
           >
-            {item.titulo}
+            <div
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                fontWeight: 700
+              }}
+            >
+              {item.titulo}
+            </div>
+
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 12,
+                background: "#f8fafc",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0
+              }}
+            >
+              {item.icon}
+            </div>
           </div>
 
           <div
             style={{
               fontSize: isMobile ? 24 : 28,
               fontWeight: 900,
-              marginTop: 12,
+              marginTop: 8,
               color: item.cor,
               letterSpacing: "-0.02em",
               lineHeight: 1.05
@@ -2154,8 +2196,9 @@ if (loadingAuth) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "340px 1fr",
-        gap: 16
+        gridTemplateColumns: isMobile ? "1fr" : "360px 1fr",
+        gap: 16,
+        marginBottom: 20
       }}
     >
       {/* AÇÕES */}
@@ -2165,7 +2208,7 @@ if (loadingAuth) {
           borderRadius: 24,
           padding: 20,
           boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-          border: "1px solid #ececec"
+          border: "1px solid #ececf2"
         }}
       >
         <h3
@@ -2173,7 +2216,7 @@ if (loadingAuth) {
             marginTop: 0,
             marginBottom: 14,
             color: "#111827",
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: 800
           }}
         >
@@ -2190,9 +2233,15 @@ if (loadingAuth) {
           <button
             onClick={() => toggleLoja(true)}
             style={{
-              ...btnSuccess,
-              height: 46,
-              borderRadius: 14
+              height: 48,
+              borderRadius: 16,
+              border: "none",
+              background: "linear-gradient(90deg, #16a34a, #34d399)",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: 15,
+              cursor: "pointer",
+              boxShadow: "0 10px 20px rgba(22,163,74,0.18)"
             }}
           >
             Abrir loja
@@ -2201,9 +2250,15 @@ if (loadingAuth) {
           <button
             onClick={() => toggleLoja(false)}
             style={{
-              ...btnDanger,
-              height: 46,
-              borderRadius: 14
+              height: 48,
+              borderRadius: 16,
+              border: "none",
+              background: "linear-gradient(90deg, #ef4444, #fb7185)",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: 15,
+              cursor: "pointer",
+              boxShadow: "0 10px 20px rgba(239,68,68,0.18)"
             }}
           >
             Fechar loja
@@ -2212,16 +2267,14 @@ if (loadingAuth) {
           <button
             onClick={limparPedidos}
             style={{
-              background: "#ef4444",
-              color: "#fff",
-              height: 46,
-              borderRadius: 14,
-              border: "none",
-              width: "100%",
+              height: 48,
+              borderRadius: 16,
+              border: "1px solid #e5e7eb",
+              background: "#f8fafc",
+              color: "#374151",
               fontWeight: 800,
-              fontSize: 14,
-              cursor: "pointer",
-              boxShadow: "0 8px 18px rgba(239,68,68,0.18)"
+              fontSize: 15,
+              cursor: "pointer"
             }}
           >
             Limpar pedidos
@@ -2236,20 +2289,58 @@ if (loadingAuth) {
           borderRadius: 24,
           padding: 20,
           boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-          border: "1px solid #ececec"
+          border: "1px solid #ececf2"
         }}
       >
-        <h3
+        <div
           style={{
-            marginTop: 0,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
             marginBottom: 16,
-            color: "#111827",
-            fontSize: 18,
-            fontWeight: 800
+            flexWrap: "wrap"
           }}
         >
-          Vendas por dia
-        </h3>
+          <h3
+            style={{
+              margin: 0,
+              color: "#111827",
+              fontSize: 20,
+              fontWeight: 800
+            }}
+          >
+            Vendas por dia
+          </h3>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              background: "#f3f4f6",
+              padding: 4,
+              borderRadius: 12
+            }}
+          >
+            {["Hoje", "7 dias", "30 dias"].map((filtro, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  background: i === 0 ? "#fff" : "transparent",
+                  color: i === 0 ? "#111" : "#777",
+                  boxShadow: i === 0 ? "0 2px 6px rgba(0,0,0,0.08)" : "none"
+                }}
+              >
+                {filtro}
+              </div>
+            ))}
+          </div>
+        </div>
 
         {Object.keys(vendasPorDia).length === 0 && (
           <div
@@ -2310,254 +2401,370 @@ if (loadingAuth) {
           ))}
       </div>
     </div>
-  </div>
-)}
 
-
-
-
-
-{abaAdmin === "gastos" && (
-  <div style={{
-    marginTop: 15,
-    padding: 18,
-    background: "#f4f5f7",
-    borderRadius: 20
-  }}>
-    {/* TOPO */}
-    <div style={{
-      background: "#fff",
-      borderRadius: 20,
-      padding: 18,
-      marginBottom: 16,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      border: "1px solid #ececec",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: isMobile ? "flex-start" : "center",
-      gap: 12,
-      flexWrap: "wrap"
-    }}>
-      <div>
-        <h2 style={{
-          margin: 0,
-          color: "#111",
-          fontSize: 24,
-          fontWeight: 800
-        }}>
-          Gastos
-        </h2>
-
-        <p style={{
-          marginTop: 6,
-          marginBottom: 0,
-          fontSize: 13,
-          color: "#666"
-        }}>
-          Controle manual dos gastos da operação.
-        </p>
-      </div>
-
-      <button
-        onClick={() => {
-          limparFormularioGasto();
-          setMostrarModalGasto(true);
-        }}
+    {/* ÚLTIMOS GASTOS + ÚLTIMOS PEDIDOS */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: 16
+      }}
+    >
+      {/* GASTOS */}
+      <div
         style={{
-          height: 46,
-          padding: "0 18px",
-          borderRadius: 14,
-          border: "none",
-          background: "#111",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 14,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: 8
+          background: "#fff",
+          borderRadius: 24,
+          padding: 20,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+          border: "1px solid #ececf2"
         }}
       >
-        <Plus size={18} />
-        Novo gasto
-      </button>
-    </div>
-
-    {/* RESUMO */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: 16,
-      marginBottom: 16
-    }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        border: "1px solid #ececec",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Total de gastos</div>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 900,
-          marginTop: 8,
-          color: "#ea1d2c"
-        }}>
-          {formatarReal(totalGastos)}
-        </div>
-      </div>
-
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        border: "1px solid #ececec",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Quantidade de registros</div>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 900,
-          marginTop: 8,
-          color: "#111"
-        }}>
-          {gastos.length}
-        </div>
-      </div>
-    </div>
-
-    {/* LISTA */}
-    <div style={{
-      background: "#fff",
-      borderRadius: 20,
-      padding: 18,
-      border: "1px solid #ececec",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-    }}>
-      {gastos.length === 0 ? (
-        <div style={{
-          padding: "18px 8px",
-          textAlign: "center",
-          color: "#777",
-          fontSize: 14
-        }}>
-          Nenhum gasto cadastrado ainda.
-        </div>
-      ) : (
-        gastos.map((item) => (
-          <div
-            key={item.id}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 14,
+            gap: 10,
+            flexWrap: "wrap"
+          }}
+        >
+          <h3
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              padding: 12,
-              borderRadius: 16,
-              marginBottom: 10,
-              background: "#fff",
-              border: "1px solid #ececec",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-              flexWrap: isMobile ? "wrap" : "nowrap"
+              margin: 0,
+              fontSize: 20,
+              fontWeight: 800,
+              color: "#111827"
             }}
           >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 15,
-                fontWeight: 700,
-                color: "#111"
-              }}>
-                {item.nome}
-              </div>
+            Últimos gastos
+          </h3>
 
-              <div style={{
-                marginTop: 4,
-                fontSize: 13,
-                color: "#666"
-              }}>
-                Categoria: <strong style={{ color: "#111" }}>{item.categoria || "outros"}</strong>
-              </div>
+          <button
+            onClick={() => setAbaAdmin("gastos")}
+            style={{
+              height: 34,
+              padding: "0 12px",
+              borderRadius: 10,
+              border: "1px solid #e5e7eb",
+              background: "#fff",
+              color: "#111827",
+              fontWeight: 700,
+              fontSize: 12,
+              cursor: "pointer"
+            }}
+          >
+            Ver todos
+          </button>
+        </div>
 
-              <div style={{
-                marginTop: 4,
-                fontSize: 13,
-                color: "#666"
-              }}>
-                Data: {item.dataTexto || new Date(item.data).toLocaleDateString("pt-BR")}
-              </div>
-
-              {!!item.observacao && (
-                <div style={{
-                  marginTop: 4,
-                  fontSize: 12,
-                  color: "#888"
-                }}>
-                  {item.observacao}
-                </div>
-              )}
-            </div>
-
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "wrap",
-              justifyContent: isMobile ? "flex-start" : "flex-end"
-            }}>
-              <div style={{
-                minWidth: 120,
-                textAlign: isMobile ? "left" : "right",
-                fontSize: 18,
-                fontWeight: 900,
-                color: "#ea1d2c"
-              }}>
-                {formatarReal(item.valor)}
-              </div>
-
-              <button
-                onClick={() => abrirEdicaoGasto(item)}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  border: "1px solid #e5e5e5",
-                  background: "#fff",
-                  color: "#111",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer"
-                }}
-              >
-                <Pencil size={17} />
-              </button>
-
-              <button
-                onClick={() => excluirGasto(item.id)}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  border: "none",
-                  background: "#ea1d2c",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer"
-                }}
-              >
-                <Trash2 size={16} />
-              </button>
-            </div>
+        {gastos.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              color: "#6b7280",
+              padding: "28px 18px",
+              background: "#fafafa",
+              borderRadius: 18,
+              border: "1px dashed #e5e7eb",
+              fontSize: 14,
+              fontWeight: 500
+            }}
+          >
+            Nenhum gasto cadastrado ainda
           </div>
-        ))
-      )}
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {gastos.slice(0, 4).map((g) => (
+              <div
+                key={g.id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "1.6fr auto auto auto",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  background: "#f9fafb",
+                  border: "1px solid #eee"
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: 14,
+                    color: "#111"
+                  }}
+                >
+                  {g.nome}
+                </strong>
+
+                <span
+                  style={{
+                    justifySelf: isMobile ? "flex-start" : "center",
+                    fontSize: 12,
+                    color: "#666",
+                    background: "#eef2f7",
+                    padding: "4px 10px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    width: "fit-content"
+                  }}
+                >
+                  {g.categoria || "outros"}
+                </span>
+
+                <span
+                  style={{
+                    justifySelf: isMobile ? "flex-start" : "end",
+                    fontSize: 14,
+                    color: "#111",
+                    fontWeight: 800
+                  }}
+                >
+                  {formatarReal(g.valor)}
+                </span>
+
+                <button
+                  onClick={() => abrirEdicaoGasto(g)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    border: "1px solid #e5e7eb",
+                    background: "#fff",
+                    color: "#111",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    justifySelf: isMobile ? "flex-start" : "end"
+                  }}
+                >
+                  <Pencil size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* PEDIDOS */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 20,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+          border: "1px solid #ececf2"
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 14,
+            gap: 10,
+            flexWrap: "wrap"
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: 20,
+              fontWeight: 800,
+              color: "#111827"
+            }}
+          >
+            Últimos pedidos
+          </h3>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              background: "#f3f4f6",
+              padding: 4,
+              borderRadius: 12
+            }}
+          >
+            {["Hoje", "7 dias", "30 dias"].map((filtro, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  background: i === 0 ? "#fff" : "transparent",
+                  color: i === 0 ? "#111" : "#777",
+                  boxShadow: i === 0 ? "0 2px 6px rgba(0,0,0,0.08)" : "none"
+                }}
+              >
+                {filtro}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {pedidos.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              color: "#6b7280",
+              padding: "28px 18px",
+              background: "#fafafa",
+              borderRadius: 18,
+              border: "1px dashed #e5e7eb",
+              fontSize: 14,
+              fontWeight: 500
+            }}
+          >
+            Nenhum pedido encontrado
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {pedidos.slice(0, 4).map((p, i) => (
+              <div
+                key={p.id || i}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: isMobile ? "1fr" : "auto 1fr auto auto",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  background: "#f9fafb",
+                  border: "1px solid #eee"
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: 14,
+                    color: "#111",
+                    minWidth: 70
+                  }}
+                >
+                  #{p.codigo || p.id?.slice(0, 5) || i + 1}
+                </strong>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    flexWrap: "wrap"
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      padding: "4px 10px",
+                      borderRadius: 999,
+                      fontWeight: 700,
+                      background:
+                        p.status === "entregue"
+                          ? "#ecfdf3"
+                          : p.status === "saiu"
+                          ? "#fff7ed"
+                          : p.status === "preparando"
+                          ? "#eef2ff"
+                          : "#f3f4f6",
+                      color:
+                        p.status === "entregue"
+                          ? "#16a34a"
+                          : p.status === "saiu"
+                          ? "#ea580c"
+                          : p.status === "preparando"
+                          ? "#4338ca"
+                          : "#6b7280"
+                    }}
+                  >
+                    {p.status === "entregue"
+                      ? "Pedido entregue"
+                      : p.status === "saiu"
+                      ? "Saiu para entrega"
+                      : p.status === "preparando"
+                      ? "Preparando"
+                      : "Pagamento confirmado"}
+                  </span>
+
+                  <span
+                    style={{
+                      fontSize: 14,
+                      color: "#374151",
+                      fontWeight: 600
+                    }}
+                  >
+                    {p.cliente?.nome || p.clienteNome || "Cliente"}
+                  </span>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: "#6b7280",
+                    fontWeight: 700
+                  }}
+                >
+                  {p.data
+                    ? new Date(Number(p.data)).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                      })
+                    : "--:--"}
+                </span>
+
+                <button
+                  onClick={() => setAbaAdmin("pedidos")}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    border: "1px solid #e5e7eb",
+                    background: "#fff",
+                    color: "#111",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    justifySelf: isMobile ? "flex-start" : "end"
+                  }}
+                >
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div
+          style={{
+            marginTop: 14,
+            textAlign: "center"
+          }}
+        >
+          <button
+            onClick={() => setAbaAdmin("pedidos")}
+            style={{
+              padding: "10px 16px",
+              borderRadius: 12,
+              border: "none",
+              background: "#f3f4f6",
+              color: "#111",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            Ver todos os pedidos
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 )}
-
 {abaAdmin === "fretes" && (
   <div
     style={{
