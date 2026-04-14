@@ -1,4 +1,4 @@
-import { dbCliente as dbAdmin } from "../../services/firebaseDual";
+import { dbAdmin } from "../../services/firebaseAdmin";
 
 export default async function handler(req, res) {
   try {
