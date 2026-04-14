@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { db } from "@/services/firebaseDual"; 
+import { dbCliente as db } from "@/services/firebaseDual";
 import { useRouter } from "next/router";
 import { LogOut } from "lucide-react";
 

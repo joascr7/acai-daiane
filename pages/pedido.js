@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { db } from '../services/firebaseDual'; 
+import { dbCliente as db } from '../services/firebaseDual';
 import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Pedido() {
