@@ -773,7 +773,7 @@ useEffect(() => {
       if (permission !== "granted") return;
 
       // 🔥 IMPORTA O FIREBASE PRIMEIRO
-      const { app } = await import("../services/firebase-messaging");
+     
 
       console.log("✅ Firebase carregado");
 
