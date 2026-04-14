@@ -1722,366 +1722,548 @@ if (loadingAuth) {
        
       {/* DASHBOARD */}
       {abaAdmin === "dashboard" && (
-  <div style={{
-    marginTop: 15,
-    padding: 18,
-    background: "#f4f5f7",
-    borderRadius: 20
-  }}>
-    {/* TOPO */}
-    <div style={{
-      background: "#fff",
-      borderRadius: 24,
-      padding: 22,
-      marginBottom: 18,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      border: "1px solid #ececec",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: isMobile ? "flex-start" : "center",
-      gap: 14,
-      flexWrap: "wrap"
-    }}>
-      <div>
-        <h2 style={{
-          margin: 0,
-          color: "#111",
-          fontSize: 26,
-          fontWeight: 800
-        }}>
-          Dashboard Financeiro
+  <div
+    style={{
+      marginTop: 15,
+      padding: isMobile ? 14 : 20,
+      background: "#f3f4f6",
+      borderRadius: 28
+    }}
+  >
+    {/* TOPO PREMIUM */}
+    <div
+      style={{
+        background: "linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%)",
+        borderRadius: 28,
+        padding: isMobile ? 18 : 24,
+        marginBottom: 18,
+        boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
+        border: "1px solid #ececec",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: isMobile ? "flex-start" : "center",
+        gap: 16,
+        flexWrap: "wrap"
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "7px 12px",
+            borderRadius: 999,
+            background: "#fff4f4",
+            color: "#ea1d2c",
+            fontSize: 12,
+            fontWeight: 800,
+            marginBottom: 12
+          }}
+        >
+          Painel financeiro
+        </div>
+
+        <h2
+          style={{
+            margin: 0,
+            color: "#111827",
+            fontSize: isMobile ? 26 : 34,
+            fontWeight: 900,
+            letterSpacing: "-0.03em",
+            lineHeight: 1.05
+          }}
+        >
+          Dashboard da operação
         </h2>
 
-        <p style={{
-          marginTop: 6,
-          marginBottom: 0,
-          fontSize: 13,
-          color: "#666"
-        }}>
-          Visão geral de pedidos, faturamento, gastos e lucro da operação.
+        <p
+          style={{
+            marginTop: 8,
+            marginBottom: 0,
+            fontSize: 14,
+            color: "#6b7280",
+            lineHeight: 1.45,
+            maxWidth: 560
+          }}
+        >
+          Acompanhe faturamento, gastos, lucro e indicadores principais da loja
+          em um só lugar.
         </p>
       </div>
 
-      <button
-        onClick={() => {
-          limparFormularioGasto();
-          setMostrarModalGasto(true);
-        }}
+      <div
         style={{
-          height: 46,
-          padding: "0 18px",
-          borderRadius: 14,
-          border: "none",
-          background: "#111",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 14,
-          cursor: "pointer",
           display: "flex",
-          alignItems: "center",
-          gap: 8
+          gap: 10,
+          flexWrap: "wrap",
+          width: isMobile ? "100%" : "auto"
         }}
       >
-        <Plus size={18} />
-        Novo gasto
-      </button>
-    </div>
-
-    {/* CARDS PRINCIPAIS */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-      gap: 16,
-      marginBottom: 20
-    }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: 22,
-        padding: 20,
-        border: "1px solid #ececec",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12
-        }}>
-          <div style={{ fontSize: 13, color: "#777" }}>Faturamento</div>
-          <div style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
-            background: "#ecfdf3",
+        <button
+          onClick={() => {
+            limparFormularioGasto();
+            setMostrarModalGasto(true);
+          }}
+          style={{
+            height: 48,
+            padding: "0 18px",
+            borderRadius: 16,
+            border: "none",
+            background: "#111827",
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: 14,
+            cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
-          }}>
-            <TrendingUp size={20} color="#16a34a" />
+            justifyContent: "center",
+            gap: 8,
+            boxShadow: "0 10px 24px rgba(17,24,39,0.12)",
+            flex: isMobile ? 1 : "unset"
+          }}
+        >
+          <Plus size={18} />
+          Novo gasto
+        </button>
+      </div>
+    </div>
+
+    {/* CARDS FINANCEIROS */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr 1fr",
+        gap: 16,
+        marginBottom: 20
+      }}
+    >
+      {/* FATURAMENTO */}
+      <div
+        style={{
+          background: "linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%)",
+          borderRadius: 24,
+          padding: 22,
+          border: "1px solid #ececec",
+          boxShadow: "0 10px 30px rgba(15,23,42,0.06)"
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 14
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                fontWeight: 700
+              }}
+            >
+              Faturamento
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "#9ca3af"
+              }}
+            >
+              Valor total vendido
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 16,
+              background: "#ecfdf3",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}
+          >
+            <TrendingUp size={22} color="#16a34a" />
           </div>
         </div>
 
-        <div style={{
-          fontSize: 30,
-          fontWeight: 900,
-          color: "#111"
-        }}>
+        <div
+          style={{
+            fontSize: isMobile ? 32 : 38,
+            fontWeight: 900,
+            color: "#111827",
+            letterSpacing: "-0.03em",
+            lineHeight: 1
+          }}
+        >
           {formatarReal(totalFaturado)}
         </div>
 
-        <div style={{
-          marginTop: 8,
-          fontSize: 12,
-          color: "#666"
-        }}>
-          Total vendido em pedidos registrados
+        <div
+          style={{
+            marginTop: 12,
+            fontSize: 13,
+            color: "#6b7280",
+            lineHeight: 1.4
+          }}
+        >
+          Total vendido em pedidos registrados no painel.
         </div>
       </div>
 
-      <div style={{
-        background: "#fff",
-        borderRadius: 22,
-        padding: 20,
-        border: "1px solid #ececec",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12
-        }}>
-          <div style={{ fontSize: 13, color: "#777" }}>Gastos</div>
-          <div style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
-            background: "#fff1f2",
+      {/* GASTOS */}
+      <div
+        style={{
+          background: "linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%)",
+          borderRadius: 24,
+          padding: 22,
+          border: "1px solid #ececec",
+          boxShadow: "0 10px 30px rgba(15,23,42,0.06)"
+        }}
+      >
+        <div
+          style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
-          }}>
-            <TrendingDown size={20} color="#ea1d2c" />
+            justifyContent: "space-between",
+            marginBottom: 14
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                fontWeight: 700
+              }}
+            >
+              Gastos
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "#9ca3af"
+              }}
+            >
+              Custos cadastrados
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 16,
+              background: "#fff1f2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}
+          >
+            <TrendingDown size={22} color="#ea1d2c" />
           </div>
         </div>
 
-        <div style={{
-          fontSize: 30,
-          fontWeight: 900,
-          color: "#111"
-        }}>
+        <div
+          style={{
+            fontSize: isMobile ? 30 : 34,
+            fontWeight: 900,
+            color: "#111827",
+            letterSpacing: "-0.03em",
+            lineHeight: 1
+          }}
+        >
           {formatarReal(totalGastos)}
         </div>
 
-        <div style={{
-          marginTop: 8,
-          fontSize: 12,
-          color: "#666"
-        }}>
-          Soma de todos os gastos cadastrados
+        <div
+          style={{
+            marginTop: 12,
+            fontSize: 13,
+            color: "#6b7280",
+            lineHeight: 1.4
+          }}
+        >
+          Soma de todos os gastos cadastrados na operação.
         </div>
       </div>
 
-      <div style={{
-        background: "#fff",
-        borderRadius: 22,
-        padding: 20,
-        border: "1px solid #ececec",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12
-        }}>
-          <div style={{ fontSize: 13, color: "#777" }}>Lucro estimado</div>
-          <div style={{
-            width: 42,
-            height: 42,
-            borderRadius: 14,
-            background: lucroTotal >= 0 ? "#ecfdf3" : "#fff1f2",
+      {/* LUCRO */}
+      <div
+        style={{
+          background:
+            lucroTotal >= 0
+              ? "linear-gradient(180deg, #ffffff 0%, #f8fffb 100%)"
+              : "linear-gradient(180deg, #ffffff 0%, #fff8f8 100%)",
+          borderRadius: 24,
+          padding: 22,
+          border: lucroTotal >= 0 ? "1px solid #dcfce7" : "1px solid #fee2e2",
+          boxShadow: "0 10px 30px rgba(15,23,42,0.06)"
+        }}
+      >
+        <div
+          style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center"
-          }}>
-            <Wallet size={20} color={lucroTotal >= 0 ? "#16a34a" : "#ea1d2c"} />
+            justifyContent: "space-between",
+            marginBottom: 14
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                fontWeight: 700
+              }}
+            >
+              Lucro estimado
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "#9ca3af"
+              }}
+            >
+              Resultado da operação
+            </div>
+          </div>
+
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 16,
+              background: lucroTotal >= 0 ? "#ecfdf3" : "#fff1f2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0
+            }}
+          >
+            <Wallet size={22} color={lucroTotal >= 0 ? "#16a34a" : "#ea1d2c"} />
           </div>
         </div>
 
-        <div style={{
-          fontSize: 30,
-          fontWeight: 900,
-          color: lucroTotal >= 0 ? "#16a34a" : "#dc2626"
-        }}>
+        <div
+          style={{
+            fontSize: isMobile ? 30 : 34,
+            fontWeight: 900,
+            color: lucroTotal >= 0 ? "#16a34a" : "#dc2626",
+            letterSpacing: "-0.03em",
+            lineHeight: 1
+          }}
+        >
           {formatarReal(lucroTotal)}
         </div>
 
-        <div style={{
-          marginTop: 8,
-          fontSize: 12,
-          color: "#666"
-        }}>
-          Margem de lucro: {margemLucro}%
+        <div
+          style={{
+            marginTop: 12,
+            fontSize: 13,
+            color: "#6b7280",
+            lineHeight: 1.4
+          }}
+        >
+          Margem estimada de <strong>{margemLucro}%</strong>.
         </div>
       </div>
     </div>
 
     {/* CARDS OPERACIONAIS */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-      gap: 16,
-      marginBottom: 20
-    }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Pedidos em andamento</div>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 900,
-          marginTop: 8,
-          color: "#111"
-        }}>
-          {pedidosEmAndamento}
-        </div>
-      </div>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+        gap: 16,
+        marginBottom: 20
+      }}
+    >
+      {[
+        {
+          titulo: "Pedidos em andamento",
+          valor: pedidosEmAndamento,
+          cor: "#111"
+        },
+        {
+          titulo: "Produtos ativos",
+          valor: produtosAtivos,
+          cor: "#111"
+        },
+        {
+          titulo: "Cupons cadastrados",
+          valor: cupons.length,
+          cor: "#111"
+        },
+        {
+          titulo: "Status da loja",
+          valor: lojaAberta ? "Aberta" : "Fechada",
+          cor: lojaAberta ? "#16a34a" : "#dc2626"
+        }
+      ].map((item, index) => (
+        <div
+          key={index}
+          style={{
+            background: "#fff",
+            borderRadius: 22,
+            padding: 18,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+            border: "1px solid #ececec",
+            minHeight: 118
+          }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              color: "#6b7280",
+              fontWeight: 700
+            }}
+          >
+            {item.titulo}
+          </div>
 
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Produtos ativos</div>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 900,
-          marginTop: 8,
-          color: "#111"
-        }}>
-          {produtosAtivos}
+          <div
+            style={{
+              fontSize: isMobile ? 24 : 28,
+              fontWeight: 900,
+              marginTop: 12,
+              color: item.cor,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.05
+            }}
+          >
+            {item.valor}
+          </div>
         </div>
-      </div>
-
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Cupons cadastrados</div>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 900,
-          marginTop: 8,
-          color: "#111"
-        }}>
-          {cupons.length}
-        </div>
-      </div>
-
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Status da loja</div>
-        <div style={{
-          fontSize: 20,
-          fontWeight: 800,
-          marginTop: 10,
-          color: lojaAberta ? "#16a34a" : "#dc2626"
-        }}>
-          {lojaAberta ? "Loja aberta" : "Loja fechada"}
-        </div>
-      </div>
+      ))}
     </div>
 
     {/* AÇÕES + GRÁFICO */}
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-      gap: 16
-    }}>
-      <div style={{
-        background: "#fff",
-        borderRadius: 22,
-        padding: 20,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <h3 style={{
-          marginTop: 0,
-          marginBottom: 14,
-          color: "#111",
-          fontSize: 18
-        }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "340px 1fr",
+        gap: 16
+      }}
+    >
+      {/* AÇÕES */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 20,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+          border: "1px solid #ececec"
+        }}
+      >
+        <h3
+          style={{
+            marginTop: 0,
+            marginBottom: 14,
+            color: "#111827",
+            fontSize: 18,
+            fontWeight: 800
+          }}
+        >
           Ações rápidas
         </h3>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
-          <button onClick={() => toggleLoja(true)} style={btnSuccess}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10
+          }}
+        >
+          <button
+            onClick={() => toggleLoja(true)}
+            style={{
+              ...btnSuccess,
+              height: 46,
+              borderRadius: 14
+            }}
+          >
             Abrir loja
           </button>
 
-          <button onClick={() => toggleLoja(false)} style={btnDanger}>
+          <button
+            onClick={() => toggleLoja(false)}
+            style={{
+              ...btnDanger,
+              height: 46,
+              borderRadius: 14
+            }}
+          >
             Fechar loja
           </button>
-        </div>
 
-        <button
-          onClick={limparPedidos}
-          style={{
-            background: "#ef4444",
-            color: "#fff",
-            padding: 12,
-            borderRadius: 12,
-            border: "none",
-            width: "100%",
-            fontWeight: "bold",
-            cursor: "pointer",
-            boxShadow: "0 6px 18px rgba(239,68,68,0.18)"
-          }}
-        >
-          Limpar pedidos
-        </button>
+          <button
+            onClick={limparPedidos}
+            style={{
+              background: "#ef4444",
+              color: "#fff",
+              height: 46,
+              borderRadius: 14,
+              border: "none",
+              width: "100%",
+              fontWeight: 800,
+              fontSize: 14,
+              cursor: "pointer",
+              boxShadow: "0 8px 18px rgba(239,68,68,0.18)"
+            }}
+          >
+            Limpar pedidos
+          </button>
+        </div>
       </div>
 
-      <div style={{
-        background: "#fff",
-        borderRadius: 22,
-        padding: 20,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <h3 style={{
-          marginTop: 0,
-          marginBottom: 14,
-          color: "#111",
-          fontSize: 18
-        }}>
+      {/* GRÁFICO */}
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 24,
+          padding: 20,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+          border: "1px solid #ececec"
+        }}
+      >
+        <h3
+          style={{
+            marginTop: 0,
+            marginBottom: 16,
+            color: "#111827",
+            fontSize: 18,
+            fontWeight: 800
+          }}
+        >
           Vendas por dia
         </h3>
 
         {Object.keys(vendasPorDia).length === 0 && (
-          <div style={{
-            textAlign: "center",
-            color: "#666",
-            padding: 20,
-            background: "#fafafa",
-            borderRadius: 14,
-            border: "1px solid #eee"
-          }}>
+          <div
+            style={{
+              textAlign: "center",
+              color: "#6b7280",
+              padding: "34px 20px",
+              background: "#fafafa",
+              borderRadius: 18,
+              border: "1px dashed #e5e7eb",
+              fontSize: 14,
+              fontWeight: 500
+            }}
+          >
             Nenhuma venda registrada ainda
           </div>
         )}
@@ -2089,33 +2271,40 @@ if (loadingAuth) {
         {Object.keys(vendasPorDia)
           .sort((a, b) => new Date(b) - new Date(a))
           .map((dia) => (
-            <div key={dia} style={{ marginBottom: 14 }}>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 13,
-                marginBottom: 6,
-                color: "#111"
-              }}>
+            <div key={dia} style={{ marginBottom: 16 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  marginBottom: 7,
+                  color: "#111827",
+                  gap: 10
+                }}
+              >
                 <strong>{dia}</strong>
-                <span style={{ color: "#666" }}>
+                <span style={{ color: "#6b7280", fontWeight: 700 }}>
                   {formatarReal(vendasPorDia[dia])}
                 </span>
               </div>
 
-              <div style={{
-                width: "100%",
-                height: 12,
-                borderRadius: 999,
-                background: "#eee",
-                overflow: "hidden"
-              }}>
-                <div style={{
-                  width: `${maxVenda ? (vendasPorDia[dia] / maxVenda) * 100 : 0}%`,
-                  height: "100%",
+              <div
+                style={{
+                  width: "100%",
+                  height: 12,
                   borderRadius: 999,
-                  background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
-                }} />
+                  background: "#eef0f3",
+                  overflow: "hidden"
+                }}
+              >
+                <div
+                  style={{
+                    width: `${maxVenda ? (vendasPorDia[dia] / maxVenda) * 100 : 0}%`,
+                    height: "100%",
+                    borderRadius: 999,
+                    background: "linear-gradient(90deg, #ea1d2c, #ff5a5f)"
+                  }}
+                />
               </div>
             </div>
           ))}
