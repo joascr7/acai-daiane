@@ -1,3 +1,5 @@
+
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Cropper from "react-easy-crop";
@@ -302,11 +304,6 @@ function formatarReal(valor) {
   });
 }
 
-
-<Head>
-  <link rel="manifest" href="/manifest-admin.json" />
-  <meta name="theme-color" content="#ea1d2c" />
-</Head>
 
   // 🔍 BUSCA
   const [buscaCodigo, setBuscaCodigo] = useState("");
@@ -1603,14 +1600,12 @@ if (loadingAuth) {
   </div>
 )}
 
-
-
+<Head>
+  <link rel="manifest" href="/manifest-admin.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+</Head>
 
   return (
-
-
-    
-
 
 
 
