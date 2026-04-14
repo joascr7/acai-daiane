@@ -6206,116 +6206,212 @@ return (
 )}
 
 {aba === "perfil" && step === 4 && (
-  <div style={{
-    maxWidth: larguraApp,
-    margin: "0 auto",
-    background: "#f7f7f7",
-    minHeight: "100dvh",
-    paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`
-  }}>
-
+  <div
+    style={{
+      maxWidth: larguraApp,
+      margin: "0 auto",
+      background: "#f7f7f7",
+      minHeight: "100dvh",
+      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`
+    }}
+  >
     {/* HEADER */}
-    <div style={{
-      padding: "calc(env(safe-area-inset-top) + 16px) 16px 18px",
-      background: "#fff",
-      boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-      position: "sticky",
-      top: 0,
-      zIndex: 10
-    }}>
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12
-      }}>
-        <button
-          onClick={() => {
-            setAba("home");
-            setStep(1);
-          }}
+    <div
+      style={{
+        padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
+        background: "#fff",
+        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        position: "sticky",
+        top: 0,
+        zIndex: 20
+      }}
+    >
+      {/* TOPO */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12
+        }}
+      >
+        {/* ESQUERDA */}
+        <div
           style={{
-            width: 22,
-            height: 22,
-            borderRadius: 28,
-            border: "none",
-            background: "#fff",
-            cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+            gap: 12,
+            minWidth: 0
           }}
         >
-          <ArrowLeft size={20} color="#111" />
-        </button>
+          <button
+            onClick={() => {
+              setAba("home");
+              setStep(1);
+            }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 14,
+              border: "1px solid #f1f1f1",
+              background: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              flexShrink: 0
+            }}
+          >
+            <ArrowLeft size={18} color="#111" />
+          </button>
 
-        <strong style={{ fontSize: 17, color: "#111" }}>
-          Minha conta
-        </strong>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#888",
+                fontWeight: 700,
+                letterSpacing: 0.2,
+                textTransform: "uppercase",
+                marginBottom: 2
+              }}
+            >
+              Perfil
+            </div>
+
+            <strong
+              style={{
+                fontSize: 18,
+                color: "#111",
+                lineHeight: 1.1
+              }}
+            >
+              Minha conta
+            </strong>
+          </div>
+        </div>
+
+        {/* DIREITA */}
+        <div style={{ flexShrink: 0 }}>
+          {user ? (
+            <button
+              onClick={async () => {
+                await signOut(auth);
+                setUser(null);
+                setAba("home");
+                setStep(1);
+              }}
+              style={{
+                height: 40,
+                padding: "0 14px",
+                borderRadius: 999,
+                background: "#111",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: 800,
+                fontSize: 13,
+                boxShadow: "0 6px 18px rgba(0,0,0,0.12)"
+              }}
+            >
+              Sair
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                router.push("/login");
+              }}
+              style={{
+                height: 40,
+                padding: "0 14px",
+                borderRadius: 999,
+                background: "#ea1d2c",
+                color: "#fff",
+                border: "none",
+                cursor: "pointer",
+                fontWeight: 800,
+                fontSize: 13,
+                boxShadow: "0 6px 18px rgba(234,29,44,0.20)"
+              }}
+            >
+              Entrar
+            </button>
+          )}
+        </div>
       </div>
     </div>
 
     <div style={{ padding: 16 }}>
-
       {/* PERFIL */}
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
-        marginBottom: 16,
-        display: "flex",
-        alignItems: "center",
-        gap: 14
-      }}>
-        <div style={{
-          width: 64,
-          height: 64,
-          borderRadius: "50%",
-          background: "#ea1d2c",
-          color: "#fff",
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          padding: 18,
+          boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
+          marginBottom: 16,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          fontSize: 26,
-          fontWeight: "bold",
-          boxShadow: "0 6px 18px rgba(234,29,44,0.18)",
-          flexShrink: 0
-        }}>
+          gap: 14
+        }}
+      >
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            background: "#ea1d2c",
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 26,
+            fontWeight: "bold",
+            boxShadow: "0 6px 18px rgba(234,29,44,0.18)",
+            flexShrink: 0
+          }}
+        >
           {(clienteNome || "U").trim().charAt(0).toUpperCase()}
         </div>
 
         <div style={{ minWidth: 0 }}>
-          <strong style={{
-            display: "block",
-            fontSize: 16,
-            color: "#111"
-          }}>
+          <strong
+            style={{
+              display: "block",
+              fontSize: 16,
+              color: "#111"
+            }}
+          >
             {clienteNome || "Cliente"}
           </strong>
 
-          <span style={{
-            display: "block",
-            fontSize: 13,
-            color: "#777",
-            marginTop: 4,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            maxWidth: "100%"
-          }}>
+          <span
+            style={{
+              display: "block",
+              fontSize: 13,
+              color: "#777",
+              marginTop: 4,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "100%"
+            }}
+          >
             {clienteEmail || "Sem email cadastrado"}
           </span>
         </div>
       </div>
 
       {/* MENU */}
-      <div style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        marginBottom: 14
-      }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          marginBottom: 14
+        }}
+      >
         {[
           { id: "dados", titulo: "Meus dados", desc: "Nome, telefone e dados da conta" },
           { id: "endereco", titulo: "Meu endereço", desc: "Rua, número e localização" },
@@ -6346,30 +6442,36 @@ return (
               }}
             >
               <div>
-                <strong style={{
-                  display: "block",
-                  fontSize: 14,
-                  color: "#111"
-                }}>
+                <strong
+                  style={{
+                    display: "block",
+                    fontSize: 14,
+                    color: "#111"
+                  }}
+                >
                   {item.titulo}
                 </strong>
 
-                <span style={{
-                  display: "block",
-                  fontSize: 12,
-                  color: "#777",
-                  marginTop: 4
-                }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 12,
+                    color: "#777",
+                    marginTop: 4
+                  }}
+                >
                   {item.desc}
                 </span>
               </div>
 
-              <span style={{
-                fontSize: 20,
-                color: ativo ? "#ea1d2c" : "#999",
-                lineHeight: 1,
-                fontWeight: 700
-              }}>
+              <span
+                style={{
+                  fontSize: 20,
+                  color: ativo ? "#ea1d2c" : "#999",
+                  lineHeight: 1,
+                  fontWeight: 700
+                }}
+              >
                 ›
               </span>
             </div>
@@ -6378,12 +6480,14 @@ return (
       </div>
 
       {/* CONTEÚDO ATIVO */}
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 16,
-        boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
-      }}>
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          padding: 16,
+          boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
+        }}
+      >
         {abaPerfil === "dados" && (
           <>
             <strong style={{ fontSize: 16, color: "#111" }}>
@@ -6394,7 +6498,7 @@ return (
               <input
                 style={input}
                 value={clienteNome}
-                onChange={e=>setClienteNome(e.target.value)}
+                onChange={e => setClienteNome(e.target.value)}
                 placeholder="Nome"
               />
 
@@ -6415,11 +6519,11 @@ return (
               <input
                 style={input}
                 value={clienteTelefone}
-                onChange={(e)=>{
-                  let v = e.target.value.replace(/\D/g,"").slice(0,11);
-                  v = v.length<=10
-                    ? v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{4})(\d)/,"$1-$2")
-                    : v.replace(/(\d{2})(\d)/,"($1) $2").replace(/(\d{5})(\d)/,"$1-$2");
+                onChange={(e) => {
+                  let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                  v = v.length <= 10
+                    ? v.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2")
+                    : v.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
                   setClienteTelefone(v);
                 }}
                 placeholder="Telefone"
@@ -6450,21 +6554,18 @@ return (
 
             <div style={{ marginTop: 14 }}>
               <input
-              style={input}
-              value={clienteCep}
-              onChange={(e) => {
-              const valor = e.target.value
-              .replace(/\D/g, "")
-              .slice(0, 8);
+                style={input}
+                value={clienteCep}
+                onChange={(e) => {
+                  const valor = e.target.value.replace(/\D/g, "").slice(0, 8);
+                  setClienteCep(valor);
 
-              setClienteCep(valor);
-
-              if (valor.length === 8) {
-              buscarCEP(valor);
-             }
-             }}
-             placeholder="CEP"
-             />
+                  if (valor.length === 8) {
+                    buscarCEP(valor);
+                  }
+                }}
+                placeholder="CEP"
+              />
 
               {loadingCep && (
                 <div style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>
@@ -6475,22 +6576,21 @@ return (
               <input
                 style={input}
                 value={clienteEndereco}
-                onChange={(e)=>setClienteEndereco(e.target.value)}
+                onChange={(e) => setClienteEndereco(e.target.value)}
                 placeholder="Rua"
               />
 
-
               <input
-              style={input}
-              value={clienteBairro}
-              onChange={(e) => setClienteBairro(e.target.value)}
-              placeholder="Bairro"
+                style={input}
+                value={clienteBairro}
+                onChange={(e) => setClienteBairro(e.target.value)}
+                placeholder="Bairro"
               />
 
               <input
                 style={input}
                 value={clienteNumeroCasa}
-                onChange={(e)=>setClienteNumeroCasa(e.target.value)}
+                onChange={(e) => setClienteNumeroCasa(e.target.value)}
                 placeholder="Número"
               />
 
@@ -6512,97 +6612,107 @@ return (
         )}
 
         {abaPerfil === "cupons" && (
-  <div style={{
-    ...card,
-    borderRadius: 18,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-  }}>
-    <strong style={{ fontSize: 15 }}>Cupons disponíveis</strong>
+          <div
+            style={{
+              ...card,
+              borderRadius: 18,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+            }}
+          >
+            <strong style={{ fontSize: 15 }}>Cupons disponíveis</strong>
 
-    {/* AVISO */}
-    <div style={{
-      marginTop: 8,
-      fontSize: 12,
-      color: "#666"
-    }}>
-      Cada cupom pode ser usado apenas uma vez por cliente.
-    </div>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 12,
+                color: "#666"
+              }}
+            >
+              Cada cupom pode ser usado apenas uma vez por cliente.
+            </div>
 
-    {/* LISTA */}
-    {cupons
-      .filter(c => c.ativo !== false) // 🔥 só disponíveis
-      .map((c, i) => (
-        <div
-          key={i}
-          style={{
-            marginTop: 14,
-            padding: 14,
-            borderRadius: 14,
-            background: "#fff",
-            border: "1px solid #f1f1f1",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
-          }}
-        >
-          {/* TOPO */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center"
-          }}>
-            <strong style={{
-              fontSize: 15,
-              color: "#111"
-            }}>
-              {c.codigo}
-            </strong>
+            {cupons
+              .filter(c => c.ativo !== false)
+              .map((c, i) => (
+                <div
+                  key={i}
+                  style={{
+                    marginTop: 14,
+                    padding: 14,
+                    borderRadius: 14,
+                    background: "#fff",
+                    border: "1px solid #f1f1f1",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center"
+                    }}
+                  >
+                    <strong
+                      style={{
+                        fontSize: 15,
+                        color: "#111"
+                      }}
+                    >
+                      {c.codigo}
+                    </strong>
 
-            <span style={{
-              fontSize: 12,
-              background: "#fff0f1",
-              color: "#ea1d2c",
-              padding: "4px 10px",
-              borderRadius: 999,
-              fontWeight: 700
-            }}>
-              {c.tipo === "porcentagem"
-              ? `${c.desconto}% OFF`
-              : formatarReal(c.desconto)}
-            </span>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        background: "#fff0f1",
+                        color: "#ea1d2c",
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        fontWeight: 700
+                      }}
+                    >
+                      {c.tipo === "porcentagem"
+                        ? `${c.desconto}% OFF`
+                        : formatarReal(c.desconto)}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 13,
+                      color: "#666"
+                    }}
+                  >
+                    Válido para pedidos selecionados
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 12,
+                      color: "#999"
+                    }}
+                  >
+                    Uso único • Não acumulativo
+                  </div>
+                </div>
+              ))}
+
+            {cupons.filter(c => c.ativo !== false).length === 0 && (
+              <div
+                style={{
+                  marginTop: 20,
+                  textAlign: "center",
+                  color: "#777",
+                  fontSize: 13
+                }}
+              >
+                Nenhum cupom disponível no momento.
+              </div>
+            )}
           </div>
-
-          {/* DESCRIÇÃO */}
-          <div style={{
-            marginTop: 6,
-            fontSize: 13,
-            color: "#666"
-          }}>
-            Válido para pedidos selecionados
-          </div>
-
-          {/* REGRA */}
-          <div style={{
-            marginTop: 10,
-            fontSize: 12,
-            color: "#999"
-          }}>
-            Uso único • Não acumulativo
-          </div>
-        </div>
-      ))}
-
-    {/* SEM CUPOM */}
-    {cupons.filter(c => c.ativo !== false).length === 0 && (
-      <div style={{
-        marginTop: 20,
-        textAlign: "center",
-        color: "#777",
-        fontSize: 13
-      }}>
-        Nenhum cupom disponível no momento.
-      </div>
-    )}
-  </div>
-)}
+        )}
 
         {abaPerfil === "seguranca" && (
           <>
@@ -6610,50 +6720,98 @@ return (
               Segurança
             </strong>
 
-            <div style={{
-              marginTop: 14,
-              display: "flex",
-              flexDirection: "column",
-              gap: 10
-            }}>
-              <div style={{
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff",
-                border: "1px solid #eee"
-              }}>
-                <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
+            <div
+              style={{
+                marginTop: 14,
+                display: "flex",
+                flexDirection: "column",
+                gap: 10
+              }}
+            >
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 12,
+                  background: "#fff",
+                  border: "1px solid #eee"
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    fontSize: 14,
+                    color: "#111"
+                  }}
+                >
                   Email protegido
                 </strong>
-                <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    display: "block",
+                    marginTop: 4
+                  }}
+                >
                   Seu acesso está vinculado ao email cadastrado.
                 </span>
               </div>
 
-              <div style={{
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff",
-                border: "1px solid #eee"
-              }}>
-                <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 12,
+                  background: "#fff",
+                  border: "1px solid #eee"
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    fontSize: 14,
+                    color: "#111"
+                  }}
+                >
                   CPF validado
                 </strong>
-                <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    display: "block",
+                    marginTop: 4
+                  }}
+                >
                   O CPF ajuda a proteger seus cupons e seus pedidos.
                 </span>
               </div>
 
-              <div style={{
-                padding: 12,
-                borderRadius: 12,
-                background: "#fff8f8",
-                border: "1px solid #ffd9d9"
-              }}>
-                <strong style={{ display: "block", fontSize: 14, color: "#111" }}>
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 12,
+                  background: "#fff8f8",
+                  border: "1px solid #ffd9d9"
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    fontSize: 14,
+                    color: "#111"
+                  }}
+                >
                   Dica de segurança
                 </strong>
-                <span style={{ fontSize: 12, color: "#666", display: "block", marginTop: 4, lineHeight: 1.45 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "#666",
+                    display: "block",
+                    marginTop: 4,
+                    lineHeight: 1.45
+                  }}
+                >
                   Não compartilhe sua conta com outras pessoas e sempre confira seus dados antes de finalizar um pedido.
                 </span>
               </div>
@@ -6667,18 +6825,20 @@ return (
               Informações da loja
             </strong>
 
-            <div style={{
-              fontSize: 13,
-              color: "#666",
-              lineHeight: 1.5,
-              marginTop: 10,
-              marginBottom: 12
-            }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#666",
+                lineHeight: 1.5,
+                marginTop: 10,
+                marginBottom: 12
+              }}
+            >
               Veja detalhes, horários, informações e apresentação da loja.
             </div>
 
             <button
-              onClick={()=>{
+              onClick={() => {
                 setAba("info");
                 setStep(99);
               }}
@@ -6699,57 +6859,7 @@ return (
           </>
         )}
       </div>
-
-     {/* LOGIN / LOGOUT */}
-<div
-  style={{
-    position: "absolute",
-    top: "calc(env(safe-area-inset-top) + 10px)",
-    right: 16
-  }}
->
-  {user ? (
-    <button
-      onClick={async () => {
-        await signOut(auth);
-        setUser(null);
-        setAba("home");
-        setStep(1);
-      }}
-      style={{
-        padding: "8px 14px",
-        fontSize: 13,
-        borderRadius: 999,
-        background: "#ef4444",
-        color: "#fff",
-        border: "none",
-        cursor: "pointer",
-        fontWeight: 700
-      }}
-    >
-      Sair
-    </button>
-  ) : (
-    <button
-      onClick={() => {
-        router.push("/login");
-      }}
-      style={{
-        padding: "8px 14px",
-        fontSize: 13,
-        borderRadius: 999,
-        background: "#ea1d2c",
-        color: "#fff",
-        border: "none",
-        cursor: "pointer",
-        fontWeight: 700
-      }}
-    >
-      Entrar
-    </button>
-  )}
-</div>
-
+   
 {toast && (
   <div
     style={{
