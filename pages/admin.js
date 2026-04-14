@@ -36,7 +36,12 @@ import {
   Layers3,
   ChevronUp,
   ChevronDown,
-  ImagePlus
+  ImagePlus,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  Receipt,
+  CircleDollarSign
 } from "lucide-react";
 
 
@@ -188,6 +193,18 @@ const [toast, setToast] = useState(null);
   const [logoInput, setLogoInput] = useState("");
 
   const [produtoOrigemExtras, setProdutoOrigemExtras] = useState("");
+
+
+  const [gastos, setGastos] = useState([]);
+const [mostrarModalGasto, setMostrarModalGasto] = useState(false);
+const [gastoEditandoId, setGastoEditandoId] = useState(null);
+
+const [novoGastoNome, setNovoGastoNome] = useState("");
+const [novoGastoValor, setNovoGastoValor] = useState("");
+const [novaCategoriaGasto, setNovaCategoriaGasto] = useState("insumos");
+const [novaDataGasto, setNovaDataGasto] = useState("");
+const [novaObservacaoGasto, setNovaObservacaoGasto] = useState("");
+const [loadingGasto, setLoadingGasto] = useState(false);
 
 
 const [banners, setBanners] = useState([]);
@@ -735,6 +752,138 @@ async function excluirProduto(produto) {
   if (!confirmar) return;
 
   await deleteDoc(doc(db, "produtos", produto.id));
+}
+
+
+
+
+useEffect(() => {
+  const unsubscribe = onSnapshot(collection(db, "gastos"), (snapshot) => {
+    const lista = snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
+
+    lista.sort((a, b) => Number(b?.data || 0) - Number(a?.data || 0));
+
+    setGastos(lista);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
+
+function limparFormularioGasto() {
+  setGastoEditandoId(null);
+  setNovoGastoNome("");
+  setNovoGastoValor("");
+  setNovaCategoriaGasto("insumos");
+  setNovaDataGasto("");
+  setNovaObservacaoGasto("");
+}
+
+function abrirEdicaoGasto(item) {
+  setGastoEditandoId(item.id);
+  setNovoGastoNome(item?.nome || "");
+  setNovoGastoValor(
+    Number(item?.valor || 0) > 0
+      ? (Number(item.valor) / 100).toFixed(2).replace(".", ",")
+      : ""
+  );
+  setNovaCategoriaGasto(item?.categoria || "insumos");
+  setNovaDataGasto(item?.dataTexto || "");
+  setNovaObservacaoGasto(item?.observacao || "");
+  setMostrarModalGasto(true);
+}
+
+async function salvarGasto() {
+  const nome = String(novoGastoNome || "").trim();
+  const valor = converterParaCentavos(novoGastoValor || "0");
+  const categoria = String(novaCategoriaGasto || "insumos").trim();
+  const observacao = String(novaObservacaoGasto || "").trim();
+  const dataTexto = String(novaDataGasto || "").trim();
+
+  if (!nome) {
+    setToast({ tipo: "erro", texto: "Preencha o nome do gasto." });
+    setTimeout(() => setToast(null), 2200);
+    return;
+  }
+
+  if (!valor || valor <= 0) {
+    setToast({ tipo: "erro", texto: "Informe um valor válido." });
+    setTimeout(() => setToast(null), 2200);
+    return;
+  }
+
+  try {
+    setLoadingGasto(true);
+
+    const payload = {
+      nome,
+      valor,
+      categoria,
+      observacao,
+      data: dataTexto ? new Date(`${dataTexto}T12:00:00`).getTime() : Date.now(),
+      dataTexto: dataTexto || new Date().toISOString().slice(0, 10),
+      criadoEm: Date.now()
+    };
+
+    if (gastoEditandoId) {
+      await updateDoc(doc(db, "gastos", gastoEditandoId), payload);
+
+      setToast({
+        tipo: "sucesso",
+        texto: "Gasto atualizado com sucesso."
+      });
+    } else {
+      await addDoc(collection(db, "gastos"), payload);
+
+      setToast({
+        tipo: "sucesso",
+        texto: "Gasto adicionado com sucesso."
+      });
+    }
+
+    limparFormularioGasto();
+    setMostrarModalGasto(false);
+    setTimeout(() => setToast(null), 2200);
+  } catch (e) {
+    console.log("ERRO AO SALVAR GASTO:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao salvar gasto."
+    });
+    setTimeout(() => setToast(null), 2200);
+  } finally {
+    setLoadingGasto(false);
+  }
+}
+
+async function excluirGasto(id) {
+  try {
+    await deleteDoc(doc(db, "gastos", id));
+
+    if (gastoEditandoId === id) {
+      limparFormularioGasto();
+      setMostrarModalGasto(false);
+    }
+
+    setToast({
+      tipo: "sucesso",
+      texto: "Gasto removido com sucesso."
+    });
+    setTimeout(() => setToast(null), 2200);
+  } catch (e) {
+    console.log("ERRO AO EXCLUIR GASTO:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao excluir gasto."
+    });
+    setTimeout(() => setToast(null), 2200);
+  }
 }
 
 
@@ -1368,6 +1517,25 @@ const totalFaturado = pedidos.reduce(
 );
 
 
+const totalGastos = gastos.reduce(
+  (acc, item) => acc + Number(item?.valor || 0),
+  0
+);
+
+const lucroTotal = totalFaturado - totalGastos;
+
+const pedidosEmAndamento = pedidos.filter(
+  (p) => p.status !== "entregue"
+).length;
+
+const produtosAtivos = produtos.filter((p) => p.ativo).length;
+
+const margemLucro =
+  totalFaturado > 0
+    ? ((lucroTotal / totalFaturado) * 100).toFixed(1)
+    : "0.0";
+
+
 // 📊 GRÁFICO CORRIGIDO (compatível com novo sistema)
 const vendasPorDia = {};
 
@@ -1415,6 +1583,7 @@ if (loadingAuth) {
 
 
 
+
 {toast && (
   <div
     style={{
@@ -1435,7 +1604,14 @@ if (loadingAuth) {
 )}
 
 
+
+
   return (
+
+
+    
+
+
 
 
   <div className="container">
@@ -1520,6 +1696,7 @@ if (loadingAuth) {
     { id: "dashboard", nome: "Dashboard" },
     { id: "pedidos", nome: "Pedidos" },
     { id: "produtos", nome: "Produtos" },
+    { id: "gastos", nome: "Gastos" },
     { id: "cupons", nome: "Cupons" },
     { id: "fretes", nome: "Fretes" },
     { id: "notificacoes", nome: "Notificações" },
@@ -1556,35 +1733,206 @@ if (loadingAuth) {
     background: "#f4f5f7",
     borderRadius: 20
   }}>
-
     {/* TOPO */}
     <div style={{
       background: "#fff",
-      borderRadius: 20,
-      padding: 18,
-      marginBottom: 16,
+      borderRadius: 24,
+      padding: 22,
+      marginBottom: 18,
       boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      border: "1px solid #ececec"
+      border: "1px solid #ececec",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: isMobile ? "flex-start" : "center",
+      gap: 14,
+      flexWrap: "wrap"
     }}>
-      <h2 style={{
-        margin: 0,
-        color: "#111",
-        fontSize: 24
-      }}>
-        Dashboard
-      </h2>
+      <div>
+        <h2 style={{
+          margin: 0,
+          color: "#111",
+          fontSize: 26,
+          fontWeight: 800
+        }}>
+          Dashboard Financeiro
+        </h2>
 
-      <p style={{
-        marginTop: 6,
-        marginBottom: 0,
-        fontSize: 13,
-        color: "#666"
-      }}>
-        Visão geral da loja, pedidos, faturamento e operação
-      </p>
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Visão geral de pedidos, faturamento, gastos e lucro da operação.
+        </p>
+      </div>
+
+      <button
+        onClick={() => {
+          limparFormularioGasto();
+          setMostrarModalGasto(true);
+        }}
+        style={{
+          height: 46,
+          padding: "0 18px",
+          borderRadius: 14,
+          border: "none",
+          background: "#111",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: 14,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 8
+        }}
+      >
+        <Plus size={18} />
+        Novo gasto
+      </button>
     </div>
 
-    {/* CARDS RESUMO */}
+    {/* CARDS PRINCIPAIS */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: 16,
+      marginBottom: 20
+    }}>
+      <div style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 20,
+        border: "1px solid #ececec",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 12
+        }}>
+          <div style={{ fontSize: 13, color: "#777" }}>Faturamento</div>
+          <div style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            background: "#ecfdf3",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <TrendingUp size={20} color="#16a34a" />
+          </div>
+        </div>
+
+        <div style={{
+          fontSize: 30,
+          fontWeight: 900,
+          color: "#111"
+        }}>
+          {formatarReal(totalFaturado)}
+        </div>
+
+        <div style={{
+          marginTop: 8,
+          fontSize: 12,
+          color: "#666"
+        }}>
+          Total vendido em pedidos registrados
+        </div>
+      </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 20,
+        border: "1px solid #ececec",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 12
+        }}>
+          <div style={{ fontSize: 13, color: "#777" }}>Gastos</div>
+          <div style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            background: "#fff1f2",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <TrendingDown size={20} color="#ea1d2c" />
+          </div>
+        </div>
+
+        <div style={{
+          fontSize: 30,
+          fontWeight: 900,
+          color: "#111"
+        }}>
+          {formatarReal(totalGastos)}
+        </div>
+
+        <div style={{
+          marginTop: 8,
+          fontSize: 12,
+          color: "#666"
+        }}>
+          Soma de todos os gastos cadastrados
+        </div>
+      </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 20,
+        border: "1px solid #ececec",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 12
+        }}>
+          <div style={{ fontSize: 13, color: "#777" }}>Lucro estimado</div>
+          <div style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            background: lucroTotal >= 0 ? "#ecfdf3" : "#fff1f2",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <Wallet size={20} color={lucroTotal >= 0 ? "#16a34a" : "#ea1d2c"} />
+          </div>
+        </div>
+
+        <div style={{
+          fontSize: 30,
+          fontWeight: 900,
+          color: lucroTotal >= 0 ? "#16a34a" : "#dc2626"
+        }}>
+          {formatarReal(lucroTotal)}
+        </div>
+
+        <div style={{
+          marginTop: 8,
+          fontSize: 12,
+          color: "#666"
+        }}>
+          Margem de lucro: {margemLucro}%
+        </div>
+      </div>
+    </div>
+
+    {/* CARDS OPERACIONAIS */}
     <div style={{
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -1600,30 +1948,12 @@ if (loadingAuth) {
       }}>
         <div style={{ fontSize: 13, color: "#777" }}>Pedidos em andamento</div>
         <div style={{
-          fontSize: 30,
-          fontWeight: "bold",
+          fontSize: 28,
+          fontWeight: 900,
           marginTop: 8,
           color: "#111"
         }}>
-          {pedidos.filter(p => p.status !== "entregue").length}
-        </div>
-      </div>
-
-      <div style={{
-        background: "#fff",
-        borderRadius: 20,
-        padding: 18,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
-      }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Faturamento</div>
-        <div style={{
-          fontSize: 30,
-          fontWeight: "bold",
-          marginTop: 8,
-          color: "#111"
-        }}>
-          {formatarReal(totalFaturado)}
+          {pedidosEmAndamento}
         </div>
       </div>
 
@@ -1636,12 +1966,12 @@ if (loadingAuth) {
       }}>
         <div style={{ fontSize: 13, color: "#777" }}>Produtos ativos</div>
         <div style={{
-          fontSize: 30,
-          fontWeight: "bold",
+          fontSize: 28,
+          fontWeight: 900,
           marginTop: 8,
           color: "#111"
         }}>
-          {produtos.filter(p => p.ativo).length}
+          {produtosAtivos}
         </div>
       </div>
 
@@ -1652,182 +1982,455 @@ if (loadingAuth) {
         boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
         border: "1px solid #ececec"
       }}>
-        <div style={{ fontSize: 13, color: "#777" }}>Cupons</div>
+        <div style={{ fontSize: 13, color: "#777" }}>Cupons cadastrados</div>
         <div style={{
-          fontSize: 30,
-          fontWeight: "bold",
+          fontSize: 28,
+          fontWeight: 900,
           marginTop: 8,
           color: "#111"
         }}>
           {cupons.length}
         </div>
       </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <div style={{ fontSize: 13, color: "#777" }}>Status da loja</div>
+        <div style={{
+          fontSize: 20,
+          fontWeight: 800,
+          marginTop: 10,
+          color: lojaAberta ? "#16a34a" : "#dc2626"
+        }}>
+          {lojaAberta ? "Loja aberta" : "Loja fechada"}
+        </div>
+      </div>
     </div>
 
-    {/* AÇÃO RÁPIDA */}
-    <button
-      onClick={limparPedidos}
-      style={{
-        background: "#ef4444",
-        color: "#fff",
-        padding: 12,
-        borderRadius: 12,
-        border: "none",
-        width: "98%",
-        marginBottom: 16,
-        fontWeight: "bold",
-        cursor: "pointer",
-        boxShadow: "0 6px 18px rgba(239,68,68,0.18)"
-      }}
-    >
-      Limpar pedidos
-    </button>
-
-    {/* STATUS + FATURAMENTO */}
+    {/* AÇÕES + GRÁFICO */}
     <div style={{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+      gap: 16
+    }}>
+      <div style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 20,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <h3 style={{
+          marginTop: 0,
+          marginBottom: 14,
+          color: "#111",
+          fontSize: 18
+        }}>
+          Ações rápidas
+        </h3>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+          <button onClick={() => toggleLoja(true)} style={btnSuccess}>
+            Abrir loja
+          </button>
+
+          <button onClick={() => toggleLoja(false)} style={btnDanger}>
+            Fechar loja
+          </button>
+        </div>
+
+        <button
+          onClick={limparPedidos}
+          style={{
+            background: "#ef4444",
+            color: "#fff",
+            padding: 12,
+            borderRadius: 12,
+            border: "none",
+            width: "100%",
+            fontWeight: "bold",
+            cursor: "pointer",
+            boxShadow: "0 6px 18px rgba(239,68,68,0.18)"
+          }}
+        >
+          Limpar pedidos
+        </button>
+      </div>
+
+      <div style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 20,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}>
+        <h3 style={{
+          marginTop: 0,
+          marginBottom: 14,
+          color: "#111",
+          fontSize: 18
+        }}>
+          Vendas por dia
+        </h3>
+
+        {Object.keys(vendasPorDia).length === 0 && (
+          <div style={{
+            textAlign: "center",
+            color: "#666",
+            padding: 20,
+            background: "#fafafa",
+            borderRadius: 14,
+            border: "1px solid #eee"
+          }}>
+            Nenhuma venda registrada ainda
+          </div>
+        )}
+
+        {Object.keys(vendasPorDia)
+          .sort((a, b) => new Date(b) - new Date(a))
+          .map((dia) => (
+            <div key={dia} style={{ marginBottom: 14 }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 13,
+                marginBottom: 6,
+                color: "#111"
+              }}>
+                <strong>{dia}</strong>
+                <span style={{ color: "#666" }}>
+                  {formatarReal(vendasPorDia[dia])}
+                </span>
+              </div>
+
+              <div style={{
+                width: "100%",
+                height: 12,
+                borderRadius: 999,
+                background: "#eee",
+                overflow: "hidden"
+              }}>
+                <div style={{
+                  width: `${maxVenda ? (vendasPorDia[dia] / maxVenda) * 100 : 0}%`,
+                  height: "100%",
+                  borderRadius: 999,
+                  background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
+                }} />
+              </div>
+            </div>
+          ))}
+      </div>
+    </div>
+  </div>
+)}
+
+
+{/* 🔥 NAVBAR MOBILE ADMIN */}
+{isMobile && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 0,
+      left: "50%",
+      transform: "translateX(-50%)",
+      width: "100%",
+      maxWidth: larguraApp,
+      background: "#fff",
+      borderTop: "1px solid #eee",
+      display: "flex",
+      justifyContent: "space-around",
+      padding: "8px 0",
+      zIndex: 999,
+      boxShadow: "0 -4px 20px rgba(0,0,0,0.06)"
+    }}
+  >
+    {[
+      { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
+      { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
+      { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
+      { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
+      { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
+    ].map(item => {
+      const ativo = abaAdmin === item.id;
+
+      return (
+        <div
+          key={item.id}
+          onClick={() => setAbaAdmin(item.id)}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            fontSize: 10,
+            fontWeight: 600,
+            color: ativo ? "#ea1d2c" : "#777",
+            cursor: "pointer"
+          }}
+        >
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: ativo ? "#fff1f2" : "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            {item.icon}
+          </div>
+
+          {item.nome}
+        </div>
+      );
+    })}
+  </div>
+)}
+
+
+{abaAdmin === "gastos" && (
+  <div style={{
+    marginTop: 15,
+    padding: 18,
+    background: "#f4f5f7",
+    borderRadius: 20
+  }}>
+    {/* TOPO */}
+    <div style={{
+      background: "#fff",
+      borderRadius: 20,
+      padding: 18,
+      marginBottom: 16,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+      border: "1px solid #ececec",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: isMobile ? "flex-start" : "center",
+      gap: 12,
+      flexWrap: "wrap"
+    }}>
+      <div>
+        <h2 style={{
+          margin: 0,
+          color: "#111",
+          fontSize: 24,
+          fontWeight: 800
+        }}>
+          Gastos
+        </h2>
+
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Controle manual dos gastos da operação.
+        </p>
+      </div>
+
+      <button
+        onClick={() => {
+          limparFormularioGasto();
+          setMostrarModalGasto(true);
+        }}
+        style={{
+          height: 46,
+          padding: "0 18px",
+          borderRadius: 14,
+          border: "none",
+          background: "#111",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: 14,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 8
+        }}
+      >
+        <Plus size={18} />
+        Novo gasto
+      </button>
+    </div>
+
+    {/* RESUMO */}
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
       gap: 16,
       marginBottom: 16
     }}>
       <div style={{
         background: "#fff",
         borderRadius: 20,
-        padding: 20,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
+        padding: 18,
+        border: "1px solid #ececec",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
       }}>
-        <h3 style={{
-          marginTop: 0,
-          marginBottom: 14,
-          color: "#111"
-        }}>
-          Status da loja
-        </h3>
-
+        <div style={{ fontSize: 13, color: "#777" }}>Total de gastos</div>
         <div style={{
-          marginBottom: 14,
-          padding: 14,
-          borderRadius: 16,
-          background: lojaAberta ? "#e6fff1" : "#ffecec",
-          color: lojaAberta ? "#15803d" : "#b91c1c",
-          fontWeight: "bold",
-          textAlign: "center",
-          border: lojaAberta ? "1px solid #bbf7d0" : "1px solid #fecaca"
+          fontSize: 28,
+          fontWeight: 900,
+          marginTop: 8,
+          color: "#ea1d2c"
         }}>
-          {lojaAberta === null
-            ? "Carregando..."
-            : lojaAberta
-              ? "Loja aberta"
-              : "Loja fechada"}
-        </div>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button onClick={() => toggleLoja(true)} style={btnSuccess}>
-            Abrir
-          </button>
-
-          <button onClick={() => toggleLoja(false)} style={btnDanger}>
-            Fechar
-          </button>
+          {formatarReal(totalGastos)}
         </div>
       </div>
 
       <div style={{
         background: "#fff",
         borderRadius: 20,
-        padding: 20,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
+        padding: 18,
+        border: "1px solid #ececec",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
       }}>
-        <h3 style={{
-          marginTop: 0,
-          marginBottom: 14,
+        <div style={{ fontSize: 13, color: "#777" }}>Quantidade de registros</div>
+        <div style={{
+          fontSize: 28,
+          fontWeight: 900,
+          marginTop: 8,
           color: "#111"
         }}>
-          Total faturado
-        </h3>
-
-        <div style={{
-          fontSize: 34,
-          fontWeight: "bold",
-          color: "#111",
-          marginBottom: 10
-        }}>
-          {formatarReal(totalFaturado)}
-        </div>
-
-        <div style={{
-          fontSize: 13,
-          color: "#666"
-        }}>
-          Soma total dos pedidos registrados no painel
+          {gastos.length}
         </div>
       </div>
     </div>
 
-    {/* GRÁFICO */}
+    {/* LISTA */}
     <div style={{
       background: "#fff",
       borderRadius: 20,
-      padding: 20,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      border: "1px solid #ececec"
+      padding: 18,
+      border: "1px solid #ececec",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
     }}>
-      <h3 style={{
-        marginTop: 0,
-        marginBottom: 14,
-        color: "#111"
-      }}>
-        Vendas por dia
-      </h3>
-
-      {Object.keys(vendasPorDia).length === 0 && (
+      {gastos.length === 0 ? (
         <div style={{
+          padding: "18px 8px",
           textAlign: "center",
-          color: "#666",
-          padding: 20,
-          background: "#fafafa",
-          borderRadius: 14,
-          border: "1px solid #eee"
+          color: "#777",
+          fontSize: 14
         }}>
-          Nenhuma venda registrada ainda
+          Nenhum gasto cadastrado ainda.
         </div>
-      )}
+      ) : (
+        gastos.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: 12,
+              borderRadius: 16,
+              marginBottom: 10,
+              background: "#fff",
+              border: "1px solid #ececec",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+              flexWrap: isMobile ? "wrap" : "nowrap"
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#111"
+              }}>
+                {item.nome}
+              </div>
 
-      {Object.keys(vendasPorDia)
-        .sort((a, b) => new Date(b) - new Date(a))
-        .map(dia => (
-          <div key={dia} style={{ marginBottom: 14 }}>
+              <div style={{
+                marginTop: 4,
+                fontSize: 13,
+                color: "#666"
+              }}>
+                Categoria: <strong style={{ color: "#111" }}>{item.categoria || "outros"}</strong>
+              </div>
+
+              <div style={{
+                marginTop: 4,
+                fontSize: 13,
+                color: "#666"
+              }}>
+                Data: {item.dataTexto || new Date(item.data).toLocaleDateString("pt-BR")}
+              </div>
+
+              {!!item.observacao && (
+                <div style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#888"
+                }}>
+                  {item.observacao}
+                </div>
+              )}
+            </div>
+
             <div style={{
               display: "flex",
-              justifyContent: "space-between",
-              fontSize: 13,
-              marginBottom: 6,
-              color: "#111"
-            }}>
-              <strong>{dia}</strong>
-              <span style={{ color: "#666" }}>
-                {formatarReal(vendasPorDia[dia])}
-              </span>
-            </div>
-
-            <div style={{
-              width: "100%",
-              height: 12,
-              borderRadius: 999,
-              background: "#eee",
-              overflow: "hidden"
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+              justifyContent: isMobile ? "flex-start" : "flex-end"
             }}>
               <div style={{
-                width: `${maxVenda ? (vendasPorDia[dia] / maxVenda) * 100 : 0}%`,
-                height: "100%",
-                borderRadius: 999,
-                background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)"
-              }} />
+                minWidth: 120,
+                textAlign: isMobile ? "left" : "right",
+                fontSize: 18,
+                fontWeight: 900,
+                color: "#ea1d2c"
+              }}>
+                {formatarReal(item.valor)}
+              </div>
+
+              <button
+                onClick={() => abrirEdicaoGasto(item)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  border: "1px solid #e5e5e5",
+                  background: "#fff",
+                  color: "#111",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer"
+                }}
+              >
+                <Pencil size={17} />
+              </button>
+
+              <button
+                onClick={() => excluirGasto(item.id)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  border: "none",
+                  background: "#ea1d2c",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer"
+                }}
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           </div>
-        ))}
+        ))
+      )}
     </div>
   </div>
 )}
@@ -2841,6 +3444,127 @@ if (loadingAuth) {
           ))}
         </div>
       )}
+
+
+
+      {mostrarModalGasto && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    padding: 16,
+    boxSizing: "border-box"
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 24,
+      width: "100%",
+      maxWidth: 420,
+      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+      border: "1px solid #eee",
+      boxSizing: "border-box"
+    }}>
+      <div style={{ marginBottom: 16 }}>
+        <h3 style={{
+          color: "#111",
+          margin: 0,
+          fontSize: 22
+        }}>
+          {gastoEditandoId ? "Editar gasto" : "Novo gasto"}
+        </h3>
+
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Cadastre um gasto para acompanhar o lucro real da operação.
+        </p>
+      </div>
+
+      <input
+        placeholder="Nome do gasto"
+        value={novoGastoNome}
+        onChange={(e) => setNovoGastoNome(e.target.value)}
+        style={inputStyle}
+      />
+
+      <input
+        placeholder="Valor (ex: 25,90)"
+        value={novoGastoValor}
+        onChange={(e) => setNovoGastoValor(e.target.value)}
+        style={inputStyle}
+      />
+
+      <select
+        value={novaCategoriaGasto}
+        onChange={(e) => setNovaCategoriaGasto(e.target.value)}
+        style={inputStyle}
+      >
+        <option value="insumos">Insumos</option>
+        <option value="embalagens">Embalagens</option>
+        <option value="bebidas">Bebidas</option>
+        <option value="energia">Energia</option>
+        <option value="internet">Internet</option>
+        <option value="transporte">Transporte</option>
+        <option value="marketing">Marketing</option>
+        <option value="outros">Outros</option>
+      </select>
+
+      <input
+        type="date"
+        value={novaDataGasto}
+        onChange={(e) => setNovaDataGasto(e.target.value)}
+        style={inputStyle}
+      />
+
+      <textarea
+        placeholder="Observação (opcional)"
+        value={novaObservacaoGasto}
+        onChange={(e) => setNovaObservacaoGasto(e.target.value)}
+        style={{
+          ...inputStyle,
+          minHeight: 90,
+          resize: "none"
+        }}
+      />
+
+      <div style={{
+        display: "flex",
+        gap: 10,
+        marginTop: 6
+      }}>
+        <button
+          onClick={() => {
+            limparFormularioGasto();
+            setMostrarModalGasto(false);
+          }}
+          style={btnCancel}
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={salvarGasto}
+          disabled={loadingGasto}
+          style={{
+            ...btnPrimary,
+            flex: 1,
+            opacity: loadingGasto ? 0.7 : 1
+          }}
+        >
+          {loadingGasto ? "Salvando..." : gastoEditandoId ? "Salvar alteração" : "Salvar gasto"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* MODAL PRODUTO */}
       {mostrarModalProduto && (

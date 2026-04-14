@@ -13,7 +13,7 @@ import Layout from "../components/layout";
 import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 
-
+import CardProduto from "../components/CardProduto";
 
 
 
@@ -78,6 +78,8 @@ import {
   Gem,
   Pencil,
   Trash2,
+  Receipt,
+  CircleDollarSign,
   CheckCircle
   
 } from "lucide-react";
@@ -334,6 +336,8 @@ const [podeInstalar, setPodeInstalar] = useState(false);
 
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
+
+  
 
 
 const [banners, setBanners] = useState([]);
@@ -4201,240 +4205,376 @@ return (
         </div>
 
         {/* LISTA DE PRODUTOS HORIZONTAL */}
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    padding: "4px 6px 14px"
+  }}
+>
+  {produtos
+    .filter((p) => p.ativo !== false)
+    .map((p, i) => {
+      const abrirProduto = () => {
+        if (!validarLojaAberta()) return;
+
+        if (categoriaTemExtras(p.categoria)) {
+          setProduto({
+            ...p,
+            preco: precoFinalProduto(p)
+          });
+          setAba("home");
+          setStep(2);
+          return;
+        }
+
+        if (categoriaVaiDiretoCarrinho(p.categoria)) {
+          setCarrinho((prev) => [
+            ...prev,
+            {
+              produto: {
+              ...p,
+              preco: Number(p.preco || 0),
+              precoPromocional: Number(p.precoPromocional || 0),
+              promocao: p.promocao === true
+               },
+               quantidade: 1,
+              extras: [],
+               total: Number(precoFinalProduto(p) || 0)
+            }
+          ]);
+          setAba("carrinho");
+          setStep(3);
+        }
+      };
+
+      return (
+        <div
+          key={i}
+          style={{
+            background: "#fff",
+            borderRadius: 24,
+            padding: 12,
+            border: "1px solid #f0f0f0",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12
+            }}
+          >
+            {/* IMAGEM */}
+            <div
+              onClick={abrirProduto}
+              style={{
+                width: 104,
+                height: 104,
+                borderRadius: 18,
+                overflow: "hidden",
+                background: "#f6f6f6",
+                flexShrink: 0,
+                cursor: "pointer",
+                position: "relative"
+              }}
+            >
+              <img
+                src={p.imagem || "/acai.png"}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  pointerEvents: "none"
+                }}
+              />
+
+              {(produtoEmPromocao(p) || p.maisVendido) && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    left: 8,
+                    display: "flex",
+                    gap: 6,
+                    flexWrap: "wrap",
+                    zIndex: 3,
+                    maxWidth: "86%"
+                  }}
+                >
+                  {produtoEmPromocao(p) && (
+                    <div
+                      style={{
+                        background: "#ea1d2c",
+                        color: "#fff",
+                        fontSize: 9,
+                        padding: "4px 8px",
+                        borderRadius: 999,
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
+                      }}
+                    >
+                      Oferta
+                    </div>
+                  )}
+
+                  {p.maisVendido && (
+                    <div
+                      style={{
+                        background: "#ff7a00",
+                        color: "#fff",
+                        fontSize: 9,
+                        padding: "4px 8px",
+                        borderRadius: 999,
+                        fontWeight: 800,
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 6px 14px rgba(255,122,0,0.18)"
+                      }}
+                    >
+                      Mais vendido
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* MEIO */}
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: "#111",
+                  lineHeight: 1.2
+                }}
+              >
+                {p.nome}
+              </div>
+
+              {!!p.descricao && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    color: "#666",
+                    lineHeight: 1.35,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical"
+                  }}
+                >
+                  {p.descricao}
+                </div>
+              )}
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  color: "#8b8b8b"
+                }}
+              >
+                {p.tamanho ? `• ${p.tamanho}` : ""}
+              </div>
+
+              <div style={{ marginTop: 10 }}>
+                {produtoEmPromocao(p) ? (
+                  <>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: "#a3a3a3",
+                        textDecoration: "line-through",
+                        lineHeight: 1.1,
+                        marginBottom: 4
+                      }}
+                    >
+                      {formatarReal(p.preco || 0)}
+                    </div>
+
+                    <strong
+                      style={{
+                        fontSize: 18,
+                        color: "#ea1d2c",
+                        lineHeight: 1.05,
+                        fontWeight: 900,
+                        letterSpacing: "-0.03em"
+                      }}
+                    >
+                      {formatarReal(precoFinalProduto(p))}
+                    </strong>
+                  </>
+                ) : (
+                  <strong
+                    style={{
+                      fontSize: 18,
+                      color: "#111",
+                      lineHeight: 1.05,
+                      fontWeight: 900,
+                      letterSpacing: "-0.03em"
+                    }}
+                  >
+                    {formatarReal(precoFinalProduto(p))}
+                  </strong>
+                )}
+              </div>
+            </div>
+
+            {/* BOTÃO OPCIONAL */}
+            {/*
+            <div
+              onClick={abrirProduto}
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 18,
+                background: "#ea1d2c",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontSize: 30,
+                fontWeight: 500,
+                cursor: "pointer",
+                flexShrink: 0,
+                boxShadow: "0 8px 18px rgba(234,29,44,0.20)"
+              }}
+            >
+              +
+            </div>
+            */}
+          </div>
+        </div>
+      );
+    })}
+</div>
+
+
+{/* BARRA FLUTUANTE DO CARRINHO */}
+{carrinho.length > 0 && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: `calc(${NAVBAR}px)`,
+      left: 0,
+      right: 0,
+      display: "flex",
+      justifyContent: "center",
+      zIndex: 30
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: isMobile ? larguraApp : 720,
+        background: "#fff",
+        borderTop: "1px solid #eee",
+        borderRadius: isMobile ? 0 : 16,
+        boxShadow: isMobile ? "none" : "0 8px 30px rgba(0,0,0,0.08)",
+        padding: isMobile ? "10px 12px" : "12px 18px",
+        boxSizing: "border-box"
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 14
+        }}
+      >
+        {/* ESQUERDA */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
+            alignItems: "center",
             gap: 12,
-            padding: "4px 6px 14px"
+            flex: 1,
+            minWidth: 0
           }}
         >
-          {produtos
-            .filter((p) => p.ativo !== false)
-            .map((p, i) => {
-              const abrirProduto = () => {
-                if (!validarLojaAberta()) return;
+          <img
+            src={logo || "/bg.png"}
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              objectFit: "cover",
+              flexShrink: 0
+            }}
+          />
 
-                if (categoriaTemExtras(p.categoria)) {
-                  setProduto({
-                    ...p,
-                    preco: precoFinalProduto(p)
-                  });
-                  setAba("home");
-                  setStep(2);
-                  return;
-                }
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+            >
+              {faltaFreteGratis > 0
+                ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+                : "Entrega grátis aplicada"}
+            </div>
 
-                if (categoriaVaiDiretoCarrinho(p.categoria)) {
-                  setCarrinho((prev) => [
-                    ...prev,
-                    {
-                      produto: {
-                        ...p,
-                        preco: precoFinalProduto(p)
-                      },
-                      quantidade: 1,
-                      extras: [],
-                      total: Number(precoFinalProduto(p) || 0)
-                    }
-                  ]);
-                  setAba("carrinho");
-                  setStep(3);
-                }
-              };
-
-              return (
-                <div
-                  key={i}
-                  style={{
-                    background: "#fff",
-                    borderRadius: 24,
-                    padding: 12,
-                    border: "1px solid #f0f0f0",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12
-                    }}
-                  >
-                    {/* IMAGEM */}
-                    <div
-                      onClick={abrirProduto}
-                      style={{
-                        width: 104,
-                        height: 104,
-                        borderRadius: 18,
-                        overflow: "hidden",
-                        background: "#f6f6f6",
-                        flexShrink: 0,
-                        cursor: "pointer",
-                        position: "relative"
-                      }}
-                    >
-                      <img
-                        src={p.imagem || "/acai.png"}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          display: "block",
-                          pointerEvents: "none"
-                        }}
-                      />
-
-                      {produtoEmPromocao(p) ? (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: 8,
-                            left: 8,
-                            background: "#ea1d2c",
-                            color: "#fff",
-                            fontSize: 9,
-                            padding: "4px 8px",
-                            borderRadius: 999,
-                            fontWeight: 800
-                          }}
-                        >
-                          Oferta
-                        </div>
-                      ) : p.maisVendido ? (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: 8,
-                            left: 8,
-                            background: "#ff7a00",
-                            color: "#fff",
-                            fontSize: 9,
-                            padding: "4px 8px",
-                            borderRadius: 999,
-                            fontWeight: 800
-                          }}
-                        >
-                          Mais vendido
-                        </div>
-                      ) : null}
-                    </div>
-
-                    {/* MEIO */}
-                    <div
-                      style={{
-                        flex: 1,
-                        minWidth: 0
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 800,
-                          color: "#111",
-                          lineHeight: 1.2
-                        }}
-                      >
-                        {p.nome}
-                      </div>
-
-                      {!!p.descricao && (
-                        <div
-                          style={{
-                            marginTop: 6,
-                            fontSize: 12,
-                            color: "#666",
-                            lineHeight: 1.35,
-                            overflow: "hidden",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical"
-                          }}
-                        >
-                          {p.descricao}
-                        </div>
-                      )}
-
-                      <div
-                        style={{
-                          marginTop: 6,
-                          fontSize: 12,
-                          color: "#8b8b8b"
-                        }}
-                      >
-                        {p.tamanho ? `• ${p.tamanho}` : ""}
-                      </div>
-
-                      <div style={{ marginTop: 10 }}>
-                        {produtoEmPromocao(p) ? (
-                          <>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: "#a3a3a3",
-                                textDecoration: "line-through",
-                                lineHeight: 1.1,
-                                marginBottom: 4
-                              }}
-                            >
-                              {formatarReal(p.preco || 0)}
-                            </div>
-
-                            <strong
-                              style={{
-                                fontSize: 18,
-                                color: "#ea1d2c",
-                                lineHeight: 1.05,
-                                fontWeight: 900,
-                                letterSpacing: "-0.03em"
-                              }}
-                            >
-                              {formatarReal(precoFinalProduto(p))}
-                            </strong>
-                          </>
-                        ) : (
-                          <strong
-                            style={{
-                              fontSize: 18,
-                              color: "#111",
-                              lineHeight: 1.05,
-                              fontWeight: 900,
-                              letterSpacing: "-0.03em"
-                            }}
-                          >
-                            {formatarReal(precoFinalProduto(p))}
-                          </strong>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* BOTÃO */}
-                 {/*   <div
-                      onClick={abrirProduto}
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 18,
-                        background: "#ea1d2c",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#fff",
-                        fontSize: 30,
-                        fontWeight: 500,
-                        cursor: "pointer",
-                        flexShrink: 0,
-                        boxShadow: "0 8px 18px rgba(234,29,44,0.20)"
-                      }}
-                    >
-                      +
-                    </div>*/}
-                  </div>
-                </div>
-              );
-            })}
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#111",
+                marginTop: 2
+              }}
+            >
+              {formatarReal(
+                typeof subtotalProdutos !== "undefined"
+                  ? subtotalProdutos
+                  : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+              )}{" "}
+              <span style={{ fontWeight: 500, color: "#666" }}>
+                / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
+              </span>
+            </div>
+          </div>
         </div>
+
+        {/* BOTÃO */}
+        <button
+          onClick={() => {
+            setAba("carrinho");
+            setStep(3);
+          }}
+          style={{
+            height: 46,
+            padding: "0 22px",
+            borderRadius: 14,
+            border: "none",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 800,
+            cursor: "pointer",
+            flexShrink: 0
+          }}
+        >
+          Ver sacola
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* INFO BAR */}
         <div
@@ -4662,9 +4802,11 @@ return (
         >
           Ver sacola
         </button>
+
+        </div>
       </div>
     </div>
-  </div>
+
 )}
     </div>
 
@@ -5354,232 +5496,243 @@ return (
         </div>
 
         {/* ITENS */}
-        {carrinho.map((item, i) => (
-          <div
-            key={i}
+        {carrinho.map((item, i) => {
+  const nomeProduto = item?.produto?.nome || "Produto";
+  const descricaoProduto = item?.produto?.descricao || "";
+  const imagemProduto = item?.produto?.imagem || item?.imagem || "/acai.png";
+
+  const totalExtrasUnitario = Array.isArray(item?.extras)
+    ? item.extras.reduce(
+        (acc, e) => acc + (Number(e?.preco || 0) * Number(e?.qtd || 1)),
+        0
+      )
+    : 0;
+
+  return (
+    <div
+      key={i}
+      style={{
+        display: "flex",
+        gap: 14,
+        alignItems: "flex-start",
+        marginBottom: 22
+      }}
+    >
+      {/* IMAGEM */}
+      <div
+        style={{
+          width: 96,
+          height: 96,
+          borderRadius: 20,
+          overflow: "hidden",
+          background: "#f5f5f5",
+          position: "relative",
+          flexShrink: 0
+        }}
+      >
+        <img
+          src={imagemProduto}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block"
+          }}
+        />
+
+        {item?.produto?.categoria === "acai" && (
+          <button
+            onClick={() => editarItem(i)}
             style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              width: 30,
+              height: 30,
+              borderRadius: "50%",
+              border: "none",
+              background: "#fff",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.10)",
               display: "flex",
-              gap: 14,
-              alignItems: "flex-start",
-              marginBottom: 22
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#ea1d2c",
+              cursor: "pointer"
             }}
           >
-            {/* IMAGEM */}
-            <div
-              style={{
-                width: 96,
-                height: 96,
-                borderRadius: 20,
-                overflow: "hidden",
-                background: "#f5f5f5",
-                position: "relative",
-                flexShrink: 0
-              }}
-            >
-              <img
-                src={item.produto?.imagem || item.imagem || "/acai.png"}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block"
-                }}
-              />
+            <Pencil size={14} />
+          </button>
+        )}
+      </div>
 
-              {item.produto?.categoria === "acai" && (
-                <button
-                  onClick={() => editarItem(i)}
-                  style={{
-                    position: "absolute",
-                    top: 14,
-                    left: 10,
-                    width: 12,
-                    height: 12,
-                    borderRadius: "50%",
-                    border: "none",
-                    background: "#fff",
-                    boxShadow: "0 4px 10px rgba(0,0,0,0.10)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#ea1d2c",
-                    cursor: "pointer"
-                  }}
-                >
-                  <Pencil size={13} />
-                </button>
-              )}
-            </div>
+      {/* DADOS */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 16,
+            fontWeight: 800,
+            color: "#111",
+            lineHeight: 1.2
+          }}
+        >
+          {nomeProduto}
+        </div>
 
-            {/* DADOS */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: "#111",
-                  lineHeight: 1.2
-                }}
-              >
-                {item.produto?.nome || "Produto"}
-              </div>
-
-              {!!item.produto?.descricao && (
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 12,
-                    color: "#777",
-                    lineHeight: 1.35,
-                    overflow: "hidden",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical"
-                  }}
-                >
-                  {item.produto.descricao}
-                </div>
-              )}
-
-              {item.extras?.length > 0 && (
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 12,
-                    color: "#666",
-                    lineHeight: 1.35
-                  }}
-                >
-                  {item.extras.map((e) => `+ ${e.nome}`).join(", ")}
-                </div>
-              )}
-
-              <div
-                style={{
-                  marginTop: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap"
-                }}
-              >
-                {produtoEmPromocao?.(item.produto) && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6
-                    }}
-                  >
-                    <span
-                      style={{
-                        color: "#f97316",
-                        fontSize: 18
-                      }}
-                    >
-                      %
-                    </span>
-
-                    <strong
-                      style={{
-                        fontSize: 17,
-                        color: "#111",
-                        fontWeight: 900
-                      }}
-                    >
-                      {formatarReal(item.total)}
-                    </strong>
-
-                    <span
-                      style={{
-                        fontSize: 14,
-                        color: "#aaa",
-                        textDecoration: "line-through"
-                      }}
-                    >
-                      {formatarReal((item.produto?.preco || 0) * (item.quantidade || 1))}
-                    </span>
-                  </div>
-                )}
-
-                {!produtoEmPromocao?.(item.produto) && (
-                  <strong
-                    style={{
-                      fontSize: 17,
-                      color: "#111",
-                      fontWeight: 900
-                    }}
-                  >
-                    {formatarReal(item.total)}
-                  </strong>
-                )}
-              </div>
-            </div>
-
-            {/* CONTROLE */}
-            <div
-              style={{
-                minWidth: 118,
-                background: "#f7f7f7",
-                borderRadius: 18,
-                padding: "1px 1px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 3,
-                flexShrink: 0
-              }}
-            >
-              <button
-                onClick={() => removerItem(i)}
-                style={{
-                  width: 24,
-                  height: 24,
-                  border: "none",
-                  background: "transparent",
-                  color: "#ea1d2c",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer"
-                }}
-              >
-                <Trash2 size={17} />
-              </button>
-
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 800,
-                  color: "#111",
-                  minWidth: 16,
-                  textAlign: "center"
-                }}
-              >
-                {item.quantidade}
-              </div>
-
-              <button
-                onClick={() => alterarQuantidade(i, "mais")}
-                style={{
-                  width: 24,
-                  height: 24,
-                  border: "none",
-                  background: "transparent",
-                  color: "#ea1d2c",
-                  fontSize: 28,
-                  lineHeight: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer"
-                }}
-              >
-                +
-              </button>
-            </div>
+        {!!descricaoProduto && (
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              color: "#777",
+              lineHeight: 1.35,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical"
+            }}
+          >
+            {descricaoProduto}
           </div>
-        ))}
+        )}
+
+        {Array.isArray(item?.extras) && item.extras.length > 0 && (
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              color: "#666",
+              lineHeight: 1.45
+            }}
+          >
+            {item.extras
+              .map((e) => {
+                const qtd = Number(e?.qtd || 1);
+                return `+ ${e?.nome || "Extra"}${qtd > 1 ? ` x${qtd}` : ""}`;
+              })
+              .join(", ")}
+          </div>
+        )}
+
+        <div
+  style={{
+    marginTop: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap"
+  }}
+>
+  {produtoEmPromocao(item?.produto) ? (
+    <>
+      <strong
+        style={{
+          fontSize: 17,
+          color: "#111",
+          fontWeight: 900
+        }}
+      >
+        {formatarReal(item?.total || 0)}
+      </strong>
+
+      <span
+        style={{
+          fontSize: 14,
+          color: "#aaa",
+          textDecoration: "line-through"
+        }}
+      >
+        {formatarReal(
+          ((Number(item?.produto?.preco || 0) +
+            (Array.isArray(item?.extras)
+              ? item.extras.reduce(
+                  (acc, e) =>
+                    acc + (Number(e?.preco || 0) * Number(e?.qtd || 1)),
+                  0
+                )
+              : 0)) *
+            Number(item?.quantidade || 1))
+        )}
+      </span>
+    </>
+  ) : (
+    <strong
+      style={{
+        fontSize: 17,
+        color: "#111",
+        fontWeight: 900
+      }}
+    >
+      {formatarReal(item?.total || 0)}
+    </strong>
+  )}
+</div>
+      </div>
+
+      {/* CONTROLE */}
+      <div
+        style={{
+          minWidth: 118,
+          background: "#f7f7f7",
+          borderRadius: 18,
+          padding: "1px 1px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 3,
+          flexShrink: 0
+        }}
+      >
+        <button
+          onClick={() => removerItem(i)}
+          style={{
+            width: 24,
+            height: 24,
+            border: "none",
+            background: "transparent",
+            color: "#ea1d2c",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer"
+          }}
+        >
+          <Trash2 size={17} />
+        </button>
+
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 800,
+            color: "#111",
+            minWidth: 16,
+            textAlign: "center"
+          }}
+        >
+          {item.quantidade}
+        </div>
+
+        <button
+          onClick={() => alterarQuantidade(i, "mais")}
+          style={{
+            width: 24,
+            height: 24,
+            border: "none",
+            background: "transparent",
+            color: "#ea1d2c",
+            fontSize: 28,
+            lineHeight: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer"
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+})}
 
         {/* ADICIONAR MAIS */}
         <div
@@ -6547,51 +6700,55 @@ return (
         )}
       </div>
 
-      {/* LOGIN / LOGOUT */}
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 20 }}>
-        {user ? (
-          <button
-            onClick={async () => {
-              await signOut(auth);
-              setUser(null);
-              setAba("home");
-              setStep(1);
-            }}
-            style={{
-              padding: "10px 16px",
-              fontSize: 13,
-              borderRadius: 12,
-              background: "#ef4444",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: "bold",
-              width: "fit-content"
-            }}
-          >
-            Sair da conta
-          </button>
-        ) : (
-          <button
-            onClick={() => {
-              router.push("/login");
-            }}
-            style={{
-              padding: "10px 16px",
-              fontSize: 13,
-              borderRadius: 12,
-              background: "#ea1d2c",
-              color: "#fff",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: "bold",
-              width: "fit-content"
-            }}
-          >
-            Entrar / Cadastre-se
-          </button>
-        )}
-      </div>
+     {/* LOGIN / LOGOUT */}
+<div
+  style={{
+    position: "absolute",
+    top: "calc(env(safe-area-inset-top) + 10px)",
+    right: 16
+  }}
+>
+  {user ? (
+    <button
+      onClick={async () => {
+        await signOut(auth);
+        setUser(null);
+        setAba("home");
+        setStep(1);
+      }}
+      style={{
+        padding: "8px 14px",
+        fontSize: 13,
+        borderRadius: 999,
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        cursor: "pointer",
+        fontWeight: 700
+      }}
+    >
+      Sair
+    </button>
+  ) : (
+    <button
+      onClick={() => {
+        router.push("/login");
+      }}
+      style={{
+        padding: "8px 14px",
+        fontSize: 13,
+        borderRadius: 999,
+        background: "#ea1d2c",
+        color: "#fff",
+        border: "none",
+        cursor: "pointer",
+        fontWeight: 700
+      }}
+    >
+      Entrar
+    </button>
+  )}
+</div>
 
 {toast && (
   <div
@@ -8222,186 +8379,199 @@ return (
         )}
 
       {produtos
-        .filter(p => {
-          if (p.ativo === false) return false;
+  .filter(p => {
+    if (p.ativo === false) return false;
 
-          if (categoriaSelecionada === "promocoes") {
-            return produtoEmPromocao(p);
-          }
+    if (categoriaSelecionada === "promocoes") {
+      return produtoEmPromocao(p);
+    }
 
-          return p.categoria === categoriaSelecionada;
-        })
-        .map(p => (
-          <div
-            key={p.id}
-            onClick={() => {
-              if (!validarLojaAberta()) return;
+    return p.categoria === categoriaSelecionada;
+  })
+  .map(p => (
+    <div
+      key={p.id}
+      onClick={() => {
+        if (!validarLojaAberta()) return;
 
-              if (categoriaTemExtras(p.categoria)) {
-                setProduto({
-                  ...p,
-                  preco: precoFinalProduto(p)
-                });
-                setAba("home");
-                setStep(2);
-                return;
-              }
+        if (categoriaTemExtras(p.categoria)) {
+          setProduto({
+          ...p,
+         preco: Number(p.preco || 0),
+         precoPromocional: Number(p.precoPromocional || 0),
+         promocao: p.promocao === true
+         });
+          setAba("home");
+          setStep(2);
+          return;
+        }
 
-              if (categoriaVaiDiretoCarrinho(p.categoria)) {
-                setCarrinho(prev => [
-                  ...prev,
-                  {
-                    produto: {
-                      ...p,
-                      preco: precoFinalProduto(p)
-                    },
-                    quantidade: 1,
-                    extras: [],
-                    total: Number(precoFinalProduto(p) || 0)
-                  }
-                ]);
+        if (categoriaVaiDiretoCarrinho(p.categoria)) {
+          setCarrinho(prev => [
+            ...prev,
+            {
+              produto: {
+               ...p,
+              preco: Number(p.preco || 0),
+              precoPromocional: Number(p.precoPromocional || 0),
+              promocao: p.promocao === true
+              },
+              quantidade: 1,
+              extras: [],
+              total: Number(precoFinalProduto(p) || 0)
+            }
+          ]);
 
-                setAba("carrinho");
-                setStep(3);
-                return;
-              }
-            }}
-            style={{
-              background: "#fff",
-              borderRadius: 18,
-              padding: 12,
-              marginBottom: 12,
-              display: "flex",
-              gap: 12,
-              cursor: "pointer",
-              boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
-              position: "relative",
-              alignItems: "center"
-            }}
-          >
+          setAba("carrinho");
+          setStep(3);
+          return;
+        }
+      }}
+      style={{
+        background: "#fff",
+        borderRadius: 18,
+        padding: 12,
+        marginBottom: 12,
+        display: "flex",
+        gap: 12,
+        cursor: "pointer",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
+        position: "relative",
+        alignItems: "center"
+      }}
+    >
 
-            {/* BADGE */}
-            {produtoEmPromocao(p) ? (
-              <div style={{
-                position: "absolute",
-                top: 8,
-                left: 8,
+      {/* BADGES (CORRIGIDO) */}
+      {(produtoEmPromocao(p) || p.maisVendido) && (
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            display: "flex",
+            gap: 6,
+            zIndex: 2
+          }}
+        >
+          {produtoEmPromocao(p) && (
+            <div
+              style={{
                 background: "#ea1d2c",
                 color: "#fff",
                 fontSize: 10,
                 padding: "3px 8px",
                 borderRadius: 8,
                 fontWeight: "bold",
-                zIndex: 2,
                 boxShadow: "0 4px 10px rgba(234,29,44,0.18)"
-              }}>
-                Oferta
-              </div>
-            ) : p.maisVendido ? (
-              <div style={{
-                position: "absolute",
-                top: 8,
-                left: 8,
+              }}
+            >
+              Oferta
+            </div>
+          )}
+
+          {p.maisVendido && (
+            <div
+              style={{
                 background: "#ee660b",
                 color: "#fff",
                 fontSize: 10,
                 padding: "3px 8px",
                 borderRadius: 8,
-                fontWeight: "bold",
-                zIndex: 2
-              }}>
-                Mais vendido
-              </div>
-            ) : null}
-
-            {/* IMAGEM PADRONIZADA */}
-            <div style={{
-              width: 80,
-              height: 80,
-              borderRadius: 14,
-              overflow: "hidden",
-              background: "#f4f4f5",
-              flexShrink: 0
-            }}>
-              <img
-                src={p.imagem || "/acai.png"}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }}
-              />
+                fontWeight: "bold"
+              }}
+            >
+              Mais vendido
             </div>
+          )}
+        </div>
+      )}
 
-            {/* INFO */}
-            <div style={{ flex: 1 }}>
-              <strong style={{
-                fontSize: 15,
-                color: "#111"
-              }}>
-                {p.nome}
-              </strong>
+      {/* IMAGEM */}
+      <div style={{
+        width: 80,
+        height: 80,
+        borderRadius: 14,
+        overflow: "hidden",
+        background: "#f4f4f5",
+        flexShrink: 0
+      }}>
+        <img
+          src={p.imagem || "/acai.png"}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover"
+          }}
+        />
+      </div>
 
-              <div style={{
-                fontSize: 12,
-                color: "#666",
-                marginTop: 4
-              }}>
-                {p.descricao}
-              </div>
+      {/* INFO */}
+      <div style={{ flex: 1 }}>
+        <strong style={{
+          fontSize: 15,
+          color: "#111"
+        }}>
+          {p.nome}
+        </strong>
 
-              {p.extras?.length > 0 && (
+        <div style={{
+          fontSize: 12,
+          color: "#666",
+          marginTop: 4
+        }}>
+          {p.descricao}
+        </div>
+
+        {p.extras?.length > 0 && (
+          <div style={{
+            fontSize: 11,
+            color: "#999",
+            marginTop: 4
+          }}>
+            + {p.extras.length} adicionais
+          </div>
+        )}
+
+        {/* PREÇO (SEM VERMELHO) */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginTop: 8,
+          gap: 8
+        }}>
+          <div>
+            {produtoEmPromocao(p) ? (
+              <>
                 <div style={{
                   fontSize: 11,
                   color: "#999",
-                  marginTop: 4
+                  textDecoration: "line-through",
+                  marginBottom: 2
                 }}>
-                  + {p.extras.length} adicionais
+                  {formatarReal(p.preco)}
                 </div>
-              )}
 
-              {/* PREÇO + BOTÃO */}
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                marginTop: 8,
-                gap: 8
+                <span style={{
+                  fontWeight: "bold",
+                  color: "#111", // 🔥 ALTERADO AQUI
+                  fontSize: 14
+                }}>
+                  {formatarReal(precoFinalProduto(p))}
+                </span>
+              </>
+            ) : (
+              <span style={{
+                fontWeight: "bold",
+                color: "#111", // 🔥 ALTERADO AQUI
+                fontSize: 14
               }}>
-                <div>
-                  {produtoEmPromocao(p) ? (
-                    <>
-                      <div style={{
-                        fontSize: 11,
-                        color: "#999",
-                        textDecoration: "line-through",
-                        lineHeight: 1.1,
-                        marginBottom: 2
-                      }}>
-                        {formatarReal(p.preco)}
-                      </div>
-
-                      <span style={{
-                        fontWeight: "bold",
-                        color: "#ea1d2c",
-                        fontSize: 14,
-                        lineHeight: 1.1
-                      }}>
-                        {formatarReal(precoFinalProduto(p))}
-                      </span>
-                    </>
-                  ) : (
-                    <span style={{
-                      fontWeight: "bold",
-                      color: "#ea1d2c",
-                      fontSize: 14
-                    }}>
-                      {formatarReal(p.preco)}
-                    </span>
-                  )}
-                </div>
-
-                <button
+                {formatarReal(p.preco)}
+              </span>
+            )}
+          </div>
+   
+                {/*<button
                   onClick={(e) => {
                     e.stopPropagation();
 
@@ -8453,7 +8623,7 @@ return (
                   }}
                 >
                   +
-                </button>
+                </button>*/}
               </div>
             </div>
           </div>
@@ -8735,107 +8905,214 @@ return (
 
             {/* RESULTADOS */}
             {produtosBusca.map(p => (
-              <div
-                key={p.id}
-                onClick={() => {
-                  salvarBuscaHistorico(p.nome || "");
+  <div
+    key={p.id}
+    onClick={() => {
+      salvarBuscaHistorico(p.nome || "");
 
-                  if (!validarLojaAberta()) return;
+      if (!validarLojaAberta()) return;
 
-                  const categoriaNormalizada = normalizarCategoria(p.categoria);
+      const categoriaNormalizada = normalizarCategoria(p.categoria);
 
-                  if (categoriaNormalizada === "acai") {
-                    setProduto(p);
-                    setAba("home");
-                    setStep(2);
-                    return;
-                  }
+      if (categoriaNormalizada === "acai") {
+        setProduto({
+          ...p,
+          preco: precoFinalProduto(p)
+        });
+        setAba("home");
+        setStep(2);
+        return;
+      }
 
-                  if (
-                    categoriaNormalizada === "bebidas" ||
-                    categoriaNormalizada === "combos" ||
-                    categoriaNormalizada === "promocoes"
-                  ) {
-                    setCarrinho(prev => [
-                      ...prev,
-                      {
-                        produto: p,
-                        quantidade: 1,
-                        extras: [],
-                        total: Number(p.preco || 0)
-                      }
-                    ]);
-                    setAba("carrinho");
-                    setStep(3);
-                    return;
-                  }
+      if (
+        categoriaNormalizada === "bebidas" ||
+        categoriaNormalizada === "combos" ||
+        categoriaNormalizada === "promocoes"
+      ) {
+        setCarrinho(prev => [
+          ...prev,
+          {
+            produto: {
+            ...p,
+            preco: Number(p.preco || 0),
+            precoPromocional: Number(p.precoPromocional || 0),
+            promocao: p.promocao === true
+             },
+            quantidade: 1,
+            extras: [],
+            total: Number(precoFinalProduto(p) || 0)
+          }
+        ]);
+        setAba("carrinho");
+        setStep(3);
+        return;
+      }
 
-                  console.log("Categoria não reconhecida:", p.categoria);
-                }}
-                style={{
-                  background: "#fff",
-                  borderRadius: 18,
-                  padding: 12,
-                  marginBottom: 12,
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "center",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                  cursor: "pointer"
-                }}
-              >
-                <img
-                  src={p.imagem || "/acai.png"}
-                  style={{
-                    width: 70,
-                    height: 70,
-                    borderRadius: 14,
-                    objectFit: "cover",
-                    flexShrink: 0
-                  }}
-                />
+      console.log("Categoria não reconhecida:", p.categoria);
+    }}
+    style={{
+      background: "#fff",
+      borderRadius: 18,
+      padding: 12,
+      marginBottom: 12,
+      display: "flex",
+      gap: 12,
+      alignItems: "center",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+      cursor: "pointer",
+      position: "relative"
+    }}
+  >
+    {/* IMAGEM */}
+    <div
+      style={{
+        width: 70,
+        height: 70,
+        borderRadius: 14,
+        overflow: "hidden",
+        flexShrink: 0,
+        position: "relative",
+        background: "#f4f4f5"
+      }}
+    >
+      <img
+        src={p.imagem || "/acai.png"}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block"
+        }}
+      />
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <strong style={{
-                    fontSize: 14,
-                    color: "#111",
-                    display: "block",
-                    lineHeight: 1.25
-                  }}>
-                    {p.nome}
-                  </strong>
+      {(produtoEmPromocao(p) || p.maisVendido) && (
+        <div
+          style={{
+            position: "absolute",
+            top: 6,
+            left: 6,
+            display: "flex",
+            gap: 4,
+            flexWrap: "wrap",
+            zIndex: 2,
+            maxWidth: "90%"
+          }}
+        >
+          {produtoEmPromocao(p) && (
+            <div
+              style={{
+                background: "#ea1d2c",
+                color: "#fff",
+                fontSize: 8,
+                padding: "3px 6px",
+                borderRadius: 999,
+                fontWeight: 800,
+                lineHeight: 1
+              }}
+            >
+              Oferta
+            </div>
+          )}
 
-                  {!!p.tamanho && (
-                    <div style={{
-                      fontSize: 12,
-                      color: "#777",
-                      marginTop: 3
-                    }}>
-                      • {p.tamanho}
-                    </div>
-                  )}
+          {p.maisVendido && (
+            <div
+              style={{
+                background: "#ee660b",
+                color: "#fff",
+                fontSize: 8,
+                padding: "3px 6px",
+                borderRadius: 999,
+                fontWeight: 800,
+                lineHeight: 1
+              }}
+            >
+              Mais vendido
+            </div>
+          )}
+        </div>
+      )}
+    </div>
 
-                  <div style={{
-                    fontSize: 12,
-                    color: "#777",
-                    marginTop: 4,
-                    lineHeight: 1.35
-                  }}>
-                    {p.descricao}
-                  </div>
+    {/* INFO */}
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <strong
+        style={{
+          fontSize: 14,
+          color: "#111",
+          display: "block",
+          lineHeight: 1.25
+        }}
+      >
+        {p.nome}
+      </strong>
 
-                  <div style={{
-                    marginTop: 6,
-                    color: "#ea1d2c",
-                    fontWeight: 800,
-                    fontSize: 15
-                  }}>
-                    {formatarReal(p.preco)}
-                  </div>
-                </div>
-              </div>
-            ))}
+      {!!p.tamanho && (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#777",
+            marginTop: 3
+          }}
+        >
+          • {p.tamanho}
+        </div>
+      )}
 
+      <div
+        style={{
+          fontSize: 12,
+          color: "#777",
+          marginTop: 4,
+          lineHeight: 1.35,
+          overflow: "hidden",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical"
+        }}
+      >
+        {p.descricao}
+      </div>
+
+      <div style={{ marginTop: 6 }}>
+        {produtoEmPromocao(p) ? (
+          <>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#999",
+                textDecoration: "line-through",
+                lineHeight: 1.1,
+                marginBottom: 2
+              }}
+            >
+              {formatarReal(p.preco)}
+            </div>
+
+            <div
+              style={{
+                color: "#a30510",
+                fontWeight: 800,
+                fontSize: 15
+              }}
+            >
+              {formatarReal(precoFinalProduto(p))}
+            </div>
+          </>
+        ) : (
+          <div
+            style={{
+              color: "#111",
+              fontWeight: 800,
+              fontSize: 15
+            }}
+          >
+            {formatarReal(precoFinalProduto(p))}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+))}
             {/* VAZIO */}
             {produtosBusca.length === 0 && (
               <div style={{
@@ -9201,113 +9478,186 @@ return (
 
 
 {/* 🔥 BARRA SACOLA GLOBAL */}
-    {carrinho.length > 0 &&
- !(aba === "carrinho" && step === 3) &&
- !(aba === "home" && step === 2) &&
- !(aba === "pagamentos" && step === 6) && (
-  <div style={{ 
-          position: "fixed",
-          bottom: `calc(${NAVBAR}px)`,
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 30
+{(() => {
+  const mostrarBarraSacola =
+    carrinho.length > 0 &&
+    !(aba === "carrinho" && step === 3) &&
+    !(aba === "home" && step === 2) &&
+    !(aba === "pagamentos" && step === 6);
+
+  if (!mostrarBarraSacola) return null;
+
+  const totalSacola =
+    typeof subtotalProdutos !== "undefined"
+      ? subtotalProdutos
+      : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0);
+
+  const totalItens = carrinho.reduce(
+    (acc, item) => acc + Number(item.quantidade || 0),
+    0
+  );
+
+  const progresso =
+    LIMITE_FRETE_GRATIS > 0
+      ? Math.min((totalSacola / LIMITE_FRETE_GRATIS) * 100, 100)
+      : 0;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: `calc(${NAVBAR}px)`,
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
+        zIndex: 30
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: isMobile ? larguraApp : 720,
+          background: "#fff",
+          borderTop: "1px solid #eee",
+          borderRadius: isMobile ? 0 : 16,
+          boxShadow: isMobile ? "none" : "0 8px 30px rgba(0,0,0,0.08)",
+          padding: isMobile ? "10px 12px" : "12px 18px",
+          boxSizing: "border-box"
         }}
       >
+        {/* PROGRESSO FRETE */}
+        <div style={{ marginBottom: 8 }}>
+          <div
+            style={{
+              width: "100%",
+              height: 6,
+              background: "#eee",
+              borderRadius: 999,
+              overflow: "hidden",
+              position: "relative"
+            }}
+          >
+            <div
+              style={{
+                width: `${progresso}%`,
+                height: "100%",
+                borderRadius: 999,
+                background:
+                  progresso >= 100
+                    ? "#16a34a"
+                    : "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+                transition: "width 0.4s ease"
+              }}
+            />
+
+            {/* CAMINHÃO */}
+            {progresso > 0 && progresso < 100 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: `calc(${progresso}% - 10px)`,
+                  transform: "translateY(-50%)",
+                  fontSize: 12,
+                  transition: "left 0.4s ease",
+                  lineHeight: 1
+                }}
+              >
+                🚚
+              </div>
+            )}
+          </div>
+        </div>
+
         <div
           style={{
-            width: "100%",
-            maxWidth: isMobile ? larguraApp : 720,
-            background: "#fff",
-            borderTop: "1px solid #eee",
-            borderRadius: isMobile ? 0 : 16,
-            boxShadow: isMobile ? "none" : "0 8px 30px rgba(0,0,0,0.08)",
-            padding: isMobile ? "10px 12px" : "12px 18px",
-            boxSizing: "border-box"
-          }}
-        >
-          <div style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             gap: 14
-          }}>
-
-            {/* ESQUERDA */}
-            <div style={{
+          }}
+        >
+          {/* ESQUERDA */}
+          <div
+            style={{
               display: "flex",
               alignItems: "center",
               gap: 12,
               flex: 1,
               minWidth: 0
-            }}>
-              <img
-                src={logo || "/bg.png"}
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: "50%",
-                  objectFit: "cover"
-                }}
-              />
+            }}
+          >
+            <img
+              src={logo || "/bg.png"}
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                objectFit: "cover",
+                flexShrink: 0
+              }}
+            />
 
-              <div style={{ minWidth: 0 }}>
-                <div style={{
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div
+                style={{
                   fontSize: 12,
                   color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
                   fontWeight: 600,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis"
-                }}>
-                  {faltaFreteGratis > 0
-                    ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-                    : "Entrega grátis aplicada"}
-                </div>
+                }}
+              >
+                {faltaFreteGratis > 0
+                  ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+                  : "Entrega grátis aplicada"}
+              </div>
 
-                <div style={{
+              <div
+                style={{
                   fontSize: 16,
                   fontWeight: 800,
                   color: "#111",
                   marginTop: 2
-                }}>
-                  {formatarReal(
-                    typeof subtotalProdutos !== "undefined"
-                      ? subtotalProdutos
-                      : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
-                  )}{" "}
-                  <span style={{ fontWeight: 500, color: "#666" }}>
-                    / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
-                  </span>
-                </div>
+                }}
+              >
+                {formatarReal(totalSacola)}{" "}
+                <span style={{ fontWeight: 500, color: "#666" }}>
+                  / {totalItens} {totalItens === 1 ? "item" : "itens"}
+                </span>
               </div>
             </div>
-
-            {/* BOTÃO */}
-            <button
-              onClick={() => {
-                setAba("carrinho");
-                setStep(3);
-              }}
-              style={{
-                height: 46,
-                padding: "0 22px",
-                borderRadius: 14,
-                border: "none",
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 800,
-                cursor: "pointer"
-              }}
-            >
-              Ver sacola
-            </button>
           </div>
+
+          {/* BOTÃO */}
+          <button
+            onClick={() => {
+              setAba("carrinho");
+              setStep(3);
+            }}
+            style={{
+              height: 46,
+              padding: "0 22px",
+              borderRadius: 14,
+              border: "none",
+              background: "#ea1d2c",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              flexShrink: 0,
+              boxShadow: "0 6px 16px rgba(234,29,44,0.18)"
+            }}
+          >
+            Ver sacola
+          </button>
         </div>
       </div>
-    )}
+    </div>
+  );
+})()}
 
 
 

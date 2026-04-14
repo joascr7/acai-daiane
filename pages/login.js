@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
-import { authCliente as auth } from "../services/firebaseDual";
-import { db } from "../services/firebase";
+import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 import {
   createUserWithEmailAndPassword,
@@ -102,6 +101,17 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+  if (!erro) return;
+
+  const timer = setTimeout(() => {
+    setErro("");
+  }, 4000); // 4 segundos
+
+  return () => clearTimeout(timer);
+}, [erro]);
 
   function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, "");
@@ -140,19 +150,25 @@ export default function Login() {
 
  async function entrar() {
   try {
+    setErro("");
     setLoading(true);
 
-    // 🔥 mantém login salvo no navegador
     await setPersistence(auth, browserLocalPersistence);
 
     if (modo === "cadastro") {
-      if (!validarCPF(cpf)) {
-        alert("CPF inválido");
+
+      if (!nome.trim()) {
+        setErro("Digite seu nome.");
+        return;
+      }
+
+      if (!cpf) {
+        setErro("Informe seu CPF.");
         return;
       }
 
       if (senha !== confirmarSenha) {
-        alert("Senhas não coincidem");
+        setErro("As senhas não coincidem.");
         return;
       }
 
@@ -164,12 +180,21 @@ export default function Login() {
       const snap = await getDocs(q);
 
       if (!snap.empty) {
-        alert("CPF já cadastrado");
+        setErro("Este CPF já está cadastrado.");
         return;
       }
 
       const res = await createUserWithEmailAndPassword(auth, email, senha);
       const user = res.user;
+
+      await new Promise((resolve) => {
+        const unsub = auth.onAuthStateChanged((u) => {
+          if (u) {
+            unsub();
+            resolve();
+          }
+        });
+      });
 
       await setDoc(doc(db, "clientes", user.uid), {
         nome,
@@ -182,14 +207,40 @@ export default function Login() {
         clienteEmail: email,
         clienteCpf: cpf
       });
+
     } else {
       await signInWithEmailAndPassword(auth, email, senha);
     }
 
     router.push("/acai");
+
   } catch (e) {
     console.log(e);
-    alert("Erro: " + e.message);
+
+    let mensagem = "Ocorreu um erro. Tente novamente.";
+
+    if (e.code === "auth/email-already-in-use") {
+      mensagem = "Este e-mail já está em uso.";
+    }
+
+    if (e.code === "auth/invalid-email") {
+      mensagem = "E-mail inválido.";
+    }
+
+    if (e.code === "auth/weak-password") {
+      mensagem = "A senha deve ter pelo menos 6 caracteres.";
+    }
+
+    if (e.code === "auth/user-not-found") {
+      mensagem = "Usuário não encontrado.";
+    }
+
+    if (e.code === "auth/wrong-password") {
+      mensagem = "Senha incorreta.";
+    }
+
+    setErro(mensagem);
+
   } finally {
     setLoading(false);
   }
@@ -283,231 +334,269 @@ export default function Login() {
             border: "1px solid rgba(255,255,255,0.7)"
           }}>
             {/* LOGO / TÍTULO */}
-            <div style={{
-              textAlign: "center",
-              marginBottom: 18
-            }}>
-              <img
-                src="/logo.jpg"
-                style={{
-                  width: 78,
-                  height: 78,
-                  objectFit: "contain",
-                  borderRadius: 20,
-                  background: "#fff",
-                  padding: 8,
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.08)"
-                }}
-              />
+{erro && (
+  <div style={{
+    background: "#ffecec",
+    color: "#d93025",
+    padding: "12px 14px",
+    borderRadius: 12,
+    fontSize: 13,
+    marginBottom: 12,
+    fontWeight: 500,
+    textAlign: "center",
+    transition: "opacity 0.3s ease"
+  }}>
+    {erro}
+  </div>
+)}
 
-              <h1 style={{
-                marginTop: 16,
-                marginBottom: 6,
-                fontSize: 24,
-                fontWeight: 800,
-                color: "#111",
-                letterSpacing: "-0.3px"
-              }}>
-                Entrar ou criar conta
-              </h1>
+<div style={{
+  textAlign: "center",
+  marginBottom: 18
+}}>
+  <img
+    src="/logo.jpg"
+    style={{
+      width: 78,
+      height: 78,
+      objectFit: "contain",
+      borderRadius: 20,
+      background: "#fff",
+      padding: 8,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.08)"
+    }}
+  />
 
-              <p style={{
-                margin: 0,
-                fontSize: 14,
-                color: "#666",
-                lineHeight: 1.4
-              }}>
-                Use seu e-mail para continuar no app
-              </p>
-            </div>
+  <h1 style={{
+    marginTop: 16,
+    marginBottom: 6,
+    fontSize: 24,
+    fontWeight: 800,
+    color: "#111",
+    letterSpacing: "-0.3px"
+  }}>
+    Entrar ou criar conta
+  </h1>
 
-            {/* INÍCIO */}
-            {modo === "inicio" && (
-              <div style={{ marginTop: 6 }}>
-                <button
-                  style={{
-                    ...btnPrimary,
-                    marginTop: 0
-                  }}
-                  onClick={() => setModo("login")}
-                >
-                  Já tenho uma conta
-                </button>
+  <p style={{
+    margin: 0,
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 1.4
+  }}>
+    Use seu e-mail para continuar no app
+  </p>
+</div>
 
-                <button
-                  style={btnSecondary}
-                  onClick={() => setModo("cadastro")}
-                >
-                  Criar nova conta
-                </button>
-              </div>
-            )}
+{/* INÍCIO */}
+{modo === "inicio" && (
+  <div style={{ marginTop: 6 }}>
+    <button
+      style={{
+        ...btnPrimary,
+        marginTop: 0
+      }}
+      onClick={() => setModo("login")}
+    >
+      Já tenho uma conta
+    </button>
 
-            {/* LOGIN */}
-            {modo === "login" && (
-              <div style={{ marginTop: 2 }}>
-                <div style={{ marginBottom: 14 }}>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: 20,
-                    fontWeight: 800,
-                    color: "#111",
-                    letterSpacing: "-0.3px"
-                  }}>
-                    Entrar
-                  </h3>
+    <button
+      style={btnSecondary}
+      onClick={() => setModo("cadastro")}
+    >
+      Criar nova conta
+    </button>
+  </div>
+)}
 
-                  <p style={{
-                    marginTop: 6,
-                    marginBottom: 0,
-                    fontSize: 13,
-                    color: "#666"
-                  }}>
-                    Digite seus dados para continuar
-                  </p>
-                </div>
+{/* LOGIN */}
+{modo === "login" && (
+  <div style={{ marginTop: 2 }}>
+    <div style={{ marginBottom: 14 }}>
+      <h3 style={{
+        margin: 0,
+        fontSize: 20,
+        fontWeight: 800,
+        color: "#111",
+        letterSpacing: "-0.3px"
+      }}>
+        Entrar
+      </h3>
 
-                <input
-                  placeholder="Email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  style={inputPremium}
-                />
+      <p style={{
+        marginTop: 6,
+        marginBottom: 0,
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Digite seus dados para continuar
+      </p>
+    </div>
 
-                <input
-                  type="password"
-                  placeholder="Senha"
-                  value={senha}
-                  onChange={e => setSenha(e.target.value)}
-                  style={inputPremium}
-                />
+    <input
+      placeholder="Email"
+      value={email}
+      onChange={e => {
+        setErro("");
+        setEmail(e.target.value);
+      }}
+      style={inputPremium}
+    />
 
-                <button onClick={entrar} style={btnPrimary}>
-                  {loading ? "Entrando..." : "Entrar"}
-                </button>
+    <input
+      type="password"
+      placeholder="Senha"
+      value={senha}
+      onChange={e => {
+        setErro("");
+        setSenha(e.target.value);
+      }}
+      style={inputPremium}
+    />
 
-                <div style={{
-                  marginTop: 16,
-                  textAlign: "center",
-                  fontSize: 13
-                }}>
-                  <span style={{ color: "#777" }}>
-                    Não tem conta?{" "}
-                  </span>
-                  <span
-                    onClick={() => setModo("cadastro")}
-                    style={{
-                      color: "#ea1d2c",
-                      fontWeight: "bold",
-                      cursor: "pointer"
-                    }}
-                  >
-                    Criar agora
-                  </span>
-                </div>
-              </div>
-            )}
+    <button onClick={entrar} style={btnPrimary}>
+      {loading ? "Entrando..." : "Entrar"}
+    </button>
 
-            {/* CADASTRO */}
-            {modo === "cadastro" && (
-              <div style={{ marginTop: 2 }}>
-                <div style={{ marginBottom: 14 }}>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: 20,
-                    fontWeight: 800,
-                    color: "#111",
-                    letterSpacing: "-0.3px"
-                  }}>
-                    Criar conta
-                  </h3>
+    <div style={{
+      marginTop: 16,
+      textAlign: "center",
+      fontSize: 13
+    }}>
+      <span style={{ color: "#777" }}>
+        Não tem conta?{" "}
+      </span>
+      <span
+        onClick={() => setModo("cadastro")}
+        style={{
+          color: "#ea1d2c",
+          fontWeight: "bold",
+          cursor: "pointer"
+        }}
+      >
+        Criar agora
+      </span>
+    </div>
+  </div>
+)}
 
-                  <p style={{
-                    marginTop: 6,
-                    marginBottom: 0,
-                    fontSize: 13,
-                    color: "#666"
-                  }}>
-                    Preencha os dados para criar sua conta
-                  </p>
-                </div>
+{/* CADASTRO */}
+{modo === "cadastro" && (
+  <div style={{ marginTop: 2 }}>
+    <div style={{ marginBottom: 14 }}>
+      <h3 style={{
+        margin: 0,
+        fontSize: 20,
+        fontWeight: 800,
+        color: "#111",
+        letterSpacing: "-0.3px"
+      }}>
+        Criar conta
+      </h3>
 
-                <input
-                  placeholder="Nome"
-                  value={nome}
-                  onChange={e => setNome(e.target.value)}
-                  style={inputPremium}
-                />
+      <p style={{
+        marginTop: 6,
+        marginBottom: 0,
+        fontSize: 13,
+        color: "#666"
+      }}>
+        Preencha os dados para criar sua conta
+      </p>
+    </div>
 
-                <input
-                  placeholder="CPF"
-                  value={cpf}
-                  onChange={e => setCpf(formatarCPF(e.target.value))}
-                  style={inputPremium}
-                />
+    <input
+      placeholder="Nome"
+      value={nome}
+      onChange={e => {
+        const valor = e.target.value.replace(/[0-9]/g, "");
+        setErro("");
+        setNome(valor);
+      }}
+      style={inputPremium}
+    />
 
-                <input
-                  placeholder="Email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  style={inputPremium}
-                />
+    <input
+      placeholder="CPF"
+      value={cpf}
+      onChange={e => {
+        setErro("");
+        setCpf(formatarCPF(e.target.value));
+      }}
+      style={inputPremium}
+    />
 
-                <input
-                  type="password"
-                  placeholder="Senha"
-                  value={senha}
-                  onChange={e => setSenha(e.target.value)}
-                  style={inputPremium}
-                />
+    <input
+      placeholder="Email"
+      value={email}
+      onChange={e => {
+        setErro("");
+        setEmail(e.target.value);
+      }}
+      style={inputPremium}
+    />
 
-                <input
-                  type="password"
-                  placeholder="Confirmar senha"
-                  value={confirmarSenha}
-                  onChange={e => setConfirmarSenha(e.target.value)}
-                  style={inputPremium}
-                />
+    <input
+      type="password"
+      placeholder="Senha"
+      value={senha}
+      onChange={e => {
+        setErro("");
+        setSenha(e.target.value);
+      }}
+      style={inputPremium}
+    />
 
-                <button onClick={entrar} style={btnPrimary}>
-                  {loading ? "Criando..." : "Criar conta"}
-                </button>
+    <input
+      type="password"
+      placeholder="Confirmar senha"
+      value={confirmarSenha}
+      onChange={e => {
+        setErro("");
+        setConfirmarSenha(e.target.value);
+      }}
+      style={inputPremium}
+    />
 
-                <div style={{
-                  marginTop: 16,
-                  textAlign: "center",
-                  fontSize: 13
-                }}>
-                  <span style={{ color: "#777" }}>
-                    Já tem conta?{" "}
-                  </span>
-                  <span
-                    onClick={() => setModo("login")}
-                    style={{
-                      color: "#ea1d2c",
-                      fontWeight: "bold",
-                      cursor: "pointer"
-                    }}
-                  >
-                    Entrar
-                  </span>
-                </div>
-              </div>
-            )}
+    <button onClick={entrar} style={btnPrimary}>
+      {loading ? "Criando..." : "Criar conta"}
+    </button>
 
-            {/* RODAPÉ */}
-            <div style={{
-              marginTop: 20,
-              textAlign: "center",
-              fontSize: 12,
-              color: "#888",
-              lineHeight: 1.5
-            }}>
-              Ao continuar, você concorda com nossos termos e política de privacidade.
-            </div>
-          </div>
-        </div>
-      </div>
+    <div style={{
+      marginTop: 16,
+      textAlign: "center",
+      fontSize: 13
+    }}>
+      <span style={{ color: "#777" }}>
+        Já tem conta?{" "}
+      </span>
+      <span
+        onClick={() => setModo("login")}
+        style={{
+          color: "#ea1d2c",
+          fontWeight: "bold",
+          cursor: "pointer"
+        }}
+      >
+        Entrar
+      </span>
+    </div>
+  </div>
+)}
+
+{/* RODAPÉ */}
+<div style={{
+  marginTop: 20,
+  textAlign: "center",
+  fontSize: 12,
+  color: "#888",
+  lineHeight: 1.5
+}}>
+  Ao continuar, você concorda com nossos termos e política de privacidade.
+ </div>
+ </div>
+</div>
+</div>
 
       <style>{`
         input:focus {

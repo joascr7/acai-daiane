@@ -14,18 +14,12 @@ const firebaseConfig = {
   measurementId: "G-TWVZ9NPED1"
 };
 
-// CLIENTE
-const appCliente =
-  getApps().find(app => app.name === "cliente") ||
-  initializeApp(firebaseConfig, "cliente");
+// 🔥 UM ÚNICO APP
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
-// ADMIN
-const appAdmin =
-  getApps().find(app => app.name === "admin") ||
-  initializeApp(firebaseConfig, "admin");
+// 🔥 EXPORTA TUDO DO MESMO APP
+export const authCliente = getAuth(app);
+export const authAdmin = getAuth(app);
 
-export const authCliente = getAuth(appCliente);
-export const authAdmin = getAuth(appAdmin);
-
-export const dbCliente = getFirestore(appCliente);
-export const dbAdmin = getFirestore(appAdmin);
+export const dbCliente = getFirestore(app);
+export const dbAdmin = getFirestore(app);
