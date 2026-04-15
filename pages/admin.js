@@ -47,6 +47,8 @@ import {
   ShoppingBag,
   Tag,
   ArrowRight,
+  Home,
+  Settings,
   CircleDollarSign
 } from "lucide-react";
 
@@ -1609,6 +1611,40 @@ if (loadingAuth) {
   <meta name="theme-color" content="#ea1d2c" />
 </Head>
 
+
+const [navPress, setNavPress] = useState("");
+
+const btnNav = (ativo, pressionado) => ({
+  border: "none",
+  outline: "none",
+  background: ativo ? "#fff1f2" : "transparent",
+  color: ativo ? "#ea1d2c" : "#6b7280",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 4,
+  minWidth: 62,
+  height: 54,
+  borderRadius: 16,
+  fontSize: 10,
+  fontWeight: 800,
+  cursor: "pointer",
+  transition:
+    "transform 0.14s ease, background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease",
+  transform: pressionado ? "scale(0.94)" : ativo ? "scale(1)" : "scale(0.98)",
+  boxShadow: ativo ? "0 8px 18px rgba(234,29,44,0.16)" : "none",
+  WebkitTapHighlightColor: "transparent"
+});
+
+const barraTopoNav = (ativo) => ({
+  width: ativo ? 22 : 0,
+  height: 3,
+  borderRadius: 999,
+  background: "#ea1d2c",
+  transition: "width 0.22s ease, opacity 0.22s ease",
+  opacity: ativo ? 1 : 0
+});
 
   return (
 
@@ -5972,78 +6008,111 @@ if (loadingAuth) {
       bottom: 0,
       left: 0,
       right: 0,
-      background: "#fff",
+      background: "#ffffff",
       borderTop: "1px solid #e5e7eb",
-      padding: "8px 6px",
+      padding: "8px 8px 12px",
       display: "flex",
       justifyContent: "space-around",
+      alignItems: "center",
       zIndex: 9999,
-      boxShadow: "0 -6px 20px rgba(0,0,0,0.06)"
+      boxShadow: "0 -8px 24px rgba(15,23,42,0.08)"
     }}
   >
-    {[
-      { id: "dashboard", nome: "Home" },
-      { id: "pedidos", nome: "Pedidos" },
-      { id: "produtos", nome: "Produtos" },
-      { id: "gastos", nome: "Gastos" },
-      { id: "loja", nome: "Loja" }
-    ].map((item) => {
-      const ativo = abaAdmin === item.id;
+    <button
+      onClick={() => setAbaAdmin("dashboard")}
+      onTouchStart={() => setNavPress("dashboard")}
+      onTouchEnd={() => setNavPress("")}
+      onMouseDown={() => setNavPress("dashboard")}
+      onMouseUp={() => setNavPress("")}
+      onMouseLeave={() => setNavPress("")}
+      style={btnNav(abaAdmin === "dashboard", navPress === "dashboard")}
+    >
+      <div style={barraTopoNav(abaAdmin === "dashboard")} />
+      <Home size={20} />
+      <span>Home</span>
+    </button>
 
-      return (
-        <button
-          key={item.id}
-          onClick={() => setAbaAdmin(item.id)}
-          style={{
-            border: "none",
-            background: "transparent",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-            minWidth: 60,
-            cursor: "pointer"
-          }}
-        >
-          {/* BOLHA ATIVA */}
+    <button
+      onClick={() => setAbaAdmin("pedidos")}
+      onTouchStart={() => setNavPress("pedidos")}
+      onTouchEnd={() => setNavPress("")}
+      onMouseDown={() => setNavPress("pedidos")}
+      onMouseUp={() => setNavPress("")}
+      onMouseLeave={() => setNavPress("")}
+      style={btnNav(abaAdmin === "pedidos", navPress === "pedidos")}
+    >
+      <div style={barraTopoNav(abaAdmin === "pedidos")} />
+      <div style={{ position: "relative" }}>
+        <ClipboardList size={20} />
+        {pedidosEmAndamento > 0 && (
           <div
             style={{
-              minWidth: 40,
-              height: 32,
-              padding: "0 10px",
+              position: "absolute",
+              top: -6,
+              right: -10,
+              minWidth: 18,
+              height: 18,
               borderRadius: 999,
-              background: ativo ? "#ea1d2c" : "transparent",
-              color: ativo ? "#fff" : "#6b7280",
+              background: "#ea1d2c",
+              color: "#fff",
+              fontSize: 10,
+              fontWeight: 900,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 11,
-              fontWeight: 800,
-              transition: "all 0.2s ease"
+              padding: "0 5px",
+              transform: abaAdmin === "pedidos" ? "scale(1)" : "scale(0.96)",
+              transition: "transform 0.2s ease"
             }}
           >
-            {item.nome}
-
-            {/* BADGE PEDIDOS */}
-            {item.id === "pedidos" && pedidosEmAndamento > 0 && (
-              <span
-                style={{
-                  marginLeft: 6,
-                  background: "#fff",
-                  color: "#ea1d2c",
-                  borderRadius: 999,
-                  padding: "1px 6px",
-                  fontSize: 10,
-                  fontWeight: 900
-                }}
-              >
-                {pedidosEmAndamento}
-              </span>
-            )}
+            {pedidosEmAndamento}
           </div>
-        </button>
-      );
-    })}
+        )}
+      </div>
+      <span>Pedidos</span>
+    </button>
+
+    <button
+      onClick={() => setAbaAdmin("produtos")}
+      onTouchStart={() => setNavPress("produtos")}
+      onTouchEnd={() => setNavPress("")}
+      onMouseDown={() => setNavPress("produtos")}
+      onMouseUp={() => setNavPress("")}
+      onMouseLeave={() => setNavPress("")}
+      style={btnNav(abaAdmin === "produtos", navPress === "produtos")}
+    >
+      <div style={barraTopoNav(abaAdmin === "produtos")} />
+      <ShoppingBag size={20} />
+      <span>Produtos</span>
+    </button>
+
+    <button
+      onClick={() => setAbaAdmin("gastos")}
+      onTouchStart={() => setNavPress("gastos")}
+      onTouchEnd={() => setNavPress("")}
+      onMouseDown={() => setNavPress("gastos")}
+      onMouseUp={() => setNavPress("")}
+      onMouseLeave={() => setNavPress("")}
+      style={btnNav(abaAdmin === "gastos", navPress === "gastos")}
+    >
+      <div style={barraTopoNav(abaAdmin === "gastos")} />
+      <Wallet size={20} />
+      <span>Gastos</span>
+    </button>
+
+    <button
+      onClick={() => setAbaAdmin("loja")}
+      onTouchStart={() => setNavPress("loja")}
+      onTouchEnd={() => setNavPress("")}
+      onMouseDown={() => setNavPress("loja")}
+      onMouseUp={() => setNavPress("")}
+      onMouseLeave={() => setNavPress("")}
+      style={btnNav(abaAdmin === "loja", navPress === "loja")}
+    >
+      <div style={barraTopoNav(abaAdmin === "loja")} />
+      <Settings size={20} />
+      <span>Loja</span>
+    </button>
   </div>
 )}
 
