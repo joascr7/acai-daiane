@@ -1610,40 +1610,6 @@ if (loadingAuth) {
 </Head>
 
 
-const [navPress, setNavPress] = useState("");
-
-const btnNav = (ativo, pressionado) => ({
-  border: "none",
-  outline: "none",
-  background: ativo ? "#fff1f2" : "transparent",
-  color: ativo ? "#ea1d2c" : "#6b7280",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 4,
-  minWidth: 62,
-  height: 54,
-  borderRadius: 16,
-  fontSize: 10,
-  fontWeight: 800,
-  cursor: "pointer",
-  transition:
-    "transform 0.14s ease, background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease",
-  transform: pressionado ? "scale(0.94)" : ativo ? "scale(1)" : "scale(0.98)",
-  boxShadow: ativo ? "0 8px 18px rgba(234,29,44,0.16)" : "none",
-  WebkitTapHighlightColor: "transparent"
-});
-
-const barraTopoNav = (ativo) => ({
-  width: ativo ? 22 : 0,
-  height: 3,
-  borderRadius: 999,
-  background: "#ea1d2c",
-  transition: "width 0.22s ease, opacity 0.22s ease",
-  opacity: ativo ? 1 : 0
-});
-
   return (
 
 
@@ -5999,29 +5965,32 @@ const barraTopoNav = (ativo) => ({
 
 
 {/* NAVBAR MOBILE */}
-  {isMobile && (
+  {typeof window !== "undefined" && isMobile && (
   <div
     style={{
       position: "fixed",
       bottom: 0,
       left: 0,
       right: 0,
-      background: "#fff",
+      width: "100%",
+      maxWidth: larguraApp,
+      margin: "0 auto",
+      background: "#ffffff",
       borderTop: "1px solid #e5e7eb",
-      padding: "8px 6px",
+      padding: "8px 6px calc(env(safe-area-inset-bottom) + 6px)",
       display: "flex",
       justifyContent: "space-around",
-      zIndex: 9999,
-      boxShadow: "0 -6px 20px rgba(0,0,0,0.06)"
+      zIndex: 9999
     }}
   >
     {[
-      { id: "dashboard", nome: "Home" },
-      { id: "pedidos", nome: "Pedidos" },
-      { id: "produtos", nome: "Produtos" },
-      { id: "gastos", nome: "Gastos" },
-      { id: "loja", nome: "Loja" }
+      { id: "dashboard", nome: "Home", icon: Home },
+      { id: "pedidos", nome: "Pedidos", icon: ClipboardList },
+      { id: "produtos", nome: "Produtos", icon: ShoppingBag },
+      { id: "gastos", nome: "Gastos", icon: Wallet },
+      { id: "loja", nome: "Loja", icon: Settings }
     ].map((item) => {
+      const Icon = item.icon;
       const ativo = abaAdmin === item.id;
 
       return (
@@ -6035,46 +6004,14 @@ const barraTopoNav = (ativo) => ({
             flexDirection: "column",
             alignItems: "center",
             gap: 4,
-            minWidth: 60,
+            fontSize: 10,
+            fontWeight: 700,
+            color: ativo ? "#ea1d2c" : "#6b7280",
             cursor: "pointer"
           }}
         >
-          {/* BOLHA ATIVA */}
-          <div
-            style={{
-              minWidth: 40,
-              height: 32,
-              padding: "0 10px",
-              borderRadius: 999,
-              background: ativo ? "#ea1d2c" : "transparent",
-              color: ativo ? "#fff" : "#6b7280",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 11,
-              fontWeight: 800,
-              transition: "all 0.2s ease"
-            }}
-          >
-            {item.nome}
-
-            {/* BADGE PEDIDOS */}
-            {item.id === "pedidos" && pedidosEmAndamento > 0 && (
-              <span
-                style={{
-                  marginLeft: 6,
-                  background: "#fff",
-                  color: "#ea1d2c",
-                  borderRadius: 999,
-                  padding: "1px 6px",
-                  fontSize: 10,
-                  fontWeight: 900
-                }}
-              >
-                {pedidosEmAndamento}
-              </span>
-            )}
-          </div>
+          <Icon size={20} />
+          {item.nome}
         </button>
       );
     })}
