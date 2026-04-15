@@ -1613,128 +1613,22 @@ if (loadingAuth) {
 
 
 
-  <div className="container">
-    <div className="wrapper">
-
-      {/* HEADER */}
-     <div style={{
-  background: "#fff",
-  borderRadius: 24,
-  padding: 20,
-  marginBottom: 20,
-  boxShadow: "0 8px 30px rgba(0,0,0,0.06)",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 12,
-  flexWrap: "wrap"
-}}>
-  <div>
-    <div style={{
-      fontSize: 12,
-      color: "#777",
-      marginBottom: 6,
-      fontWeight: 600,
-      letterSpacing: 0.3
-    }}>
-      PAINEL DA LOJA
-    </div>
-
-    <h1 style={{
-      margin: 0,
-      fontSize: 28,
-      color: "#111"
-    }}>
-      Loja Admin
-    </h1>
-
-    <div style={{
-      marginTop: 10,
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 8,
-      background: lojaAberta ? "#e8f7ec" : "#fdecec",
-      color: lojaAberta ? "#15803d" : "#b91c1c",
-      padding: "8px 12px",
-      borderRadius: 999,
-      fontWeight: "bold",
-      fontSize: 13
-    }}>
-      <span style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: lojaAberta ? "#16a34a" : "#dc2626"
-      }} />
-      {lojaAberta ? "Loja aberta" : "Loja fechada"}
-    </div>
-  </div>
-
-  <button onClick={logout} style={{
-    padding: "12px 18px",
-    borderRadius: 14,
-    border: "none",
-    background: "#111",
-    color: "#fff",
-    fontWeight: "bold",
-    cursor: "pointer"
-  }}>
-    Sair
-  </button>
-</div>
-
-      {/* MENU */}
-      <div style={{
-  display: "flex",
-  gap: 10,
-  overflowX: "auto",
-  marginBottom: 20,
-  paddingBottom: 4
-}}>
-  {[
-    { id: "dashboard", nome: "Dashboard" },
-    { id: "pedidos", nome: "Pedidos" },
-    { id: "produtos", nome: "Produtos" },
-    { id: "gastos", nome: "Gastos" },
-    { id: "cupons", nome: "Cupons" },
-    { id: "fretes", nome: "Fretes" },
-    { id: "notificacoes", nome: "Notificações" },
-    { id: "banners", nome: "Banner" },
-    { id: "loja", nome: "Loja" }
-  ].map(item => (
-    <button
-      key={item.id}
-      onClick={() => setAbaAdmin(item.id)}
-      style={{
-        padding: "12px 16px",
-        borderRadius: 14,
-        border: abaAdmin === item.id ? "none" : "1px solid #e5e7eb",
-        whiteSpace: "nowrap",
-        background: abaAdmin === item.id ? "#ea1d2c" : "#fff",
-        color: abaAdmin === item.id ? "#fff" : "#333",
-        fontWeight: "bold",
-        cursor: "pointer",
-        boxShadow: abaAdmin === item.id
-          ? "0 8px 20px rgba(234,29,44,0.25)"
-          : "0 4px 12px rgba(0,0,0,0.04)"
-      }}
-    >
-      {item.nome}
-    </button>
-  ))}
-</div>
-       
-      {/* DASHBOARD */}
-      {abaAdmin === "dashboard" && (
+  <div className="container"
+  style={{
+    minHeight: "100vh",
+    background: "linear-gradient(180deg, #f3f4f6 0%, #eef2f7 100%)",
+    padding: isMobile ? "12px 12px 90px" : "22px"
+  }}
+>
   <div
+    className="wrapper"
     style={{
-      marginTop: 16,
-      padding: isMobile ? 14 : 22,
-      background: "linear-gradient(180deg, #f5f6fa 0%, #eef1f6 100%)",
-      borderRadius: 30
+      width: "100%",
+      maxWidth: 1240,
+      margin: "0 auto"
     }}
   >
-    {/* TOPO PREMIUM */}
+    {/* HEADER PREMIUM */}
     <div
       style={{
         background: "linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%)",
@@ -1753,338 +1647,505 @@ if (loadingAuth) {
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "7px 12px",
-            borderRadius: 999,
-            background: "#fff1f2",
-            color: "#ea1d2c",
             fontSize: 12,
-            fontWeight: 800,
-            marginBottom: 12
+            color: "#6b7280",
+            marginBottom: 6,
+            fontWeight: 700,
+            letterSpacing: 0.3,
+            textTransform: "uppercase"
           }}
         >
-          Dashboard financeiro
+          Painel da loja
         </div>
 
-        <h2
+        <h1
           style={{
             margin: 0,
-            color: "#111827",
-            fontSize: isMobile ? 28 : 36,
+            fontSize: isMobile ? 32 : 40,
             fontWeight: 900,
             letterSpacing: "-0.04em",
+            color: "#111827",
             lineHeight: 1.02
           }}
         >
-          Controle total da operação
-        </h2>
+          Loja Admin
+        </h1>
 
-        <p
+        <div
           style={{
-            marginTop: 8,
-            marginBottom: 0,
-            fontSize: 14,
-            color: "#6b7280",
-            lineHeight: 1.5,
-            maxWidth: 600
+            marginTop: 12,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: lojaAberta ? "#ecfdf3" : "#fff1f2",
+            color: lojaAberta ? "#15803d" : "#b91c1c",
+            padding: "8px 14px",
+            borderRadius: 999,
+            fontWeight: 800,
+            fontSize: 13
           }}
         >
-          Acompanhe faturamento, gastos, lucro, pedidos e os principais
-          indicadores da loja em tempo real.
-        </p>
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              background: lojaAberta ? "#16a34a" : "#dc2626"
+            }}
+          />
+          {lojaAberta ? "Loja aberta" : "Loja fechada"}
+        </div>
       </div>
 
+      <button
+        onClick={logout}
+        style={{
+          height: 48,
+          padding: "0 18px",
+          borderRadius: 16,
+          border: "1px solid #e5e7eb",
+          background: "#111827",
+          color: "#fff",
+          fontWeight: 800,
+          fontSize: 14,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          boxShadow: "0 10px 24px rgba(17,24,39,0.14)"
+        }}
+      >
+        Sair
+      </button>
+    </div>
+
+    {/* MENU DESKTOP */}
+    {!isMobile && (
       <div
         style={{
           display: "flex",
           gap: 10,
-          flexWrap: "wrap",
-          width: isMobile ? "100%" : "auto"
+          overflowX: "auto",
+          marginBottom: 20,
+          paddingBottom: 4
         }}
       >
-        <button
-          onClick={() => {
-            limparFormularioGasto();
-            setMostrarModalGasto(true);
-          }}
+        {[
+          { id: "dashboard", nome: "Dashboard" },
+          { id: "pedidos", nome: "Pedidos" },
+          { id: "produtos", nome: "Produtos" },
+          { id: "gastos", nome: "Gastos" },
+          { id: "cupons", nome: "Cupons" },
+          { id: "fretes", nome: "Fretes" },
+          { id: "notificacoes", nome: "Notificações" },
+          { id: "banners", nome: "Banner" },
+          { id: "loja", nome: "Loja" }
+        ].map((item) => {
+          const ativo = abaAdmin === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => setAbaAdmin(item.id)}
+              style={{
+                height: 44,
+                padding: "0 18px",
+                borderRadius: 14,
+                border: ativo ? "none" : "1px solid #e5e7eb",
+                whiteSpace: "nowrap",
+                background: ativo ? "#ea1d2c" : "#fff",
+                color: ativo ? "#fff" : "#333",
+                fontWeight: 800,
+                fontSize: 14,
+                cursor: "pointer",
+                boxShadow: ativo
+                  ? "0 10px 24px rgba(234,29,44,0.22)"
+                  : "0 4px 12px rgba(0,0,0,0.04)"
+              }}
+            >
+              {item.nome}
+            </button>
+          );
+        })}
+      </div>
+    )}
+
+    {/* DASHBOARD */}
+    {abaAdmin === "dashboard" && (
+      <div
+        style={{
+          marginTop: 16,
+          padding: isMobile ? 14 : 22,
+          background: "linear-gradient(180deg, #f5f6fa 0%, #eef1f6 100%)",
+          borderRadius: 30
+        }}
+      >
+        {/* TOPO DASHBOARD */}
+        <div
           style={{
-            height: 48,
-            padding: "0 18px",
-            borderRadius: 16,
-            border: "none",
-            background: "#111827",
-            color: "#fff",
-            fontWeight: 800,
-            fontSize: 14,
-            cursor: "pointer",
+            background: "linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%)",
+            borderRadius: 28,
+            padding: isMobile ? 18 : 24,
+            marginBottom: 18,
+            boxShadow: "0 14px 40px rgba(15,23,42,0.08)",
+            border: "1px solid #ececf2",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            boxShadow: "0 12px 24px rgba(17,24,39,0.16)",
-            flex: isMobile ? 1 : "unset"
+            justifyContent: "space-between",
+            alignItems: isMobile ? "flex-start" : "center",
+            gap: 16,
+            flexWrap: "wrap"
           }}
         >
-          <Plus size={18} />
-          Novo gasto
-        </button>
-      </div>
-    </div>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "7px 12px",
+                borderRadius: 999,
+                background: "#fff1f2",
+                color: "#ea1d2c",
+                fontSize: 12,
+                fontWeight: 800,
+                marginBottom: 12
+              }}
+            >
+              Dashboard financeiro
+            </div>
 
-    {/* CARDS PRINCIPAIS */}
+            <h2
+              style={{
+                margin: 0,
+                color: "#111827",
+                fontSize: isMobile ? 28 : 36,
+                fontWeight: 900,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.02
+              }}
+            >
+              Controle total da operação
+            </h2>
+
+            <p
+              style={{
+                marginTop: 8,
+                marginBottom: 0,
+                fontSize: 14,
+                color: "#6b7280",
+                lineHeight: 1.5,
+                maxWidth: 600
+              }}
+            >
+              Acompanhe faturamento, gastos, lucro, pedidos e os principais
+              indicadores da loja em tempo real.
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              limparFormularioGasto();
+              setMostrarModalGasto(true);
+            }}
+            style={{
+              height: 48,
+              padding: "0 18px",
+              borderRadius: 16,
+              border: "none",
+              background: "#111827",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: 14,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              boxShadow: "0 12px 24px rgba(17,24,39,0.16)",
+              width: isMobile ? "100%" : "auto"
+            }}
+          >
+            <Plus size={18} />
+            Novo gasto
+          </button>
+        </div>
+
+        {/* CARDS PRINCIPAIS */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr 1fr",
+            gap: 16,
+            marginBottom: 20
+          }}
+        >
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ffffff 0%, #f8fffb 100%)",
+              borderRadius: 26,
+              padding: 22,
+              border: "1px solid #e8f4ec",
+              boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 14
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 700 }}>
+                  Faturamento
+                </div>
+                <div style={{ marginTop: 4, fontSize: 12, color: "#9ca3af" }}>
+                  Total vendido em pedidos
+                </div>
+              </div>
+
+              <div
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 16,
+                  background: "#ecfdf3",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <TrendingUp size={22} color="#16a34a" />
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontSize: isMobile ? 34 : 42,
+                fontWeight: 900,
+                color: "#111827",
+                letterSpacing: "-0.04em",
+                lineHeight: 1
+              }}
+            >
+              {formatarReal(totalFaturado)}
+            </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                color: "#6b7280",
+                lineHeight: 1.45
+              }}
+            >
+              Volume consolidado de pedidos registrados no painel.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ffffff 0%, #fff8f8 100%)",
+              borderRadius: 26,
+              padding: 22,
+              border: "1px solid #f8e2e5",
+              boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 14
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 700 }}>
+                  Gastos
+                </div>
+                <div style={{ marginTop: 4, fontSize: 12, color: "#9ca3af" }}>
+                  Custos operacionais
+                </div>
+              </div>
+
+              <div
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 16,
+                  background: "#fff1f2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <TrendingDown size={22} color="#ea1d2c" />
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontSize: isMobile ? 32 : 38,
+                fontWeight: 900,
+                color: "#111827",
+                letterSpacing: "-0.04em",
+                lineHeight: 1
+              }}
+            >
+              {formatarReal(totalGastos)}
+            </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                color: "#6b7280",
+                lineHeight: 1.45
+              }}
+            >
+              Soma de todos os gastos cadastrados na operação.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background:
+                lucroTotal >= 0
+                  ? "linear-gradient(135deg, #ffffff 0%, #f6fff9 100%)"
+                  : "linear-gradient(135deg, #ffffff 0%, #fff7f7 100%)",
+              borderRadius: 26,
+              padding: 22,
+              border: lucroTotal >= 0 ? "1px solid #dcfce7" : "1px solid #fee2e2",
+              boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 14
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 700 }}>
+                  Lucro estimado
+                </div>
+                <div style={{ marginTop: 4, fontSize: 12, color: "#9ca3af" }}>
+                  Resultado da operação
+                </div>
+              </div>
+
+              <div
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 16,
+                  background: lucroTotal >= 0 ? "#ecfdf3" : "#fff1f2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <Wallet size={22} color={lucroTotal >= 0 ? "#16a34a" : "#ea1d2c"} />
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontSize: isMobile ? 32 : 38,
+                fontWeight: 900,
+                color: lucroTotal >= 0 ? "#16a34a" : "#dc2626",
+                letterSpacing: "-0.04em",
+                lineHeight: 1
+              }}
+            >
+              {formatarReal(lucroTotal)}
+            </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                color: "#6b7280",
+                lineHeight: 1.45
+              }}
+            >
+              Margem estimada de <strong>{margemLucro}%</strong>.
+            </div>
+          </div>
+        </div>
+       {/* NAVBAR MOBILE */}
+  {isMobile && (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr 1fr",
-        gap: 16,
-        marginBottom: 20
+        position: "fixed",
+        bottom: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: larguraApp,
+        background: "#fff",
+        borderTop: "1px solid #e5e7eb",
+        padding: "8px 6px calc(env(safe-area-inset-bottom) + 8px)",
+        display: "flex",
+        justifyContent: "space-around",
+        zIndex: 999,
+        boxShadow: "0 -10px 30px rgba(15,23,42,0.08)"
       }}
     >
-      <div
-        style={{
-          background: "linear-gradient(135deg, #ffffff 0%, #f8fffb 100%)",
-          borderRadius: 26,
-          padding: 22,
-          border: "1px solid #e8f4ec",
-          boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            marginBottom: 14
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 13,
-                color: "#6b7280",
-                fontWeight: 700
-              }}
-            >
-              Faturamento
-            </div>
+      {[
+        { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
+        { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
+        { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
+        { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
+        { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
+      ].map((item) => {
+        const ativo = abaAdmin === item.id;
 
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                color: "#9ca3af"
-              }}
-            >
-              Total vendido em pedidos
-            </div>
-          </div>
-
+        return (
           <div
+            key={item.id}
+            onClick={() => setAbaAdmin(item.id)}
             style={{
-              width: 50,
-              height: 50,
-              borderRadius: 16,
-              background: "#ecfdf3",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0
+              gap: 4,
+              fontSize: 10,
+              fontWeight: 700,
+              color: ativo ? "#ea1d2c" : "#6b7280",
+              cursor: "pointer",
+              minWidth: 56
             }}
           >
-            <TrendingUp size={22} color="#16a34a" />
-          </div>
-        </div>
-
-        <div
-          style={{
-            fontSize: isMobile ? 34 : 42,
-            fontWeight: 900,
-            color: "#111827",
-            letterSpacing: "-0.04em",
-            lineHeight: 1
-          }}
-        >
-          {formatarReal(totalFaturado)}
-        </div>
-
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 13,
-            color: "#6b7280",
-            lineHeight: 1.45
-          }}
-        >
-          Volume consolidado de pedidos registrados no painel.
-        </div>
-      </div>
-
-      <div
-        style={{
-          background: "linear-gradient(135deg, #ffffff 0%, #fff8f8 100%)",
-          borderRadius: 26,
-          padding: 22,
-          border: "1px solid #f8e2e5",
-          boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            marginBottom: 14
-          }}
-        >
-          <div>
             <div
               style={{
-                fontSize: 13,
-                color: "#6b7280",
-                fontWeight: 700
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                background: ativo ? "#fff1f2" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative"
               }}
             >
-              Gastos
+              {item.icon}
             </div>
 
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                color: "#9ca3af"
-              }}
-            >
-              Custos operacionais
-            </div>
+            {item.nome}
           </div>
-
-          <div
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 16,
-              background: "#fff1f2",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0
-            }}
-          >
-            <TrendingDown size={22} color="#ea1d2c" />
-          </div>
-        </div>
-
-        <div
-          style={{
-            fontSize: isMobile ? 32 : 38,
-            fontWeight: 900,
-            color: "#111827",
-            letterSpacing: "-0.04em",
-            lineHeight: 1
-          }}
-        >
-          {formatarReal(totalGastos)}
-        </div>
-
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 13,
-            color: "#6b7280",
-            lineHeight: 1.45
-          }}
-        >
-          Soma de todos os gastos cadastrados na operação.
-        </div>
-      </div>
-
-      <div
-        style={{
-          background:
-            lucroTotal >= 0
-              ? "linear-gradient(135deg, #ffffff 0%, #f6fff9 100%)"
-              : "linear-gradient(135deg, #ffffff 0%, #fff7f7 100%)",
-          borderRadius: 26,
-          padding: 22,
-          border: lucroTotal >= 0 ? "1px solid #dcfce7" : "1px solid #fee2e2",
-          boxShadow: "0 12px 30px rgba(15,23,42,0.08)"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            marginBottom: 14
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 13,
-                color: "#6b7280",
-                fontWeight: 700
-              }}
-            >
-              Lucro estimado
-            </div>
-
-            <div
-              style={{
-                marginTop: 4,
-                fontSize: 12,
-                color: "#9ca3af"
-              }}
-            >
-              Resultado da operação
-            </div>
-          </div>
-
-          <div
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 16,
-              background: lucroTotal >= 0 ? "#ecfdf3" : "#fff1f2",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0
-            }}
-          >
-            <Wallet size={22} color={lucroTotal >= 0 ? "#16a34a" : "#ea1d2c"} />
-          </div>
-        </div>
-
-        <div
-          style={{
-            fontSize: isMobile ? 32 : 38,
-            fontWeight: 900,
-            color: lucroTotal >= 0 ? "#16a34a" : "#dc2626",
-            letterSpacing: "-0.04em",
-            lineHeight: 1
-          }}
-        >
-          {formatarReal(lucroTotal)}
-        </div>
-
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: 13,
-            color: "#6b7280",
-            lineHeight: 1.45
-          }}
-        >
-          Margem estimada de <strong>{margemLucro}%</strong>.
-        </div>
-      </div>
+        );
+      })}
     </div>
+  )}
 
     {/* CARDS SECUNDÁRIOS */}
     <div
@@ -2765,6 +2826,381 @@ if (loadingAuth) {
     </div>
   </div>
 )}
+
+
+{abaAdmin === "gastos" && (
+  <div
+    style={{
+      marginTop: 16,
+      padding: isMobile ? 14 : 22,
+      background: "linear-gradient(180deg, #f5f6fa 0%, #eef1f6 100%)",
+      borderRadius: 30
+    }}
+  >
+    {/* TOPO */}
+    <div
+      style={{
+        background: "linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%)",
+        borderRadius: 28,
+        padding: isMobile ? 18 : 24,
+        marginBottom: 18,
+        boxShadow: "0 14px 40px rgba(15,23,42,0.08)",
+        border: "1px solid #ececf2",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: isMobile ? "flex-start" : "center",
+        gap: 16,
+        flexWrap: "wrap"
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "7px 12px",
+            borderRadius: 999,
+            background: "#fff1f2",
+            color: "#ea1d2c",
+            fontSize: 12,
+            fontWeight: 800,
+            marginBottom: 12
+          }}
+        >
+          Gestão financeira
+        </div>
+
+        <h2
+          style={{
+            margin: 0,
+            color: "#111827",
+            fontSize: isMobile ? 28 : 34,
+            fontWeight: 900,
+            letterSpacing: "-0.04em",
+            lineHeight: 1.02
+          }}
+        >
+          Controle de gastos
+        </h2>
+
+        <p
+          style={{
+            marginTop: 8,
+            marginBottom: 0,
+            fontSize: 14,
+            color: "#6b7280",
+            lineHeight: 1.5,
+            maxWidth: 620
+          }}
+        >
+          Cadastre, edite e acompanhe todos os gastos da operação em um painel
+          organizado.
+        </p>
+      </div>
+
+      <button
+        onClick={() => {
+          limparFormularioGasto();
+          setMostrarModalGasto(true);
+        }}
+        style={{
+          height: 48,
+          padding: "0 18px",
+          borderRadius: 16,
+          border: "none",
+          background: "#111827",
+          color: "#fff",
+          fontWeight: 800,
+          fontSize: 14,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          boxShadow: "0 12px 24px rgba(17,24,39,0.16)",
+          width: isMobile ? "100%" : "auto"
+        }}
+      >
+        <Plus size={18} />
+        Novo gasto
+      </button>
+    </div>
+
+    {/* RESUMO */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
+        gap: 16,
+        marginBottom: 18
+      }}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 22,
+          padding: 20,
+          border: "1px solid #ececf2",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+        }}
+      >
+        <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 700 }}>
+          Total em gastos
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: isMobile ? 28 : 34,
+            fontWeight: 900,
+            color: "#111827",
+            letterSpacing: "-0.03em"
+          }}
+        >
+          {formatarReal(totalGastos)}
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 22,
+          padding: 20,
+          border: "1px solid #ececf2",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+        }}
+      >
+        <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 700 }}>
+          Quantidade cadastrada
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: isMobile ? 28 : 34,
+            fontWeight: 900,
+            color: "#111827",
+            letterSpacing: "-0.03em"
+          }}
+        >
+          {gastos.length}
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 22,
+          padding: 20,
+          border: "1px solid #ececf2",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
+        }}
+      >
+        <div style={{ fontSize: 13, color: "#6b7280", fontWeight: 700 }}>
+          Ticket médio
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: isMobile ? 28 : 34,
+            fontWeight: 900,
+            color: "#111827",
+            letterSpacing: "-0.03em"
+          }}
+        >
+          {formatarReal(
+            gastos.length > 0 ? Math.round(totalGastos / gastos.length) : 0
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* LISTA */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 24,
+        padding: 20,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececf2"
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          flexWrap: "wrap",
+          marginBottom: 16
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            color: "#111827",
+            fontSize: 20,
+            fontWeight: 800
+          }}
+        >
+          Lista de gastos
+        </h3>
+
+        <div
+          style={{
+            fontSize: 13,
+            color: "#6b7280",
+            fontWeight: 700
+          }}
+        >
+          {gastos.length} {gastos.length === 1 ? "registro" : "registros"}
+        </div>
+      </div>
+
+      {gastos.length === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            color: "#6b7280",
+            padding: "34px 20px",
+            background: "#fafafa",
+            borderRadius: 18,
+            border: "1px dashed #e5e7eb",
+            fontSize: 14,
+            fontWeight: 500
+          }}
+        >
+          Nenhum gasto cadastrado ainda.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {gastos.map((g) => (
+            <div
+              key={g.id}
+              style={{
+                background: "#f9fafb",
+                borderRadius: 16,
+                padding: isMobile ? 14 : 16,
+                border: "1px solid #ececf2",
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "1.5fr auto auto auto",
+                gap: 12,
+                alignItems: "center"
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 800,
+                    color: "#111827"
+                  }}
+                >
+                  {g.nome}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 6,
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    alignItems: "center"
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "#6b7280",
+                      background: "#eef2f7",
+                      padding: "4px 10px",
+                      borderRadius: 999,
+                      fontWeight: 700
+                    }}
+                  >
+                    {g.categoria || "outros"}
+                  </span>
+
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: "#6b7280"
+                    }}
+                  >
+                    {g.dataTexto || ""}
+                  </span>
+                </div>
+
+                {!!g.observacao && (
+                  <div
+                    style={{
+                      marginTop: 8,
+                      fontSize: 13,
+                      color: "#6b7280",
+                      lineHeight: 1.45
+                    }}
+                  >
+                    {g.observacao}
+                  </div>
+                )}
+              </div>
+
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 900,
+                  color: "#111827",
+                  justifySelf: isMobile ? "flex-start" : "end"
+                }}
+              >
+                {formatarReal(g.valor)}
+              </div>
+
+              <button
+                onClick={() => abrirEdicaoGasto(g)}
+                style={{
+                  height: 38,
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "1px solid #e5e7eb",
+                  background: "#fff",
+                  color: "#111827",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  justifySelf: isMobile ? "flex-start" : "end"
+                }}
+              >
+                Editar
+              </button>
+
+              <button
+                onClick={() => excluirGasto(g.id)}
+                style={{
+                  height: 38,
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "#ea1d2c",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  justifySelf: isMobile ? "flex-start" : "end"
+                }}
+              >
+                Excluir
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 {abaAdmin === "fretes" && (
   <div
     style={{
@@ -3777,124 +4213,7 @@ if (loadingAuth) {
 
 
 
-      {mostrarModalGasto && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.45)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-    boxSizing: "border-box"
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 24,
-      width: "100%",
-      maxWidth: 420,
-      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-      border: "1px solid #eee",
-      boxSizing: "border-box"
-    }}>
-      <div style={{ marginBottom: 16 }}>
-        <h3 style={{
-          color: "#111",
-          margin: 0,
-          fontSize: 22
-        }}>
-          {gastoEditandoId ? "Editar gasto" : "Novo gasto"}
-        </h3>
-
-        <p style={{
-          marginTop: 6,
-          marginBottom: 0,
-          fontSize: 13,
-          color: "#666"
-        }}>
-          Cadastre um gasto para acompanhar o lucro real da operação.
-        </p>
-      </div>
-
-      <input
-        placeholder="Nome do gasto"
-        value={novoGastoNome}
-        onChange={(e) => setNovoGastoNome(e.target.value)}
-        style={inputStyle}
-      />
-
-      <input
-        placeholder="Valor (ex: 25,90)"
-        value={novoGastoValor}
-        onChange={(e) => setNovoGastoValor(e.target.value)}
-        style={inputStyle}
-      />
-
-      <select
-        value={novaCategoriaGasto}
-        onChange={(e) => setNovaCategoriaGasto(e.target.value)}
-        style={inputStyle}
-      >
-        <option value="insumos">Insumos</option>
-        <option value="embalagens">Embalagens</option>
-        <option value="bebidas">Bebidas</option>
-        <option value="energia">Energia</option>
-        <option value="internet">Internet</option>
-        <option value="transporte">Transporte</option>
-        <option value="marketing">Marketing</option>
-        <option value="outros">Outros</option>
-      </select>
-
-      <input
-        type="date"
-        value={novaDataGasto}
-        onChange={(e) => setNovaDataGasto(e.target.value)}
-        style={inputStyle}
-      />
-
-      <textarea
-        placeholder="Observação (opcional)"
-        value={novaObservacaoGasto}
-        onChange={(e) => setNovaObservacaoGasto(e.target.value)}
-        style={{
-          ...inputStyle,
-          minHeight: 90,
-          resize: "none"
-        }}
-      />
-
-      <div style={{
-        display: "flex",
-        gap: 10,
-        marginTop: 6
-      }}>
-        <button
-          onClick={() => {
-            limparFormularioGasto();
-            setMostrarModalGasto(false);
-          }}
-          style={btnCancel}
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={salvarGasto}
-          disabled={loadingGasto}
-          style={{
-            ...btnPrimary,
-            flex: 1,
-            opacity: loadingGasto ? 0.7 : 1
-          }}
-        >
-          {loadingGasto ? "Salvando..." : gastoEditandoId ? "Salvar alteração" : "Salvar gasto"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+     
 
       {/* MODAL PRODUTO */}
       {mostrarModalProduto && (
@@ -4122,6 +4441,126 @@ if (loadingAuth) {
     Isso substitui os extras atuais do produto aberto pelos extras do produto selecionado.
   </div>
 </div>
+
+
+ {mostrarModalGasto && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    padding: 16,
+    boxSizing: "border-box"
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 24,
+      width: "100%",
+      maxWidth: 420,
+      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+      border: "1px solid #eee",
+      boxSizing: "border-box"
+    }}>
+      <div style={{ marginBottom: 16 }}>
+        <h3 style={{
+          color: "#111",
+          margin: 0,
+          fontSize: 22
+        }}>
+          {gastoEditandoId ? "Editar gasto" : "Novo gasto"}
+        </h3>
+
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Cadastre um gasto para acompanhar o lucro real da operação.
+        </p>
+      </div>
+
+      <input
+        placeholder="Nome do gasto"
+        value={novoGastoNome}
+        onChange={(e) => setNovoGastoNome(e.target.value)}
+        style={inputStyle}
+      />
+
+      <input
+        placeholder="Valor (ex: 25,90)"
+        value={novoGastoValor}
+        onChange={(e) => setNovoGastoValor(e.target.value)}
+        style={inputStyle}
+      />
+
+      <select
+        value={novaCategoriaGasto}
+        onChange={(e) => setNovaCategoriaGasto(e.target.value)}
+        style={inputStyle}
+      >
+        <option value="insumos">Insumos</option>
+        <option value="embalagens">Embalagens</option>
+        <option value="bebidas">Bebidas</option>
+        <option value="energia">Energia</option>
+        <option value="internet">Internet</option>
+        <option value="transporte">Transporte</option>
+        <option value="marketing">Marketing</option>
+        <option value="outros">Outros</option>
+      </select>
+
+      <input
+        type="date"
+        value={novaDataGasto}
+        onChange={(e) => setNovaDataGasto(e.target.value)}
+        style={inputStyle}
+      />
+
+      <textarea
+        placeholder="Observação (opcional)"
+        value={novaObservacaoGasto}
+        onChange={(e) => setNovaObservacaoGasto(e.target.value)}
+        style={{
+          ...inputStyle,
+          minHeight: 90,
+          resize: "none"
+        }}
+      />
+
+      <div style={{
+        display: "flex",
+        gap: 10,
+        marginTop: 6
+      }}>
+        <button
+          onClick={() => {
+            limparFormularioGasto();
+            setMostrarModalGasto(false);
+          }}
+          style={btnCancel}
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={salvarGasto}
+          disabled={loadingGasto}
+          style={{
+            ...btnPrimary,
+            flex: 1,
+            opacity: loadingGasto ? 0.7 : 1
+          }}
+        >
+          {loadingGasto ? "Salvando..." : gastoEditandoId ? "Salvar alteração" : "Salvar gasto"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 
       {/* EXTRAS */}
