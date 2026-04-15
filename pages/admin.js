@@ -2767,70 +2767,76 @@ if (loadingAuth) {
 
 {/* NAVBAR MOBILE */}
   {isMobile && (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        maxWidth: larguraApp,
-        background: "#fff",
-        borderTop: "1px solid #e5e7eb",
-        padding: "8px 6px calc(env(safe-area-inset-bottom) + 8px)",
-        display: "flex",
-        justifyContent: "space-around",
-        zIndex: 999,
-        boxShadow: "0 -10px 30px rgba(15,23,42,0.08)"
-      }}
-    >
-      {[
-        { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
-        { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
-        { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
-        { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
-        { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
-      ].map((item) => {
-        const ativo = abaAdmin === item.id;
+  <div
+    style={{
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      width: "100%",
+      maxWidth: larguraApp,
+      margin: "0 auto",
+      background: "rgba(255,255,255,0.98)",
+      borderTop: "1px solid #e5e7eb",
+      padding: "8px 6px calc(env(safe-area-inset-bottom) + 8px)",
+      display: "flex",
+      justifyContent: "space-around",
+      zIndex: 9999,
+      boxShadow: "0 -8px 24px rgba(15,23,42,0.08)",
+      WebkitBackdropFilter: "blur(14px)",
+      backdropFilter: "blur(14px)"
+    }}
+  >
+    {[
+      { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
+      { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
+      { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
+      { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
+      { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
+    ].map((item) => {
+      const ativo = abaAdmin === item.id;
 
-        return (
+      return (
+        <button
+          key={item.id}
+          onClick={() => setAbaAdmin(item.id)}
+          style={{
+            border: "none",
+            background: "transparent",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+            fontSize: 10,
+            fontWeight: 700,
+            color: ativo ? "#ea1d2c" : "#6b7280",
+            cursor: "pointer",
+            minWidth: 56,
+            WebkitTapHighlightColor: "transparent"
+          }}
+        >
           <div
-            key={item.id}
-            onClick={() => setAbaAdmin(item.id)}
             style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              background: ativo ? "#fff1f2" : "transparent",
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 4,
-              fontSize: 10,
-              fontWeight: 700,
-              color: ativo ? "#ea1d2c" : "#6b7280",
-              cursor: "pointer",
-              minWidth: 56
+              position: "relative"
             }}
           >
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                background: ativo ? "#fff1f2" : "transparent",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative"
-              }}
-            >
-              {item.icon}
-            </div>
-
-            {item.nome}
+            {item.icon}
           </div>
-        );
-      })}
-    </div>
-  )}
+
+          {item.nome}
+        </button>
+      );
+    })}
+  </div>
+)}
 
 
 {abaAdmin === "gastos" && (
@@ -4217,7 +4223,124 @@ if (loadingAuth) {
       )}
 
 
+{mostrarModalGasto && (
+  <div style={{
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+    padding: 16,
+    boxSizing: "border-box"
+  }}>
+    <div style={{
+      background: "#fff",
+      padding: 20,
+      borderRadius: 24,
+      width: "100%",
+      maxWidth: 420,
+      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+      border: "1px solid #eee",
+      boxSizing: "border-box"
+    }}>
+      <div style={{ marginBottom: 16 }}>
+        <h3 style={{
+          color: "#111",
+          margin: 0,
+          fontSize: 22
+        }}>
+          {gastoEditandoId ? "Editar gasto" : "Novo gasto"}
+        </h3>
 
+        <p style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#666"
+        }}>
+          Cadastre um gasto para acompanhar o lucro real da operação.
+        </p>
+      </div>
+
+      <input
+        placeholder="Nome do gasto"
+        value={novoGastoNome}
+        onChange={(e) => setNovoGastoNome(e.target.value)}
+        style={inputStyle}
+      />
+
+      <input
+        placeholder="Valor (ex: 25,90)"
+        value={novoGastoValor}
+        onChange={(e) => setNovoGastoValor(e.target.value)}
+        style={inputStyle}
+      />
+
+      <select
+        value={novaCategoriaGasto}
+        onChange={(e) => setNovaCategoriaGasto(e.target.value)}
+        style={inputStyle}
+      >
+        <option value="insumos">Insumos</option>
+        <option value="embalagens">Embalagens</option>
+        <option value="bebidas">Bebidas</option>
+        <option value="energia">Energia</option>
+        <option value="internet">Internet</option>
+        <option value="transporte">Transporte</option>
+        <option value="marketing">Marketing</option>
+        <option value="outros">Outros</option>
+      </select>
+
+      <input
+        type="date"
+        value={novaDataGasto}
+        onChange={(e) => setNovaDataGasto(e.target.value)}
+        style={inputStyle}
+      />
+
+      <textarea
+        placeholder="Observação (opcional)"
+        value={novaObservacaoGasto}
+        onChange={(e) => setNovaObservacaoGasto(e.target.value)}
+        style={{
+          ...inputStyle,
+          minHeight: 90,
+          resize: "none"
+        }}
+      />
+
+      <div style={{
+        display: "flex",
+        gap: 10,
+        marginTop: 6
+      }}>
+        <button
+          onClick={() => {
+            limparFormularioGasto();
+            setMostrarModalGasto(false);
+          }}
+          style={btnCancel}
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={salvarGasto}
+          disabled={loadingGasto}
+          style={{
+            ...btnPrimary,
+            flex: 1,
+            opacity: loadingGasto ? 0.7 : 1
+          }}
+        >
+          {loadingGasto ? "Salvando..." : gastoEditandoId ? "Salvar alteração" : "Salvar gasto"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
      
 
       {/* MODAL PRODUTO */}
@@ -4447,125 +4570,6 @@ if (loadingAuth) {
   </div>
 </div>
 
-
- {mostrarModalGasto && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.45)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-    boxSizing: "border-box"
-  }}>
-    <div style={{
-      background: "#fff",
-      padding: 20,
-      borderRadius: 24,
-      width: "100%",
-      maxWidth: 420,
-      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-      border: "1px solid #eee",
-      boxSizing: "border-box"
-    }}>
-      <div style={{ marginBottom: 16 }}>
-        <h3 style={{
-          color: "#111",
-          margin: 0,
-          fontSize: 22
-        }}>
-          {gastoEditandoId ? "Editar gasto" : "Novo gasto"}
-        </h3>
-
-        <p style={{
-          marginTop: 6,
-          marginBottom: 0,
-          fontSize: 13,
-          color: "#666"
-        }}>
-          Cadastre um gasto para acompanhar o lucro real da operação.
-        </p>
-      </div>
-
-      <input
-        placeholder="Nome do gasto"
-        value={novoGastoNome}
-        onChange={(e) => setNovoGastoNome(e.target.value)}
-        style={inputStyle}
-      />
-
-      <input
-        placeholder="Valor (ex: 25,90)"
-        value={novoGastoValor}
-        onChange={(e) => setNovoGastoValor(e.target.value)}
-        style={inputStyle}
-      />
-
-      <select
-        value={novaCategoriaGasto}
-        onChange={(e) => setNovaCategoriaGasto(e.target.value)}
-        style={inputStyle}
-      >
-        <option value="insumos">Insumos</option>
-        <option value="embalagens">Embalagens</option>
-        <option value="bebidas">Bebidas</option>
-        <option value="energia">Energia</option>
-        <option value="internet">Internet</option>
-        <option value="transporte">Transporte</option>
-        <option value="marketing">Marketing</option>
-        <option value="outros">Outros</option>
-      </select>
-
-      <input
-        type="date"
-        value={novaDataGasto}
-        onChange={(e) => setNovaDataGasto(e.target.value)}
-        style={inputStyle}
-      />
-
-      <textarea
-        placeholder="Observação (opcional)"
-        value={novaObservacaoGasto}
-        onChange={(e) => setNovaObservacaoGasto(e.target.value)}
-        style={{
-          ...inputStyle,
-          minHeight: 90,
-          resize: "none"
-        }}
-      />
-
-      <div style={{
-        display: "flex",
-        gap: 10,
-        marginTop: 6
-      }}>
-        <button
-          onClick={() => {
-            limparFormularioGasto();
-            setMostrarModalGasto(false);
-          }}
-          style={btnCancel}
-        >
-          Cancelar
-        </button>
-
-        <button
-          onClick={salvarGasto}
-          disabled={loadingGasto}
-          style={{
-            ...btnPrimary,
-            flex: 1,
-            opacity: loadingGasto ? 0.7 : 1
-          }}
-        >
-          {loadingGasto ? "Salvando..." : gastoEditandoId ? "Salvar alteração" : "Salvar gasto"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
 
       {/* EXTRAS */}
