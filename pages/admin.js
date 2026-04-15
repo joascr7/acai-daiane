@@ -1609,7 +1609,65 @@ if (loadingAuth) {
   <meta name="theme-color" content="#ea1d2c" />
 </Head>
 
+
+{/* NAVBAR MOBILE */}
+  {typeof window !== "undefined" && isMobile && (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      width: "100%",
+      maxWidth: larguraApp,
+      margin: "0 auto",
+      background: "#ffffff",
+      borderTop: "1px solid #e5e7eb",
+      padding: "8px 6px calc(env(safe-area-inset-bottom) + 6px)",
+      display: "flex",
+      justifyContent: "space-around",
+      zIndex: 9999
+    }}
+  >
+    {[
+      { id: "dashboard", nome: "Home", icon: Home },
+      { id: "pedidos", nome: "Pedidos", icon: ClipboardList },
+      { id: "produtos", nome: "Produtos", icon: ShoppingBag },
+      { id: "gastos", nome: "Gastos", icon: Wallet },
+      { id: "loja", nome: "Loja", icon: Settings }
+    ].map((item) => {
+      const Icon = item.icon;
+      const ativo = abaAdmin === item.id;
+
+      return (
+        <button
+          key={item.id}
+          onClick={() => setAbaAdmin(item.id)}
+          style={{
+            border: "none",
+            background: "transparent",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            fontSize: 10,
+            fontWeight: 700,
+            color: ativo ? "#ea1d2c" : "#6b7280",
+            cursor: "pointer"
+          }}
+        >
+          <Icon size={20} />
+          {item.nome}
+        </button>
+      );
+    })}
+  </div>
+)}
+
   return (
+
+
+    
 
 
 
@@ -2764,60 +2822,6 @@ if (loadingAuth) {
   </div>
 )}
 
-
-{/* NAVBAR MOBILE */}
-  {typeof window !== "undefined" && isMobile && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      width: "100%",
-      maxWidth: larguraApp,
-      margin: "0 auto",
-      background: "#ffffff",
-      borderTop: "1px solid #e5e7eb",
-      padding: "8px 6px calc(env(safe-area-inset-bottom) + 6px)",
-      display: "flex",
-      justifyContent: "space-around",
-      zIndex: 9999
-    }}
-  >
-    {[
-      { id: "dashboard", nome: "Home", icon: Home },
-      { id: "pedidos", nome: "Pedidos", icon: ClipboardList },
-      { id: "produtos", nome: "Produtos", icon: ShoppingBag },
-      { id: "gastos", nome: "Gastos", icon: Wallet },
-      { id: "loja", nome: "Loja", icon: Settings }
-    ].map((item) => {
-      const Icon = item.icon;
-      const ativo = abaAdmin === item.id;
-
-      return (
-        <button
-          key={item.id}
-          onClick={() => setAbaAdmin(item.id)}
-          style={{
-            border: "none",
-            background: "transparent",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 10,
-            fontWeight: 700,
-            color: ativo ? "#ea1d2c" : "#6b7280",
-            cursor: "pointer"
-          }}
-        >
-          <Icon size={20} />
-          {item.nome}
-        </button>
-      );
-    })}
-  </div>
-)}
 
 
 {abaAdmin === "gastos" && (
