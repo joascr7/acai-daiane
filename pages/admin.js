@@ -5966,221 +5966,87 @@ if (loadingAuth) {
 
 {/* NAVBAR MOBILE */}
   {isMobile && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      width: "100%",
-      background: "rgba(255,255,255,0.98)",
-      WebkitBackdropFilter: "blur(14px)",
-      backdropFilter: "blur(14px)",
-      borderTop: "1px solid #e5e7eb",
-      padding: "8px 8px calc(env(safe-area-inset-bottom) + 8px)",
-      display: "flex",
-      justifyContent: "space-around",
-      alignItems: "center",
-      zIndex: 9999,
-      boxShadow: "0 -10px 30px rgba(15,23,42,0.08)"
-    }}
-  >
-    <button
-      onClick={() => setAbaAdmin("dashboard")}
-      style={{
-        border: "none",
-        background: "transparent",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        minWidth: 58,
-        color: abaAdmin === "dashboard" ? "#ea1d2c" : "#6b7280",
-        fontSize: 10,
-        fontWeight: 800,
-        WebkitTapHighlightColor: "transparent",
-        cursor: "pointer"
-      }}
-    >
       <div
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: 13,
-          background: abaAdmin === "dashboard" ? "#fff1f2" : "transparent",
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "#fff",
+          borderTop: "1px solid #e5e7eb",
+          padding: "10px 6px",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "space-around",
+          zIndex: 9999
         }}
       >
-        <Home size={20} />
-      </div>
-      Home
-    </button>
+        <button
+          onClick={() => setAbaAdmin("dashboard")}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 11,
+            fontWeight: 700,
+            color: abaAdmin === "dashboard" ? "#ea1d2c" : "#6b7280"
+          }}
+        >
+          Home
+        </button>
 
-    <button
-      onClick={() => setAbaAdmin("pedidos")}
-      style={{
-        border: "none",
-        background: "transparent",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        minWidth: 58,
-        color: abaAdmin === "pedidos" ? "#ea1d2c" : "#6b7280",
-        fontSize: 10,
-        fontWeight: 800,
-        WebkitTapHighlightColor: "transparent",
-        cursor: "pointer"
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 13,
-          background: abaAdmin === "pedidos" ? "#fff1f2" : "transparent",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative"
-        }}
-      >
-        <ClipboardList size={20} />
+        <button
+          onClick={() => setAbaAdmin("pedidos")}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 11,
+            fontWeight: 700,
+            color: abaAdmin === "pedidos" ? "#ea1d2c" : "#6b7280"
+          }}
+        >
+          Pedidos
+        </button>
 
-        {pedidosEmAndamento > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: -2,
-              right: -2,
-              minWidth: 18,
-              height: 18,
-              padding: "0 4px",
-              borderRadius: 999,
-              background: "#ea1d2c",
-              color: "#fff",
-              fontSize: 10,
-              fontWeight: 800,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              lineHeight: 1
-            }}
-          >
-            {pedidosEmAndamento}
-          </div>
-        )}
-      </div>
-      Pedidos
-    </button>
+        <button
+          onClick={() => setAbaAdmin("produtos")}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 11,
+            fontWeight: 700,
+            color: abaAdmin === "produtos" ? "#ea1d2c" : "#6b7280"
+          }}
+        >
+          Produtos
+        </button>
 
-    <button
-      onClick={() => setAbaAdmin("produtos")}
-      style={{
-        border: "none",
-        background: "transparent",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        minWidth: 58,
-        color: abaAdmin === "produtos" ? "#ea1d2c" : "#6b7280",
-        fontSize: 10,
-        fontWeight: 800,
-        WebkitTapHighlightColor: "transparent",
-        cursor: "pointer"
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 13,
-          background: abaAdmin === "produtos" ? "#fff1f2" : "transparent",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-      >
-        <ShoppingBag size={20} />
-      </div>
-      Produtos
-    </button>
+        <button
+          onClick={() => setAbaAdmin("gastos")}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 11,
+            fontWeight: 700,
+            color: abaAdmin === "gastos" ? "#ea1d2c" : "#6b7280"
+          }}
+        >
+          Gastos
+        </button>
 
-    <button
-      onClick={() => setAbaAdmin("gastos")}
-      style={{
-        border: "none",
-        background: "transparent",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        minWidth: 58,
-        color: abaAdmin === "gastos" ? "#ea1d2c" : "#6b7280",
-        fontSize: 10,
-        fontWeight: 800,
-        WebkitTapHighlightColor: "transparent",
-        cursor: "pointer"
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 13,
-          background: abaAdmin === "gastos" ? "#fff1f2" : "transparent",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-      >
-        <Wallet size={20} />
+        <button
+          onClick={() => setAbaAdmin("loja")}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 11,
+            fontWeight: 700,
+            color: abaAdmin === "loja" ? "#ea1d2c" : "#6b7280"
+          }}
+        >
+          Loja
+        </button>
       </div>
-      Gastos
-    </button>
-
-    <button
-      onClick={() => setAbaAdmin("loja")}
-      style={{
-        border: "none",
-        background: "transparent",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        minWidth: 58,
-        color: abaAdmin === "loja" ? "#ea1d2c" : "#6b7280",
-        fontSize: 10,
-        fontWeight: 800,
-        WebkitTapHighlightColor: "transparent",
-        cursor: "pointer"
-      }}
-    >
-      <div
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 13,
-          background: abaAdmin === "loja" ? "#fff1f2" : "transparent",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}
-      >
-        <Settings size={20} />
-      </div>
-      Loja
-    </button>
-  </div>
-)}
+    )}
+  
 
       <style jsx>{`
   .container {
