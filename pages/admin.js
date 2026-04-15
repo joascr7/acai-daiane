@@ -1770,6 +1770,8 @@ if (loadingAuth) {
       </div>
     )}
 
+
+  
     {/* DASHBOARD */}
     {abaAdmin === "dashboard" && (
       <div
@@ -2080,72 +2082,7 @@ if (loadingAuth) {
             </div>
           </div>
         </div>
-       {/* NAVBAR MOBILE */}
-  {isMobile && (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "100%",
-        maxWidth: larguraApp,
-        background: "#fff",
-        borderTop: "1px solid #e5e7eb",
-        padding: "8px 6px calc(env(safe-area-inset-bottom) + 8px)",
-        display: "flex",
-        justifyContent: "space-around",
-        zIndex: 999,
-        boxShadow: "0 -10px 30px rgba(15,23,42,0.08)"
-      }}
-    >
-      {[
-        { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
-        { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
-        { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
-        { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
-        { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
-      ].map((item) => {
-        const ativo = abaAdmin === item.id;
-
-        return (
-          <div
-            key={item.id}
-            onClick={() => setAbaAdmin(item.id)}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-              fontSize: 10,
-              fontWeight: 700,
-              color: ativo ? "#ea1d2c" : "#6b7280",
-              cursor: "pointer",
-              minWidth: 56
-            }}
-          >
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                background: ativo ? "#fff1f2" : "transparent",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative"
-              }}
-            >
-              {item.icon}
-            </div>
-
-            {item.nome}
-          </div>
-        );
-      })}
-    </div>
-  )}
+      
 
     {/* CARDS SECUNDÁRIOS */}
     <div
@@ -2826,6 +2763,74 @@ if (loadingAuth) {
     </div>
   </div>
 )}
+
+
+{/* NAVBAR MOBILE */}
+  {isMobile && (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: larguraApp,
+        background: "#fff",
+        borderTop: "1px solid #e5e7eb",
+        padding: "8px 6px calc(env(safe-area-inset-bottom) + 8px)",
+        display: "flex",
+        justifyContent: "space-around",
+        zIndex: 999,
+        boxShadow: "0 -10px 30px rgba(15,23,42,0.08)"
+      }}
+    >
+      {[
+        { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
+        { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
+        { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
+        { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
+        { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
+      ].map((item) => {
+        const ativo = abaAdmin === item.id;
+
+        return (
+          <div
+            key={item.id}
+            onClick={() => setAbaAdmin(item.id)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+              fontSize: 10,
+              fontWeight: 700,
+              color: ativo ? "#ea1d2c" : "#6b7280",
+              cursor: "pointer",
+              minWidth: 56
+            }}
+          >
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 12,
+                background: ativo ? "#fff1f2" : "transparent",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative"
+              }}
+            >
+              {item.icon}
+            </div>
+
+            {item.nome}
+          </div>
+        );
+      })}
+    </div>
+  )}
 
 
 {abaAdmin === "gastos" && (
