@@ -2766,7 +2766,7 @@ if (loadingAuth) {
 
 
 {/* NAVBAR MOBILE */}
-  {isMobile && (
+  {typeof window !== "undefined" && isMobile && (
   <div
     style={{
       position: "fixed",
@@ -2776,24 +2776,22 @@ if (loadingAuth) {
       width: "100%",
       maxWidth: larguraApp,
       margin: "0 auto",
-      background: "rgba(255,255,255,0.98)",
+      background: "#ffffff",
       borderTop: "1px solid #e5e7eb",
-      padding: "8px 6px calc(env(safe-area-inset-bottom) + 8px)",
+      padding: "8px 6px calc(env(safe-area-inset-bottom) + 6px)",
       display: "flex",
       justifyContent: "space-around",
-      zIndex: 9999,
-      boxShadow: "0 -8px 24px rgba(15,23,42,0.08)",
-      WebkitBackdropFilter: "blur(14px)",
-      backdropFilter: "blur(14px)"
+      zIndex: 9999
     }}
   >
     {[
-      { id: "dashboard", nome: "Home", icon: <Home size={20} /> },
-      { id: "pedidos", nome: "Pedidos", icon: <ClipboardList size={20} /> },
-      { id: "produtos", nome: "Produtos", icon: <ShoppingBag size={20} /> },
-      { id: "gastos", nome: "Gastos", icon: <Wallet size={20} /> },
-      { id: "loja", nome: "Loja", icon: <Settings size={20} /> }
+      { id: "dashboard", nome: "Home", icon: Home },
+      { id: "pedidos", nome: "Pedidos", icon: ClipboardList },
+      { id: "produtos", nome: "Produtos", icon: ShoppingBag },
+      { id: "gastos", nome: "Gastos", icon: Wallet },
+      { id: "loja", nome: "Loja", icon: Settings }
     ].map((item) => {
+      const Icon = item.icon;
       const ativo = abaAdmin === item.id;
 
       return (
@@ -2806,31 +2804,14 @@ if (loadingAuth) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
             gap: 4,
             fontSize: 10,
             fontWeight: 700,
             color: ativo ? "#ea1d2c" : "#6b7280",
-            cursor: "pointer",
-            minWidth: 56,
-            WebkitTapHighlightColor: "transparent"
+            cursor: "pointer"
           }}
         >
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              background: ativo ? "#fff1f2" : "transparent",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative"
-            }}
-          >
-            {item.icon}
-          </div>
-
+          <Icon size={20} />
           {item.nome}
         </button>
       );
