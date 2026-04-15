@@ -5972,85 +5972,78 @@ if (loadingAuth) {
       bottom: 0,
       left: 0,
       right: 0,
-      background: "#ffffff",
+      background: "#fff",
       borderTop: "1px solid #e5e7eb",
-      padding: "10px 6px 12px",
+      padding: "8px 6px",
       display: "flex",
       justifyContent: "space-around",
-      alignItems: "center",
       zIndex: 9999,
-      boxShadow: "0 -8px 24px rgba(15,23,42,0.08)"
+      boxShadow: "0 -6px 20px rgba(0,0,0,0.06)"
     }}
   >
-    {/* HOME */}
-    <button
-      onClick={() => setAbaAdmin("dashboard")}
-      style={btnNav(abaAdmin === "dashboard")}
-    >
-      <Home size={20} />
-      <span>Home</span>
-    </button>
+    {[
+      { id: "dashboard", nome: "Home" },
+      { id: "pedidos", nome: "Pedidos" },
+      { id: "produtos", nome: "Produtos" },
+      { id: "gastos", nome: "Gastos" },
+      { id: "loja", nome: "Loja" }
+    ].map((item) => {
+      const ativo = abaAdmin === item.id;
 
-    {/* PEDIDOS */}
-    <button
-      onClick={() => setAbaAdmin("pedidos")}
-      style={btnNav(abaAdmin === "pedidos")}
-    >
-      <div style={{ position: "relative" }}>
-        <ClipboardList size={20} />
-
-        {pedidosEmAndamento > 0 && (
+      return (
+        <button
+          key={item.id}
+          onClick={() => setAbaAdmin(item.id)}
+          style={{
+            border: "none",
+            background: "transparent",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            minWidth: 60,
+            cursor: "pointer"
+          }}
+        >
+          {/* BOLHA ATIVA */}
           <div
             style={{
-              position: "absolute",
-              top: -6,
-              right: -10,
-              minWidth: 18,
-              height: 18,
+              minWidth: 40,
+              height: 32,
+              padding: "0 10px",
               borderRadius: 999,
-              background: "#ea1d2c",
-              color: "#fff",
-              fontSize: 10,
-              fontWeight: 900,
+              background: ativo ? "#ea1d2c" : "transparent",
+              color: ativo ? "#fff" : "#6b7280",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              padding: "0 5px"
+              fontSize: 11,
+              fontWeight: 800,
+              transition: "all 0.2s ease"
             }}
           >
-            {pedidosEmAndamento}
+            {item.nome}
+
+            {/* BADGE PEDIDOS */}
+            {item.id === "pedidos" && pedidosEmAndamento > 0 && (
+              <span
+                style={{
+                  marginLeft: 6,
+                  background: "#fff",
+                  color: "#ea1d2c",
+                  borderRadius: 999,
+                  padding: "1px 6px",
+                  fontSize: 10,
+                  fontWeight: 900
+                }}
+              >
+                {pedidosEmAndamento}
+              </span>
+            )}
           </div>
-        )}
-      </div>
-      <span>Pedidos</span>
-    </button>
-
-    {/* PRODUTOS */}
-    <button
-      onClick={() => setAbaAdmin("produtos")}
-      style={btnNav(abaAdmin === "produtos")}
-    >
-      <ShoppingBag size={20} />
-      <span>Produtos</span>
-    </button>
-
-    {/* GASTOS */}
-    <button
-      onClick={() => setAbaAdmin("gastos")}
-      style={btnNav(abaAdmin === "gastos")}
-    >
-      <Wallet size={20} />
-      <span>Gastos</span>
-    </button>
-
-    {/* LOJA */}
-    <button
-      onClick={() => setAbaAdmin("loja")}
-      style={btnNav(abaAdmin === "loja")}
-    >
-      <Settings size={20} />
-      <span>Loja</span>
-    </button>
+        </button>
+      );
+    })}
   </div>
 )}
 
