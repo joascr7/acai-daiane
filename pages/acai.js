@@ -8249,9 +8249,9 @@ return (
           color: "#555",
           lineHeight: 1.6
         }}>
-          <div>Domingo: 18h às 23h20</div>
-          <div>Segunda: Fechado</div>
-          <div>Terça a Sábado: 18h15 às 23h20</div>
+          <div>Sábado e Domingo: 18h às 22h00</div>
+          <div>Sexta-feira: 18h30 às 22h00</div>
+          
         </div>
       </div>
 
