@@ -1649,36 +1649,37 @@ const barraTopoNav = (ativo) => ({
   return (
 
 
-  <div className="container"
-  style={{
-    minHeight: "100vh",
-    background: "linear-gradient(180deg, #f3f4f6 0%, #eef2f7 100%)",
-    padding: isMobile ? "12px 12px 90px" : "22px"
-  }}
->
   <div
-    className="wrapper"
+    className="container"
     style={{
-      width: "100%",
-      maxWidth: 1240,
-      margin: "0 auto"
+      minHeight: "100vh",
+      background: "linear-gradient(180deg, #f3f4f6 0%, #eef2f7 100%)",
+      padding: isMobile ? "12px 12px 96px" : "22px"
     }}
   >
-    {/* HEADER PREMIUM */}
     <div
+      className="wrapper"
       style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%)",
-        borderRadius: 28,
-        padding: isMobile ? 18 : 24,
-        marginBottom: 18,
-        boxShadow: "0 14px 40px rgba(15,23,42,0.08)",
-        border: "1px solid #ececf2",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: isMobile ? "flex-start" : "center",
-        gap: 16,
-        flexWrap: "wrap"
+        width: "100%",
+        maxWidth: 1240,
+        margin: "0 auto"
       }}
+    >
+      {/* HEADER PREMIUM */}
+      <div
+        style={{
+          background: "linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%)",
+          borderRadius: 28,
+          padding: isMobile ? 18 : 24,
+          marginBottom: 18,
+          boxShadow: "0 14px 40px rgba(15,23,42,0.08)",
+          border: "1px solid #ececf2",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: isMobile ? "flex-start" : "center",
+          gap: 16,
+          flexWrap: "wrap"
+        }}
     >
       <div style={{ minWidth: 0 }}>
         <div
