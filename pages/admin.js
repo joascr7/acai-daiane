@@ -5966,87 +5966,86 @@ if (loadingAuth) {
 
 {/* NAVBAR MOBILE */}
   {isMobile && (
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: "#fff",
-          borderTop: "1px solid #e5e7eb",
-          padding: "10px 6px",
-          display: "flex",
-          justifyContent: "space-around",
-          zIndex: 9999
-        }}
-      >
-        <button
-          onClick={() => setAbaAdmin("dashboard")}
-          style={{
-            border: "none",
-            background: "transparent",
-            fontSize: 11,
-            fontWeight: 700,
-            color: abaAdmin === "dashboard" ? "#ea1d2c" : "#6b7280"
-          }}
-        >
-          Home
-        </button>
+  <div
+    style={{
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: "#fff",
+      borderTop: "1px solid #e5e7eb",
+      padding: "8px 6px",
+      display: "flex",
+      justifyContent: "space-around",
+      zIndex: 9999,
+      boxShadow: "0 -6px 20px rgba(0,0,0,0.06)"
+    }}
+  >
+    {[
+      { id: "dashboard", nome: "Home" },
+      { id: "pedidos", nome: "Pedidos" },
+      { id: "produtos", nome: "Produtos" },
+      { id: "gastos", nome: "Gastos" },
+      { id: "loja", nome: "Loja" }
+    ].map((item) => {
+      const ativo = abaAdmin === item.id;
 
+      return (
         <button
-          onClick={() => setAbaAdmin("pedidos")}
+          key={item.id}
+          onClick={() => setAbaAdmin(item.id)}
           style={{
             border: "none",
             background: "transparent",
-            fontSize: 11,
-            fontWeight: 700,
-            color: abaAdmin === "pedidos" ? "#ea1d2c" : "#6b7280"
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            minWidth: 60,
+            cursor: "pointer"
           }}
         >
-          Pedidos
-        </button>
+          {/* BOLHA ATIVA */}
+          <div
+            style={{
+              minWidth: 40,
+              height: 32,
+              padding: "0 10px",
+              borderRadius: 999,
+              background: ativo ? "#ea1d2c" : "transparent",
+              color: ativo ? "#fff" : "#6b7280",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 11,
+              fontWeight: 800,
+              transition: "all 0.2s ease"
+            }}
+          >
+            {item.nome}
 
-        <button
-          onClick={() => setAbaAdmin("produtos")}
-          style={{
-            border: "none",
-            background: "transparent",
-            fontSize: 11,
-            fontWeight: 700,
-            color: abaAdmin === "produtos" ? "#ea1d2c" : "#6b7280"
-          }}
-        >
-          Produtos
+            {/* BADGE PEDIDOS */}
+            {item.id === "pedidos" && pedidosEmAndamento > 0 && (
+              <span
+                style={{
+                  marginLeft: 6,
+                  background: "#fff",
+                  color: "#ea1d2c",
+                  borderRadius: 999,
+                  padding: "1px 6px",
+                  fontSize: 10,
+                  fontWeight: 900
+                }}
+              >
+                {pedidosEmAndamento}
+              </span>
+            )}
+          </div>
         </button>
-
-        <button
-          onClick={() => setAbaAdmin("gastos")}
-          style={{
-            border: "none",
-            background: "transparent",
-            fontSize: 11,
-            fontWeight: 700,
-            color: abaAdmin === "gastos" ? "#ea1d2c" : "#6b7280"
-          }}
-        >
-          Gastos
-        </button>
-
-        <button
-          onClick={() => setAbaAdmin("loja")}
-          style={{
-            border: "none",
-            background: "transparent",
-            fontSize: 11,
-            fontWeight: 700,
-            color: abaAdmin === "loja" ? "#ea1d2c" : "#6b7280"
-          }}
-        >
-          Loja
-        </button>
-      </div>
-    )}
-  
+      );
+    })}
+  </div>
+)}
 
       <style jsx>{`
   .container {
