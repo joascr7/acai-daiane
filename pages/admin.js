@@ -16,6 +16,8 @@ import {
   deleteDoc,
   updateDoc,
   onSnapshot,
+  where,
+  query,
   setDoc
 } from 'firebase/firestore';
 
@@ -284,6 +286,11 @@ useEffect(() => {
   const [novoExtraPreco, setNovoExtraPreco] = useState("");
   const [produtoNotificacao, setProdutoNotificacao] = useState("");
 
+
+  const [mostrarAvaliacao, setMostrarAvaliacao] = useState(false);
+const [novaAvaliacao, setNovaAvaliacao] = useState("");
+const [novoTotalAvaliacoes, setNovoTotalAvaliacoes] = useState("");
+const [avaliacoes, setAvaliacoes] = useState([]);
   
   
   // 🔍 CORTA IMAGEM ESTILO INSTA
@@ -1162,6 +1169,23 @@ useEffect(() => {
 }, [router]);
 
 
+
+useEffect(() => {
+  const q = query(collection(db, "avaliacoes"));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const lista = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setAvaliacoes(lista);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
 // 🔥 PEDIDOS + CUPONS (ÚNICO — CORRIGIDO)
 useEffect(() => {
 
@@ -1252,6 +1276,62 @@ useEffect(() => {
 }, []);
 
 
+
+async function atualizarMediaProduto(produtoId) {
+  const q = query(
+    collection(db, "avaliacoes"),
+    where("produtoId", "==", produtoId),
+    where("status", "==", "aprovado")
+  );
+
+  const snap = await getDocs(q);
+
+  const lista = snap.docs.map(d => d.data());
+
+  const total = lista.length;
+
+  if (total === 0) {
+    await updateDoc(doc(db, "produtos", produtoId), {
+      avaliacao: 0,
+      totalAvaliacoes: 0
+    });
+    return;
+  }
+
+  const media =
+    lista.reduce((acc, a) => acc + Number(a.nota || 0), 0) / total;
+
+  await updateDoc(doc(db, "produtos", produtoId), {
+    avaliacao: Number(media.toFixed(1)),
+    totalAvaliacoes: total
+  });
+}
+
+
+
+async function aprovarAvaliacao(a) {
+  await updateDoc(doc(db, "avaliacoes", a.id), {
+    status: "aprovado"
+  });
+
+  if (a.produtoId) {
+    await atualizarMediaProduto(a.produtoId);
+  }
+}
+
+async function recusarAvaliacao(a) {
+  await updateDoc(doc(db, "avaliacoes", a.id), {
+    status: "recusado"
+  });
+
+  if (a.produtoId) {
+    await atualizarMediaProduto(a.produtoId);
+  }
+}
+
+
+
+
 // 🔓 LOGOUT
 function logout() {
   signOut(auth);
@@ -1289,7 +1369,7 @@ function abrirEdicao(p) {
 
   setExtras(p.extras || []);
 
-  // 🔥 PROMOÇÃO (NOVO)
+  // 🔥 PROMOÇÃO
   setPromocaoAtiva(p.promocao || false);
 
   setNovoPrecoPromocional(
@@ -1298,6 +1378,13 @@ function abrirEdicao(p) {
           .toFixed(2)
           .replace(".", ",")
       : ""
+  );
+
+  // 🔥🔥🔥 AVALIAÇÃO (NOVO)
+  setMostrarAvaliacao(!!p.avaliacao);
+  setNovaAvaliacao(p.avaliacao ? String(p.avaliacao) : "");
+  setNovoTotalAvaliacoes(
+    p.totalAvaliacoes ? String(p.totalAvaliacoes) : ""
   );
 
   setMostrarModalProduto(true);
@@ -1322,6 +1409,14 @@ async function salvarProduto() {
       }))
   }));
 
+  const avaliacaoNumero = mostrarAvaliacao
+    ? Number(String(novaAvaliacao || "").replace(",", "."))
+    : 0;
+
+  const totalAvaliacoesNumero = mostrarAvaliacao
+    ? Number(novoTotalAvaliacoes || 0)
+    : 0;
+
   const dados = {
     nome: novoNome,
     preco: converterParaCentavos(novoPreco),
@@ -1339,6 +1434,18 @@ async function salvarProduto() {
     maisVendido,
     categoria,
     extras: extrasFormatados,
+
+    // 🔥 avaliação
+    mostrarAvaliacao: mostrarAvaliacao === true,
+    avaliacao:
+      mostrarAvaliacao && avaliacaoNumero > 0
+        ? Number(avaliacaoNumero.toFixed(1))
+        : null,
+    totalAvaliacoes:
+      mostrarAvaliacao && totalAvaliacoesNumero > 0
+        ? Number(totalAvaliacoesNumero)
+        : 0,
+
     ordem: produtoEditandoId ? undefined : Date.now()
   };
 
@@ -1371,6 +1478,13 @@ async function salvarProduto() {
     setCategoria("");
     setExtras([]);
     setNovaCategoria("");
+    setProdutoOrigemExtras("");
+
+    // 🔥 limpa avaliação
+    setMostrarAvaliacao(false);
+    setNovaAvaliacao("");
+    setNovoTotalAvaliacoes("");
+
     setMostrarModalProduto(false);
 
   } catch (e) {
@@ -1735,6 +1849,7 @@ if (loadingAuth) {
           { id: "dashboard", nome: "Dashboard" },
           { id: "pedidos", nome: "Pedidos" },
           { id: "produtos", nome: "Produtos" },
+          { id: "avaliacoes", nome: "Avaliações" },
           { id: "gastos", nome: "Gastos" },
           { id: "cupons", nome: "Cupons" },
           { id: "fretes", nome: "Fretes" },
@@ -4418,6 +4533,129 @@ if (loadingAuth) {
         style={inputStyle}
       />
 
+
+
+      {/* AVALIAÇÃO */}
+<div
+  style={{
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 16,
+    background: "#fffdf7",
+    border: mostrarAvaliacao ? "1px solid #f59e0b" : "1px solid #eee",
+    boxShadow: mostrarAvaliacao
+      ? "0 6px 16px rgba(245,158,11,0.12)"
+      : "0 2px 8px rgba(0,0,0,0.04)",
+    transition: "0.2s"
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12
+    }}
+  >
+    <div>
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 800,
+          color: "#111"
+        }}
+      >
+        Avaliação do produto
+      </div>
+
+      <div
+        style={{
+          fontSize: 12,
+          color: "#666",
+          marginTop: 4,
+          lineHeight: 1.4
+        }}
+      >
+        Exibe a nota e a quantidade de avaliações no card do cliente.
+      </div>
+    </div>
+
+    <input
+      type="checkbox"
+      checked={mostrarAvaliacao}
+      onChange={(e) => setMostrarAvaliacao(e.target.checked)}
+    />
+  </div>
+
+  {mostrarAvaliacao && (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: 10,
+        marginTop: 12
+      }}
+    >
+      <input
+        value={novaAvaliacao}
+        onChange={(e) => setNovaAvaliacao(e.target.value)}
+        placeholder="Nota (ex: 4.8)"
+        style={{
+          ...inputStyle,
+          marginBottom: 0,
+          background: "#fff"
+        }}
+      />
+
+      <input
+        value={novoTotalAvaliacoes}
+        onChange={(e) => setNovoTotalAvaliacoes(e.target.value)}
+        placeholder="Total de avaliações (ex: 120)"
+        style={{
+          ...inputStyle,
+          marginBottom: 0,
+          background: "#fff"
+        }}
+      />
+    </div>
+  )}
+
+  {mostrarAvaliacao && (
+    <div
+      style={{
+        marginTop: 10,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap"
+      }}
+    >
+      <span
+        style={{
+          fontSize: 11,
+          background: "#fff7ed",
+          color: "#ea580c",
+          padding: "4px 8px",
+          borderRadius: 999,
+          fontWeight: 800
+        }}
+      >
+        ⭐ {novaAvaliacao || "0.0"}
+      </span>
+
+      <span
+        style={{
+          fontSize: 11,
+          color: "#666",
+          fontWeight: 600
+        }}
+      >
+        {novoTotalAvaliacoes || "0"} avaliações
+      </span>
+    </div>
+  )}
+</div>
+
 {/* COPIAR EXTRAS DE OUTRO PRODUTO */}
 <div
   style={{
@@ -4880,28 +5118,25 @@ if (loadingAuth) {
           </p>
         </div>
 
-        <button
-          onClick={() => setMostrarModalProduto(true)}
-          style={{
-            height: 48,
-            padding: "0 18px",
-            borderRadius: 14,
-            background: "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: 700,
-            fontSize: 14,
-            boxShadow: "0 8px 20px rgba(234,29,44,0.20)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8
-          }}
-        >
-          <Plus size={18} />
-          Novo produto
-        </button>
+        onClick={() => {
+  setProdutoEditandoId(null);
+  setNovoNome("");
+  setNovoPreco("");
+  setNovoPrecoPromocional("");
+  setPromocaoAtiva(false);
+  setNovoTamanho("");
+  setNovaDescricao("");
+  setNovaImagem("");
+  setMaisVendido(false);
+  setCategoria(categorias?.[0]?.slug || "");
+  setExtras([]);
+  setNovaCategoria("");
+  setProdutoOrigemExtras("");
+  setMostrarAvaliacao(false);
+  setNovaAvaliacao("");
+  setNovoTotalAvaliacoes("");
+  setMostrarModalProduto(true);
+}}
       </div>
     </div>
 
@@ -5197,6 +5432,323 @@ if (loadingAuth) {
     </div>
   </div>
 )}
+
+
+{abaAdmin === "avaliacoes" && (
+  <div
+    style={{
+      marginTop: 15,
+      padding: 18,
+      background: "#f4f5f7",
+      borderRadius: 24
+    }}
+  >
+    {/* TOPO */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 20,
+        marginBottom: 16,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: isMobile ? "flex-start" : "center",
+        gap: 12,
+        flexWrap: "wrap"
+      }}
+    >
+      <div>
+        <h2
+          style={{
+            margin: 0,
+            color: "#111",
+            fontSize: 24,
+            fontWeight: 800
+          }}
+        >
+          Avaliações
+        </h2>
+
+        <p
+          style={{
+            marginTop: 6,
+            marginBottom: 0,
+            fontSize: 13,
+            color: "#666"
+          }}
+        >
+          Aprove, recuse e acompanhe as avaliações enviadas pelos clientes.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap"
+        }}
+      >
+        <div
+          style={{
+            background: "#fff7ed",
+            color: "#ea580c",
+            padding: "8px 12px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 800
+          }}
+        >
+          Pendentes: {avaliacoes.filter(a => a.status === "pendente").length}
+        </div>
+
+        <div
+          style={{
+            background: "#ecfdf3",
+            color: "#15803d",
+            padding: "8px 12px",
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 800
+          }}
+        >
+          Aprovadas: {avaliacoes.filter(a => a.status === "aprovado").length}
+        </div>
+      </div>
+    </div>
+
+    {/* LISTA */}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 22,
+        padding: 18,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
+        border: "1px solid #ececec"
+      }}
+    >
+      {avaliacoes.length === 0 ? (
+        <div
+          style={{
+            padding: "34px 10px",
+            textAlign: "center",
+            color: "#777",
+            fontSize: 14
+          }}
+        >
+          Nenhuma avaliação encontrada.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {avaliacoes
+            .sort((a, b) => Number(b.criadoEm || 0) - Number(a.criadoEm || 0))
+            .map((a) => {
+              const produtoRelacionado = produtos.find((p) => p.id === a.produtoId);
+
+              const corStatus =
+                a.status === "aprovado"
+                  ? "#16a34a"
+                  : a.status === "recusado"
+                  ? "#dc2626"
+                  : "#d97706";
+
+              const bgStatus =
+                a.status === "aprovado"
+                  ? "#ecfdf3"
+                  : a.status === "recusado"
+                  ? "#fef2f2"
+                  : "#fff7ed";
+
+              const textoStatus =
+                a.status === "aprovado"
+                  ? "Aprovado"
+                  : a.status === "recusado"
+                  ? "Recusado"
+                  : "Pendente";
+
+              return (
+                <div
+                  key={a.id}
+                  style={{
+                    border: "1px solid #ececec",
+                    borderRadius: 20,
+                    padding: 16,
+                    background: "#fff",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+                  }}
+                >
+                  {/* TOPO CARD */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 14,
+                      flexWrap: "wrap"
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        minWidth: 0,
+                        flex: 1
+                      }}
+                    >
+                      <img
+                        src={produtoRelacionado?.imagem || "/acai.png"}
+                        style={{
+                          width: 58,
+                          height: 58,
+                          borderRadius: 14,
+                          objectFit: "cover",
+                          border: "1px solid #eee",
+                          flexShrink: 0
+                        }}
+                      />
+
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div
+                          style={{
+                            fontSize: 15,
+                            fontWeight: 800,
+                            color: "#111",
+                            lineHeight: 1.2
+                          }}
+                        >
+                          {produtoRelacionado?.nome || "Produto"}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 4,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            flexWrap: "wrap"
+                          }}
+                        >
+                          <span
+                            style={{
+                              background: "#fff7ed",
+                              color: "#ea580c",
+                              padding: "4px 8px",
+                              borderRadius: 999,
+                              fontSize: 12,
+                              fontWeight: 800
+                            }}
+                          >
+                            Nota {a.nota}/5
+                          </span>
+
+                          <span
+                            style={{
+                              fontSize: 12,
+                              color: "#666"
+                            }}
+                          >
+                            Pedido #{a.pedidoId?.slice?.(0, 6) || "—"}
+                          </span>
+                        </div>
+
+                        {!!a.comentario && (
+                          <div
+                            style={{
+                              marginTop: 10,
+                              fontSize: 13,
+                              color: "#555",
+                              lineHeight: 1.5,
+                              background: "#fafafa",
+                              border: "1px solid #f0f0f0",
+                              borderRadius: 14,
+                              padding: 12
+                            }}
+                          >
+                            {a.comentario}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        background: bgStatus,
+                        color: corStatus,
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 800,
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {textoStatus}
+                    </div>
+                  </div>
+
+                  {/* AÇÕES */}
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: "flex",
+                      gap: 10,
+                      flexWrap: "wrap"
+                    }}
+                  >
+                    <button
+                      onClick={() => aprovarAvaliacao(a)}
+                      style={{
+                        flex: 1,
+                        minWidth: isMobile ? "100%" : 140,
+                        height: 42,
+                        borderRadius: 12,
+                        border: "none",
+                        background:
+                          a.status === "aprovado"
+                            ? "#dcfce7"
+                            : "linear-gradient(90deg,#16a34a,#22c55e)",
+                        color: a.status === "aprovado" ? "#166534" : "#fff",
+                        fontWeight: 800,
+                        fontSize: 13,
+                        cursor: "pointer",
+                        boxShadow:
+                          a.status === "aprovado"
+                            ? "none"
+                            : "0 8px 20px rgba(34,197,94,0.18)"
+                      }}
+                    >
+                      {a.status === "aprovado" ? "Já aprovado" : "Aprovar"}
+                    </button>
+
+                    <button
+                      onClick={() => recusarAvaliacao(a)}
+                      style={{
+                        flex: 1,
+                        minWidth: isMobile ? "100%" : 140,
+                        height: 42,
+                        borderRadius: 12,
+                        border: a.status === "recusado" ? "none" : "1px solid #fecaca",
+                        background: a.status === "recusado" ? "#fee2e2" : "#fff5f5",
+                        color: "#dc2626",
+                        fontWeight: 800,
+                        fontSize: 13,
+                        cursor: "pointer"
+                      }}
+                    >
+                      {a.status === "recusado" ? "Já recusado" : "Recusar"}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
+
+
       {/* PEDIDOS */}
 {abaAdmin === "pedidos" && (
   <div style={{
@@ -5962,6 +6514,10 @@ if (loadingAuth) {
     </div>
   </div>
 )}
+
+
+
+
 
 
 {isMobile && (

@@ -33,6 +33,7 @@ import {
   updateDoc,
   query,
   where,
+  arrayUnion,
   deleteDoc,
   runTransaction
 } from "firebase/firestore";
@@ -410,7 +411,9 @@ const [observacaoPedido, setObservacaoPedido] = useState("");
   const [abrirPagamento, setAbrirPagamento] = useState(false);
 
   
-  
+  const [avaliacaoAberta, setAvaliacaoAberta] = useState(null);
+const [notaSelecionada, setNotaSelecionada] = useState(5);
+const [comentario, setComentario] = useState("");
   
 
     // 🔥 PERFIL
@@ -3005,6 +3008,191 @@ return (
   }}>
 
 
+{/* ========================= */}
+    {/* 🔥 MODAL DE AVALIACAO */}
+    {/* ========================= */}
+
+    {avaliacaoAberta && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 16
+    }}
+  >
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 20,
+        padding: 20,
+        width: "100%",
+        maxWidth: 380,
+        boxSizing: "border-box",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.18)"
+      }}
+    >
+      <h3
+        style={{
+          margin: 0,
+          fontSize: 22,
+          color: "#111",
+          fontWeight: 800
+        }}
+      >
+        Avaliar pedido
+      </h3>
+
+      <div
+        style={{
+          marginTop: 6,
+          fontSize: 13,
+          color: "#666",
+          lineHeight: 1.4
+        }}
+      >
+        Conte como foi sua experiência com este pedido.
+      </div>
+
+      {/* NOTA */}
+      <div style={{ marginTop: 16 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#111",
+            marginBottom: 10
+          }}
+        >
+          Nota
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              onClick={() => setNotaSelecionada(n)}
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 12,
+                border:
+                  n <= notaSelecionada
+                    ? "1px solid #f59e0b"
+                    : "1px solid #e5e7eb",
+                background:
+                  n <= notaSelecionada ? "#fff7ed" : "#fff",
+                color:
+                  n <= notaSelecionada ? "#ea580c" : "#999",
+                fontSize: 16,
+                fontWeight: 800,
+                cursor: "pointer"
+              }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* COMENTÁRIO */}
+      <div style={{ marginTop: 16 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#111",
+            marginBottom: 8
+          }}
+        >
+          Comentário
+        </div>
+
+        <textarea
+          placeholder="Escreva sua opinião"
+          value={comentario}
+          onChange={(e) => setComentario(e.target.value)}
+          style={{
+            width: "100%",
+            minHeight: 100,
+            padding: 12,
+            borderRadius: 12,
+            border: "1px solid #e5e7eb",
+            fontSize: 14,
+            color: "#111",
+            resize: "none",
+            boxSizing: "border-box",
+            outline: "none"
+          }}
+        />
+      </div>
+
+      {/* BOTÕES */}
+      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+        <button
+          onClick={async () => {
+  try {
+    await addDoc(collection(db, "avaliacoes"), {
+      produtoId: avaliacaoAberta.produtoId,
+      pedidoId: avaliacaoAberta.pedidoId,
+      nota: notaSelecionada,
+      comentario,
+      status: "pendente",
+      criadoEm: Date.now()
+    });
+
+    await updateDoc(doc(db, "pedidos", avaliacaoAberta.pedidoId), {
+      avaliacoesFeitas: arrayUnion(avaliacaoAberta.produtoId)
+    });
+
+    setAvaliacaoAberta(null);
+    alert("Avaliação enviada!");
+  } catch (e) {
+    console.log("ERRO AO AVALIAR:", e);
+    alert("Erro ao avaliar");
+  }
+}}
+          style={{
+            flex: 1,
+            height: 46,
+            borderRadius: 12,
+            border: "none",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
+          Enviar
+        </button>
+
+        <button
+          onClick={() => setAvaliacaoAberta(null)}
+          style={{
+            flex: 1,
+            height: 46,
+            borderRadius: 12,
+            border: "1px solid #e5e7eb",
+            background: "#fff",
+            color: "#333",
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer"
+          }}
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
  {/* ========================= */}
     {/* 🔥 MODAL DE PAGAMENTO */}
@@ -4328,7 +4516,7 @@ return (
               }}
             />
 
-            <div
+   {/* CONTEÚDO         <div
   onClick={(e) => {
     e.stopPropagation();
     abrirProduto();
@@ -4364,7 +4552,7 @@ return (
     Montar
   </span>
 </div>
-
+ */}
             {(produtoEmPromocao(p) || p.maisVendido) && (
               <div
                 style={{
@@ -4390,42 +4578,46 @@ return (
           {/* CONTEÚDO */}
           <div style={{ flex: 1, minWidth: 0 }}>
 
-            {/* ⭐ AVALIAÇÃO */}
-            {p.mostrarAvaliacao && p.avaliacao > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  marginBottom: 4
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 11,
-                    background: "#fff7ed",
-                    color: "#ea580c",
-                    padding: "3px 8px",
-                    borderRadius: 999,
-                    fontWeight: 800
-                  }}
-                >
-                  ⭐ {p.avaliacao}
-                </span>
+   {/* ⭐ AVALIAÇÃO */}
+  {p.mostrarAvaliacao && Number(p.avaliacao || 0) > 0 && (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      marginBottom: 6
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        background: "#fff7ed",
+        color: "#ea580c",
+        padding: "4px 8px",
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 800
+      }}
+    >
+      <span>Avaliação</span>
+      <span>{Number(p.avaliacao).toFixed(1)}</span>
+    </div>
 
-                {p.totalAvaliacoes > 0 && (
-                  <span
-                    style={{
-                      fontSize: 11,
-                      color: "#666",
-                      fontWeight: 600
-                    }}
-                  >
-                    {p.totalAvaliacoes} avaliações
-                  </span>
-                )}
-              </div>
-            )}
+    {Number(p.totalAvaliacoes || 0) > 0 && (
+      <span
+        style={{
+          fontSize: 12,
+          color: "#6b7280",
+          fontWeight: 600
+        }}
+      >
+        {p.totalAvaliacoes} avaliações
+      </span>
+    )}
+  </div>
+)}
 
             {/* NOME */}
             <div
@@ -7396,58 +7588,107 @@ return (
                   </div>
                 </div>
 
+              
                 {/* DETALHES */}
-                {pedidoAberto === chaveAberta && (
-                  <div
-                    style={{
-                      marginTop: 12,
-                      borderTop: "1px solid #eee",
-                      paddingTop: 12
-                    }}
-                  >
-                    {p.itens?.map((item, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          marginBottom: 10,
-                          paddingBottom: 10,
-                          borderBottom:
-                            idx !== (p.itens?.length || 0) - 1
-                              ? "1px solid #f2f2f2"
-                              : "none"
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: 13,
-                            color: "#111",
-                            fontWeight: 700
-                          }}
-                        >
-                          {item.quantidade}x {item.produto?.nome || item.nome}
-                        </div>
+{pedidoAberto === chaveAberta && (
+  <div
+    style={{
+      marginTop: 12,
+      borderTop: "1px solid #eee",
+      paddingTop: 12
+    }}
+  >
+    {p.itens?.map((item, idx) => {
+      const jaAvaliadoNessePedido = Array.isArray(p.avaliacoesFeitas)
+        ? p.avaliacoesFeitas.includes(item.produtoId)
+        : false;
 
-                        {(item.extras || []).length > 0 && (
-                          <div style={{ marginTop: 6 }}>
-                            {(item.extras || []).map(e => (
-                              <div
-                                key={e.nome}
-                                style={{
-                                  fontSize: 12,
-                                  color: "#777",
-                                  marginLeft: 6,
-                                  lineHeight: 1.45
-                                }}
-                              >
-                                • {e.nome}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+      return (
+        <div
+          key={idx}
+          style={{
+            marginBottom: 10,
+            paddingBottom: 10,
+            borderBottom:
+              idx !== (p.itens?.length || 0) - 1
+                ? "1px solid #f2f2f2"
+                : "none"
+          }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              color: "#111",
+              fontWeight: 700
+            }}
+          >
+            {item.quantidade}x {item.produto?.nome || item.nome}
+          </div>
+
+          {(item.extras || []).length > 0 && (
+            <div style={{ marginTop: 6 }}>
+              {(item.extras || []).map(e => (
+                <div
+                  key={e.nome}
+                  style={{
+                    fontSize: 12,
+                    color: "#777",
+                    marginLeft: 6,
+                    lineHeight: 1.45
+                  }}
+                >
+                  • {e.nome}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {p.status === "entregue" && item.produtoId && !jaAvaliadoNessePedido && (
+            <button
+              onClick={() => {
+                setAvaliacaoAberta({
+                  pedidoId: p.id,
+                  produtoId: item.produtoId,
+                  nome: item.produto?.nome || item.nome,
+                  imagem: item.produto?.imagem || item.imagem || "/acai.png"
+                });
+
+                setNotaSelecionada(5);
+                setComentario("");
+              }}
+              style={{
+                marginTop: 10,
+                background: "#fff",
+                color: "#ea1d2c",
+                border: "1px solid #ea1d2c",
+                padding: "8px 12px",
+                borderRadius: 12,
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer"
+              }}
+            >
+              Avaliar produto
+            </button>
+          )}
+
+          {p.status === "entregue" && jaAvaliadoNessePedido && (
+            <div
+              style={{
+                marginTop: 10,
+                fontSize: 12,
+                color: "#16a34a",
+                fontWeight: 700
+              }}
+            >
+              Produto já avaliado neste pedido
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+)}
               </div>
             );
           })}
@@ -9618,6 +9859,7 @@ return (
     carrinho.length > 0 &&
     !(aba === "carrinho" && step === 3) &&
     !(aba === "home" && step === 2) &&
+    !(aba === "perfil" && step === 4) &&
     !(aba === "pagamentos" && step === 6);
 
   if (!mostrarBarraSacola) return null;
