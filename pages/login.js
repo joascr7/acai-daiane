@@ -103,6 +103,9 @@ export default function Login() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [erro, setErro] = useState("");
 
+
+  
+
   useEffect(() => {
   if (!erro) return;
 
@@ -197,16 +200,18 @@ export default function Login() {
       });
 
       await setDoc(doc(db, "clientes", user.uid), {
-        nome,
-        email,
-        cpf
-      });
+  uid: user.uid, // 🔥 ESSENCIAL
+  nome,
+  email,
+  cpf
+});
 
       await setDoc(doc(db, "usuarios", user.uid), {
-        clienteNome: nome,
-        clienteEmail: email,
-        clienteCpf: cpf
-      });
+  uid: user.uid, // 🔥 ESSENCIAL
+  clienteNome: nome,
+  clienteEmail: email,
+  clienteCpf: cpf
+});
 
     } else {
       await signInWithEmailAndPassword(auth, email, senha);
@@ -245,6 +250,7 @@ export default function Login() {
     setLoading(false);
   }
 }
+
 
   return (
     <div style={{
