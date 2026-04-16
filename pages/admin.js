@@ -6490,7 +6490,7 @@ if (loadingAuth) {
       { id: "pedidos", nome: "Pedidos" },
       { id: "produtos", nome: "Produtos" },
       { id: "gastos", nome: "Gastos" },
-      { id: "avaliacoes", nome: "Avaliações" },
+      { id: "avaliacoes", nome: "Avali" },
       { id: "loja", nome: "Loja" }
     ].map((item) => {
       const ativo = abaAdmin === item.id;
@@ -6522,7 +6522,7 @@ if (loadingAuth) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 11,
+              fontSize: 9,
               fontWeight: 800,
               transition: "all 0.2s ease"
             }}
