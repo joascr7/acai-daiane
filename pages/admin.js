@@ -186,6 +186,25 @@ const inputStyle = {
   marginBottom: 8
 };
 
+
+const badgePend = {
+  background: "#fff7ed",
+  color: "#ea580c",
+  padding: "8px 12px",
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 800
+};
+
+const badgeOk = {
+  background: "#ecfdf3",
+  color: "#15803d",
+  padding: "8px 12px",
+  borderRadius: 999,
+  fontSize: 12,
+  fontWeight: 800
+};
+
   const router = useRouter();
 
   const [produtoEditandoId, setProdutoEditandoId] = useState(null);
@@ -222,6 +241,9 @@ const [bannerImagemFile, setBannerImagemFile] = useState(null);
 const [bannerPreview, setBannerPreview] = useState("");
 const [bannerLoading, setBannerLoading] = useState(false);
 const [bannerEditandoId, setBannerEditandoId] = useState(null);
+
+const [filtroAvaliacao, setFiltroAvaliacao] = useState("todas");
+const [busca, setBusca] = useState("");
 
 
   const [notificacoesAdmin, setNotificacoesAdmin] = useState([]);
@@ -5438,311 +5460,238 @@ if (loadingAuth) {
   <div
     style={{
       marginTop: 15,
-      padding: 18,
-      background: "#f4f5f7",
-      borderRadius: 24
+      padding: 16,
+      background: "#ffffff",
+      borderRadius: 20
     }}
   >
-    {/* TOPO */}
+    {/* HEADER */}
+<div style={{ marginBottom: 14 }}>
+  <h2
+    style={{
+      margin: 0,
+      fontSize: 20,
+      fontWeight: 800,
+      color: "#111" // 👈 aqui
+    }}
+  >
+    Avaliações
+  </h2>
+</div>
+
+    {/* FILTROS */}
     <div
       style={{
-        background: "#fff",
-        borderRadius: 22,
-        padding: 20,
-        marginBottom: 16,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec",
         display: "flex",
-        justifyContent: "space-between",
-        alignItems: isMobile ? "flex-start" : "center",
-        gap: 12,
-        flexWrap: "wrap"
+        gap: 8,
+        overflowX: "auto",
+        marginBottom: 14
       }}
     >
-      <div>
-        <h2
-          style={{
-            margin: 0,
-            color: "#111",
-            fontSize: 24,
-            fontWeight: 800
-          }}
-        >
-          Avaliações
-        </h2>
+      {["todas", "pendente", "aprovado", "recusado"].map((f) => {
+        const count =
+          f === "todas"
+            ? avaliacoes.length
+            : avaliacoes.filter((a) => a.status === f).length;
 
-        <p
-          style={{
-            marginTop: 6,
-            marginBottom: 0,
-            fontSize: 13,
-            color: "#666"
-          }}
-        >
-          Aprove, recuse e acompanhe as avaliações enviadas pelos clientes.
-        </p>
-      </div>
+        const ativo = filtroAvaliacao === f;
 
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          flexWrap: "wrap"
-        }}
-      >
-        <div
-          style={{
-            background: "#fff7ed",
-            color: "#ea580c",
-            padding: "8px 12px",
-            borderRadius: 999,
-            fontSize: 12,
-            fontWeight: 800
-          }}
-        >
-          Pendentes: {avaliacoes.filter(a => a.status === "pendente").length}
-        </div>
-
-        <div
-          style={{
-            background: "#ecfdf3",
-            color: "#15803d",
-            padding: "8px 12px",
-            borderRadius: 999,
-            fontSize: 12,
-            fontWeight: 800
-          }}
-        >
-          Aprovadas: {avaliacoes.filter(a => a.status === "aprovado").length}
-        </div>
-      </div>
+        return (
+          <div
+            key={f}
+            onClick={() => setFiltroAvaliacao(f)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 999,
+              background: ativo ? "#111" : "#fff",
+              color: ativo ? "#fff" : "#666",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              border: "1px solid #eee",
+              whiteSpace: "nowrap"
+            }}
+          >
+            {f} ({count})
+          </div>
+        );
+      })}
     </div>
+
+    {/* BUSCA */}
+    <input
+      value={busca}
+      onChange={(e) => setBusca(e.target.value)}
+      placeholder="Buscar produto..."
+      style={{
+        width: "100%",
+        padding: 10,
+        borderRadius: 10,
+        border: "1px solid #eee",
+        marginBottom: 14,
+        fontSize: 13
+      }}
+    />
 
     {/* LISTA */}
     <div
       style={{
         background: "#fff",
-        borderRadius: 22,
-        padding: 18,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-        border: "1px solid #ececec"
+        borderRadius: 14,
+        border: "1px solid #eee"
       }}
     >
-      {avaliacoes.length === 0 ? (
-        <div
-          style={{
-            padding: "34px 10px",
-            textAlign: "center",
-            color: "#777",
-            fontSize: 14
-          }}
-        >
-          Nenhuma avaliação encontrada.
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {avaliacoes
-            .sort((a, b) => Number(b.criadoEm || 0) - Number(a.criadoEm || 0))
-            .map((a) => {
-              const produtoRelacionado = produtos.find((p) => p.id === a.produtoId);
+      {avaliacoes
+        .filter((a) => {
+          const produto = produtos.find((p) => p.id === a.produtoId);
 
-              const corStatus =
-                a.status === "aprovado"
-                  ? "#16a34a"
-                  : a.status === "recusado"
-                  ? "#dc2626"
-                  : "#d97706";
+          const passaFiltro =
+            filtroAvaliacao === "todas" ||
+            a.status === filtroAvaliacao;
 
-              const bgStatus =
-                a.status === "aprovado"
-                  ? "#ecfdf3"
-                  : a.status === "recusado"
-                  ? "#fef2f2"
-                  : "#fff7ed";
+          const passaBusca =
+            !busca ||
+            produto?.nome?.toLowerCase().includes(busca.toLowerCase());
 
-              const textoStatus =
-                a.status === "aprovado"
-                  ? "Aprovado"
-                  : a.status === "recusado"
-                  ? "Recusado"
-                  : "Pendente";
+          return passaFiltro && passaBusca;
+        })
+        .sort((a, b) => Number(b.criadoEm) - Number(a.criadoEm))
+        .map((a) => {
+          const produto = produtos.find((p) => p.id === a.produtoId);
 
-              return (
-                <div
-                  key={a.id}
+          const corStatus =
+            a.status === "aprovado"
+              ? "#16a34a"
+              : a.status === "recusado"
+              ? "#dc2626"
+              : "#f59e0b";
+
+          return (
+            <div
+              key={a.id}
+              style={{
+                padding: 12,
+                borderBottom: "1px solid #f2f2f2"
+              }}
+            >
+              <div style={{ display: "flex", gap: 10 }}>
+                <img
+                  src={produto?.imagem || "/acai.png"}
                   style={{
-                    border: "1px solid #ececec",
-                    borderRadius: 20,
-                    padding: 16,
-                    background: "#fff",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+                    width: 48,
+                    height: 48,
+                    borderRadius: 10,
+                    objectFit: "cover"
                   }}
-                >
-                  {/* TOPO CARD */}
+                />
+
+                <div style={{ flex: 1 }}>
+                  {/* NOME */}
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>
+                    {produto?.nome || "Produto"}
+                  </div>
+
+                  {/* PEDIDO */}
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "#666",
+                      marginTop: 2
+                    }}
+                  >
+                    Pedido #{a.pedidoId?.slice(0, 6)}
+                  </div>
+
+                  {/* NOTA + STATUS */}
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 14,
-                      flexWrap: "wrap"
+                      alignItems: "center",
+                      gap: 8,
+                      marginTop: 4,
+                      fontSize: 12
                     }}
                   >
-                    <div
+                    <span
                       style={{
-                        display: "flex",
-                        gap: 12,
-                        minWidth: 0,
-                        flex: 1
+                        color: "#f59e0b",
+                        fontWeight: 700
                       }}
                     >
-                      <img
-                        src={produtoRelacionado?.imagem || "/acai.png"}
-                        style={{
-                          width: 58,
-                          height: 58,
-                          borderRadius: 14,
-                          objectFit: "cover",
-                          border: "1px solid #eee",
-                          flexShrink: 0
-                        }}
-                      />
+                      ⭐ {a.nota.toFixed(1)}
+                    </span>
 
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div
-                          style={{
-                            fontSize: 15,
-                            fontWeight: 800,
-                            color: "#111",
-                            lineHeight: 1.2
-                          }}
-                        >
-                          {produtoRelacionado?.nome || "Produto"}
-                        </div>
+                    <span style={{ color: "#999" }}>•</span>
 
-                        <div
-                          style={{
-                            marginTop: 4,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            flexWrap: "wrap"
-                          }}
-                        >
-                          <span
-                            style={{
-                              background: "#fff7ed",
-                              color: "#ea580c",
-                              padding: "4px 8px",
-                              borderRadius: 999,
-                              fontSize: 12,
-                              fontWeight: 800
-                            }}
-                          >
-                            Nota {a.nota}/5
-                          </span>
-
-                          <span
-                            style={{
-                              fontSize: 12,
-                              color: "#666"
-                            }}
-                          >
-                            Pedido #{a.pedidoId?.slice?.(0, 6) || "—"}
-                          </span>
-                        </div>
-
-                        {!!a.comentario && (
-                          <div
-                            style={{
-                              marginTop: 10,
-                              fontSize: 13,
-                              color: "#555",
-                              lineHeight: 1.5,
-                              background: "#fafafa",
-                              border: "1px solid #f0f0f0",
-                              borderRadius: 14,
-                              padding: 12
-                            }}
-                          >
-                            {a.comentario}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        background: bgStatus,
-                        color: corStatus,
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        fontSize: 12,
-                        fontWeight: 800,
-                        whiteSpace: "nowrap"
-                      }}
-                    >
-                      {textoStatus}
-                    </div>
+                    <span style={{ color: corStatus }}>
+                      {a.status}
+                    </span>
                   </div>
+
+                  {/* COMENTÁRIO */}
+                  {!!a.comentario && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontSize: 12,
+                        color: "#555",
+                        background: "#fafafa",
+                        padding: 8,
+                        borderRadius: 8
+                      }}
+                    >
+                      {a.comentario}
+                    </div>
+                  )}
 
                   {/* AÇÕES */}
                   <div
                     style={{
-                      marginTop: 14,
                       display: "flex",
-                      gap: 10,
-                      flexWrap: "wrap"
+                      gap: 8,
+                      marginTop: 10
                     }}
                   >
                     <button
                       onClick={() => aprovarAvaliacao(a)}
                       style={{
-                        flex: 1,
-                        minWidth: isMobile ? "100%" : 140,
-                        height: 42,
-                        borderRadius: 12,
-                        border: "none",
-                        background:
-                          a.status === "aprovado"
-                            ? "#dcfce7"
-                            : "linear-gradient(90deg,#16a34a,#22c55e)",
-                        color: a.status === "aprovado" ? "#166534" : "#fff",
-                        fontWeight: 800,
-                        fontSize: 13,
+                        padding: "6px 10px",
+                        borderRadius: 8,
+                        border: "1px solid #e5e7eb",
+                        background: "#fff",
+                        fontSize: 12,
+                        fontWeight: 600,
                         cursor: "pointer",
-                        boxShadow:
+                        color:
                           a.status === "aprovado"
-                            ? "none"
-                            : "0 8px 20px rgba(34,197,94,0.18)"
+                            ? "#16a34a"
+                            : "#333"
                       }}
                     >
-                      {a.status === "aprovado" ? "Já aprovado" : "Aprovar"}
+                      Aprovar
                     </button>
 
                     <button
                       onClick={() => recusarAvaliacao(a)}
                       style={{
-                        flex: 1,
-                        minWidth: isMobile ? "100%" : 140,
-                        height: 42,
-                        borderRadius: 12,
-                        border: a.status === "recusado" ? "none" : "1px solid #fecaca",
-                        background: a.status === "recusado" ? "#fee2e2" : "#fff5f5",
-                        color: "#dc2626",
-                        fontWeight: 800,
-                        fontSize: 13,
-                        cursor: "pointer"
+                        padding: "6px 10px",
+                        borderRadius: 8,
+                        border: "1px solid #fee2e2",
+                        background: "#fff",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        color: "#dc2626"
                       }}
                     >
-                      {a.status === "recusado" ? "Já recusado" : "Recusar"}
+                      Recusar
                     </button>
                   </div>
                 </div>
-              );
-            })}
-        </div>
-      )}
+              </div>
+            </div>
+          );
+        })}
     </div>
   </div>
 )}
@@ -6541,6 +6490,7 @@ if (loadingAuth) {
       { id: "pedidos", nome: "Pedidos" },
       { id: "produtos", nome: "Produtos" },
       { id: "gastos", nome: "Gastos" },
+      { id: "avaliacoes", nome: "Avaliações" },
       { id: "loja", nome: "Loja" }
     ].map((item) => {
       const ativo = abaAdmin === item.id;

@@ -254,6 +254,16 @@ const btnLogout = {
 };
 
 
+const feedbacks = [
+  "Entrega rápida",
+  "Bem embalado",
+  "Muito saboroso",
+  "Veio errado",
+  "Demorou",
+  "Pouco recheio"
+];
+
+
 
 const label = {
   fontSize: 12,
@@ -515,6 +525,9 @@ const [tipoMensagemPagamento, setTipoMensagemPagamento] = useState("info");
 
 const [bannerIndex, setBannerIndex] = useState(0);
 const bannerRef = useRef(null);
+
+
+const [feedbackSelecionados, setFeedbackSelecionados] = useState([]);
 
 const [toastLojaFechada, setToastLojaFechada] = useState(false);
 const [historicoBusca, setHistoricoBusca] = useState([]);
@@ -3012,174 +3025,171 @@ return (
     {/* 🔥 MODAL DE AVALIACAO */}
     {/* ========================= */}
 
-    {avaliacaoAberta && (
+   {avaliacaoAberta && (
   <div
+    onClick={() => setAvaliacaoAberta(null)}
     style={{
       position: "fixed",
       inset: 0,
-      background: "rgba(0,0,0,0.5)",
+      background: "rgba(0,0,0,0.4)",
       display: "flex",
-      alignItems: "center",
       justifyContent: "center",
-      zIndex: 9999,
-      padding: 16
+      alignItems: "center",
+      padding: 16,
+      zIndex: 9999
     }}
   >
     <div
+      onClick={(e) => e.stopPropagation()}
       style={{
+        width: "100%",
+        maxWidth: 420,
         background: "#fff",
         borderRadius: 20,
-        padding: 20,
-        width: "100%",
-        maxWidth: 380,
-        boxSizing: "border-box",
-        boxShadow: "0 20px 60px rgba(0,0,0,0.18)"
+        boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "85vh"
       }}
     >
-      <h3
-        style={{
-          margin: 0,
-          fontSize: 22,
-          color: "#111",
-          fontWeight: 800
-        }}
-      >
-        Avaliar pedido
-      </h3>
-
+      {/* CONTEÚDO */}
       <div
         style={{
-          marginTop: 6,
-          fontSize: 13,
-          color: "#666",
-          lineHeight: 1.4
+          padding: 16,
+          overflowY: "auto",
+          flex: 1
         }}
       >
-        Conte como foi sua experiência com este pedido.
-      </div>
-
-      {/* NOTA */}
-      <div style={{ marginTop: 16 }}>
+        {/* HEADER */}
         <div
           style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "#111",
-            marginBottom: 10
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
           }}
         >
-          Nota
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>
+            Avaliar pedido
+          </h3>
+
+          <button
+            onClick={() => setAvaliacaoAberta(null)}
+            style={{
+              border: "none",
+              background: "none",
+              fontSize: 22,
+              cursor: "pointer"
+            }}
+          >
+            ×
+          </button>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              onClick={() => setNotaSelecionada(n)}
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 12,
-                border:
-                  n <= notaSelecionada
-                    ? "1px solid #f59e0b"
-                    : "1px solid #e5e7eb",
-                background:
-                  n <= notaSelecionada ? "#fff7ed" : "#fff",
-                color:
-                  n <= notaSelecionada ? "#ea580c" : "#999",
-                fontSize: 16,
-                fontWeight: 800,
-                cursor: "pointer"
-              }}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* ESTRELAS */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+            Sua nota
+          </div>
 
-      {/* COMENTÁRIO */}
-      <div style={{ marginTop: 16 }}>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "#111",
-            marginBottom: 8
-          }}
-        >
-          Comentário
+          <div style={{ display: "flex", gap: 6 }}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <span
+                key={n}
+                onClick={() => setNotaSelecionada(n)}
+                style={{
+                  fontSize: 28,
+                  cursor: "pointer",
+                  color: n <= notaSelecionada ? "#f59e0b" : "#ddd"
+                }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
         </div>
 
+        {/* FEEDBACK */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+            O que achou?
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {feedbacks.map((f) => {
+              const ativo = feedbackSelecionados.includes(f);
+
+              return (
+                <div
+                  key={f}
+                  onClick={() => {
+                    if (ativo) {
+                      setFeedbackSelecionados(
+                        feedbackSelecionados.filter((x) => x !== f)
+                      );
+                    } else {
+                      setFeedbackSelecionados([...feedbackSelecionados, f]);
+                    }
+                  }}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 20,
+                    fontSize: 12,
+                    cursor: "pointer",
+                    border: ativo
+                      ? "1px solid #ea1d2c"
+                      : "1px solid #eee",
+                    background: ativo ? "#fee2e2" : "#fff",
+                    color: ativo ? "#ea1d2c" : "#555",
+                    fontWeight: 600
+                  }}
+                >
+                  {f}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* COMENTÁRIO */}
         <textarea
-          placeholder="Escreva sua opinião"
+          placeholder="Conte mais detalhes (opcional)"
           value={comentario}
           onChange={(e) => setComentario(e.target.value)}
           style={{
             width: "100%",
-            minHeight: 100,
+            marginTop: 14,
             padding: 12,
             borderRadius: 12,
-            border: "1px solid #e5e7eb",
+            border: "1px solid #eee",
             fontSize: 14,
-            color: "#111",
             resize: "none",
-            boxSizing: "border-box",
+            minHeight: 80,
             outline: "none"
           }}
         />
       </div>
 
-      {/* BOTÕES */}
-      <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-        <button
-          onClick={async () => {
-  try {
-    await addDoc(collection(db, "avaliacoes"), {
-      produtoId: avaliacaoAberta.produtoId,
-      pedidoId: avaliacaoAberta.pedidoId,
-      nota: notaSelecionada,
-      comentario,
-      status: "pendente",
-      criadoEm: Date.now()
-    });
-
-    await updateDoc(doc(db, "pedidos", avaliacaoAberta.pedidoId), {
-      avaliacoesFeitas: arrayUnion(avaliacaoAberta.produtoId)
-    });
-
-    setAvaliacaoAberta(null);
-    alert("Avaliação enviada!");
-  } catch (e) {
-    console.log("ERRO AO AVALIAR:", e);
-    alert("Erro ao avaliar");
-  }
-}}
-          style={{
-            flex: 1,
-            height: 46,
-            borderRadius: 12,
-            border: "none",
-            background: "#ea1d2c",
-            color: "#fff",
-            fontWeight: 800,
-            fontSize: 14,
-            cursor: "pointer"
-          }}
-        >
-          Enviar
-        </button>
-
+      {/* BOTÕES FIXOS */}
+      <div
+        style={{
+          padding: 16,
+          borderTop: "1px solid #f2f2f2",
+          background: "#fff",
+          display: "flex",
+          gap: 10,
+          flexShrink: 0
+        }}
+      >
+        {/* CANCELAR */}
         <button
           onClick={() => setAvaliacaoAberta(null)}
           style={{
             flex: 1,
-            height: 46,
-            borderRadius: 12,
-            border: "1px solid #e5e7eb",
+            height: 48,
+            borderRadius: 14,
+            border: "1px solid #ddd",
             background: "#fff",
-            color: "#333",
+            color: "#555",
             fontWeight: 700,
             fontSize: 14,
             cursor: "pointer"
@@ -3187,10 +3197,75 @@ return (
         >
           Cancelar
         </button>
+
+        {/* ENVIAR */}
+        <button
+          disabled={!notaSelecionada}
+          onClick={async () => {
+            try {
+              await addDoc(collection(db, "avaliacoes"), {
+                produtoId: avaliacaoAberta.produtoId,
+                pedidoId: avaliacaoAberta.pedidoId,
+                nota: notaSelecionada,
+                comentario,
+                feedbacks: feedbackSelecionados,
+                status: "pendente",
+                criadoEm: Date.now()
+              });
+
+              await updateDoc(
+                doc(db, "pedidos", avaliacaoAberta.pedidoId),
+                {
+                  avaliacoesFeitas: arrayUnion(
+                    avaliacaoAberta.produtoId
+                  )
+                }
+              );
+
+              setAvaliacaoAberta(null);
+              setNotaSelecionada(0);
+              setComentario("");
+              setFeedbackSelecionados([]);
+
+            } catch (e) {
+              console.log(e);
+            }
+          }}
+          style={{
+            flex: 1,
+            height: 48,
+            borderRadius: 14,
+            border: "none",
+            background: notaSelecionada ? "#ea1d2c" : "#ddd",
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: 14,
+            cursor: notaSelecionada ? "pointer" : "not-allowed"
+          }}
+        >
+          Enviar
+        </button>
       </div>
     </div>
+  
+  {/* ANIMAÇÃO */}
+    <style>
+      {`
+        @keyframes sheetUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}
+    </style>
   </div>
 )}
+
 
 
 
@@ -7491,139 +7566,209 @@ return (
                 </div>
 
                 {/* TOTAL + BOTÕES */}
-                <div
-                  style={{
-                    marginTop: 12,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 10,
-                    flexWrap: "wrap"
-                  }}
-                >
-                  <strong
-                    style={{
-                      color: "#ea1d2c",
-                      fontSize: 16
-                    }}
-                  >
-                    {formatarReal(p.total)}
-                  </strong>
+<div
+  style={{
+    marginTop: 12,
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap"
+  }}
+>
+  {/* PREÇO */}
+  <strong
+    style={{
+      color: "#ea1d2c",
+      fontSize: 16
+    }}
+  >
+    {formatarReal(p.total)}
+  </strong>
 
-                  <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
-                    <button
-                      onClick={() =>
-                        setPedidoAberto(
-                          pedidoAberto === chaveAberta ? null : chaveAberta
-                        )
-                      }
-                      style={{
-                        background: "#fff",
-                        color: "#666",
-                        border: "1px solid #eee",
-                        padding: "8px 12px",
-                        borderRadius: 12,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer"
-                      }}
-                    >
-                      {pedidoAberto === chaveAberta ? "Ocultar" : "Detalhes"}
-                    </button>
+  {/* 🔥 AVALIAÇÃO PREMIUM */}
+  {/* 🔥 AVALIAR DIRETO NO CARD */}
+{p.status === "entregue" && (
+  <div style={{ marginTop: 10 }}>
+    {p.itens?.some(item =>
+      !p.avaliacoesFeitas?.includes(item.produtoId)
+    ) ? (
+      <button
+        onClick={() => {
+          // pega o primeiro item NÃO avaliado
+          const itemNaoAvaliado = p.itens.find(item =>
+            !p.avaliacoesFeitas?.includes(item.produtoId)
+          );
 
-                    {pixPendente ? (
-                      <button
-                        onClick={() => {
-                          if (pixExpirado) {
-                            setPedidoPixAberto(p);
-                            gerarNovoPixDoPedido(p);
-                            return;
-                          }
+          if (!itemNaoAvaliado) return;
 
-                          setFormaPagamento("pix");
-                          setPedidoPixAberto(p);
-                          setPaymentId(p.paymentId || null);
-                          setQrBase64(p.qrBase64 || null);
-                          setQrCode(p.qrCode || null);
+          setAvaliacaoAberta({
+            pedidoId: p.id,
+            produtoId: itemNaoAvaliado.produtoId,
+            nome:
+              itemNaoAvaliado.produto?.nome ||
+              itemNaoAvaliado.nome,
+            imagem:
+              itemNaoAvaliado.produto?.imagem ||
+              itemNaoAvaliado.imagem ||
+              "/acai.png"
+          });
 
-                         // 🔥 se não tiver QR salvo, gera novo automaticamente
-                         if (!p.qrBase64 || !p.qrCode) {
-                         gerarNovoPixDoPedido(p);
-                         };
-                          setMostrarPagamento(true);
-                        }}
-                        style={{
-                          background: "#ea1d2c",
-                          color: "#fff",
-                          border: "none",
-                          padding: "8px 14px",
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
-                        }}
-                      >
-                        {pixExpirado ? "Gerar novo Pix" : "Pagar agora"}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          const novosItens = (p.itens || []).map(item => {
-                            const produtoBanco = produtos.find(prod =>
-                              prod.id === item.produtoId ||
-                              prod.nome === item.produto?.nome ||
-                              prod.nome === item.nome
-                            );
+          setNotaSelecionada(5);
+          setComentario("");
+        }}
+        style={{
+          height: 36,
+          padding: "0 14px",
+          borderRadius: 12,
+          border: "1px solid #ea1d2c",
+          background: "#fff",
+          color: "#ea1d2c",
+          fontSize: 13,
+          fontWeight: 800,
+          cursor: "pointer"
+        }}
+      >
+        Avaliar pedido
+      </button>
+    ) : (
+      <div
+        style={{
+          fontSize: 13,
+          color: "#16a34a",
+          fontWeight: 700
+        }}
+      >
+        Pedido já avaliado
+      </div>
+    )}
+  </div>
+)}
 
-                            return {
-                              produto: {
-                                id: produtoBanco?.id || item.produtoId || item.produto?.id || null,
-                                nome: produtoBanco?.nome || item.produto?.nome || item.nome || "Produto",
-                                imagem:
-                                  produtoBanco?.imagem ||
-                                  item.produto?.imagem ||
-                                  item.imagem ||
-                                  "/acai.png",
-                                preco: Number(
-                                  produtoBanco?.preco ??
-                                  item.produto?.preco ??
-                                  0
-                                ),
-                                categoria:
-                                  produtoBanco?.categoria ||
-                                  item.produto?.categoria ||
-                                  item.categoria ||
-                                  ""
-                              },
-                              quantidade: Number(item.quantidade || 1),
-                              extras: item.extras || [],
-                              total: Number(item.total || 0)
-                            };
-                          });
+  {/* BOTÕES DIREITA */}
+  <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+    <button
+      onClick={() =>
+        setPedidoAberto(
+          pedidoAberto === chaveAberta ? null : chaveAberta
+        )
+      }
+      style={{
+        background: "#fff",
+        color: "#666",
+        border: "1px solid #eee",
+        padding: "8px 12px",
+        borderRadius: 12,
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: "pointer"
+      }}
+    >
+      {pedidoAberto === chaveAberta ? "Ocultar" : "Detalhes"}
+    </button>
 
-                          setCarrinho(novosItens);
-                          setAba("carrinho");
-                          setStep(3);
-                        }}
-                        style={{
-                          background: "#ea1d2c",
-                          color: "#fff",
-                          border: "none",
-                          padding: "8px 14px",
-                          borderRadius: 12,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
-                        }}
-                      >
-                        Repetir
-                      </button>
-                    )}
-                  </div>
-                </div>
+    {pixPendente ? (
+      <button
+        onClick={() => {
+          if (pixExpirado) {
+            setPedidoPixAberto(p);
+            gerarNovoPixDoPedido(p);
+            return;
+          }
 
+          setFormaPagamento("pix");
+          setPedidoPixAberto(p);
+          setPaymentId(p.paymentId || null);
+          setQrBase64(p.qrBase64 || null);
+          setQrCode(p.qrCode || null);
+
+          if (!p.qrBase64 || !p.qrCode) {
+            gerarNovoPixDoPedido(p);
+          }
+
+          setMostrarPagamento(true);
+        }}
+        style={{
+          background: "#ea1d2c",
+          color: "#fff",
+          border: "none",
+          padding: "8px 14px",
+          borderRadius: 12,
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+          boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
+        }}
+      >
+        {pixExpirado ? "Gerar novo Pix" : "Pagar agora"}
+      </button>
+    ) : (
+      <button
+        onClick={() => {
+          const novosItens = (p.itens || []).map(item => {
+            const produtoBanco = produtos.find(prod =>
+              prod.id === item.produtoId ||
+              prod.nome === item.produto?.nome ||
+              prod.nome === item.nome
+            );
+
+            return {
+              produto: {
+                id:
+                  produtoBanco?.id ||
+                  item.produtoId ||
+                  item.produto?.id ||
+                  null,
+                nome:
+                  produtoBanco?.nome ||
+                  item.produto?.nome ||
+                  item.nome ||
+                  "Produto",
+                imagem:
+                  produtoBanco?.imagem ||
+                  item.produto?.imagem ||
+                  item.imagem ||
+                  "/acai.png",
+                preco: Number(
+                  produtoBanco?.preco ??
+                    item.produto?.preco ??
+                    0
+                ),
+                categoria:
+                  produtoBanco?.categoria ||
+                  item.produto?.categoria ||
+                  item.categoria ||
+                  ""
+              },
+              quantidade: Number(item.quantidade || 1),
+              extras: item.extras || [],
+              total: Number(item.total || 0)
+            };
+          });
+
+          setCarrinho(novosItens);
+          setAba("carrinho");
+          setStep(3);
+        }}
+        style={{
+          background: "#ea1d2c",
+          color: "#fff",
+          border: "none",
+          padding: "8px 14px",
+          borderRadius: 12,
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+          boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
+        }}
+      >
+        Repetir
+      </button>
+    )}
+  </div>
+</div>
+                  
+              
               
                 {/* DETALHES */}
 {pedidoAberto === chaveAberta && (
@@ -7679,47 +7824,6 @@ return (
             </div>
           )}
 
-          {p.status === "entregue" && item.produtoId && !jaAvaliadoNessePedido && (
-            <button
-              onClick={() => {
-                setAvaliacaoAberta({
-                  pedidoId: p.id,
-                  produtoId: item.produtoId,
-                  nome: item.produto?.nome || item.nome,
-                  imagem: item.produto?.imagem || item.imagem || "/acai.png"
-                });
-
-                setNotaSelecionada(5);
-                setComentario("");
-              }}
-              style={{
-                marginTop: 10,
-                background: "#fff",
-                color: "#ea1d2c",
-                border: "1px solid #ea1d2c",
-                padding: "8px 12px",
-                borderRadius: 12,
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer"
-              }}
-            >
-              Avaliar produto
-            </button>
-          )}
-
-          {p.status === "entregue" && jaAvaliadoNessePedido && (
-            <div
-              style={{
-                marginTop: 10,
-                fontSize: 12,
-                color: "#16a34a",
-                fontWeight: 700
-              }}
-            >
-              Produto já avaliado neste pedido
-            </div>
-          )}
         </div>
       );
     })}
