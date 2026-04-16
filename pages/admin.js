@@ -6513,8 +6513,8 @@ if (loadingAuth) {
           {/* BOLHA ATIVA */}
           <div
             style={{
-              minWidth: 40,
-              height: 32,
+              minWidth: 30,
+              height: 22,
               padding: "0 10px",
               borderRadius: 999,
               background: ativo ? "#ea1d2c" : "transparent",
@@ -6522,7 +6522,7 @@ if (loadingAuth) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 9,
+              fontSize: 11,
               fontWeight: 800,
               transition: "all 0.2s ease"
             }}
