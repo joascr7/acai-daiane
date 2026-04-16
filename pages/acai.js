@@ -15,10 +15,7 @@ import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 import CardProduto from "../components/CardProduto";
 
-import Head from "next/head";
-<Head>
-  <link rel="manifest" href="/manifest.json" />
-</Head>
+
 
 
 
@@ -7635,14 +7632,20 @@ return (
       </button>
     ) : (
       <div
-        style={{
-          fontSize: 13,
-          color: "#16a34a",
-          fontWeight: 700
-        }}
-      >
-        Pedido já avaliado
-      </div>
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "#ecfdf5",
+    color: "#059669",
+    padding: "4px 10px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 700
+  }}
+>
+  ✓ Avaliado
+</div>
     )}
   </div>
 )}
