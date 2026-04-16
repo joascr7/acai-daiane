@@ -49,6 +49,9 @@ import {
   ShoppingBag,
   Tag,
   ArrowRight,
+  Home,
+  DollarSign,
+  Store,
   CircleDollarSign
 } from "lucide-react";
 
