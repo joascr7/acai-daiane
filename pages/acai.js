@@ -4246,7 +4246,7 @@ return (
             position: "relative",
             boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
             width: "100%",
-            height: isMobile ? 220 : 320,
+            height: isMobile ? 180 : 280,
             background: "#111"
           }}
         >
@@ -4652,27 +4652,32 @@ return (
               {p.tamanho ? `• ${p.tamanho}` : ""}
             </div>
 
-            {/* PREÇO */}
-            <div style={{ marginTop: 10 }}>
-              {produtoEmPromocao(p) ? (
-                <>
-                  <div style={precoAntigo}>
-                    {formatarReal(p.preco || 0)}
-                  </div>
+           {/* PREÇO + CTA */}
+                  <div style={{
+                    marginTop: 8,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}>
+                    <strong style={{
+                      fontSize: 16
+                    }}>
+                      {formatarReal(precoFinalProduto(p))}
+                    </strong>
 
-                  <strong style={precoPromo}>
-                    {formatarReal(precoFinalProduto(p))}
-                  </strong>
-                </>
-              ) : (
-                <strong style={precoNormal}>
-                  {formatarReal(precoFinalProduto(p))}
-                </strong>
-              )}
+                    <span style={{
+                      fontSize: 12,
+                      color: "#ea1d2c",
+                      fontWeight: 700
+                    }}>
+                      Toque para montar →
+                    </span>
+                  </div>
+              
             </div>
           </div>
         </div>
-      </div>
+      
     );
   })}
 </div>
