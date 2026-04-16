@@ -519,6 +519,8 @@ const [qrCode, setQrCode] = useState(null);
 const [paymentId, setPaymentId] = useState(null);
 const [pedidoAtual, setPedidoAtual] = useState(null);
 
+const [avaliacaoSucesso, setAvaliacaoSucesso] = useState(false);
+
 const [mensagemPagamento, setMensagemPagamento] = useState("");
 const [tipoMensagemPagamento, setTipoMensagemPagamento] = useState("info");
 
@@ -3237,6 +3239,14 @@ return (
             )
           }
         );
+
+        setAvaliacaoSucesso(true);
+
+        navigator.vibrate?.(40);
+
+        setTimeout(() => {
+        setAvaliacaoSucesso(false);
+        }, 1800);
 
         setAvaliacaoAberta(null);
         setNotaSelecionada(0);
@@ -10217,6 +10227,64 @@ return (
 })()}
 
 
+
+{avaliacaoSucesso && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.25)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 99999
+    }}
+  >
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 18,
+        padding: "18px 22px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 10,
+        boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+        animation: "fadeIn 0.2s ease"
+      }}
+    >
+      {/* ICON */}
+      <div
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          background: "#ecfdf5",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 22,
+          color: "#16a34a",
+          fontWeight: 900
+        }}
+      >
+        ✓
+      </div>
+
+      {/* TEXTO */}
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#111",
+          textAlign: "center"
+        }}
+      >
+        Avaliação enviada!
+      </div>
+    </div>
+  </div>
+)}
 
 
 {/* 🔥 STYLES */}
