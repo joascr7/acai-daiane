@@ -4258,7 +4258,7 @@ return (
                 style={{
                   display: "flex",
                   width: "100%",
-                  height: "130%",
+                  height: "150%",
                   overflowX: "auto",
                   overflowY: "hidden",
                   WebkitOverflowScrolling: "touch",
@@ -4907,6 +4907,40 @@ return (
           </div>
         </div>
       </div>
+
+      <div
+  style={{
+    marginTop: 36,
+    paddingTop: 14,
+    borderTop: "1px solid rgba(0,0,0,0.05)",
+    textAlign: "center"
+  }}
+>
+  <div
+    style={{
+      fontSize: 11,
+      color: "#9ca3af",
+      fontWeight: 500,
+      letterSpacing: 0.3
+    }}
+  >
+    Desenvolvido por{" "}
+    <span style={{ color: "#6b7280", fontWeight: 600 }}>
+      Joás
+    </span>
+  </div>
+
+  <div
+    style={{
+      marginTop: 4,
+      fontSize: 10,
+      color: "#c4c4c4",
+      letterSpacing: 0.5
+    }}
+  >
+    v1.0.0
+  </div>
+</div>
 
       {/* BARRA FLUTUANTE DO CARRINHO */}
       {carrinho.length > 0 && (
