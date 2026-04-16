@@ -4258,7 +4258,7 @@ return (
                 style={{
                   display: "flex",
                   width: "100%",
-                  height: "100%",
+                  height: "130%",
                   overflowX: "auto",
                   overflowY: "hidden",
                   WebkitOverflowScrolling: "touch",
