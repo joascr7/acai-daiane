@@ -3072,16 +3072,18 @@ return (
           </h3>
 
           <button
-            onClick={() => setAvaliacaoAberta(null)}
-            style={{
-              border: "none",
-              background: "none",
-              fontSize: 22,
-              cursor: "pointer"
-            }}
-          >
-            ×
-          </button>
+  onClick={() => setAvaliacaoAberta(null)}
+  style={{
+    border: "none",
+    background: "transparent",
+    fontSize: 22,
+    color: "#111",
+    cursor: "pointer",
+    fontWeight: 600
+  }}
+>
+  ×
+</button>
         </div>
 
         {/* ESTRELAS */}
@@ -3179,74 +3181,95 @@ return (
           flexShrink: 0
         }}
       >
-        {/* CANCELAR */}
-        <button
-          onClick={() => setAvaliacaoAberta(null)}
-          style={{
-            flex: 1,
-            height: 48,
-            borderRadius: 14,
-            border: "1px solid #ddd",
-            background: "#fff",
-            color: "#555",
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: "pointer"
-          }}
-        >
-          Cancelar
-        </button>
+        <div
+  style={{
+    display: "flex",
+    gap: 10,
+    marginTop: 14
+  }}
+>
+  <div
+  style={{
+    marginTop: 16,
+    display: "flex",
+    gap: 10,
+    alignItems: "center"
+  }}
+>
+  {/* CANCELAR */}
+  <button
+    onClick={() => setAvaliacaoAberta(null)}
+    style={{
+      height: 40,
+      padding: "0 14px",
+      borderRadius: 10,
+      border: "none",
+      background: "transparent",
+      color: "#666",
+      fontWeight: 700,
+      fontSize: 13,
+      cursor: "pointer"
+    }}
+  >
+    Cancelar
+  </button>
 
-        {/* ENVIAR */}
-        <button
-          disabled={!notaSelecionada}
-          onClick={async () => {
-            try {
-              await addDoc(collection(db, "avaliacoes"), {
-                produtoId: avaliacaoAberta.produtoId,
-                pedidoId: avaliacaoAberta.pedidoId,
-                nota: notaSelecionada,
-                comentario,
-                feedbacks: feedbackSelecionados,
-                status: "pendente",
-                criadoEm: Date.now()
-              });
+  {/* ENVIAR */}
+  <button
+    disabled={!notaSelecionada}
+    onClick={async () => {
+      try {
+        await addDoc(collection(db, "avaliacoes"), {
+          produtoId: avaliacaoAberta.produtoId,
+          pedidoId: avaliacaoAberta.pedidoId,
+          nota: notaSelecionada,
+          comentario,
+          feedbacks: feedbackSelecionados,
+          status: "pendente",
+          criadoEm: Date.now()
+        });
 
-              await updateDoc(
-                doc(db, "pedidos", avaliacaoAberta.pedidoId),
-                {
-                  avaliacoesFeitas: arrayUnion(
-                    avaliacaoAberta.produtoId
-                  )
-                }
-              );
+        await updateDoc(
+          doc(db, "pedidos", avaliacaoAberta.pedidoId),
+          {
+            avaliacoesFeitas: arrayUnion(
+              avaliacaoAberta.produtoId
+            )
+          }
+        );
 
-              setAvaliacaoAberta(null);
-              setNotaSelecionada(0);
-              setComentario("");
-              setFeedbackSelecionados([]);
+        setAvaliacaoAberta(null);
+        setNotaSelecionada(0);
+        setComentario("");
+        setFeedbackSelecionados([]);
 
-            } catch (e) {
-              console.log(e);
-            }
-          }}
-          style={{
-            flex: 1,
-            height: 48,
-            borderRadius: 14,
-            border: "none",
-            background: notaSelecionada ? "#ea1d2c" : "#ddd",
-            color: "#fff",
-            fontWeight: 800,
-            fontSize: 14,
-            cursor: notaSelecionada ? "pointer" : "not-allowed"
-          }}
-        >
-          Enviar
-        </button>
-      </div>
-    </div>
-  
+      } catch (e) {
+        console.log(e);
+      }
+    }}
+    style={{
+      marginLeft: "auto",
+      height: 40,
+      padding: "0 20px",
+      borderRadius: 12,
+      border: "none",
+      background: notaSelecionada ? "#ea1d2c" : "#f1f1f1",
+      color: notaSelecionada ? "#fff" : "#aaa",
+      fontWeight: 800,
+      fontSize: 13,
+      cursor: notaSelecionada ? "pointer" : "not-allowed",
+      boxShadow: notaSelecionada
+        ? "0 6px 16px rgba(234,29,44,0.3)"
+        : "none",
+      transition: "all 0.2s ease"
+    }}
+  >
+    Enviar
+  </button>
+</div>
+</div>
+</div>
+ </div>
   {/* ANIMAÇÃO */}
     <style>
       {`
@@ -7564,91 +7587,91 @@ return (
                   </div>
                 </div>
 
-                {/* TOTAL + BOTÕES */}
+               {/* TOTAL + AÇÕES */}
 <div
   style={{
-    marginTop: 12,
+    marginTop: 14,
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: 10,
-    flexWrap: "wrap"
+    gap: 12
   }}
 >
   {/* PREÇO */}
   <strong
     style={{
       color: "#ea1d2c",
-      fontSize: 16
+      fontSize: 17,
+      fontWeight: 800
     }}
   >
     {formatarReal(p.total)}
   </strong>
 
-  {/* 🔥 AVALIAÇÃO PREMIUM */}
-  {/* 🔥 AVALIAR DIRETO NO CARD */}
-{p.status === "entregue" && (
-  <div style={{ marginTop: 10 }}>
-    {p.itens?.some(item =>
-      !p.avaliacoesFeitas?.includes(item.produtoId)
-    ) ? (
-      <button
-        onClick={() => {
-          // pega o primeiro item NÃO avaliado
-          const itemNaoAvaliado = p.itens.find(item =>
-            !p.avaliacoesFeitas?.includes(item.produtoId)
-          );
+  {/* AÇÕES */}
+  {p.status === "entregue" && (
+    <>
+      {p.itens?.some(item =>
+        !p.avaliacoesFeitas?.includes(item.produtoId)
+      ) ? (
+        <button
+          onClick={() => {
+            const itemNaoAvaliado = p.itens.find(item =>
+              !p.avaliacoesFeitas?.includes(item.produtoId)
+            );
 
-          if (!itemNaoAvaliado) return;
+            if (!itemNaoAvaliado) return;
 
-          setAvaliacaoAberta({
-            pedidoId: p.id,
-            produtoId: itemNaoAvaliado.produtoId,
-            nome:
-              itemNaoAvaliado.produto?.nome ||
-              itemNaoAvaliado.nome,
-            imagem:
-              itemNaoAvaliado.produto?.imagem ||
-              itemNaoAvaliado.imagem ||
-              "/acai.png"
-          });
+            setAvaliacaoAberta({
+              pedidoId: p.id,
+              produtoId: itemNaoAvaliado.produtoId,
+              nome:
+                itemNaoAvaliado.produto?.nome ||
+                itemNaoAvaliado.nome,
+              imagem:
+                itemNaoAvaliado.produto?.imagem ||
+                itemNaoAvaliado.imagem ||
+                "/acai.png"
+            });
 
-          setNotaSelecionada(5);
-          setComentario("");
-        }}
-        style={{
-          height: 36,
-          padding: "0 14px",
-          borderRadius: 12,
-          border: "1px solid #ea1d2c",
-          background: "#fff",
-          color: "#ea1d2c",
-          fontSize: 13,
-          fontWeight: 800,
-          cursor: "pointer"
-        }}
-      >
-        Avaliar pedido
-      </button>
-    ) : (
-      <div
-  style={{
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    background: "#ecfdf5",
-    color: "#059669",
-    padding: "4px 10px",
-    borderRadius: 999,
-    fontSize: 12,
-    fontWeight: 700
-  }}
->
-  ✓ Avaliado
-</div>
-    )}
-  </div>
-)}
+            setNotaSelecionada(5);
+            setComentario("");
+          }}
+          style={{
+            height: 34,
+            padding: "0 14px",
+            borderRadius: 10,
+            border: "none",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 12,
+            fontWeight: 800,
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(234,29,44,0.25)"
+          }}
+        >
+          Avaliar
+        </button>
+      ) : (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: "#f0fdf4",
+            color: "#16a34a",
+            padding: "4px 10px",
+            borderRadius: 999,
+            fontSize: 11,
+            fontWeight: 800
+          }}
+        >
+          ✓ Avaliado
+        </div>
+      )}
+    </>
+  )}
+
 
   {/* BOTÕES DIREITA */}
   <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
@@ -9268,26 +9291,38 @@ return (
                 />
 
                 {busca && (
-                  <button
-                    onClick={() => setBusca("")}
-                    style={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      border: "none",
-                      background: "#e5e5e5",
-                      color: "#666",
-                      cursor: "pointer",
-                      fontSize: 14,
-                      lineHeight: 1
-                    }}
-                  >
-                    ×
-                  </button>
+                 <button
+  onClick={() => setBusca("")}
+  style={{
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: "translateY(-50%)",
+    width: 26,
+    height: 26,
+    borderRadius: "50%",
+    border: "none",
+    background: "#111",
+    color: "#000000",
+    cursor: "pointer",
+    fontSize: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.background = "#000";
+    e.currentTarget.style.transform = "translateY(-50%) scale(1.08)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.background = "#111";
+    e.currentTarget.style.transform = "translateY(-50%) scale(1)";
+  }}
+>
+  ✕
+</button>
                 )}
               </div>
             </div>
