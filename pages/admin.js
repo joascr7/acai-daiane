@@ -6485,65 +6485,55 @@ if (loadingAuth) {
     }}
   >
     {[
-      { id: "dashboard", nome: "Home" },
-      { id: "pedidos", nome: "Pedidos" },
-      { id: "produtos", nome: "Produtos" },
-      { id: "gastos", nome: "Gastos" },
-      { id: "avaliacoes", nome: "Aval" },
-      { id: "loja", nome: "Loja" }
+      { id: "dashboard", icon: Home },
+      { id: "pedidos", icon: ClipboardList },
+      { id: "produtos", icon: Package },
+      { id: "gastos", icon: DollarSign },
+      { id: "avaliacoes", icon: Star },
+      { id: "loja", icon: Store }
     ].map((item) => {
       const ativo = abaAdmin === item.id;
+      const Icon = item.icon;
 
       return (
         <button
           key={item.id}
           onClick={() => setAbaAdmin(item.id)}
           style={{
-            flex: 1, // 🔥 divide igualmente
+            flex: 1,
             border: "none",
             background: "transparent",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            gap: 3,
+            justifyContent: "center",
+            position: "relative",
+            height: 40,
             cursor: "pointer"
           }}
         >
-          <div
-            style={{
-              minWidth: 0, // 🔥 remove limite
-              height: 20,
-              padding: "0 6px",
-              borderRadius: 999,
-              background: ativo ? "#ea1d2c" : "transparent",
-              color: ativo ? "#fff" : "#6b7280",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 10,
-              fontWeight: 800,
-              transition: "all 0.2s ease",
-              whiteSpace: "nowrap"
-            }}
-          >
-            {item.nome}
+          <Icon
+            size={20}
+            color={ativo ? "#ea1d2c" : "#6b7280"}
+          />
 
-            {item.id === "pedidos" && pedidosEmAndamento > 0 && (
-              <span
-                style={{
-                  marginLeft: 4,
-                  background: "#fff",
-                  color: "#ea1d2c",
-                  borderRadius: 999,
-                  padding: "0 4px",
-                  fontSize: 9,
-                  fontWeight: 900
-                }}
-              >
-                {pedidosEmAndamento}
-              </span>
-            )}
-          </div>
+          {/* 🔥 BADGE */}
+          {item.id === "pedidos" && pedidosEmAndamento > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: 2,
+                right: "28%",
+                background: "#ea1d2c",
+                color: "#fff",
+                borderRadius: 999,
+                fontSize: 9,
+                padding: "2px 5px",
+                fontWeight: 800
+              }}
+            >
+              {pedidosEmAndamento}
+            </div>
+          )}
         </button>
       );
     })}
