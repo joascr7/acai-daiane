@@ -15,8 +15,10 @@ import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 import CardProduto from "../components/CardProduto";
 
-
-
+import Head from "next/head";
+<Head>
+  <link rel="manifest" href="/manifest.json" />
+</Head>
 
 
 

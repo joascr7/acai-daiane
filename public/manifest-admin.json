@@ -1,5 +1,5 @@
 {
-  "name": "Açaí Admin",
+  "name": "Admin Açaí",
   "short_name": "Admin",
   "start_url": "/admin",
   "display": "standalone",
@@ -7,7 +7,15 @@
   "theme_color": "#ea1d2c",
   "orientation": "portrait",
   "icons": [
-    { "src": "/icon-admin-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-admin-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/icon-admin-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-admin-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }

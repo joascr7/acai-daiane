@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Cropper from "react-easy-crop";
 import Head from "next/head";
+
 import { getApp } from "firebase/app";
 import { dbAdmin as db, authAdmin as auth } from "../services/firebaseDual";
 
@@ -5632,20 +5633,48 @@ if (loadingAuth) {
                   </div>
 
                   {/* COMENTÁRIO */}
-                  {!!a.comentario && (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontSize: 12,
-                        color: "#555",
-                        background: "#fafafa",
-                        padding: 8,
-                        borderRadius: 8
-                      }}
-                    >
-                      {a.comentario}
-                    </div>
-                  )}
+{!!a.comentario && (
+  <div
+    style={{
+      marginTop: 8,
+      fontSize: 12,
+      color: "#555",
+      background: "#fafafa",
+      padding: 8,
+      borderRadius: 8
+    }}
+  >
+    {a.comentario}
+  </div>
+)}
+
+{/* FEEDBACKS (🔥 ADICIONADO) */}
+{Array.isArray(a.feedbacks) && a.feedbacks.length > 0 && (
+  <div
+    style={{
+      marginTop: 6,
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }}
+  >
+    {a.feedbacks.map((f, i) => (
+      <span
+        key={i}
+        style={{
+          fontSize: 11,
+          background: "#f1f5f9",
+          padding: "4px 8px",
+          borderRadius: 999,
+          color: "#475569",
+          fontWeight: 600
+        }}
+      >
+        {f}
+      </span>
+    ))}
+  </div>
+)}
 
                   {/* AÇÕES */}
                   <div
