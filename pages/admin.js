@@ -6478,9 +6478,8 @@ if (loadingAuth) {
       right: 0,
       background: "#fff",
       borderTop: "1px solid #e5e7eb",
-      padding: "8px 6px",
+      padding: "6px 4px",
       display: "flex",
-      justifyContent: "space-around",
       zIndex: 9999,
       boxShadow: "0 -6px 20px rgba(0,0,0,0.06)"
     }}
@@ -6490,7 +6489,7 @@ if (loadingAuth) {
       { id: "pedidos", nome: "Pedidos" },
       { id: "produtos", nome: "Produtos" },
       { id: "gastos", nome: "Gastos" },
-      { id: "avaliacoes", nome: "Avali" },
+      { id: "avaliacoes", nome: "Aval" },
       { id: "loja", nome: "Loja" }
     ].map((item) => {
       const ativo = abaAdmin === item.id;
@@ -6500,45 +6499,44 @@ if (loadingAuth) {
           key={item.id}
           onClick={() => setAbaAdmin(item.id)}
           style={{
+            flex: 1, // 🔥 divide igualmente
             border: "none",
             background: "transparent",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 4,
-            minWidth: 60,
+            gap: 3,
             cursor: "pointer"
           }}
         >
-          {/* BOLHA ATIVA */}
           <div
             style={{
-              minWidth: 30,
-              height: 22,
-              padding: "0 10px",
+              minWidth: 0, // 🔥 remove limite
+              height: 20,
+              padding: "0 6px",
               borderRadius: 999,
               background: ativo ? "#ea1d2c" : "transparent",
               color: ativo ? "#fff" : "#6b7280",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 800,
-              transition: "all 0.2s ease"
+              transition: "all 0.2s ease",
+              whiteSpace: "nowrap"
             }}
           >
             {item.nome}
 
-            {/* BADGE PEDIDOS */}
             {item.id === "pedidos" && pedidosEmAndamento > 0 && (
               <span
                 style={{
-                  marginLeft: 6,
+                  marginLeft: 4,
                   background: "#fff",
                   color: "#ea1d2c",
                   borderRadius: 999,
-                  padding: "1px 6px",
-                  fontSize: 10,
+                  padding: "0 4px",
+                  fontSize: 9,
                   fontWeight: 900
                 }}
               >
