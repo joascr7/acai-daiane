@@ -4246,7 +4246,7 @@ return (
             position: "relative",
             boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
             width: "100%",
-            height: isMobile ? 180 : 280,
+            height: isMobile ? 140 : 280,
             background: "#111"
           }}
         >
