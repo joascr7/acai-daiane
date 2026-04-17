@@ -10396,7 +10396,7 @@ const corStatus =
         right: 0,
         display: "flex",
         justifyContent: "center",
-        zIndex: 30
+        zIndex: 0
       }}
     >
       <div
