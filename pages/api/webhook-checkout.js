@@ -1,6 +1,5 @@
 import { MercadoPagoConfig, Payment } from "mercadopago";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "../../services/firebase";
+
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN_CHECKOUT

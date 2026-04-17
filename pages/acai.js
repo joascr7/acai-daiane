@@ -7907,126 +7907,185 @@ const corStatus =
 
 
   {/* BOTÕES DIREITA */}
-  <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+<div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+  <button
+    onClick={() =>
+      setPedidoAberto(
+        pedidoAberto === chaveAberta ? null : chaveAberta
+      )
+    }
+    style={{
+      background: "#fff",
+      color: "#666",
+      border: "1px solid #eee",
+      padding: "8px 12px",
+      borderRadius: 12,
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer"
+    }}
+  >
+    {pedidoAberto === chaveAberta ? "Ocultar" : "Detalhes"}
+  </button>
+
+  {/* PIX */}
+  {pixPendente ? (
     <button
-      onClick={() =>
-        setPedidoAberto(
-          pedidoAberto === chaveAberta ? null : chaveAberta
-        )
-      }
+      onClick={() => {
+        if (pixExpirado) {
+          setPedidoPixAberto(p);
+          gerarNovoPixDoPedido(p);
+          return;
+        }
+
+        setFormaPagamento("pix");
+        setPedidoPixAberto(p);
+        setPaymentId(p.paymentId || null);
+        setQrBase64(p.qrBase64 || null);
+        setQrCode(p.qrCode || null);
+
+        if (!p.qrBase64 || !p.qrCode) {
+          gerarNovoPixDoPedido(p);
+        }
+
+        setMostrarPagamento(true);
+      }}
       style={{
-        background: "#fff",
-        color: "#666",
-        border: "1px solid #eee",
-        padding: "8px 12px",
+        background: "#ea1d2c",
+        color: "#fff",
+        border: "none",
+        padding: "8px 14px",
         borderRadius: 12,
         fontSize: 12,
         fontWeight: 700,
-        cursor: "pointer"
+        cursor: "pointer",
+        boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
       }}
     >
-      {pedidoAberto === chaveAberta ? "Ocultar" : "Detalhes"}
+      {pixExpirado ? "Gerar novo Pix" : "Pagar agora"}
     </button>
 
-    {pixPendente ? (
-      <button
-        onClick={() => {
-          if (pixExpirado) {
-            setPedidoPixAberto(p);
-            gerarNovoPixDoPedido(p);
-            return;
-          }
+  /* CARTÃO ONLINE PENDENTE */
+  ) : cartaoOnlinePendente ? (
+    <button
+      onClick={() => {
+        if (p.checkoutUrl) {
+          window.location.href = p.checkoutUrl;
+        } else {
+          mostrarToast(
+            "Link de pagamento não encontrado",
+            "erro"
+          );
+        }
+      }}
+      style={{
+        background: "#2563eb",
+        color: "#fff",
+        border: "none",
+        padding: "8px 14px",
+        borderRadius: 12,
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: "pointer",
+        boxShadow: "0 6px 14px rgba(37,99,235,0.20)"
+      }}
+    >
+      Continuar pagamento
+    </button>
 
-          setFormaPagamento("pix");
-          setPedidoPixAberto(p);
-          setPaymentId(p.paymentId || null);
-          setQrBase64(p.qrBase64 || null);
-          setQrCode(p.qrCode || null);
+  /* PAGAMENTO RECUSADO */
+  ) : pagamentoRecusado ? (
+    <button
+      onClick={() => {
+        if (p.checkoutUrl) {
+          window.location.href = p.checkoutUrl;
+        } else {
+          mostrarToast(
+            "Gere um novo pagamento",
+            "erro"
+          );
+        }
+      }}
+      style={{
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        padding: "8px 14px",
+        borderRadius: 12,
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: "pointer",
+        boxShadow: "0 6px 14px rgba(239,68,68,0.18)"
+      }}
+    >
+      Tentar novamente
+    </button>
 
-          if (!p.qrBase64 || !p.qrCode) {
-            gerarNovoPixDoPedido(p);
-          }
+  /* NORMAL */
+  ) : (
+    <button
+      onClick={() => {
+        const novosItens = (p.itens || []).map(item => {
+          const produtoBanco = produtos.find(prod =>
+            prod.id === item.produtoId ||
+            prod.nome === item.produto?.nome ||
+            prod.nome === item.nome
+          );
 
-          setMostrarPagamento(true);
-        }}
-        style={{
-          background: "#ea1d2c",
-          color: "#fff",
-          border: "none",
-          padding: "8px 14px",
-          borderRadius: 12,
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-          boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
-        }}
-      >
-        {pixExpirado ? "Gerar novo Pix" : "Pagar agora"}
-      </button>
-    ) : (
-      <button
-        onClick={() => {
-          const novosItens = (p.itens || []).map(item => {
-            const produtoBanco = produtos.find(prod =>
-              prod.id === item.produtoId ||
-              prod.nome === item.produto?.nome ||
-              prod.nome === item.nome
-            );
+          return {
+            produto: {
+              id:
+                produtoBanco?.id ||
+                item.produtoId ||
+                item.produto?.id ||
+                null,
+              nome:
+                produtoBanco?.nome ||
+                item.produto?.nome ||
+                item.nome ||
+                "Produto",
+              imagem:
+                produtoBanco?.imagem ||
+                item.produto?.imagem ||
+                item.imagem ||
+                "/acai.png",
+              preco: Number(
+                produtoBanco?.preco ??
+                item.produto?.preco ??
+                0
+              ),
+              categoria:
+                produtoBanco?.categoria ||
+                item.produto?.categoria ||
+                item.categoria ||
+                ""
+            },
+            quantidade: Number(item.quantidade || 1),
+            extras: item.extras || [],
+            total: Number(item.total || 0)
+          };
+        });
 
-            return {
-              produto: {
-                id:
-                  produtoBanco?.id ||
-                  item.produtoId ||
-                  item.produto?.id ||
-                  null,
-                nome:
-                  produtoBanco?.nome ||
-                  item.produto?.nome ||
-                  item.nome ||
-                  "Produto",
-                imagem:
-                  produtoBanco?.imagem ||
-                  item.produto?.imagem ||
-                  item.imagem ||
-                  "/acai.png",
-                preco: Number(
-                  produtoBanco?.preco ??
-                    item.produto?.preco ??
-                    0
-                ),
-                categoria:
-                  produtoBanco?.categoria ||
-                  item.produto?.categoria ||
-                  item.categoria ||
-                  ""
-              },
-              quantidade: Number(item.quantidade || 1),
-              extras: item.extras || [],
-              total: Number(item.total || 0)
-            };
-          });
-
-          setCarrinho(novosItens);
-          setAba("carrinho");
-          setStep(3);
-        }}
-        style={{
-          background: "#ea1d2c",
-          color: "#fff",
-          border: "none",
-          padding: "8px 14px",
-          borderRadius: 12,
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-          boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
-        }}
-      >
-        Repetir
-      </button>
-    )}
-  </div>
+        setCarrinho(novosItens);
+        setAba("carrinho");
+        setStep(3);
+      }}
+      style={{
+        background: "#ea1d2c",
+        color: "#fff",
+        border: "none",
+        padding: "8px 14px",
+        borderRadius: 12,
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: "pointer",
+        boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
+      }}
+    >
+      Repetir
+    </button>
+  )}
+</div>
 </div>
                   
               
