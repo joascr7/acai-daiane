@@ -2933,64 +2933,53 @@ async function finalizarPedido() {
     );
 
     /* 🔥 CARTÃO ONLINE */
-    if (
-      formaPagamento ===
-      "cartao_online"
-    ) {
-      try {
-        const res = await fetch(
-          "/api/checkoutpro",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
-            body: JSON.stringify({
-              total:
-                Number(
-                  totalFinalComFrete || 0
-                ) / 100,
+    if (formaPagamento === "cartao_online") {
+  try {
+    const res = await fetch("/api/checkoutpro", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        total: Number(totalFinalComFrete || 0) / 100,
+        pedidoId,
+        nome: clienteNome,
+        email: clienteEmail || "cliente@email.com"
+      })
+    });
 
-              pedidoId,
+    const data = await res.json();
 
-              nome: clienteNome,
-
-              email:
-                clienteEmail ||
-                "cliente@email.com"
-            })
-          }
-        );
-
-        const data =
-          await res.json();
-
-        if (data.url) {
-          window.location.href =
-            data.url;
-          return;
-        }
-
-        mostrarMensagemPagamento(
-          "Erro ao abrir pagamento online.",
-          "erro"
-        );
-
-        setLoadingPedido(false);
-        return;
-      } catch (e) {
-        console.log(e);
-
-        mostrarMensagemPagamento(
-          "Erro ao abrir pagamento online.",
-          "erro"
-        );
-
-        setLoadingPedido(false);
-        return;
-      }
+    if (!data.url) {
+      mostrarMensagemPagamento(
+        "Erro ao abrir pagamento online.",
+        "erro"
+      );
+      setLoadingPedido(false);
+      return;
     }
+
+    await updateDoc(doc(db, "pedidos", pedidoId), {
+      checkoutUrl: data.url,
+      checkoutId: data.id || null,
+      status: "aguardando_pagamento_online",
+      paymentStatus: "pending"
+    });
+
+    window.location.href = data.url;
+    return;
+  } catch (e) {
+    console.log("ERRO CARTAO ONLINE:", e);
+
+    mostrarMensagemPagamento(
+      "Erro ao abrir pagamento online.",
+      "erro"
+    );
+
+    setLoadingPedido(false);
+    return;
+  }
+}
 
     /* 🔥 PIX */
     if (formaPagamento === "pix") {
