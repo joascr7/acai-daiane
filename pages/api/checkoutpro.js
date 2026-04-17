@@ -17,11 +17,7 @@ export default async function handler(req, res) {
       pedidoId,
       nome,
       email,
-      cpf,
-      telefone,
-      rua,
-      numero,
-      cep
+      cpf
     } = req.body;
 
     if (!total || Number(total) <= 0) {
@@ -32,7 +28,13 @@ export default async function handler(req, res) {
 
     if (!pedidoId) {
       return res.status(400).json({
-        erro: "PedidoId obrigatório"
+        erro: "Pedido obrigatório"
+      });
+    }
+
+    if (!email) {
+      return res.status(400).json({
+        erro: "Email obrigatório"
       });
     }
 
@@ -44,9 +46,7 @@ export default async function handler(req, res) {
 
         items: [
           {
-            id: String(pedidoId),
             title: "Pedido Açaí da Daiane",
-            description: "Pagamento online do pedido",
             quantity: 1,
             currency_id: "BRL",
             unit_price: Number(total)
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
         ],
 
         payer: {
-          email: email || "cliente@email.com",
+          email: email,
           first_name: nome || "Cliente",
 
           identification: cpf
@@ -62,34 +62,11 @@ export default async function handler(req, res) {
                 type: "CPF",
                 number: String(cpf).replace(/\D/g, "")
               }
-            : undefined,
-
-          phone: telefone
-            ? {
-                area_code: String(telefone)
-                  .replace(/\D/g, "")
-                  .slice(0, 2),
-
-                number: String(telefone)
-                  .replace(/\D/g, "")
-                  .slice(2)
-              }
-            : undefined,
-
-          address: {
-            zip_code: cep
-              ? String(cep).replace(/\D/g, "")
-              : "00000000",
-
-            street_name: rua || "Rua não informada",
-            street_number: numero || "0"
-          }
+            : undefined
         },
 
         payment_methods: {
-          installments: 12,
-          excluded_payment_types: [],
-          excluded_payment_methods: []
+          installments: 12
         },
 
         back_urls: {
@@ -101,30 +78,21 @@ export default async function handler(req, res) {
         auto_return: "approved",
 
         notification_url:
-          "https://acai-daiane.vercel.app/api/webhook-checkout",
-
-        statement_descriptor: "ACAITERIA"
+          "https://acai-daiane.vercel.app/api/webhook-checkout"
       }
     });
 
-    if (!result?.init_point) {
-      return res.status(500).json({
-        erro: "Erro ao gerar checkout"
-      });
-    }
-
     return res.status(200).json({
       url: result.init_point,
-      sandbox_url: result.sandbox_init_point,
       id: result.id
     });
 
   } catch (e) {
-    console.log("ERRO CHECKOUT PRO:", e);
+    console.log(e);
 
     return res.status(500).json({
-      erro: "Erro ao gerar checkout",
-      detalhe: e?.message || "Erro interno"
+      erro: "Erro checkout",
+      detalhe: e.message
     });
   }
 }
