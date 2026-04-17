@@ -6,21 +6,19 @@ const client = new MercadoPagoConfig({
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ erro: "Método não permitido" });
+    return res.status(405).json({
+      erro: "Método não permitido"
+    });
   }
 
   try {
     const { total, pedidoId, nome, email } = req.body;
 
-    if (!total || Number(total) <= 0) {
+    const valor = Number(total);
+
+    if (!valor || valor <= 0) {
       return res.status(400).json({
         erro: "Valor inválido"
-      });
-    }
-
-    if (!pedidoId) {
-      return res.status(400).json({
-        erro: "PedidoId obrigatório"
       });
     }
 
@@ -30,45 +28,43 @@ export default async function handler(req, res) {
       body: {
         items: [
           {
-            id: String(pedidoId),
-            title: `Pedido Açaí da Daiane #${String(pedidoId).slice(-6)}`,
+            title: `Pedido Açaí da Daiane #${pedidoId}`,
             quantity: 1,
             currency_id: "BRL",
-            unit_price: Number(total)
+            unit_price: valor
           }
         ],
+
         external_reference: String(pedidoId),
+
         payer: {
-          email: email || "cliente@email.com",
-          name: nome || "Cliente"
+          email: email || "comprador@email.com",
+          first_name: nome || "Cliente"
         },
+
         back_urls: {
           success: "https://acai-daiane.vercel.app",
           failure: "https://acai-daiane.vercel.app",
           pending: "https://acai-daiane.vercel.app"
         },
+
         auto_return: "approved",
-        notification_url: "https://acai-daiane.vercel.app/api/webhook-checkout",
-        statement_descriptor: "ACAIDADAIANE"
+
+        notification_url:
+          "https://acai-daiane.vercel.app/api/webhook-checkout"
       }
     });
-
-    if (!result?.init_point) {
-      return res.status(500).json({
-        erro: "Erro ao gerar checkout"
-      });
-    }
 
     return res.status(200).json({
       url: result.init_point,
       id: result.id
     });
+
   } catch (e) {
-    console.log("ERRO CHECKOUT PRO COMPLETO:", e);
+    console.log(e);
 
     return res.status(500).json({
-      erro: "Erro ao gerar checkout",
-      detalhe: e?.message || "Erro interno"
+      erro: "Erro ao gerar checkout"
     });
   }
 }
