@@ -1415,33 +1415,35 @@ useEffect(() => {
 
 
 
- async function pagarCheckout() {
+ async function pagarCheckout(pedidoId) {
   try {
-    console.log("Chamando checkout...");
-
     const res = await fetch("/api/checkoutpro", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        total: Number(totalFinalComFrete || 0) / 100
+        total: Number(totalFinalComFrete || 0) / 100,
+        pedidoId: pedidoId,
+        nome: clienteNome,
+        email: clienteEmail
       })
     });
 
     const data = await res.json();
-
-    console.log("Resposta checkout:", data);
 
     if (data.url) {
       window.location.href = data.url;
       return;
     }
 
-    mostrarToast("Não foi possível abrir o pagamento", "erro");
+    mostrarMensagemPagamento(
+      "Erro ao abrir pagamento online",
+      "erro"
+    );
+
   } catch (e) {
-    console.log("ERRO CHECKOUT:", e);
-    mostrarToast("Erro ao abrir pagamento online", "erro");
+    console.log(e);
   }
 }
 
@@ -2782,15 +2784,27 @@ async function finalizarPedido() {
   }
 
   if (!clienteNome || !clienteTelefone) {
-    mostrarMensagemPagamento("Preencha seus dados antes de continuar.", "erro");
+    mostrarMensagemPagamento(
+      "Preencha seus dados antes de continuar.",
+      "erro"
+    );
+
     setAba("perfil");
     setStep(4);
     setAbaPerfil("dados");
     return;
   }
 
-  if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
-    mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
+  if (
+    !clienteEndereco ||
+    !clienteNumeroCasa ||
+    !clienteBairro
+  ) {
+    mostrarMensagemPagamento(
+      "Preencha endereço, número e bairro para continuar.",
+      "erro"
+    );
+
     setAba("perfil");
     setStep(4);
     setAbaPerfil("endereco");
@@ -2798,7 +2812,10 @@ async function finalizarPedido() {
   }
 
   if (!formaPagamento) {
-    mostrarMensagemPagamento("Escolha a forma de pagamento.", "erro");
+    mostrarMensagemPagamento(
+      "Escolha a forma de pagamento.",
+      "erro"
+    );
     return;
   }
 
@@ -2806,10 +2823,13 @@ async function finalizarPedido() {
     setLoadingPedido(true);
 
     const pedidoId = Date.now().toString();
-    const codigo = Math.floor(100000 + Math.random() * 900000);
+    const codigo = Math.floor(
+      100000 + Math.random() * 900000
+    );
 
     const pedido = {
       codigo,
+
       cliente: {
         nome: clienteNome || "Cliente",
         telefone: clienteTelefone || "",
@@ -2818,46 +2838,177 @@ async function finalizarPedido() {
         bairro: clienteBairro || "",
         uid: user?.uid || null
       },
-      itens: (carrinho || []).map(item => ({
+
+      itens: (carrinho || []).map((item) => ({
         produtoId: item?.produto?.id || "",
-        nome: item?.produto?.nome || item?.nome || "Produto",
-        quantidade: Number(item?.quantidade || 1),
+        nome:
+          item?.produto?.nome ||
+          item?.nome ||
+          "Produto",
+
+        quantidade: Number(
+          item?.quantidade || 1
+        ),
+
         total: Number(item?.total || 0),
-        extras: (item?.extras || []).map(e => ({
-          nome: e?.nome || "",
-          preco: Number(e?.preco || 0),
-          categoria: e?.categoria || "Extras"
-        }))
+
+        extras: (item?.extras || []).map(
+          (e) => ({
+            nome: e?.nome || "",
+            preco: Number(e?.preco || 0),
+            categoria:
+              e?.categoria || "Extras"
+          })
+        )
       })),
+
       bairro: clienteBairro || "",
-      subtotal: Number(subtotalProdutos || 0),
-      taxaEntrega: Number(taxaEntrega || 0),
-      total: Number(totalFinalComFrete || 0),
+
+      subtotal: Number(
+        subtotalProdutos || 0
+      ),
+
+      taxaEntrega: Number(
+        taxaEntrega || 0
+      ),
+
+      total: Number(
+        totalFinalComFrete || 0
+      ),
+
       formaPagamento,
-      status: "preparando",
+
+      status:
+        formaPagamento ===
+        "cartao_online"
+          ? "aguardando_pagamento_online"
+          : "preparando",
+
+      paymentStatus:
+        formaPagamento ===
+        "cartao_online"
+          ? "pending"
+          : null,
+
       data: Date.now(),
-      observacao: String(observacaoPedido || "").trim(),
+
+      observacao: String(
+        observacaoPedido || ""
+      ).trim(),
+
       cupom: cupomAplicado
         ? {
             id: cupomAplicado.id,
-            codigo: cupomAplicado.codigo || "",
-            tipo: cupomAplicado.tipo || "",
-            desconto: Number(descontoCalculado || 0)
+            codigo:
+              cupomAplicado.codigo || "",
+            tipo:
+              cupomAplicado.tipo || "",
+            desconto: Number(
+              descontoCalculado || 0
+            )
           }
         : null
     };
 
-    await setDoc(doc(db, "pedidos", pedidoId), pedido);
+    await setDoc(
+      doc(db, "pedidos", pedidoId),
+      pedido
+    );
 
-    const usoRegistrado = await registrarUsoCupom();
+    const usoRegistrado =
+      await registrarUsoCupom();
+
     if (!usoRegistrado) {
       setLoadingPedido(false);
       return;
     }
 
-    localStorage.setItem("pedidoAtual", pedidoId);
+    localStorage.setItem(
+      "pedidoAtual",
+      pedidoId
+    );
 
-    mostrarMensagemPagamento("Pedido confirmado com sucesso.", "sucesso");
+    /* 🔥 CARTÃO ONLINE */
+    if (
+      formaPagamento ===
+      "cartao_online"
+    ) {
+      try {
+        const res = await fetch(
+          "/api/checkoutpro",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify({
+              total:
+                Number(
+                  totalFinalComFrete || 0
+                ) / 100,
+
+              pedidoId,
+
+              nome: clienteNome,
+
+              email:
+                clienteEmail ||
+                "cliente@email.com"
+            })
+          }
+        );
+
+        const data =
+          await res.json();
+
+        if (data.url) {
+          window.location.href =
+            data.url;
+          return;
+        }
+
+        mostrarMensagemPagamento(
+          "Erro ao abrir pagamento online.",
+          "erro"
+        );
+
+        setLoadingPedido(false);
+        return;
+      } catch (e) {
+        console.log(e);
+
+        mostrarMensagemPagamento(
+          "Erro ao abrir pagamento online.",
+          "erro"
+        );
+
+        setLoadingPedido(false);
+        return;
+      }
+    }
+
+    /* 🔥 PIX */
+    if (formaPagamento === "pix") {
+      mostrarMensagemPagamento(
+        "Pedido criado. Realize o pagamento Pix.",
+        "sucesso"
+      );
+
+      setPedidoPixAberto({
+        ...pedido,
+        id: pedidoId
+      });
+
+      setMostrarPagamento(true);
+      return;
+    }
+
+    /* 🔥 DINHEIRO / CARTÃO ENTREGA */
+    mostrarMensagemPagamento(
+      "Pedido confirmado com sucesso.",
+      "sucesso"
+    );
 
     setCarrinho([]);
     setFormaPagamento(null);
@@ -2870,10 +3021,13 @@ async function finalizarPedido() {
     setTimeout(async () => {
       await enviarWhatsApp(pedido);
     }, 500);
-
   } catch (e) {
     console.log(e);
-    mostrarMensagemPagamento("Ocorreu um erro ao finalizar o pedido.", "erro");
+
+    mostrarMensagemPagamento(
+      "Ocorreu um erro ao finalizar o pedido.",
+      "erro"
+    );
   } finally {
     setLoadingPedido(false);
   }
@@ -7431,54 +7585,90 @@ return (
               "Pedido";
 
             const nomePagamento =
-              p.formaPagamento === "pix"
-                ? "Pix"
-                : p.formaPagamento === "dinheiro"
-                ? "Dinheiro"
-                : "Cartão";
+  p.formaPagamento === "pix"
+    ? "Pix"
+    : p.formaPagamento === "dinheiro"
+    ? "Dinheiro"
+    : p.formaPagamento === "cartao_online"
+    ? "Cartão online"
+    : "Cartão na Entrega";
 
-            const TEMPO_PIX_MS = 15 * 60 * 1000;
-            const criadoEmMs = Number(p.data || 0);
-            const pixPendente = p.status === "aguardando_pagamento";
-            const pixExpirado =
-              pixPendente &&
-              criadoEmMs > 0 &&
-              agoraPedidos - criadoEmMs >= TEMPO_PIX_MS;
+const TEMPO_PIX_MS = 15 * 60 * 1000;
+const criadoEmMs = Number(p.data || 0);
 
-            const tempoRestanteMs = Math.max(
-              0,
-              TEMPO_PIX_MS - (agoraPedidos - criadoEmMs)
-            );
+/* PIX */
+const pixPendente =
+  p.formaPagamento === "pix" &&
+  p.status === "aguardando_pagamento";
 
-            const min = Math.floor(tempoRestanteMs / 60000);
-            const seg = Math.floor((tempoRestanteMs % 60000) / 1000);
-            const tempoFormatado = `${String(min).padStart(2, "0")}:${String(seg).padStart(2, "0")}`;
+/* CARTÃO ONLINE */
+const cartaoOnlinePendente =
+  p.formaPagamento === "cartao_online" &&
+  (
+    p.status === "aguardando_pagamento_online" ||
+    p.paymentStatus === "pending" ||
+    p.paymentStatus === "in_process"
+  );
 
-            const statusTexto =
-              pixExpirado
-                ? "Pix expirado"
-                : p.status === "aguardando_pagamento"
-                ? "Aguardando pagamento"
-                : p.status === "preparando"
-                ? "Em preparo"
-                : p.status === "saiu"
-                ? "Saiu para entrega"
-                : p.status === "entregue"
-                ? "Entregue"
-                : "Processando";
+const pagamentoRecusado =
+  p.status === "pagamento_recusado" ||
+  p.paymentStatus === "rejected" ||
+  p.paymentStatus === "cancelled" ||
+  p.paymentStatus === "refunded" ||
+  p.paymentStatus === "charged_back";
 
-            const corStatus =
-              pixExpirado
-                ? "#ef4444"
-                : p.status === "aguardando_pagamento"
-                ? "#f97316"
-                : p.status === "preparando"
-                ? "#facc15"
-                : p.status === "saiu"
-                ? "#60a5fa"
-                : p.status === "entregue"
-                ? "#22c55e"
-                : "#999";
+/* PIX EXPIRADO */
+const pixExpirado =
+  pixPendente &&
+  criadoEmMs > 0 &&
+  agoraPedidos - criadoEmMs >= TEMPO_PIX_MS;
+
+const tempoRestanteMs = Math.max(
+  0,
+  TEMPO_PIX_MS - (agoraPedidos - criadoEmMs)
+);
+
+const min = Math.floor(tempoRestanteMs / 60000);
+const seg = Math.floor((tempoRestanteMs % 60000) / 1000);
+
+const tempoFormatado =
+  `${String(min).padStart(2, "0")}:${String(seg).padStart(2, "0")}`;
+
+/* TEXTO STATUS */
+const statusTexto =
+  pixExpirado
+    ? "Pix expirado"
+    : pagamentoRecusado
+    ? "Pagamento recusado"
+    : cartaoOnlinePendente
+    ? "Aguardando confirmação do cartão"
+    : p.status === "aguardando_pagamento"
+    ? "Aguardando pagamento"
+    : p.status === "preparando"
+    ? "Em preparo"
+    : p.status === "saiu"
+    ? "Saiu para entrega"
+    : p.status === "entregue"
+    ? "Entregue"
+    : "Processando";
+
+/* COR STATUS */
+const corStatus =
+  pixExpirado
+    ? "#ef4444"
+    : pagamentoRecusado
+    ? "#ef4444"
+    : cartaoOnlinePendente
+    ? "#f59e0b"
+    : p.status === "aguardando_pagamento"
+    ? "#f97316"
+    : p.status === "preparando"
+    ? "#facc15"
+    : p.status === "saiu"
+    ? "#60a5fa"
+    : p.status === "entregue"
+    ? "#22c55e"
+    : "#999";
 
             const renderTimeline = (status) => {
               const etapas = ["recebido", "preparando", "saiu", "entregue"];
@@ -8189,7 +8379,7 @@ return (
               {
                 id: "cartao_online",
                 nome: "Cartão Online",
-                descricao: "Pagamento Online",
+                descricao: "Aprovação rápida",
                 icone: <CreditCard size={20} color={formaPagamento === "cartao_online" ? "#ea1d2c" : "#666"} />
               },
 
@@ -8416,8 +8606,8 @@ return (
   }
 
   if (formaPagamento === "cartao_online") {
-   pagarCheckout();
-   return;
+  await finalizarPedido();
+  return;
 }
 
   finalizarPedido();
@@ -10125,7 +10315,7 @@ return (
         right: 0,
         display: "flex",
         justifyContent: "center",
-        zIndex: 30
+        zIndex: 0
       }}
     >
       <div

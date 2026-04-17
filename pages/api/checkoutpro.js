@@ -1,73 +1,74 @@
+import { MercadoPagoConfig, Preference } from "mercadopago";
+
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN_CHECKOUT
+});
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ erro: true, mensagem: "Método não permitido" });
+    return res.status(405).json({ erro: "Método não permitido" });
   }
 
   try {
-    const token = process.env.MP_ACCESS_TOKEN_CHECKOUT;
+    const { total, pedidoId, nome, email } = req.body;
 
-    if (!token) {
-      return res.status(500).json({
-        erro: true,
-        mensagem: "Token do Mercado Pago não encontrado"
-      });
-    }
-
-    const total = Number(req.body?.total || 0);
-
-    if (!total || total <= 0) {
+    if (!total || Number(total) <= 0) {
       return res.status(400).json({
-        erro: true,
-        mensagem: "Total inválido"
+        erro: "Valor inválido"
       });
     }
 
-    const response = await fetch(
-      "https://api.mercadopago.com/checkout/preferences",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              title: "Pedido Açaí da Daiane",
-              quantity: 1,
-              unit_price: total
-            }
-          ],
-          auto_return: "approved",
-          back_urls: {
-            success: "https://acai-daiane.vercel.app",
-            failure: "https://acai-daiane.vercel.app",
-            pending: "https://acai-daiane.vercel.app"
+    if (!pedidoId) {
+      return res.status(400).json({
+        erro: "PedidoId obrigatório"
+      });
+    }
+
+    const preference = new Preference(client);
+
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: String(pedidoId),
+            title: `Pedido Açaí da Daiane #${String(pedidoId).slice(-6)}`,
+            quantity: 1,
+            currency_id: "BRL",
+            unit_price: Number(total)
           }
-        })
+        ],
+        external_reference: String(pedidoId),
+        payer: {
+          email: email || "cliente@email.com",
+          name: nome || "Cliente"
+        },
+        back_urls: {
+          success: "https://acai-daiane.vercel.app",
+          failure: "https://acai-daiane.vercel.app",
+          pending: "https://acai-daiane.vercel.app"
+        },
+        auto_return: "approved",
+        notification_url: "https://acai-daiane.vercel.app/api/webhook-checkout",
+        statement_descriptor: "ACAIDADAIANE"
       }
-    );
+    });
 
-    const data = await response.json();
-
-    console.log("MP RESPONSE:", data);
-
-    if (!response.ok) {
+    if (!result?.init_point) {
       return res.status(500).json({
-        erro: true,
-        mensagem: data?.message || "Erro ao criar checkout",
-        detalhe: data
+        erro: "Erro ao gerar checkout"
       });
     }
 
     return res.status(200).json({
-      url: data.init_point
+      url: result.init_point,
+      id: result.id
     });
-  } catch (error) {
-    console.log("ERRO API CHECKOUTPRO:", error);
+  } catch (e) {
+    console.log("ERRO CHECKOUT PRO COMPLETO:", e);
+
     return res.status(500).json({
-      erro: true,
-      mensagem: "Erro interno ao criar checkout"
+      erro: "Erro ao gerar checkout",
+      detalhe: e?.message || "Erro interno"
     });
   }
 }
