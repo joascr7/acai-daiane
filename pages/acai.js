@@ -3710,6 +3710,44 @@ return (
           <span>{loadingPix ? "Gerando Pix..." : "Pix"}</span>
         </button>
 
+
+         {/* CARTÃO  ONLINE*/}
+        <button
+          onClick={() => {
+            setFormaPagamento("cartao_online");
+            setPedidoPixAberto(null);
+            setMensagemPagamento("");
+            setMostrarCodigoPix(false);
+          }}
+          style={{
+            width: "100%",
+            minHeight: 54,
+            padding: "0 16px",
+            borderRadius: 14,
+            border:
+              formaPagamento === "cartao_online"
+                ? "1px solid #ea1d2c"
+                : "1px solid #ededed",
+            cursor: "pointer",
+            background: formaPagamento === "cartao_online" ? "#fff5f5" : "#f7f7f7",
+            color: "#222",
+            fontWeight: 700,
+            fontSize: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            boxSizing: "border-box"
+          }}
+        >
+          <CreditCard
+            size={18}
+            color={formaPagamento === "cartao_online" ? "#ea1d2c" : "#666"}
+          />
+          <span>Cartão Online</span>
+        </button>
+
+
         {/* CARTÃO */}
         <button
           onClick={() => {

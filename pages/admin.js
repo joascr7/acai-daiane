@@ -5915,6 +5915,7 @@ if (loadingAuth) {
                   }}>
                     {p.formaPagamento === "pix" && "Pix"}
                     {p.formaPagamento === "dinheiro" && "Dinheiro"}
+                    {p.formaPagamento === "cartao_online" && "Cartão"}
                     {p.formaPagamento === "cartao" && "Cartão"}
                   </span>
                 </p>
