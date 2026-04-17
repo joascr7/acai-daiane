@@ -419,6 +419,8 @@ const [observacaoPedido, setObservacaoPedido] = useState("");
   const [clienteCep, setClienteCep] = useState("");
   const [abrirPagamento, setAbrirPagamento] = useState(false);
 
+  const [tipoEntrega, setTipoEntrega] = useState("entrega");
+
   
   const [avaliacaoAberta, setAvaliacaoAberta] = useState(null);
 const [notaSelecionada, setNotaSelecionada] = useState(5);
@@ -2008,7 +2010,9 @@ const freteEncontrado = Array.isArray(fretes)
 const faltaFreteGratis = Math.max(0, LIMITE_FRETE_GRATIS - subtotalProdutos);
 
 const taxaEntrega =
-  subtotalProdutos >= LIMITE_FRETE_GRATIS
+  tipoEntrega === "retirada"
+    ? 0
+    : subtotalProdutos >= LIMITE_FRETE_GRATIS
     ? 0
     : Number(freteEncontrado?.valor || 0);
 
@@ -3564,6 +3568,81 @@ return (
       >
         Forma de pagamento
       </h2>
+     {/* RETIRADA */}
+
+<div
+  style={{
+    marginBottom: 14
+  }}
+>
+  <div
+    style={{
+      fontSize: 14,
+      fontWeight: 800,
+      color: "#111",
+      marginBottom: 10
+    }}
+  >
+    Como deseja receber?
+  </div>
+
+  <div
+    style={{
+      display: "flex",
+      gap: 10
+    }}
+  >
+    {/* ENTREGA */}
+    <button
+      onClick={() => setTipoEntrega("entrega")}
+      style={{
+        flex: 1,
+        height: 52,
+        borderRadius: 14,
+        border:
+          setTipoEntrega === "entrega"
+            ? "1px solid #ea1d2c"
+            : "1px solid #e5e5e5",
+        background:
+          setTipoEntrega === "entrega"
+            ? "#fff5f5"
+            : "#f8f8f8",
+        color: "#111",
+        fontWeight: 800,
+        fontSize: 15,
+        cursor: "pointer"
+      }}
+    >
+      Entrega
+    </button>
+
+    {/* RETIRADA */}
+    <button
+      onClick={() => setTipoEntrega("retirada")}
+      style={{
+        flex: 1,
+        height: 52,
+        borderRadius: 14,
+        border:
+          setTipoEntrega === "retirada"
+            ? "1px solid #ea1d2c"
+            : "1px solid #e5e5e5",
+        background:
+          setTipoEntrega === "retirada"
+            ? "#fff5f5"
+            : "#f8f8f8",
+        color: "#111",
+        fontWeight: 800,
+        fontSize: 15,
+        cursor: "pointer"
+      }}
+    >
+      Retirada
+    </button>
+  </div>
+</div>
+
+
 
       {/* MENSAGEM */}
       {mensagemPagamento && (
