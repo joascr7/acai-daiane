@@ -1,5 +1,6 @@
 import { MercadoPagoConfig, Payment } from "mercadopago";
-
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { dbCliente as db } from "../../services/firebaseDual";
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN_CHECKOUT
@@ -7,17 +8,29 @@ const client = new MercadoPagoConfig({
 
 export default async function handler(req, res) {
   try {
+    console.log("WEBHOOK QUERY:", req.query);
+    console.log("WEBHOOK BODY:", req.body);
+
     const paymentId =
       req.query?.["data.id"] ||
+      req.query?.id ||
       req.body?.data?.id ||
       req.body?.id;
 
     const type =
       req.query?.type ||
+      req.query?.topic ||
       req.body?.type ||
+      req.body?.topic ||
       null;
 
-    if (!paymentId || type !== "payment") {
+    if (!paymentId) {
+      console.log("SEM PAYMENT ID");
+      return res.status(200).json({ ok: true });
+    }
+
+    if (type && type !== "payment") {
+      console.log("TIPO IGNORADO:", type);
       return res.status(200).json({ ok: true });
     }
 
@@ -27,10 +40,13 @@ export default async function handler(req, res) {
       id: String(paymentId)
     });
 
+    console.log("PAYMENT RESULT:", result);
+
     const pedidoId = result?.external_reference;
     const status = result?.status;
 
     if (!pedidoId) {
+      console.log("SEM PEDIDO ID NO PAYMENT");
       return res.status(200).json({ ok: true });
     }
 
@@ -38,6 +54,7 @@ export default async function handler(req, res) {
     const pedidoSnap = await getDoc(pedidoRef);
 
     if (!pedidoSnap.exists()) {
+      console.log("PEDIDO NÃO EXISTE:", pedidoId);
       return res.status(200).json({ ok: true });
     }
 
@@ -48,13 +65,17 @@ export default async function handler(req, res) {
         paymentId: String(paymentId),
         formaPagamento: "cartao_online",
         pagoEm: Date.now()
-        });
+      });
+
+      console.log("PEDIDO APROVADO:", pedidoId);
     } else if (status === "pending" || status === "in_process") {
       await updateDoc(pedidoRef, {
         status: "aguardando_pagamento_online",
         paymentStatus: status,
         paymentId: String(paymentId)
       });
+
+      console.log("PEDIDO PENDENTE:", pedidoId);
     } else if (
       status === "rejected" ||
       status === "cancelled" ||
@@ -66,6 +87,8 @@ export default async function handler(req, res) {
         paymentStatus: status,
         paymentId: String(paymentId)
       });
+
+      console.log("PEDIDO RECUSADO:", pedidoId);
     }
 
     return res.status(200).json({ ok: true });
