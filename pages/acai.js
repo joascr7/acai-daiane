@@ -1412,6 +1412,39 @@ useEffect(() => {
  
  if (!mounted) return null;
 
+
+
+
+ async function pagarCheckout() {
+  try {
+    console.log("Chamando checkout...");
+
+    const res = await fetch("/api/checkoutpro", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        total: Number(totalFinalComFrete || 0) / 100
+      })
+    });
+
+    const data = await res.json();
+
+    console.log("Resposta checkout:", data);
+
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+
+    mostrarToast("Não foi possível abrir o pagamento", "erro");
+  } catch (e) {
+    console.log("ERRO CHECKOUT:", e);
+    mostrarToast("Erro ao abrir pagamento online", "erro");
+  }
+}
+
 // criar tela sem o emoje
 function TelaHome() {
   return <div>🏠 Tela Home</div>;
@@ -8151,6 +8184,15 @@ return (
                 descricao: "Aprovação rápida",
                 icone: <QrCode size={20} color={formaPagamento === "pix" ? "#ea1d2c" : "#666"} />
               },
+
+
+              {
+                id: "cartao_online",
+                nome: "Cartão Online",
+                descricao: "Pagamento Online",
+                icone: <CreditCard size={20} color={formaPagamento === "cartao_online" ? "#ea1d2c" : "#666"} />
+              },
+
               {
                 id: "cartao",
                 nome: "Cartão",
@@ -8359,22 +8401,27 @@ return (
       }}
     >
       <button
-        onClick={() => {
-          if (!formaPagamento) {
-            mostrarToast("Escolha uma forma de pagamento", "erro");
-            return;
-          }
+        onClick={async () => {
+  if (!formaPagamento) {
+    mostrarToast("Escolha uma forma de pagamento", "erro");
+    return;
+  }
 
-          if (formaPagamento === "pix") {
-            setQrBase64(null);
-            setQrCode(null);
-            setPaymentId(null);
-            setMostrarPagamento(true);
-            return;
-          }
+  if (formaPagamento === "pix") {
+    setQrBase64(null);
+    setQrCode(null);
+    setPaymentId(null);
+    setMostrarPagamento(true);
+    return;
+  }
 
-          finalizarPedido();
-        }}
+  if (formaPagamento === "cartao_online") {
+   pagarCheckout();
+   return;
+}
+
+  finalizarPedido();
+}}
         style={{
           display: "block",
           width: "100%",
