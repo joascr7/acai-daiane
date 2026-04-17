@@ -8,29 +8,21 @@ const client = new MercadoPagoConfig({
 
 export default async function handler(req, res) {
   try {
-    console.log("WEBHOOK QUERY:", req.query);
-    console.log("WEBHOOK BODY:", req.body);
+    console.log("🔥 WEBHOOK CHAMOU");
+    console.log("METHOD:", req.method);
+    console.log("QUERY:", req.query);
+    console.log("BODY:", req.body);
 
     const paymentId =
       req.query?.["data.id"] ||
       req.query?.id ||
       req.body?.data?.id ||
-      req.body?.id;
+      req.body?.id ||
+      req.body?.resource?.split("/")?.pop();
 
-    const type =
-      req.query?.type ||
-      req.query?.topic ||
-      req.body?.type ||
-      req.body?.topic ||
-      null;
+    console.log("PAYMENT ID:", paymentId);
 
     if (!paymentId) {
-      console.log("SEM PAYMENT ID");
-      return res.status(200).json({ ok: true });
-    }
-
-    if (type && type !== "payment") {
-      console.log("TIPO IGNORADO:", type);
       return res.status(200).json({ ok: true });
     }
 
@@ -40,60 +32,35 @@ export default async function handler(req, res) {
       id: String(paymentId)
     });
 
-    console.log("PAYMENT RESULT:", result);
+    console.log("RESULT MP:", result);
 
-    const pedidoId = result?.external_reference;
-    const status = result?.status;
+    const pedidoId = result.external_reference;
+    const status = result.status;
+
+    console.log("PEDIDO ID:", pedidoId);
+    console.log("STATUS:", status);
 
     if (!pedidoId) {
-      console.log("SEM PEDIDO ID NO PAYMENT");
       return res.status(200).json({ ok: true });
     }
 
-    const pedidoRef = doc(db, "pedidos", String(pedidoId));
-    const pedidoSnap = await getDoc(pedidoRef);
+    const ref = doc(db, "pedidos", String(pedidoId));
 
-    if (!pedidoSnap.exists()) {
-      console.log("PEDIDO NÃO EXISTE:", pedidoId);
-      return res.status(200).json({ ok: true });
-    }
+    await updateDoc(ref, {
+      paymentStatus: status,
+      paymentId: String(paymentId),
+      status:
+        status === "approved"
+          ? "preparando"
+          : "aguardando_pagamento_online"
+    });
 
-    if (status === "approved") {
-      await updateDoc(pedidoRef, {
-        status: "preparando",
-        paymentStatus: "approved",
-        paymentId: String(paymentId),
-        formaPagamento: "cartao_online",
-        pagoEm: Date.now()
-      });
-
-      console.log("PEDIDO APROVADO:", pedidoId);
-    } else if (status === "pending" || status === "in_process") {
-      await updateDoc(pedidoRef, {
-        status: "aguardando_pagamento_online",
-        paymentStatus: status,
-        paymentId: String(paymentId)
-      });
-
-      console.log("PEDIDO PENDENTE:", pedidoId);
-    } else if (
-      status === "rejected" ||
-      status === "cancelled" ||
-      status === "refunded" ||
-      status === "charged_back"
-    ) {
-      await updateDoc(pedidoRef, {
-        status: "pagamento_recusado",
-        paymentStatus: status,
-        paymentId: String(paymentId)
-      });
-
-      console.log("PEDIDO RECUSADO:", pedidoId);
-    }
+    console.log("🔥 FIREBASE ATUALIZADO");
 
     return res.status(200).json({ ok: true });
+
   } catch (e) {
-    console.log("ERRO WEBHOOK CHECKOUT:", e);
+    console.log("ERRO WEBHOOK:", e);
     return res.status(200).json({ ok: true });
   }
 }
