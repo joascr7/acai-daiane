@@ -1424,7 +1424,7 @@ useEffect(() => {
       },
       body: JSON.stringify({
         total: Number(totalFinalComFrete || 0) / 100,
-        pedidoId: pedidoId,
+        pedidoId,
         nome: clienteNome,
         email: clienteEmail
       })
@@ -1432,18 +1432,22 @@ useEffect(() => {
 
     const data = await res.json();
 
-    if (data.url) {
-      window.location.href = data.url;
+    if (!data.url) {
+      mostrarToast("Erro ao abrir pagamento", "erro");
       return;
     }
 
-    mostrarMensagemPagamento(
-      "Erro ao abrir pagamento online",
-      "erro"
-    );
+    await updateDoc(doc(db, "pedidos", pedidoId), {
+      checkoutUrl: data.url,
+      checkoutId: data.id || null,
+      status: "aguardando_pagamento_online"
+    });
+
+    window.location.href = data.url;
 
   } catch (e) {
     console.log(e);
+    mostrarToast("Erro no pagamento online", "erro");
   }
 }
 
@@ -7968,30 +7972,59 @@ const corStatus =
   /* CARTÃO ONLINE PENDENTE */
   ) : cartaoOnlinePendente ? (
     <button
-      onClick={() => {
-        if (p.checkoutUrl) {
-          window.location.href = p.checkoutUrl;
-        } else {
-          mostrarToast(
-            "Link de pagamento não encontrado",
-            "erro"
-          );
-        }
-      }}
-      style={{
-        background: "#2563eb",
-        color: "#fff",
-        border: "none",
-        padding: "8px 14px",
-        borderRadius: 12,
-        fontSize: 12,
-        fontWeight: 700,
-        cursor: "pointer",
-        boxShadow: "0 6px 14px rgba(37,99,235,0.20)"
-      }}
-    >
-      Continuar pagamento
-    </button>
+  onClick={async () => {
+    try {
+      if (p.checkoutUrl) {
+        window.location.href = p.checkoutUrl;
+        return;
+      }
+
+      const res = await fetch("/api/checkoutpro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          total: Number(p.total || 0) / 100,
+          pedidoId: p.id,
+          nome: p.cliente?.nome || "Cliente",
+          email: clienteEmail || "cliente@email.com"
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.url) {
+        mostrarToast("Não foi possível reabrir o pagamento", "erro");
+        return;
+      }
+
+      await updateDoc(doc(db, "pedidos", p.id), {
+        checkoutUrl: data.url,
+        checkoutId: data.id || null,
+        status: "aguardando_pagamento_online"
+      });
+
+      window.location.href = data.url;
+    } catch (e) {
+      console.log("ERRO CONTINUAR PAGAMENTO:", e);
+      mostrarToast("Erro ao continuar pagamento", "erro");
+    }
+  }}
+  style={{
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    padding: "8px 14px",
+    borderRadius: 12,
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+    boxShadow: "0 6px 14px rgba(37,99,235,0.20)"
+  }}
+>
+  Continuar pagamento
+</button>
 
   /* PAGAMENTO RECUSADO */
   ) : pagamentoRecusado ? (
