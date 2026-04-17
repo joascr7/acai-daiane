@@ -2944,7 +2944,12 @@ async function finalizarPedido() {
         total: Number(totalFinalComFrete || 0) / 100,
         pedidoId,
         nome: clienteNome,
-        email: clienteEmail || "cliente@email.com"
+        email: clienteEmail,
+        cpf: clienteCpf,
+        telefone: clienteTelefone,
+        rua: clienteEndereco,
+        numero: clienteNumeroCasa,
+        cep: clienteCep
       })
     });
 
