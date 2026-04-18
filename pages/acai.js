@@ -80,6 +80,7 @@ import {
   Trash2,
   Receipt,
   CircleDollarSign,
+  Store,
   CheckCircle
   
 } from "lucide-react";
@@ -385,7 +386,7 @@ const [podeInstalar, setPodeInstalar] = useState(false);
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
 
   
-
+const [etapaPagamento, setEtapaPagamento] = useState(1);
 
 const [banners, setBanners] = useState([]);
 const [bannerAtual, setBannerAtual] = useState(0);
@@ -2796,23 +2797,21 @@ async function finalizarPedido() {
       "Preencha seus dados antes de continuar.",
       "erro"
     );
-
     setAba("perfil");
     setStep(4);
     setAbaPerfil("dados");
     return;
   }
 
+  // 🔥 só exige endereço se for entrega
   if (
-    !clienteEndereco ||
-    !clienteNumeroCasa ||
-    !clienteBairro
+    tipoEntrega !== "retirada" &&
+    (!clienteEndereco || !clienteNumeroCasa || !clienteBairro)
   ) {
     mostrarMensagemPagamento(
       "Preencha endereço, número e bairro para continuar.",
       "erro"
     );
-
     setAba("perfil");
     setStep(4);
     setAbaPerfil("endereco");
@@ -2835,8 +2834,21 @@ async function finalizarPedido() {
       100000 + Math.random() * 900000
     );
 
+    // 🔥 FRETE DINÂMICO
+    const taxaEntregaFinal =
+      tipoEntrega === "retirada"
+        ? 0
+        : Number(taxaEntrega || 0);
+
+    const totalFinal =
+      tipoEntrega === "retirada"
+        ? Number(subtotalProdutos || 0)
+        : Number(totalFinalComFrete || 0);
+
     const pedido = {
       codigo,
+
+      tipoEntrega: tipoEntrega || "entrega", // 🔥 ESSENCIAL
 
       cliente: {
         nome: clienteNome || "Cliente",
@@ -2849,148 +2861,129 @@ async function finalizarPedido() {
 
       itens: (carrinho || []).map((item) => ({
         produtoId: item?.produto?.id || "",
-        nome:
-          item?.produto?.nome ||
-          item?.nome ||
-          "Produto",
-
-        quantidade: Number(
-          item?.quantidade || 1
-        ),
-
+        nome: item?.produto?.nome || item?.nome || "Produto",
+        quantidade: Number(item?.quantidade || 1),
         total: Number(item?.total || 0),
-
-        extras: (item?.extras || []).map(
-          (e) => ({
-            nome: e?.nome || "",
-            preco: Number(e?.preco || 0),
-            categoria:
-              e?.categoria || "Extras"
-          })
-        )
+        extras: (item?.extras || []).map((e) => ({
+          nome: e?.nome || "",
+          preco: Number(e?.preco || 0),
+          categoria: e?.categoria || "Extras"
+        }))
       })),
 
       bairro: clienteBairro || "",
 
-      subtotal: Number(
-        subtotalProdutos || 0
-      ),
+      subtotal: Number(subtotalProdutos || 0),
 
-      taxaEntrega: Number(
-        taxaEntrega || 0
-      ),
+      taxaEntrega: taxaEntregaFinal,
 
-      total: Number(
-        totalFinalComFrete || 0
-      ),
+      total: totalFinal,
 
       formaPagamento,
 
       status:
-        formaPagamento ===
-        "cartao_online"
+        formaPagamento === "cartao_online"
           ? "aguardando_pagamento_online"
           : "preparando",
 
       paymentStatus:
-        formaPagamento ===
-        "cartao_online"
+        formaPagamento === "cartao_online"
           ? "pending"
           : null,
 
       data: Date.now(),
 
-      observacao: String(
-        observacaoPedido || ""
-      ).trim(),
+      observacao: String(observacaoPedido || "").trim(),
 
       cupom: cupomAplicado
         ? {
             id: cupomAplicado.id,
-            codigo:
-              cupomAplicado.codigo || "",
-            tipo:
-              cupomAplicado.tipo || "",
-            desconto: Number(
-              descontoCalculado || 0
-            )
+            codigo: cupomAplicado.codigo || "",
+            tipo: cupomAplicado.tipo || "",
+            desconto: Number(descontoCalculado || 0)
           }
         : null
     };
 
-    await setDoc(
-      doc(db, "pedidos", pedidoId),
-      pedido
-    );
+    // 🔥 SALVA PEDIDO
+    await setDoc(doc(db, "pedidos", pedidoId), pedido);
 
-    const usoRegistrado =
-      await registrarUsoCupom();
-
+    const usoRegistrado = await registrarUsoCupom();
     if (!usoRegistrado) {
       setLoadingPedido(false);
       return;
     }
 
-    localStorage.setItem(
-      "pedidoAtual",
-      pedidoId
-    );
+    localStorage.setItem("pedidoAtual", pedidoId);
 
-    /* 🔥 CARTÃO ONLINE */
+    /* =========================
+       💳 CARTÃO ONLINE
+    ========================== */
     if (formaPagamento === "cartao_online") {
-  try {
-    const res = await fetch("/api/checkoutpro", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        total: Number(totalFinalComFrete || 0) / 100,
-        pedidoId,
-        nome: clienteNome,
-        email: clienteEmail,
-        cpf: clienteCpf,
-        telefone: clienteTelefone,
-        rua: clienteEndereco,
-        numero: clienteNumeroCasa,
-        cep: clienteCep
-      })
-    });
+      try {
+        const res = await fetch("/api/checkoutpro", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            total: totalFinal / 100,
+            pedidoId,
+            nome: clienteNome,
+            email: clienteEmail,
+            cpf: clienteCpf,
+            telefone: clienteTelefone,
+            rua: clienteEndereco,
+            numero: clienteNumeroCasa,
+            cep: clienteCep
+          })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!data.url) {
-      mostrarMensagemPagamento(
-        "Erro ao abrir pagamento online.",
-        "erro"
-      );
-      setLoadingPedido(false);
-      return;
+        if (!data.url) {
+          mostrarMensagemPagamento(
+            "Erro ao abrir pagamento online.",
+            "erro"
+          );
+          setLoadingPedido(false);
+          return;
+        }
+
+        await updateDoc(doc(db, "pedidos", pedidoId), {
+          checkoutUrl: data.url,
+          checkoutId: data.id || null,
+          status: "aguardando_pagamento_online",
+          paymentStatus: "pending"
+        });
+
+        // 🔥 ABRE PAGAMENTO
+        window.open(data.url, "_blank");
+
+        // 🔥 ENVIA WHATSAPP TAMBÉM
+        setTimeout(async () => {
+          await enviarWhatsApp({
+            ...pedido,
+            tipoEntrega,
+            formaPagamento
+          });
+        }, 800);
+
+        return;
+      } catch (e) {
+        console.log("ERRO CARTAO ONLINE:", e);
+        mostrarMensagemPagamento(
+          "Erro ao abrir pagamento online.",
+          "erro"
+        );
+        setLoadingPedido(false);
+        return;
+      }
     }
 
-    await updateDoc(doc(db, "pedidos", pedidoId), {
-      checkoutUrl: data.url,
-      checkoutId: data.id || null,
-      status: "aguardando_pagamento_online",
-      paymentStatus: "pending"
-    });
-
-    window.location.href = data.url;
-    return;
-  } catch (e) {
-    console.log("ERRO CARTAO ONLINE:", e);
-
-    mostrarMensagemPagamento(
-      "Erro ao abrir pagamento online.",
-      "erro"
-    );
-
-    setLoadingPedido(false);
-    return;
-  }
-}
-
-    /* 🔥 PIX */
+    /* =========================
+       🟢 PIX
+    ========================== */
     if (formaPagamento === "pix") {
       mostrarMensagemPagamento(
         "Pedido criado. Realize o pagamento Pix.",
@@ -3006,7 +2999,9 @@ async function finalizarPedido() {
       return;
     }
 
-    /* 🔥 DINHEIRO / CARTÃO ENTREGA */
+    /* =========================
+       💵 DINHEIRO / CARTÃO ENTREGA
+    ========================== */
     mostrarMensagemPagamento(
       "Pedido confirmado com sucesso.",
       "sucesso"
@@ -3023,6 +3018,7 @@ async function finalizarPedido() {
     setTimeout(async () => {
       await enviarWhatsApp(pedido);
     }, 500);
+
   } catch (e) {
     console.log(e);
 
@@ -3047,6 +3043,10 @@ const enviarWhatsApp = async (pedido) => {
   const descontoCupom = Number(pedido?.cupom?.desconto || 0);
   const forma = pedido?.formaPagamento || formaPagamento || "Não informado";
 
+  // 🔥 NOVO: tipo de entrega
+  const tipoEntregaFinal =
+    pedido?.tipoEntrega || tipoEntrega || "entrega";
+
   const nomeCliente =
     pedido?.cliente?.nome || clienteNome || "Cliente";
 
@@ -3070,6 +3070,7 @@ const enviarWhatsApp = async (pedido) => {
 
   let mensagem = `*Pedido #${codigo}*\n\n`;
 
+  // 🛒 ITENS
   itens.forEach((item, i) => {
     const nomeProduto =
       item?.produto?.nome ||
@@ -3113,6 +3114,7 @@ const enviarWhatsApp = async (pedido) => {
 
   mensagem += `━━━━━━━━━━━━━━━\n`;
 
+  // 💰 SUBTOTAL
   if (subtotal > 0) {
     mensagem += `*Subtotal:* ${(subtotal / 100).toLocaleString("pt-BR", {
       style: "currency",
@@ -3120,6 +3122,7 @@ const enviarWhatsApp = async (pedido) => {
     })}\n`;
   }
 
+  // 🎟 CUPOM
   if (descontoCupom > 0) {
     mensagem += `*Desconto${codigoCupom ? ` (${codigoCupom})` : ""}:* -${(descontoCupom / 100).toLocaleString("pt-BR", {
       style: "currency",
@@ -3127,16 +3130,23 @@ const enviarWhatsApp = async (pedido) => {
     })}\n`;
   }
 
-  mensagem += `*Entrega:* ${(taxaEntrega / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL"
-  })}\n`;
+  // 🚚 ENTREGA / RETIRADA
+  if (tipoEntregaFinal === "retirada") {
+    mensagem += `*Retirada no local*\n`;
+  } else {
+    mensagem += `*Entrega:* ${(taxaEntrega / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    })}\n`;
+  }
 
+  // 💵 TOTAL
   mensagem += `*Total:* ${(total / 100).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
   })}\n`;
 
+  // 💳 PAGAMENTO
   if (forma === "pix") {
     mensagem += `*Pagamento:* Pix confirmado\n`;
   } else if (forma === "cartao") {
@@ -3144,19 +3154,25 @@ const enviarWhatsApp = async (pedido) => {
   } else if (forma === "dinheiro") {
     mensagem += `*Pagamento:* Dinheiro na entrega\n`;
   } else if (forma === "cartao_online") {
-    mensagem += `*Pagamento:* Cartão online\n`;
+    mensagem += `*Pagamento:* Cartão online (já pago)\n`;
   } else {
     mensagem += `*Pagamento:* ${forma}\n`;
   }
 
-  mensagem += `\n*Endereço:*\n${enderecoCliente}, Nº ${numeroCliente}`;
-
-  if (bairroCliente) {
-    mensagem += `\nBairro: ${bairroCliente}`;
+  // 📍 ENDEREÇO
+  if (tipoEntregaFinal === "retirada") {
+    mensagem += `\n*Retirada:*\nNo local da loja\n`;
+  } else {
+    mensagem += `\n*Endereço:*\n${enderecoCliente}, Nº ${numeroCliente}`;
+    if (bairroCliente) {
+      mensagem += `\nBairro: ${bairroCliente}`;
+    }
   }
 
+  //  CLIENTE
   mensagem += `\n\n*Cliente:*\n${nomeCliente}\n${telefoneCliente}`;
 
+  //  OBSERVAÇÃO
   if (observacao && observacao.trim()) {
     mensagem += `\n\n━━━━━━━━━━━━━━━\n`;
     mensagem += `*Observações:*\n${observacao.trim()}`;
@@ -3568,82 +3584,7 @@ return (
       >
         Forma de pagamento
       </h2>
-     {/* RETIRADA */}
-
-<div
-  style={{
-    marginBottom: 14
-  }}
->
-  <div
-    style={{
-      fontSize: 14,
-      fontWeight: 800,
-      color: "#111",
-      marginBottom: 10
-    }}
-  >
-    Como deseja receber?
-  </div>
-
-  <div
-    style={{
-      display: "flex",
-      gap: 10
-    }}
-  >
-    {/* ENTREGA */}
-    <button
-      onClick={() => setTipoEntrega("entrega")}
-      style={{
-        flex: 1,
-        height: 52,
-        borderRadius: 14,
-        border:
-          setTipoEntrega === "entrega"
-            ? "1px solid #ea1d2c"
-            : "1px solid #e5e5e5",
-        background:
-          setTipoEntrega === "entrega"
-            ? "#fff5f5"
-            : "#f8f8f8",
-        color: "#111",
-        fontWeight: 800,
-        fontSize: 15,
-        cursor: "pointer"
-      }}
-    >
-      Entrega
-    </button>
-
-    {/* RETIRADA */}
-    <button
-      onClick={() => setTipoEntrega("retirada")}
-      style={{
-        flex: 1,
-        height: 52,
-        borderRadius: 14,
-        border:
-          setTipoEntrega === "retirada"
-            ? "1px solid #ea1d2c"
-            : "1px solid #e5e5e5",
-        background:
-          setTipoEntrega === "retirada"
-            ? "#fff5f5"
-            : "#f8f8f8",
-        color: "#111",
-        fontWeight: 800,
-        fontSize: 15,
-        cursor: "pointer"
-      }}
-    >
-      Retirada
-    </button>
-  </div>
-</div>
-
-
-
+    
       {/* MENSAGEM */}
       {mensagemPagamento && (
         <div
@@ -3743,162 +3684,7 @@ return (
         </div>
       </div>
 
-      {/* MÉTODOS */}
-      <div style={{ display: "flex", gap: 10 }}>
-        {/* PIX */}
-        <button
-          onClick={() => {
-            if (loadingPix) return;
-
-            setFormaPagamento("pix");
-
-            if (pedidoPixAberto) return;
-
-            setQrBase64(null);
-            setQrCode(null);
-            setPaymentId(null);
-            setMostrarCodigoPix(false);
-            gerarPix();
-          }}
-          style={{
-            width: "100%",
-            minHeight: 54,
-            padding: "0 16px",
-            borderRadius: 14,
-            border:
-              formaPagamento === "pix"
-                ? "1px solid #ea1d2c"
-                : "1px solid #ededed",
-            cursor: loadingPix ? "not-allowed" : "pointer",
-            background: formaPagamento === "pix" ? "#fff5f5" : "#f7f7f7",
-            color: "#222",
-            fontWeight: 700,
-            fontSize: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            boxSizing: "border-box",
-            opacity: loadingPix ? 0.7 : 1
-          }}
-        >
-          <QrCode
-            size={18}
-            color={formaPagamento === "pix" ? "#ea1d2c" : "#666"}
-          />
-          <span>{loadingPix ? "Gerando Pix..." : "Pix"}</span>
-        </button>
-
-
-         {/* CARTÃO  ONLINE*/}
-        <button
-          onClick={() => {
-            setFormaPagamento("cartao_online");
-            setPedidoPixAberto(null);
-            setMensagemPagamento("");
-            setMostrarCodigoPix(false);
-          }}
-          style={{
-            width: "100%",
-            minHeight: 54,
-            padding: "0 16px",
-            borderRadius: 14,
-            border:
-              formaPagamento === "cartao_online"
-                ? "1px solid #ea1d2c"
-                : "1px solid #ededed",
-            cursor: "pointer",
-            background: formaPagamento === "cartao_online" ? "#fff5f5" : "#f7f7f7",
-            color: "#222",
-            fontWeight: 700,
-            fontSize: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            boxSizing: "border-box"
-          }}
-        >
-          <CreditCard
-            size={18}
-            color={formaPagamento === "cartao_online" ? "#ea1d2c" : "#666"}
-          />
-          <span>Cartão Online</span>
-        </button>
-
-
-        {/* CARTÃO */}
-        <button
-          onClick={() => {
-            setFormaPagamento("cartao");
-            setPedidoPixAberto(null);
-            setMensagemPagamento("");
-            setMostrarCodigoPix(false);
-          }}
-          style={{
-            width: "100%",
-            minHeight: 54,
-            padding: "0 16px",
-            borderRadius: 14,
-            border:
-              formaPagamento === "cartao"
-                ? "1px solid #ea1d2c"
-                : "1px solid #ededed",
-            cursor: "pointer",
-            background: formaPagamento === "cartao" ? "#fff5f5" : "#f7f7f7",
-            color: "#222",
-            fontWeight: 700,
-            fontSize: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            boxSizing: "border-box"
-          }}
-        >
-          <CreditCard
-            size={18}
-            color={formaPagamento === "cartao" ? "#ea1d2c" : "#666"}
-          />
-          <span>Cartão</span>
-        </button>
-
-        {/* DINHEIRO */}
-        <button
-          onClick={() => {
-            setFormaPagamento("dinheiro");
-            setPedidoPixAberto(null);
-            setMensagemPagamento("");
-            setMostrarCodigoPix(false);
-          }}
-          style={{
-            width: "100%",
-            minHeight: 54,
-            padding: "0 16px",
-            borderRadius: 14,
-            border:
-              formaPagamento === "dinheiro"
-                ? "1px solid #ea1d2c"
-                : "1px solid #ededed",
-            cursor: "pointer",
-            background: formaPagamento === "dinheiro" ? "#fff5f5" : "#f7f7f7",
-            color: "#222",
-            fontWeight: 700,
-            fontSize: 16,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            boxSizing: "border-box"
-          }}
-        >
-          <Wallet
-            size={18}
-            color={formaPagamento === "dinheiro" ? "#ea1d2c" : "#666"}
-          />
-          <span>Dinheiro</span>
-        </button>
-      </div>
+      
 
       {/* ÁREA PIX */}
       {formaPagamento === "pix" && (
@@ -4053,33 +3839,50 @@ return (
           }}
           disabled={loadingPedido}
           onClick={async () => {
-            if (!formaPagamento) {
-              mostrarMensagemPagamento("Escolha uma forma de pagamento para continuar.", "erro");
-              return;
-            }
+  if (!tipoEntrega) {
+    mostrarMensagemPagamento("Escolha entrega ou retirada.", "erro");
+    return;
+  }
 
-            if (formaPagamento === "pix") {
-              if (!paymentId) {
-                mostrarMensagemPagamento("Erro no Pix. Gere novamente para continuar.", "erro");
-                return;
-              }
+  if (!formaPagamento) {
+    mostrarMensagemPagamento("Escolha uma forma de pagamento para continuar.", "erro");
+    return;
+  }
 
-              if (!qrBase64) {
-                mostrarMensagemPagamento("Aguarde o QR Code terminar de carregar.", "info");
-                return;
-              }
+  // 🔥 PIX continua igual
+  if (formaPagamento === "pix") {
+    if (!paymentId) {
+      mostrarMensagemPagamento("Erro no Pix. Gere novamente para continuar.", "erro");
+      return;
+    }
 
-              mostrarMensagemPagamento("Pagamento Pix aguardando confirmação automática.", "info");
-              return;
-            }
+    if (!qrBase64) {
+      mostrarMensagemPagamento("Aguarde o QR Code terminar de carregar.", "info");
+      return;
+    }
 
-            try {
-              setLoadingPedido(true);
-              await finalizarPedido();
-            } finally {
-              setLoadingPedido(false);
-            }
-          }}
+    mostrarMensagemPagamento("Pagamento Pix aguardando confirmação automática.", "info");
+    return;
+  }
+
+  try {
+    setLoadingPedido(true);
+
+    const pedidoFinal = await finalizarPedido();
+
+    // 🔥 AQUI RESOLVE TUDO
+    await enviarWhatsApp({
+      ...pedidoFinal,
+      tipoEntrega,
+      formaPagamento
+    });
+
+  } catch (e) {
+    console.log("ERRO FINALIZAR:", e);
+  } finally {
+    setLoadingPedido(false);
+  }
+}}
         >
           {loadingPedido
             ? "Processando..."
@@ -8542,6 +8345,80 @@ const corStatus =
           </div>
         </div>
 
+        {/* FORMA DE entrega */}
+<div style={{ marginBottom: 20 }}>
+  <h3 style={{ marginBottom: 10 }}>Como deseja receber?</h3>
+
+  <div
+    style={{
+      display: "flex",
+      gap: 8,
+      background: "#f5f5f5",
+      padding: 6,
+      borderRadius: 14
+    }}
+  >
+    {/* ENTREGA */}
+    <button
+      onClick={() => setTipoEntrega("entrega")}
+      style={{
+        flex: 1,
+        height: 44,
+        borderRadius: 10,
+        border: "none",
+        background:
+          tipoEntrega === "entrega" ? "#fff" : "transparent",
+        color:
+          tipoEntrega === "entrega" ? "#ea1d2c" : "#666",
+        fontWeight: 700,
+        fontSize: 14,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        boxShadow:
+          tipoEntrega === "entrega"
+            ? "0 2px 6px rgba(0,0,0,0.08)"
+            : "none",
+        transition: "all 0.15s ease"
+      }}
+    >
+      <MapPin size={16} />
+      Entrega
+    </button>
+
+    {/* RETIRADA */}
+    <button
+      onClick={() => setTipoEntrega("retirada")}
+      style={{
+        flex: 1,
+        height: 44,
+        borderRadius: 10,
+        border: "none",
+        background:
+          tipoEntrega === "retirada" ? "#fff" : "transparent",
+        color:
+          tipoEntrega === "retirada" ? "#ea1d2c" : "#666",
+        fontWeight: 700,
+        fontSize: 14,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        boxShadow:
+          tipoEntrega === "retirada"
+            ? "0 2px 6px rgba(0,0,0,0.08)"
+            : "none",
+        transition: "all 0.15s ease"
+      }}
+    >
+      <Store size={16} />
+      Retirada
+    </button>
+  </div>
+</div>
         {/* FORMA DE PAGAMENTO */}
         <div
           style={{
