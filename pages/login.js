@@ -93,65 +93,44 @@ export default function Login() {
     color: "#111"
   };
 
-  const [modo, setModo] = useState("inicio");
-  const [loading, setLoading] = useState(false);
+const [modo, setModo] = useState("inicio");
+const [loading, setLoading] = useState(false);
 
-  const [nome, setNome] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [erro, setErro] = useState("");
+const [nome, setNome] = useState("");
+const [telefone, setTelefone] = useState(""); // 🔥 TROCOU CPF
+const [email, setEmail] = useState("");
+const [senha, setSenha] = useState("");
+const [confirmarSenha, setConfirmarSenha] = useState("");
+const [erro, setErro] = useState("");
 
-
-  
-
-  useEffect(() => {
+useEffect(() => {
   if (!erro) return;
 
   const timer = setTimeout(() => {
     setErro("");
-  }, 4000); // 4 segundos
+  }, 4000);
 
   return () => clearTimeout(timer);
 }, [erro]);
 
-  function validarCPF(cpf) {
-    cpf = cpf.replace(/\D/g, "");
-    if (cpf.length !== 11) return false;
-    if (/^(\d)\1+$/.test(cpf)) return false;
+// 🔥 FORMATAR TELEFONE (SUBSTITUI CPF)
+function formatarTelefone(valor) {
+  let v = valor.replace(/\D/g, "").slice(0, 11);
 
-    let soma = 0, resto;
-
-    for (let i = 1; i <= 9; i++) {
-      soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-    }
-
-    resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.substring(9, 10))) return false;
-
-    soma = 0;
-    for (let i = 1; i <= 10; i++) {
-      soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-    }
-
-    resto = (soma * 10) % 11;
-    if (resto === 10 || resto === 11) resto = 0;
-
-    return resto === parseInt(cpf.substring(10, 11));
+  if (v.length <= 10) {
+    v = v
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  } else {
+    v = v
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2");
   }
 
-  function formatarCPF(valor) {
-    return valor
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2")
-      .slice(0, 14);
-  }
+  return v;
+}
 
- async function entrar() {
+async function entrar() {
   try {
     setErro("");
     setLoading(true);
@@ -165,8 +144,8 @@ export default function Login() {
         return;
       }
 
-      if (!cpf) {
-        setErro("Informe seu CPF.");
+      if (!telefone) {
+        setErro("Informe seu telefone.");
         return;
       }
 
@@ -175,15 +154,16 @@ export default function Login() {
         return;
       }
 
+      // 🔥 VERIFICA TELEFONE DUPLICADO
       const q = query(
         collection(db, "clientes"),
-        where("cpf", "==", cpf)
+        where("telefone", "==", telefone)
       );
 
       const snap = await getDocs(q);
 
       if (!snap.empty) {
-        setErro("Este CPF já está cadastrado.");
+        setErro("Este telefone já está cadastrado.");
         return;
       }
 
@@ -199,19 +179,21 @@ export default function Login() {
         });
       });
 
+      // 🔥 SALVA EM CLIENTES
       await setDoc(doc(db, "clientes", user.uid), {
-  uid: user.uid, // 🔥 ESSENCIAL
-  nome,
-  email,
-  cpf
-});
+        uid: user.uid,
+        nome,
+        email,
+        telefone
+      });
 
+      // 🔥 SALVA EM USUARIOS
       await setDoc(doc(db, "usuarios", user.uid), {
-  uid: user.uid, // 🔥 ESSENCIAL
-  clienteNome: nome,
-  clienteEmail: email,
-  clienteCpf: cpf
-});
+        uid: user.uid,
+        clienteNome: nome,
+        clienteEmail: email,
+        clienteTelefone: telefone
+      });
 
     } else {
       await signInWithEmailAndPassword(auth, email, senha);
@@ -251,8 +233,7 @@ export default function Login() {
   }
 }
 
-
-  return (
+return (
     <div style={{
       position: "relative",
       minHeight: "100dvh",
@@ -523,14 +504,14 @@ export default function Login() {
     />
 
     <input
-      placeholder="CPF"
-      value={cpf}
-      onChange={e => {
-        setErro("");
-        setCpf(formatarCPF(e.target.value));
-      }}
-      style={inputPremium}
-    />
+  placeholder="Telefone"
+  value={telefone}
+  onChange={(e) => {
+    setErro("");
+    setTelefone(formatarTelefone(e.target.value));
+  }}
+  style={inputPremium}
+/>
 
     <input
       placeholder="Email"

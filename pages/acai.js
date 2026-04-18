@@ -15,6 +15,8 @@ import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 
 import CardProduto from "../components/CardProduto";
 
+import { updatePassword } from "firebase/auth";
+
 
 
 
@@ -350,6 +352,20 @@ const layout = {
   }
 };
 
+
+const backBtn = {
+  width: 40,
+  height: 40,
+  borderRadius: 14,
+  border: "1px solid #f1f1f1",
+  background: "#fff",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+};
+
   
 
   const router = useRouter();
@@ -509,6 +525,10 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
 const categoriaAtualObj = categorias.find(c => c.slug === categoriaSelecionada);
 const nomeCategoriaAtual = categoriaAtualObj?.nome || categoriaSelecionada;
 
+
+const [novaSenha, setNovaSenha] = useState("");
+const [confirmarNovaSenha, setConfirmarNovaSenha] = useState("");
+const [loadingSenha, setLoadingSenha] = useState(false);
   
   const [statusPagamento, setStatusPagamento] = useState("pendente");
   const [mostrarPagamento, setMostrarPagamento] = useState(false);
@@ -1833,6 +1853,48 @@ function NotificacaoItem({ n }) {
 
 
 
+
+async function alterarSenha() {
+  try {
+    setLoadingSenha(true);
+
+    if (!novaSenha || novaSenha.length < 6) {
+      mostrarToast("A senha deve ter pelo menos 6 caracteres", "erro");
+      return;
+    }
+
+    if (novaSenha !== confirmarNovaSenha) {
+      mostrarToast("As senhas não coincidem", "erro");
+      return;
+    }
+
+    const userAtual = auth.currentUser;
+
+    if (!userAtual) {
+      mostrarToast("Usuário não autenticado", "erro");
+      return;
+    }
+
+    await updatePassword(userAtual, novaSenha);
+
+    mostrarToast("Senha alterada com sucesso", "sucesso");
+
+    setNovaSenha("");
+    setConfirmarNovaSenha("");
+
+  } catch (e) {
+    console.log(e);
+
+    if (e.code === "auth/requires-recent-login") {
+      mostrarToast("Faça login novamente para alterar a senha", "erro");
+    } else {
+      mostrarToast("Erro ao alterar senha", "erro");
+    }
+  } finally {
+    setLoadingSenha(false);
+  }
+}
+
 async function marcarComoLida() {
   try {
     const pendentes = notificacoes.filter((n) => n?.lida !== true);
@@ -2293,10 +2355,11 @@ const buscarCEP = async (cep) => {
         tipo: "erro",
         texto: "CEP não encontrado"
       });
+
+      setTimeout(() => setToast(null), 3000);
       return;
     }
 
-    // 🔥 SEPARADO CORRETAMENTE
     setClienteCep(cepLimpo);
     setClienteEndereco(data.logradouro || "");
     setClienteBairro(data.bairro || "");
@@ -2306,6 +2369,8 @@ const buscarCEP = async (cep) => {
       texto: "Endereço preenchido automaticamente"
     });
 
+    setTimeout(() => setToast(null), 3000);
+
   } catch (e) {
     console.log("ERRO CEP:", e);
 
@@ -2313,6 +2378,9 @@ const buscarCEP = async (cep) => {
       tipo: "erro",
       texto: "Erro ao buscar CEP"
     });
+
+    setTimeout(() => setToast(null), 3000);
+
   } finally {
     setLoadingCep(false);
   }
@@ -2773,23 +2841,27 @@ const limparHistoricoBusca = () => {
 };
 
 
-function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = false) {
-  setExtrasSelecionados(prev => {
-    const lista = prev[categoria] || [];
-    const index = lista.findIndex(e => e.nome === item.nome);
+function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = true) {
+  setExtrasSelecionados((prev) => {
+    const listaAtual = prev[categoria] || [];
 
-    let novaLista = [...lista];
+    const index = listaAtual.findIndex((e) => e.nome === item.nome);
 
-    const totalAtualCategoria = lista.reduce(
-      (acc, e) => acc + (e.qtd || 0),
+    let novaLista = [...listaAtual];
+
+    // 🔥 TOTAL ATUAL DO GRUPO
+    const totalAtual = listaAtual.reduce(
+      (acc, e) => acc + Number(e.qtd || 0),
       0
     );
 
-    // REMOVER
+    // =========================
+    // ➖ REMOVER
+    // =========================
     if (delta < 0) {
       if (index >= 0) {
         const atual = novaLista[index];
-        const novaQtd = (atual.qtd || 0) - 1;
+        const novaQtd = Number(atual.qtd || 0) - 1;
 
         if (novaQtd <= 0) {
           novaLista.splice(index, 1);
@@ -2807,22 +2879,26 @@ function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = 
       };
     }
 
-    // ADICIONAR
-    if (totalAtualCategoria >= Number(max || 1)) {
+    // =========================
+    // ➕ ADICIONAR
+    // =========================
+
+    // 🔥 BLOQUEIA SE ATINGIU LIMITE DO GRUPO
+    if (max && totalAtual >= Number(max)) {
       return prev;
     }
 
     if (index >= 0) {
-      // se não pode repetir, bloqueia
+      const atual = novaLista[index];
+
+      // 🔥 SE NÃO PODE REPETIR → NÃO SOMA
       if (!permitirRepetir) {
         return prev;
       }
 
-      // se pode repetir, soma quantidade
-      const atual = novaLista[index];
       novaLista[index] = {
         ...atual,
-        qtd: (atual.qtd || 0) + 1
+        qtd: Number(atual.qtd || 0) + 1
       };
 
       return {
@@ -2831,7 +2907,7 @@ function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = 
       };
     }
 
-    // item novo
+    // 🔥 ITEM NOVO
     novaLista.push({
       ...item,
       categoria,
@@ -4382,8 +4458,8 @@ return (
 
             <div
               onClick={() => {
-                setAba("perfil");
-                setStep(4);
+                setAba("carrinho");
+                setStep(3);
                 setAbaPerfil("endereco");
               }}
               style={{
@@ -6486,6 +6562,39 @@ return (
           </div>
         )}
 
+
+          {/* 🔥 ENDEREÇO ADICIONADO */}
+        <div style={{
+          marginTop: 22,
+          background: "#fff",
+          borderRadius: 22,
+          padding: 18,
+          border: "1px solid #eee"
+        }}>
+          <strong>Endereço de entrega</strong>
+
+          <input
+            placeholder="CEP"
+            value={clienteCep}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 8);
+              setClienteCep(v);
+              if (v.length === 8) buscarCEP(v);
+            }}
+            style={input}
+          />
+
+          <input value={clienteEndereco} readOnly placeholder="Rua" style={{ ...input, background: "#f5f5f5" }} />
+          <input value={clienteBairro} readOnly placeholder="Bairro" style={{ ...input, background: "#f5f5f5" }} />
+
+          <input
+            placeholder="Número"
+            value={clienteNumeroCasa}
+            onChange={(e) => setClienteNumeroCasa(e.target.value)}
+            style={input}
+          />
+        </div>
+
         {/* OBS */}
         <div
           style={{
@@ -6975,10 +7084,8 @@ return (
         }}
       >
         {[
-          { id: "dados", titulo: "Meus dados", desc: "Nome, telefone e dados da conta" },
-          { id: "endereco", titulo: "Meu endereço", desc: "Rua, número e localização" },
-          { id: "cupons", titulo: "Meus cupons", desc: "Descontos disponíveis" },
-          { id: "seguranca", titulo: "Segurança", desc: "Proteção e informações da conta" },
+          { id: "dados", titulo: "Meus Dados", desc: "Nome, telefone e dados da conta" }, 
+          { id: "cupons", titulo: "Cupons Disponivel", desc: "Descontos disponíveis" },
           { id: "loja", titulo: "Informações da loja", desc: "Saiba mais sobre a loja" }
         ].map(item => {
           const ativo = abaPerfil === item.id;
@@ -7071,12 +7178,7 @@ return (
                 placeholder="Email"
               />
 
-              <input
-                style={input}
-                value={clienteCpf}
-                disabled
-                placeholder="CPF"
-              />
+              
 
               <input
                 style={input}
@@ -7108,71 +7210,7 @@ return (
           </>
         )}
 
-        {abaPerfil === "endereco" && (
-          <>
-            <strong style={{ fontSize: 16, color: "#111" }}>
-              Meu endereço
-            </strong>
-
-            <div style={{ marginTop: 14 }}>
-              <input
-                style={input}
-                value={clienteCep}
-                onChange={(e) => {
-                  const valor = e.target.value.replace(/\D/g, "").slice(0, 8);
-                  setClienteCep(valor);
-
-                  if (valor.length === 8) {
-                    buscarCEP(valor);
-                  }
-                }}
-                placeholder="CEP"
-              />
-
-              {loadingCep && (
-                <div style={{ fontSize: 13, color: "#666", marginBottom: 8 }}>
-                  Buscando CEP...
-                </div>
-              )}
-
-              <input
-                style={input}
-                value={clienteEndereco}
-                onChange={(e) => setClienteEndereco(e.target.value)}
-                placeholder="Rua"
-              />
-
-              <input
-                style={input}
-                value={clienteBairro}
-                onChange={(e) => setClienteBairro(e.target.value)}
-                placeholder="Bairro"
-              />
-
-              <input
-                style={input}
-                value={clienteNumeroCasa}
-                onChange={(e) => setClienteNumeroCasa(e.target.value)}
-                placeholder="Número"
-              />
-
-              <button
-                onClick={salvarDadosCliente}
-                style={{
-                  ...btn,
-                  padding: "10px 14px",
-                  fontSize: 13,
-                  borderRadius: 12,
-                  width: "fit-content",
-                  marginTop: 4
-                }}
-              >
-                Salvar endereço
-              </button>
-            </div>
-          </>
-        )}
-
+      
         {abaPerfil === "cupons" && (
           <div
             style={{
@@ -7276,110 +7314,7 @@ return (
           </div>
         )}
 
-        {abaPerfil === "seguranca" && (
-          <>
-            <strong style={{ fontSize: 16, color: "#111" }}>
-              Segurança
-            </strong>
-
-            <div
-              style={{
-                marginTop: 14,
-                display: "flex",
-                flexDirection: "column",
-                gap: 10
-              }}
-            >
-              <div
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#fff",
-                  border: "1px solid #eee"
-                }}
-              >
-                <strong
-                  style={{
-                    display: "block",
-                    fontSize: 14,
-                    color: "#111"
-                  }}
-                >
-                  Email protegido
-                </strong>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: "#666",
-                    display: "block",
-                    marginTop: 4
-                  }}
-                >
-                  Seu acesso está vinculado ao email cadastrado.
-                </span>
-              </div>
-
-              <div
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#fff",
-                  border: "1px solid #eee"
-                }}
-              >
-                <strong
-                  style={{
-                    display: "block",
-                    fontSize: 14,
-                    color: "#111"
-                  }}
-                >
-                  CPF validado
-                </strong>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: "#666",
-                    display: "block",
-                    marginTop: 4
-                  }}
-                >
-                  O CPF ajuda a proteger seus cupons e seus pedidos.
-                </span>
-              </div>
-
-              <div
-                style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  background: "#fff8f8",
-                  border: "1px solid #ffd9d9"
-                }}
-              >
-                <strong
-                  style={{
-                    display: "block",
-                    fontSize: 14,
-                    color: "#111"
-                  }}
-                >
-                  Dica de segurança
-                </strong>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: "#666",
-                    display: "block",
-                    marginTop: 4,
-                    lineHeight: 1.45
-                  }}
-                >
-                  Não compartilhe sua conta com outras pessoas e sempre confira seus dados antes de finalizar um pedido.
-                </span>
-              </div>
-            </div>
-          </>
-        )}
+      
 
         {abaPerfil === "loja" && (
           <>
