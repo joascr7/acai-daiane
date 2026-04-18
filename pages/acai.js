@@ -4571,38 +4571,36 @@ return (
         </div>
 
         
-        {/* ALERTA */}
+        {/* LOJA ABERTA/FECHADA */}
         <div
-          style={{
-            marginTop: 18,
-            background: "#efe2fb",
-            color: "#9b4de0",
-            borderRadius: 999,
-            padding: "14px 18px",
-            fontSize: 13,
-            fontWeight: 700,
-            textAlign: "center",
-            position: "relative",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.03)"
-          }}
-        >
-          Onde você estiver, a gente chega. Peça agora!
+  style={{
+    margin: "12px 16px 0",
+    padding: "10px 14px",
+    borderRadius: 999,
+    background: lojaAberta ? "#e6f4ea" : "#fde8e8",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    fontSize: 13,
+    fontWeight: 600,
+    color: lojaAberta ? "#166534" : "#991b1b"
+  }}
+>
+  <div
+    style={{
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      background: lojaAberta ? "#16a34a" : "#dc2626",
+      boxShadow: lojaAberta
+        ? "0 0 6px rgba(22,163,74,0.6)"
+        : "0 0 6px rgba(220,38,38,0.6)"
+    }}
+  />
 
-          <span
-            style={{
-              position: "absolute",
-              right: 16,
-              top: "50%",
-              transform: "translateY(-50%)",
-              fontSize: 22,
-              lineHeight: 1,
-              color: "#b35ae6",
-              cursor: "pointer"
-            }}
-          >
-            
-          </span>
-        </div>
+  {lojaAberta ? "Loja aberta" : "Loja fechada"}
+</div>
 
         
 
