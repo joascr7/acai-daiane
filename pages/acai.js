@@ -6951,44 +6951,63 @@ return (
         {/* DIREITA */}
         <div style={{ flexShrink: 0 }}>
           {user ? (
-            <button
-  onClick={async () => {
-  try {
-    await signOut(auth);
+            <div style={{ position: "relative", overflow: "hidden", borderRadius: 999 }}>
+  <button
+    onClick={async (e) => {
+      // 🔥 HAPTIC (vibração mobile)
+      if (navigator.vibrate) navigator.vibrate(10);
 
-    // 🔥 limpa estado
-    setUser(null);
-    setCarrinho([]);
+      // 🔥 RIPPLE
+      const button = e.currentTarget;
+      const circle = document.createElement("span");
+      const diameter = Math.max(button.clientWidth, button.clientHeight);
+      const radius = diameter / 2;
 
-    // 🔥 limpa storage
-    localStorage.removeItem("carrinho");
-    localStorage.removeItem("pedidoAtual");
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - button.getBoundingClientRect().left - radius}px`;
+      circle.style.top = `${e.clientY - button.getBoundingClientRect().top - radius}px`;
+      circle.classList.add("ripple");
 
-    // 🔥 redireciona (sem reload)
-    setAba("home");
-    setStep(1);
+      const ripple = button.getElementsByClassName("ripple")[0];
+      if (ripple) ripple.remove();
 
-  } catch (e) {
-    console.log("Erro ao sair:", e);
-  }
-}}
+      button.appendChild(circle);
 
-             
-              style={{
-                height: 40,
-                padding: "0 14px",
-                borderRadius: 999,
-                background: "#e4e4e4",
-                color: "#a0a0a0",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: 800,
-                fontSize: 13,
-                boxShadow: "0 6px 18px rgba(0,0,0,0.12)"
-              }}
-            >
-              Sair
-            </button>
+      // 🔥 LOGOUT
+      try {
+        await signOut(auth);
+        setUser(null);
+        setCarrinho([]);
+        localStorage.removeItem("carrinho");
+        localStorage.removeItem("pedidoAtual");
+        setAba("home");
+        setStep(1);
+      } catch (e) {
+        console.log(e);
+      }
+    }}
+    style={{
+      height: 40,
+      padding: "0 16px",
+      borderRadius: 999,
+      background: "#fff",
+      color: "#ea1d2c",
+      border: "1px solid #eee",
+      cursor: "pointer",
+      fontWeight: 700,
+      fontSize: 13,
+      display: "flex",
+      alignItems: "center",
+      gap: 6,
+      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      position: "relative",
+      overflow: "hidden"
+    }}
+  >
+    <LogOut size={16} />
+    Sair
+  </button>
+</div>
           ) : (
             <button
               onClick={() => {
