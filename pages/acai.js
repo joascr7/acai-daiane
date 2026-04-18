@@ -1091,34 +1091,61 @@ useEffect(() => {
 useEffect(() => {
   if (typeof window === "undefined") return;
 
-  const salvo = localStorage.getItem("carrinho");
+  let salvo = null;
 
-  if (!salvo) return;
+  // 🔐 usuário logado
+  if (user?.uid) {
+    salvo = localStorage.getItem(`carrinho_${user.uid}`);
+  } 
+  // 🔓 visitante
+  else {
+    salvo = localStorage.getItem("carrinho");
+  }
+
+  if (!salvo) {
+    setCarrinho([]);
+    return;
+  }
 
   try {
     const carrinhoParseado = JSON.parse(salvo);
 
     if (Array.isArray(carrinhoParseado)) {
       setCarrinho(carrinhoParseado);
+    } else {
+      setCarrinho([]);
     }
   } catch (error) {
     console.log("Erro ao carregar carrinho:", error);
-    localStorage.removeItem("carrinho");
+    setCarrinho([]);
   }
-}, []);
+}, [user]);
+
+
 
 useEffect(() => {
   if (typeof window === "undefined") return;
-
   if (!Array.isArray(carrinho)) return;
 
-  if (carrinho.length === 0) {
-    localStorage.removeItem("carrinho");
-    return;
+  try {
+    // 🔐 usuário logado
+    if (user?.uid) {
+      localStorage.setItem(
+        `carrinho_${user.uid}`,
+        JSON.stringify(carrinho)
+      );
+    } 
+    // 🔓 visitante
+    else {
+      localStorage.setItem(
+        "carrinho",
+        JSON.stringify(carrinho)
+      );
+    }
+  } catch (error) {
+    console.log("Erro ao salvar carrinho:", error);
   }
-
-  localStorage.setItem("carrinho", JSON.stringify(carrinho));
-}, [carrinho]);
+}, [carrinho, user]);
 
 
 // 🔥 CUPONS
@@ -1270,34 +1297,52 @@ useEffect(() => {
     setUser(u);
     setAuthReady(true);
 
+    // 🔓 DESLOGADO
     if (!u) {
       console.log("❌ usuário não logado");
+
+      setUser(null);
+
+      // 🔥 carrinho guest
+      const carrinhoSalvo = localStorage.getItem("carrinho");
+
+      if (carrinhoSalvo) {
+        try {
+          setCarrinho(JSON.parse(carrinhoSalvo));
+        } catch {
+          setCarrinho([]);
+        }
+      } else {
+        setCarrinho([]);
+      }
+
+      // 🔥 limpa dados do cliente
+      setClienteNome("");
+      setClienteTelefone("");
+      setClienteCpf("");
+      setClienteEmail("");
+      setClienteEndereco("");
+      setClienteNumeroCasa("");
+      setClienteCep("");
+      setClienteBairro("");
+
       return;
     }
 
     try {
-
       const ref = doc(db, "usuarios", u.uid);
-
-      console.log("📂 PATH:", ref.path);
 
       const snap = await getDoc(ref);
 
-      console.log("📦 EXISTS:", snap.exists());
-      console.log("📊 DADOS:", snap.data());
-
-      // 🔥 SE NÃO EXISTIR → CRIA USUÁRIO
+      // 🔥 cria usuário se não existir
       if (!snap.exists()) {
         await setDoc(ref, {
           uid: u.uid,
           clienteNome: u.displayName || "",
           clienteEmail: u.email || ""
         });
-
-        console.log("✅ USUÁRIO CRIADO NO FIRESTORE");
       }
 
-      // 🔥 AGORA SIM PEGA OS DADOS
       const snapAtualizado = await getDoc(ref);
       const dados = snapAtualizado.data();
 
@@ -1310,6 +1355,46 @@ useEffect(() => {
       setClienteCep(dados.clienteCep || "");
       setClienteBairro(dados.clienteBairro || "");
 
+      // 🔥 carrinho do usuário
+      let carrinhoUser = [];
+
+      const carrinhoSalvoUser = localStorage.getItem(`carrinho_${u.uid}`);
+
+      if (carrinhoSalvoUser) {
+        try {
+          carrinhoUser = JSON.parse(carrinhoSalvoUser);
+        } catch {
+          carrinhoUser = [];
+        }
+      }
+
+      // 🔥 carrinho guest
+      let carrinhoGuest = [];
+
+      const carrinhoGuestSalvo = localStorage.getItem("carrinho");
+
+      if (carrinhoGuestSalvo) {
+        try {
+          carrinhoGuest = JSON.parse(carrinhoGuestSalvo);
+        } catch {
+          carrinhoGuest = [];
+        }
+      }
+
+      // 🔥 JUNTA OS DOIS (sem perder nada)
+      const carrinhoFinal = [...carrinhoGuest, ...carrinhoUser];
+
+      setCarrinho(carrinhoFinal);
+
+      // 🔥 salva já unificado no usuário
+      localStorage.setItem(
+        `carrinho_${u.uid}`,
+        JSON.stringify(carrinhoFinal)
+      );
+
+      // 🔥 limpa guest
+      localStorage.removeItem("carrinho");
+
     } catch (e) {
       console.log("🔥 ERRO FIRESTORE:", e);
     }
@@ -1318,6 +1403,16 @@ useEffect(() => {
 
   return () => unsubscribe();
 }, []);
+
+
+useEffect(() => {
+  if (!user) return;
+
+  localStorage.setItem(
+    `carrinho_${user.uid}`,
+    JSON.stringify(carrinho)
+  );
+}, [carrinho, user]);
 
 useEffect(() => {
   if (!mostrarPagamento) return;
@@ -1341,15 +1436,6 @@ useEffect(() => {
   }
 
   carregarCupons();
-}, []);
-
-// SALVAR SO NO CLIENTS
-
-useEffect(() => {
-  const saved = localStorage.getItem("carrinho");
-  if (saved) {
-    setCarrinho(JSON.parse(saved));
-  }
 }, []);
 
 
@@ -3202,14 +3288,6 @@ return (
 
 
 
-  
-
-
-
-  
-
-
-  
 
 // CONTAINER ///
 <div style={{
@@ -6764,12 +6842,28 @@ return (
         <div style={{ flexShrink: 0 }}>
           {user ? (
             <button
-              onClick={async () => {
-                await signOut(auth);
-                setUser(null);
-                setAba("home");
-                setStep(1);
-              }}
+  onClick={async () => {
+  try {
+    await signOut(auth);
+
+    // 🔥 limpa estado
+    setUser(null);
+    setCarrinho([]);
+
+    // 🔥 limpa storage
+    localStorage.removeItem("carrinho");
+    localStorage.removeItem("pedidoAtual");
+
+    // 🔥 redireciona (sem reload)
+    setAba("home");
+    setStep(1);
+
+  } catch (e) {
+    console.log("Erro ao sair:", e);
+  }
+}}
+
+             
               style={{
                 height: 40,
                 padding: "0 14px",
