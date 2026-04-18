@@ -3193,7 +3193,10 @@ const enviarWhatsApp = async (pedido) => {
   });
 };
 
-
+{/* 🔥 CALCULO FRETE GRATIS */}
+const LIMITE_FRETE = 3000; // 30 reais
+const subtotalAtual = subtotalProdutos || 0;
+const faltaFrete = LIMITE_FRETE - subtotalAtual;
 
 return (
 
@@ -8643,7 +8646,8 @@ const corStatus =
         </div>
       </div>
 
-   {/* BOTÃO FIXO FINAL */}
+  
+{/* BOTÃO FIXO FINAL */}
 <div
   style={{
     position: "fixed",
@@ -8672,31 +8676,39 @@ const corStatus =
     >
       <button
         onClick={async () => {
-  if (!formaPagamento) {
-    mostrarToast("Escolha uma forma de pagamento", "erro");
-    return;
-  }
+          if (!tipoEntrega) {
+            mostrarToast("Escolha entrega ou retirada", "erro");
+            return;
+          }
 
-  if (formaPagamento === "pix") {
-    setQrBase64(null);
-    setQrCode(null);
-    setPaymentId(null);
-    setMostrarPagamento(true);
-    return;
-  }
+          if (!formaPagamento) {
+            mostrarToast("Escolha uma forma de pagamento", "erro");
+            return;
+          }
 
-  if (formaPagamento === "cartao_online") {
-  await finalizarPedido();
-  return;
-}
+          if (formaPagamento === "pix") {
+            setQrBase64(null);
+            setQrCode(null);
+            setPaymentId(null);
+            setMostrarPagamento(true);
+            return;
+          }
 
-  finalizarPedido();
-}}
+          if (formaPagamento === "cartao_online") {
+            await finalizarPedido();
+            return;
+          }
+
+          await finalizarPedido();
+        }}
         style={{
-          display: "block",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
           width: "100%",
-          height: isMobile ? 44 : 40,
-          borderRadius: 12,
+          height: isMobile ? 54 : 48,
+          borderRadius: 14,
           background: "#ea1d2c",
           color: "#fff",
           border: "none",
@@ -8704,14 +8716,33 @@ const corStatus =
           fontSize: isMobile ? 14 : 13,
           cursor: "pointer",
           boxShadow: "0 4px 12px rgba(234,29,44,0.16)",
-          boxSizing: "border-box"
+          boxSizing: "border-box",
+          padding: "6px 10px",
+          lineHeight: 1.2
         }}
       >
-        Finalizar pedido • {formatarReal(totalFinalComFrete)}
+        {/* TEXTO PRINCIPAL */}
+        <span>
+          Finalizar pedido • {formatarReal(totalFinalComFrete)}
+        </span>
+
+        {/* FRETE GRATIS */}
+        {tipoEntrega === "entrega" && faltaFrete > 0 && (
+          <span style={{ fontSize: 11 }}>
+            Falta {formatarReal(faltaFrete)} para frete grátis
+          </span>
+        )}
+
+        {tipoEntrega === "entrega" && faltaFrete <= 0 && (
+          <span style={{ fontSize: 11, color: "#bfffd0" }}>
+            Frete grátis liberado
+          </span>
+        )}
       </button>
     </div>
   </div>
 </div>
+  
     </div>
   </>
 )}
