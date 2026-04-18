@@ -5749,36 +5749,39 @@ return (
                       {/* AÇÃO */}
                       {opcaoUnica ? (
                         <button
-                          onClick={() => {
-                            setExtrasSelecionados((prev) => ({
-                              ...prev,
-                              [grupo.categoria]: [{ ...item, qtd: 1 }]
-                            }));
-                          }}
-                          style={{
-                            width: 15,
-                            height: 0,
-                            borderRadius: "40%",
-                            border: "1px solid #e2e2e2",
-                            background: "#fff",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                            cursor: "pointer"
-                          }}
-                        >
-                          {ativo && (
-                            <div
-                              style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: "50%",
-                                background: "#ea1d2c"
-                              }}
-                            />
-                          )}
-                        </button>
+  onClick={() => {
+    setExtrasSelecionados((prev) => ({
+      ...prev,
+      [grupo.categoria]: [{ ...item, qtd: 1 }]
+    }));
+  }}
+  style={{
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    border: ativo ? "2px solid #ea1d2c" : "2px solid #e2e2e2",
+    background: ativo ? "#ea1d2c" : "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    cursor: "pointer",
+    transition: "all 0.15s ease"
+  }}
+>
+  {ativo && (
+    <span
+      style={{
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+        lineHeight: 1
+      }}
+    >
+      ✓
+    </span>
+  )}
+</button>
                       ) : qtd > 0 ? (
                         <div
                           style={{
