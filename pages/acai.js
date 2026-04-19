@@ -84,6 +84,10 @@ import {
   CircleDollarSign,
   Store,
   Gift,
+  Phone,
+  Mail,
+  Ticket,
+  TicketPercent,
   CheckCircle
   
 } from "lucide-react";
@@ -7492,139 +7496,165 @@ return (
     </div>
 
     <div style={{ padding: 16 }}>
-      {/* PERFIL */}
+    { /* PERFIL */}
+<div
+  style={{
+    background: "#fff",
+    borderRadius: 16,
+    padding: 14,
+    boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+    marginBottom: 12,
+    display: "flex",
+    alignItems: "center",
+    gap: 12
+  }}
+>
+  {/* AVATAR */}
+  <div
+    style={{
+      width: 48,
+      height: 48,
+      borderRadius: "50%",
+      background: "#ea1d2c",
+      color: "#fff",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 18,
+      fontWeight: 700,
+      flexShrink: 0
+    }}
+  >
+    {(clienteNome || "U").trim().charAt(0).toUpperCase()}
+  </div>
+
+  {/* INFO */}
+  <div style={{ minWidth: 0 }}>
+    <div
+      style={{
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#111"
+      }}
+    >
+      {clienteNome || "Cliente"}
+    </div>
+
+    <div
+      style={{
+        fontSize: 12,
+        color: "#777",
+        marginTop: 2,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }}
+    >
+      {clienteEmail || "Sem email cadastrado"}
+    </div>
+  </div>
+</div>
+
+{/* MENU */}
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+    marginBottom: 12
+  }}
+>
+  {[
+    {
+      id: "dados",
+      titulo: "Meus dados",
+      desc: "Nome e telefone",
+      icon: <User size={16} />
+    },
+    {
+      id: "cupons",
+      titulo: "Cupons",
+      desc: "Descontos disponíveis",
+      icon: <Ticket size={16} />
+    },
+    {
+      id: "loja",
+      titulo: "Informações da loja",
+      desc: "Detalhes da loja",
+      icon: <Store size={16} />
+    }
+  ].map(item => {
+    const ativo = abaPerfil === item.id;
+
+    return (
       <div
+        key={item.id}
+        onClick={() => setAbaPerfil(item.id)}
         style={{
-          background: "#fff",
-          borderRadius: 20,
-          padding: 18,
-          boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
-          marginBottom: 16,
+          background: ativo ? "#fff5f5" : "#fff",
+          borderRadius: 14,
+          padding: "12px",
+          boxShadow: ativo
+            ? "0 4px 12px rgba(234,29,44,0.08)"
+            : "0 2px 8px rgba(0,0,0,0.04)",
+          border: ativo
+            ? "1px solid #f3b1b7"
+            : "1px solid #eee",
+          cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          gap: 14
+          justifyContent: "space-between",
+          gap: 10,
+          transition: "all 0.2s ease"
         }}
       >
-        <div
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: "50%",
-            background: "#ea1d2c",
-            color: "#fff",
+        {/* ESQUERDA */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10
+        }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            background: ativo ? "#fde2e4" : "#f3f4f6",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 26,
-            fontWeight: "bold",
-            boxShadow: "0 6px 18px rgba(234,29,44,0.18)",
-            flexShrink: 0
-          }}
-        >
-          {(clienteNome || "U").trim().charAt(0).toUpperCase()}
-        </div>
+            color: ativo ? "#ea1d2c" : "#666"
+          }}>
+            {item.icon}
+          </div>
 
-        <div style={{ minWidth: 0 }}>
-          <strong
-            style={{
-              display: "block",
-              fontSize: 16,
-              color: "#111"
-            }}
-          >
-            {clienteNome || "Cliente"}
-          </strong>
-
-          <span
-            style={{
-              display: "block",
+          <div>
+            <div style={{
               fontSize: 13,
-              color: "#777",
-              marginTop: 4,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              maxWidth: "100%"
-            }}
-          >
-            {clienteEmail || "Sem email cadastrado"}
-          </span>
-        </div>
-      </div>
-
-      {/* MENU */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          marginBottom: 14
-        }}
-      >
-        {[
-          { id: "dados", titulo: "Meus Dados", desc: "Nome, telefone e dados da conta" }, 
-          { id: "cupons", titulo: "Cupons Disponivel", desc: "Descontos disponíveis" },
-          { id: "loja", titulo: "Informações da loja", desc: "Saiba mais sobre a loja" }
-        ].map(item => {
-          const ativo = abaPerfil === item.id;
-
-          return (
-            <div
-              key={item.id}
-              onClick={() => setAbaPerfil(item.id)}
-              style={{
-                background: ativo ? "#fff8f8" : "#fff",
-                borderRadius: 18,
-                padding: 14,
-                boxShadow: ativo
-                  ? "0 6px 16px rgba(234,29,44,0.08)"
-                  : "0 4px 12px rgba(0,0,0,0.05)",
-                border: ativo ? "1px solid #f3b1b7" : "1px solid #eee",
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 12,
-                transition: "all 0.2s ease"
-              }}
-            >
-              <div>
-                <strong
-                  style={{
-                    display: "block",
-                    fontSize: 14,
-                    color: "#111"
-                  }}
-                >
-                  {item.titulo}
-                </strong>
-
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 12,
-                    color: "#777",
-                    marginTop: 4
-                  }}
-                >
-                  {item.desc}
-                </span>
-              </div>
-
-              <span
-                style={{
-                  fontSize: 20,
-                  color: ativo ? "#ea1d2c" : "#999",
-                  lineHeight: 1,
-                  fontWeight: 700
-                }}
-              >
-                ›
-              </span>
+              fontWeight: 600,
+              color: "#111"
+            }}>
+              {item.titulo}
             </div>
-          );
-        })}
+
+            <div style={{
+              fontSize: 11,
+              color: "#777",
+              marginTop: 2
+            }}>
+              {item.desc}
+            </div>
+          </div>
+        </div>
+
+        {/* DIREITA */}
+        <ChevronRight
+          size={18}
+          color={ativo ? "#ea1d2c" : "#bbb"}
+        />
       </div>
+    );
+  })}
+</div>
 
       {/* CONTEÚDO ATIVO */}
       <div
@@ -7636,204 +7666,290 @@ return (
         }}
       >
         {abaPerfil === "dados" && (
-          <>
-            <strong style={{ fontSize: 16, color: "#111" }}>
-              Meus dados
-            </strong>
+  <>
+    {/* HEADER */}
+    <div style={{
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#111",
+      marginBottom: 10
+    }}>
+      Meus dados
+    </div>
 
-            <div style={{ marginTop: 14 }}>
-              <input
-                style={input}
-                value={clienteNome}
-                onChange={e => setClienteNome(e.target.value)}
-                placeholder="Nome"
-              />
+    {/* NOME */}
+    <div style={{ position: "relative" }}>
+      <User
+        size={16}
+        style={{
+          position: "absolute",
+          left: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "#999"
+        }}
+      />
 
-              <input
-                style={input}
-                value={clienteEmail}
-                disabled
-                placeholder="Email"
-              />
+      <input
+        value={clienteNome}
+        onChange={e => setClienteNome(e.target.value)}
+        placeholder="Nome"
+        style={{
+          width: "100%",
+          height: 38,
+          borderRadius: 10,
+          border: "1px solid #e5e7eb",
+          padding: "0 10px 0 34px",
+          fontSize: 13,
+          outline: "none"
+        }}
+      />
+    </div>
 
-              
+    {/* TELEFONE */}
+    <div style={{ position: "relative", marginTop: 6 }}>
+      <Phone
+        size={16}
+        style={{
+          position: "absolute",
+          left: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "#999"
+        }}
+      />
 
-              <input
-                style={input}
-                value={clienteTelefone}
-                onChange={(e) => {
-                  let v = e.target.value.replace(/\D/g, "").slice(0, 11);
-                  v = v.length <= 10
-                    ? v.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2")
-                    : v.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
-                  setClienteTelefone(v);
-                }}
-                placeholder="Telefone"
-              />
+      <input
+        value={clienteTelefone}
+        onChange={(e) => {
+          let v = e.target.value.replace(/\D/g, "").slice(0, 11);
+          v = v.length <= 10
+            ? v.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2")
+            : v.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
+          setClienteTelefone(v);
+        }}
+        placeholder="Telefone"
+        style={{
+          width: "100%",
+          height: 38,
+          borderRadius: 10,
+          border: "1px solid #e5e7eb",
+          padding: "0 10px 0 34px",
+          fontSize: 13,
+          outline: "none"
+        }}
+      />
+    </div>
 
-              <button
-                onClick={salvarDadosCliente}
-                style={{
-                  ...btn,
-                  padding: "10px 14px",
-                  fontSize: 13,
-                  borderRadius: 12,
-                  width: "fit-content",
-                  marginTop: 4
-                }}
-              >
-                Salvar dados
-              </button>
-            </div>
-          </>
-        )}
+    {/* EMAIL (DISPLAY COM ÍCONE) */}
+    <div style={{
+      marginTop: 6,
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "10px",
+      borderRadius: 10,
+      background: "#f9fafb",
+      fontSize: 13,
+      color: "#555"
+    }}>
+      <Mail size={16} color="#999" />
+      <span>{clienteEmail || "Email"}</span>
+    </div>
+
+    {/* BOTÃO */}
+    <div style={{
+      display: "flex",
+      justifyContent: "flex-end",
+      marginTop: 10
+    }}>
+      <button
+        onClick={salvarDadosCliente}
+        style={{
+          height: 36,
+          padding: "0 14px",
+          borderRadius: 10,
+          border: "none",
+          background: "#111",
+          color: "#fff",
+          fontWeight: 600,
+          fontSize: 13,
+          cursor: "pointer"
+        }}
+      >
+        Salvar
+      </button>
+    </div>
+  </>
+)}
 
       
         {abaPerfil === "cupons" && (
-          <div
-            style={{
-              ...card,
-              borderRadius: 18,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-            }}
-          >
-            <strong style={{ fontSize: 15 }}>Cupons disponíveis</strong>
+  <div
+    style={{
+      ...card,
+      borderRadius: 16,
+      padding: 14,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+    }}
+  >
+    {/* HEADER */}
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 6
+    }}>
+      <TicketPercent size={16} />
+      <strong style={{ fontSize: 14 }}>
+        Cupons disponíveis
+      </strong>
+    </div>
 
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 12,
-                color: "#666"
-              }}
-            >
-              Cada cupom pode ser usado apenas uma vez por cliente.
+    <div style={{
+      fontSize: 12,
+      color: "#777",
+      marginBottom: 6
+    }}>
+      Uso único por cliente
+    </div>
+
+    {/* LISTA */}
+    {cupons
+      .filter(c => c.ativo !== false)
+      .map((c, i) => (
+        <div
+          key={i}
+          style={{
+            marginTop: 8,
+            padding: "12px",
+            borderRadius: 14,
+            background: "#fff",
+            border: "1px dashed #e5e7eb",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10
+          }}
+        >
+          {/* ESQUERDA */}
+          <div style={{ minWidth: 0 }}>
+            <div style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#111"
+            }}>
+              {c.codigo}
             </div>
 
-            {cupons
-              .filter(c => c.ativo !== false)
-              .map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    marginTop: 14,
-                    padding: 14,
-                    borderRadius: 14,
-                    background: "#fff",
-                    border: "1px solid #f1f1f1",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center"
-                    }}
-                  >
-                    <strong
-                      style={{
-                        fontSize: 15,
-                        color: "#111"
-                      }}
-                    >
-                      {c.codigo}
-                    </strong>
-
-                    <span
-                      style={{
-                        fontSize: 12,
-                        background: "#fff0f1",
-                        color: "#ea1d2c",
-                        padding: "4px 10px",
-                        borderRadius: 999,
-                        fontWeight: 700
-                      }}
-                    >
-                      {c.tipo === "porcentagem"
-                        ? `${c.desconto}% OFF`
-                        : formatarReal(c.desconto)}
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 13,
-                      color: "#666"
-                    }}
-                  >
-                    Válido para pedidos selecionados
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 10,
-                      fontSize: 12,
-                      color: "#999"
-                    }}
-                  >
-                    Uso único • Não acumulativo
-                  </div>
-                </div>
-              ))}
-
-            {cupons.filter(c => c.ativo !== false).length === 0 && (
-              <div
-                style={{
-                  marginTop: 20,
-                  textAlign: "center",
-                  color: "#777",
-                  fontSize: 13
-                }}
-              >
-                Nenhum cupom disponível no momento.
-              </div>
-            )}
+            <div style={{
+              fontSize: 11,
+              color: "#777",
+              marginTop: 2
+            }}>
+              Aplicável no pedido
+            </div>
           </div>
-        )}
 
+          {/* DIREITA */}
+          <div style={{
+            background: "#fff1f2",
+            color: "#ea1d2c",
+            fontSize: 12,
+            fontWeight: 700,
+            padding: "6px 10px",
+            borderRadius: 999,
+            whiteSpace: "nowrap"
+          }}>
+            {c.tipo === "porcentagem"
+              ? `${c.desconto}%`
+              : formatarReal(c.desconto)}
+          </div>
+        </div>
+      ))}
+
+    {/* EMPTY */}
+    {cupons.filter(c => c.ativo !== false).length === 0 && (
+      <div style={{
+        marginTop: 14,
+        textAlign: "center",
+        color: "#777",
+        fontSize: 13
+      }}>
+        Nenhum cupom disponível
+      </div>
+    )}
+  </div>
+)}
       
 
         {abaPerfil === "loja" && (
-          <>
-            <strong style={{ fontSize: 16, color: "#111" }}>
-              Informações da loja
-            </strong>
+  <div
+    style={{
+      background: "#fff",
+      borderRadius: 16,
+      padding: 14,
+      border: "1px solid #eee",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+    }}
+  >
+    {/* HEADER */}
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }}>
+      <Store size={16} />
+      <span style={{
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#111"
+      }}>
+        Informações da loja
+      </span>
+    </div>
 
-            <div
-              style={{
-                fontSize: 13,
-                color: "#666",
-                lineHeight: 1.5,
-                marginTop: 10,
-                marginBottom: 12
-              }}
-            >
-              Veja detalhes, horários, informações e apresentação da loja.
-            </div>
+    {/* DESCRIÇÃO */}
+    <div style={{
+      fontSize: 12,
+      color: "#666",
+      marginTop: 6
+    }}>
+      Horários, detalhes e apresentação da loja
+    </div>
 
-            <button
-              onClick={() => {
-                setAba("info");
-                setStep(99);
-              }}
-              style={{
-                padding: "10px 16px",
-                fontSize: 13,
-                borderRadius: 12,
-                background: "#ea1d2c",
-                color: "#fff",
-                border: "none",
-                cursor: "pointer",
-                fontWeight: "bold",
-                width: "fit-content"
-              }}
-            >
-              Ver loja
-            </button>
-          </>
-        )}
-      </div>
+    {/* BOTÃO */}
+    <div
+      onClick={() => {
+        setAba("info");
+        setStep(99);
+      }}
+      style={{
+        marginTop: 10,
+        padding: "12px",
+        borderRadius: 12,
+        background: "#fff5f5",
+        border: "1px solid #f3b1b7",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        cursor: "pointer",
+        transition: "all .2s ease"
+      }}
+    >
+      <span style={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: "#ea1d2c"
+      }}>
+        Ver loja
+      </span>
+
+      <ChevronRight size={18} color="#ea1d2c" />
+    </div>
+  </div>
+)}
+</div>
    
 {toast && (
   <div
@@ -9549,9 +9665,8 @@ const corStatus =
           color: "#555",
           lineHeight: 1.6
         }}>
-          <div>Sábado e Domingo: 18h às 22h00</div>
-          <div>Sexta-feira: 18h30 às 22h00</div>
-          
+          <div>Sexta-feira: 18:30h às 23:00h</div>
+          <div>Sábado e Domingo: 18:00h às 23:00h</div>
         </div>
       </div>
 
