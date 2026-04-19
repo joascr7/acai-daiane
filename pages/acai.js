@@ -3454,7 +3454,7 @@ const enviarWhatsApp = async (pedido) => {
 
   // 🔥 TOPO DESTACADO
   if (temGratis) {
-    mensagem += `🎉 *PEDIDO COM AÇAÍ GRÁTIS (FIDELIDADE)*\n\n`;
+    mensagem += ` *PEDIDO COM AÇAÍ GRÁTIS (FIDELIDADE)*\n\n`;
   }
 
   // 🛒 ITENS
@@ -3474,7 +3474,7 @@ const enviarWhatsApp = async (pedido) => {
 
     // 🔥 MARCA ITEM GRÁTIS
     if (isGratis) {
-      mensagem += `🎁 *AÇAÍ GRÁTIS (FIDELIDADE)*\n`;
+      mensagem += ` *AÇAÍ GRÁTIS (FIDELIDADE)*\n`;
     }
 
     if (Array.isArray(item?.extras) && item.extras.length > 0) {
@@ -6749,7 +6749,7 @@ return (
       fontWeight: 700,
       color: pontosFidelidade >= 10 ? "#16a34a" : "#666"
     }}>
-      {pontosFidelidade}/10
+      {user?.uid ? pontosFidelidade : 0}/10
     </div>
   </div>
 
@@ -7498,6 +7498,9 @@ return (
         await signOut(auth);
         setUser(null);
         setCarrinho([]);
+        // 🔥PEDIDOS E RESET FIDELIDADE
+        setPedidos([]);
+        setPontosFidelidade(0);
         localStorage.removeItem("carrinho");
         localStorage.removeItem("pedidoAtual");
         setAba("home");
