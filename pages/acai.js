@@ -4759,51 +4759,52 @@ return (
             )}
 
             <div
-              onClick={() => {
-                setAba("notificacao");
-                setStep(7);
-              }}
-              style={{
-                position: "relative",
-                width: 50,
-                height: 50,
-                borderRadius: "50%",
-                background: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-              }}
-            >
-              <Bell size={23} color="#111" />
+  onClick={() => {
+    setAba("notificacao");
+    setStep(7);
+  }}
+  style={{
+    position: "relative",
+    width: 36,
+    height: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer"
+  }}
+>
+  {/* 🔔 ÍCONE */}
+  <Bell
+    size={22}
+    strokeWidth={2.2}
+    color={temNotificacaoAtiva ? "#ea1d2c" : "#333"}
+  />
 
-              {temNotificacaoAtiva && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 5,
-                    right: 5,
-                    minWidth: 20,
-                    height: 20,
-                    borderRadius: 999,
-                    background: "#ea1d2c",
-                    color: "#fff",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 0 0 3px #f5f5f5",
-                    padding: "0 5px"
-                  }}
-                >
-                  {notificacoes.filter((n) => !n?.lida).length > 0
-                    ? notificacoes.filter((n) => !n?.lida).length
-                    : 1}
-                </div>
-              )}
-            </div>
+  {/* 🔥 BADGE */}
+  {temNotificacaoAtiva && (
+  <div
+    style={{
+      position: "absolute",
+      top: -2,
+      right: -2,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 999,
+      background: "#ea1d2c",
+      color: "#fff",
+      fontSize: 9,
+      fontWeight: 700,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "0 4px"
+    }}
+  >
+    {notificacoes.filter(n => !n?.lida).length}
+  </div>
+)}
+</div>
+              
           </div>
         </div>
 
