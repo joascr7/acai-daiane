@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 import {
   createUserWithEmailAndPassword,
@@ -128,6 +129,44 @@ function formatarTelefone(valor) {
   }
 
   return v;
+}
+
+
+
+async function recuperarSenha() {
+  try {
+    setErro("");
+
+    // 🔥 validação simples
+    if (!email) {
+      setErro("Digite seu e-mail para recuperar a senha.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setErro("Digite um e-mail válido.");
+      return;
+    }
+
+    // 🔥 envia email
+    await sendPasswordResetEmail(auth, email);
+
+    setErro("Email de recuperação enviado.");
+  } catch (e) {
+    console.log(e);
+
+    let mensagem = "Erro ao enviar recuperação.";
+
+    if (e.code === "auth/user-not-found") {
+      mensagem = "E-mail não encontrado.";
+    }
+
+    if (e.code === "auth/invalid-email") {
+      mensagem = "E-mail inválido.";
+    }
+
+    setErro(mensagem);
+  }
 }
 
 async function entrar() {
@@ -441,6 +480,21 @@ return (
       }}
       style={inputPremium}
     />
+
+
+    <div
+  onClick={recuperarSenha}
+  style={{
+    marginTop: 8,
+    textAlign: "right",
+    fontSize: 13,
+    color: "#ea1d2c",
+    fontWeight: 600,
+    cursor: "pointer"
+  }}
+>
+  Esqueci minha senha
+</div>
 
     <button onClick={entrar} style={btnPrimary}>
       {loading ? "Entrando..." : "Entrar"}
