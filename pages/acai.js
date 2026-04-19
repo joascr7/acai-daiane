@@ -5990,10 +5990,10 @@ return (
     }));
   }}
   style={{
-    width: 4,
-    height: 4,
+    width: 1,
+    height: 1,
     borderRadius: 6,
-    border: ativo ? "2px solid #ea1d2c" : "2px solid #ddd",
+    border: ativo ? "1px solid #ea1d2c" : "1px solid #ddd",
     background: ativo ? "#ea1d2c" : "#fff",
     display: "flex",
     alignItems: "center",
