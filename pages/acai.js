@@ -2454,17 +2454,38 @@ async function salvarDadosCliente() {
 
 // 🔥 buscar cep
 const buscarCEP = async (cep) => {
-  const cepLimpo = cep.replace(/\D/g, "");
-
-  if (cepLimpo.length !== 8) return;
-
   try {
+    // 🔥 PROTEÇÃO: evita crash deslogado
+    if (!user?.uid) {
+      setToast({
+        tipo: "erro",
+        texto: "Faça login para preencher o endereço"
+      });
+
+      setTimeout(() => setToast(null), 3000);
+      return;
+    }
+
+    const cepLimpo = cep.replace(/\D/g, "");
+
+    if (cepLimpo.length !== 8) return;
+
     setLoadingCep(true);
 
     const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+
+    // 🔥 PROTEÇÃO: evita erro de rede
+    if (!res.ok) {
+      throw new Error("Erro na requisição");
+    }
+
     const data = await res.json();
 
-    if (data.erro) {
+    // 🔥 PROTEÇÃO: valida retorno
+    if (!data || data.erro) {
+      setClienteEndereco("");
+      setClienteBairro("");
+
       setToast({
         tipo: "erro",
         texto: "CEP não encontrado"
@@ -2474,6 +2495,7 @@ const buscarCEP = async (cep) => {
       return;
     }
 
+    // 🔥 SETA DADOS COM SEGURANÇA
     setClienteCep(cepLimpo);
     setClienteEndereco(data.logradouro || "");
     setClienteBairro(data.bairro || "");
@@ -2487,6 +2509,9 @@ const buscarCEP = async (cep) => {
 
   } catch (e) {
     console.log("ERRO CEP:", e);
+
+    setClienteEndereco("");
+    setClienteBairro("");
 
     setToast({
       tipo: "erro",
@@ -6169,33 +6194,49 @@ return (
     </div>
 
     {/* BOTÃO */}
-    <button
-      onClick={adicionarCarrinho}
-      disabled={!podeContinuar}
-      style={{
-        flex: 1,
-        height: isMobile ? 52 : 54,
-        borderRadius: 12,
-        background: podeContinuar ? "#ea1d2c" : "#e8e8e8",
-        color: podeContinuar ? "#fff" : "#a8a8a8",
-        border: "none",
-        fontWeight: 800,
-        fontSize: isMobile ? 14 : 16,
-        cursor: podeContinuar ? "pointer" : "not-allowed",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: isMobile ? "0 16px" : "0 18px",
-        boxSizing: "border-box",
-        maxWidth: isMobile ? "100%" : 790
-      }}
-    >
-      <span>Adicionar</span>
+<button
+  onClick={() => {
+    // 🔥 PROTEÇÃO LOGIN
+    if (!user?.uid) {
+      setAba("perfil");
+      setStep(4);
 
-      <span style={{ fontWeight: 900 }}>
-        {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
-      </span>
-    </button>
+      setToast({
+        tipo: "erro",
+        texto: "Faça login para continuar"
+      });
+
+      return;
+    }
+
+    adicionarCarrinho();
+  }}
+  disabled={!podeContinuar}
+  style={{
+    flex: 1,
+    height: isMobile ? 48 : 50,
+    borderRadius: 12,
+    background: podeContinuar ? "#ea1d2c" : "#e8e8e8",
+    color: podeContinuar ? "#fff" : "#a8a8a8",
+    border: "none",
+    fontWeight: 800,
+    fontSize: 14,
+    cursor: podeContinuar ? "pointer" : "not-allowed",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: isMobile ? "0 14px" : "0 16px",
+    boxSizing: "border-box",
+    maxWidth: isMobile ? "100%" : 790,
+    transition: "all .2s ease"
+  }}
+>
+  <span>Adicionar</span>
+
+  <span style={{ fontWeight: 900 }}>
+    {formatarReal((Number(produto?.preco || 0) + totalExtras) * quantidade)}
+  </span>
+</button>
   </div>
   </div>
 </div>
@@ -6868,8 +6909,8 @@ return (
         )}
 
 
-          {/* 🔥 ENDEREÇO ADICIONADO */}
-        <div
+         {/* 🔥 ENDEREÇO */}
+<div
   style={{
     marginTop: 16,
     background: "#fff",
@@ -6896,18 +6937,43 @@ return (
     </span>
   </div>
 
-  {/* LINHA 1: CEP + Nº */}
-  <div style={{
-    display: "flex",
-    gap: 6
-  }}>
+  {/* 🔥 AVISO DESLOGADO */}
+  {!user?.uid && (
+    <div style={{
+      fontSize: 12,
+      color: "#777",
+      marginBottom: 8
+    }}>
+      Faça login para preencher o endereço
+    </div>
+  )}
+
+  {/* LINHA 1 */}
+  <div style={{ display: "flex", gap: 6 }}>
     <div style={{ flex: 1, position: "relative" }}>
       <input
         value={clienteCep}
+        disabled={!user?.uid}
         onChange={(e) => {
           const v = e.target.value.replace(/\D/g, "").slice(0, 8);
           setClienteCep(v);
-          if (v.length === 8) buscarCEP(v);
+
+          // 🔥 PROTEÇÃO LOGIN
+          if (v.length === 8) {
+            if (!user?.uid) {
+              setAba("perfil");
+              setStep(4);
+
+              setToast({
+                tipo: "erro",
+                texto: "Faça login para preencher o endereço"
+              });
+
+              return;
+            }
+
+            buscarCEP(v);
+          }
         }}
         placeholder="CEP"
         style={{
@@ -6917,11 +6983,11 @@ return (
           border: "1px solid #e5e7eb",
           padding: "0 34px 0 10px",
           fontSize: 13,
-          outline: "none"
+          outline: "none",
+          background: !user?.uid ? "#f5f5f5" : "#fff"
         }}
       />
 
-      {/* ÍCONE CEP */}
       <Search
         size={14}
         style={{
@@ -6936,6 +7002,7 @@ return (
 
     <input
       value={clienteNumeroCasa}
+      disabled={!user?.uid}
       onChange={(e) => setClienteNumeroCasa(e.target.value)}
       placeholder="Nº"
       style={{
@@ -6946,19 +7013,20 @@ return (
         padding: "0 8px",
         fontSize: 13,
         outline: "none",
-        textAlign: "center"
+        textAlign: "center",
+        background: !user?.uid ? "#f5f5f5" : "#fff"
       }}
     />
   </div>
 
-  {/* LINHA 2: ENDEREÇO + BAIRRO */}
+  {/* LINHA 2 */}
   <div style={{
     marginTop: 6,
     fontSize: 13,
     color: "#444",
     lineHeight: 1.4
   }}>
-    {clienteEndereco || clienteBairro ? (
+    {(clienteEndereco || clienteBairro) ? (
       <>
         <div style={{ fontWeight: 600 }}>
           {clienteEndereco || "Rua"}
