@@ -5989,8 +5989,8 @@ return (
     }));
   }}
   style={{
-    width: 22,
-    height: 22,
+    width: 4,
+    height: 4,
     borderRadius: 6,
     border: ativo ? "2px solid #ea1d2c" : "2px solid #ddd",
     background: ativo ? "#ea1d2c" : "#fff",
