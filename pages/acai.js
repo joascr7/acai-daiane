@@ -5818,60 +5818,58 @@ return (
 
           return (
             <div key={grupo.categoria} style={{ marginTop: 10 }}>
-              {/* HEADER DO GRUPO */}
-              <div
-                style={{
-                  background: "#f3f3f3",
-                  padding: "16px 20px",
-                  borderTop: "1px solid #ececec",
-                  borderBottom: "1px solid #ececec",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 800,
-                      color: "#666",
-                      lineHeight: 1.2
-                    }}
-                  >
-                    {grupo.categoria}
-                  </div>
+             {/* HEADER DO GRUPO */}
+<div
+  style={{
+    background: "#f7f7f7",
+    padding: "12px 14px",
+    borderTop: "1px solid #ececec",
+    borderBottom: "1px solid #ececec",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 10
+  }}
+>
+  <div>
+    <div
+      style={{
+        fontSize: 14,
+        fontWeight: 700,
+        color: "#555"
+      }}
+    >
+      {grupo.categoria}
+    </div>
 
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 13,
-                      color: "#7a7a7a"
-                    }}
-                  >
-                    {opcaoUnica
-                      ? "Escolha 1 opção"
-                      : `Escolha até ${grupo.max} opções`}
-                  </div>
-                </div>
+    <div
+      style={{
+        marginTop: 4,
+        fontSize: 12,
+        color: "#888"
+      }}
+    >
+      {opcaoUnica
+        ? "Escolha 1 opção"
+        : `Até ${grupo.max} opções`}
+    </div>
+  </div>
 
-                {Number(grupo.min || 0) > 0 && (
-                  <div
-                    style={{
-                      background: "#111",
-                      color: "#fff",
-                      fontSize: 11,
-                      fontWeight: 800,
-                      padding: "8px 12px",
-                      borderRadius: 10,
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    OBRIGATÓRIO
-                  </div>
-                )}
-              </div>
+  {Number(grupo.min || 0) > 0 && (
+    <div
+      style={{
+        background: "#111",
+        color: "#fff",
+        fontSize: 10,
+        fontWeight: 800,
+        padding: "6px 10px",
+        borderRadius: 8
+      }}
+    >
+      Obrigatório
+    </div>
+  )}
+</div>
 
               {/* ITENS */}
               <div style={{ background: "#fff" }}>
@@ -5891,7 +5889,7 @@ return (
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: 12,
-                        padding: "18px 20px",
+                        padding: "12px 14px",
                         borderBottom:
                           index !== grupo.itens.length - 1
                             ? "1px solid #efefef"
@@ -5907,8 +5905,8 @@ return (
                       >
                         <div
                           style={{
-                            fontSize: 16,
-                            fontWeight: 500,
+                            fontSize: 14,
+                            fontWeight: 600,
                             color: "#111",
                             lineHeight: 1.25
                           }}
@@ -5920,8 +5918,8 @@ return (
                           <div
                             style={{
                               marginTop: 4,
-                              fontSize: 13,
-                              color: "#777",
+                              fontSize: 12,
+                              color: "#888",
                               lineHeight: 1.35
                             }}
                           >
@@ -5933,8 +5931,8 @@ return (
                           <div
                             style={{
                               marginTop: 5,
-                              fontSize: 14,
-                              color: "#666"
+                              fontSize: 12,
+                              color: "#777"
                             }}
                           >
                             + {formatarReal(item.preco)}
@@ -5947,9 +5945,9 @@ return (
                         <img
                           src={item.imagem}
                           style={{
-                            width: 82,
-                            height: 82,
-                            borderRadius: 12,
+                            width: 64,
+                            height: 64,
+                            borderRadius: 10,
                             objectFit: "cover",
                             flexShrink: 0
                           }}
@@ -5958,7 +5956,7 @@ return (
 
                       {/* AÇÃO */}
                       {opcaoUnica ? (
-                        <button
+<button
   onClick={() => {
     setExtrasSelecionados((prev) => ({
       ...prev,
@@ -5966,28 +5964,20 @@ return (
     }));
   }}
   style={{
-    width: 11,
-    height: 11,
+    width: 22,
+    height: 22,
     borderRadius: 6,
-    border: ativo ? "2px solid #ea1d2c" : "2px solid #e2e2e2",
+    border: ativo ? "2px solid #ea1d2c" : "2px solid #ddd",
     background: ativo ? "#ea1d2c" : "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    cursor: "pointer",
-    transition: "all 0.15s ease"
+    cursor: "pointer"
   }}
 >
   {ativo && (
-    <span
-      style={{
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold",
-        lineHeight: 1
-      }}
-    >
+    <span style={{ color: "#fff", fontSize: 14 }}>
       ✓
     </span>
   )}
@@ -6006,13 +5996,13 @@ return (
                               alterarExtra(grupo.categoria, item, -1, grupo.max)
                             }
                             style={{
-                              width: 32,
-                              height: 32,
+                              width: 28,
+                              height: 28,
                               borderRadius: 8,
                               border: "1px solid #e0e0e0",
                               background: "#fff",
                               color: "#b6b6b6",
-                              fontSize: 22,
+                              fontSize: 18,
                               lineHeight: 1,
                               display: "flex",
                               alignItems: "center",
@@ -6042,13 +6032,13 @@ return (
                             }}
                             disabled={!podeAdicionar}
                             style={{
-                              width: 32,
-                              height: 32,
+                              width: 28,
+                              height: 28,
                               borderRadius: 8,
                               border: "none",
                               background: "#fff",
                               color: "#ea1d2c",
-                              fontSize: 24,
+                              fontSize: 18,
                               lineHeight: 1,
                               display: "flex",
                               alignItems: "center",
@@ -6068,13 +6058,13 @@ return (
                           }}
                           disabled={!podeAdicionar}
                           style={{
-                            width: 32,
-                            height: 32,
+                            width: 28,
+                            height: 28,
                             borderRadius: 8,
                             border: "none",
                             background: "#fff",
                             color: "#ea1d2c",
-                            fontSize: 26,
+                            fontSize: 18,
                             lineHeight: 1,
                             display: "flex",
                             alignItems: "center",
@@ -6128,7 +6118,7 @@ return (
     <div
       style={{
         width: isMobile ? 110 : 118,
-        height: isMobile ? 52 : 54,
+        height: isMobile ? 48 : 54,
         borderRadius: 14,
         background: "#fff",
         border: "1px solid #e8e8e8",
@@ -6185,12 +6175,12 @@ return (
       style={{
         flex: 1,
         height: isMobile ? 52 : 54,
-        borderRadius: 14,
+        borderRadius: 12,
         background: podeContinuar ? "#ea1d2c" : "#e8e8e8",
         color: podeContinuar ? "#fff" : "#a8a8a8",
         border: "none",
         fontWeight: 800,
-        fontSize: isMobile ? 15 : 16,
+        fontSize: isMobile ? 14 : 16,
         cursor: podeContinuar ? "pointer" : "not-allowed",
         display: "flex",
         alignItems: "center",
