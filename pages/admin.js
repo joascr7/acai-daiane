@@ -5834,125 +5834,153 @@ if (loadingAuth) {
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
           .slice(0, 10)
           .map((p) => {
-            const status = p.status || "novo";
+  const status = p.status || "novo";
 
-            const cores = {
-              novo: "#888",
-              preparando: "orange",
-              saiu: "#00b0ff",
-              entregue: "#00c853"
-            };
+  const cores = {
+    novo: "#888",
+    preparando: "orange",
+    saiu: "#00b0ff",
+    entregue: "#00c853"
+  };
 
-            return (
-              <div
-                key={p.id}
-                style={{
-                  borderLeft: `5px solid ${cores[status]}`,
-                  marginBottom: 15,
-                  background: "#ffffff",
-                  borderRadius: 16,
-                  padding: 14,
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
-                  border: "1px solid #ececec",
-                  color: "#111"
-                }}
-              >
-                <div style={{ marginBottom: 8 }}>
-                  <strong>{p.cliente?.nome || "Cliente"}</strong><br />
-                  <small>📞 {p.cliente?.telefone}</small><br />
-                  <small>
-                    📍 {p.cliente?.endereco}, {p.cliente?.numero}
-                  </small>
-                </div>
+  // 🔥 DETECTA FIDELIDADE
+  const temFidelidade = Array.isArray(p.itens)
+    && p.itens.some(item => item.gratis);
 
-                <p style={{ margin: "8px 0" }}>
-                  Código: <strong>{p.codigo || "—"}</strong>
-                </p>
+  return (
+    <div
+      key={p.id}
+      style={{
+        borderLeft: `5px solid ${temFidelidade ? "#16a34a" : cores[status]}`,
+        marginBottom: 15,
+        background: temFidelidade ? "#f0fdf4" : "#ffffff",
+        borderRadius: 16,
+        padding: 14,
+        boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+        border: temFidelidade
+          ? "1px solid #bbf7d0"
+          : "1px solid #ececec",
+        color: "#111"
+      }}
+    >
 
-                {Array.isArray(p.itens) && p.itens.length > 0 ? (
-                  p.itens.map((item, idx) => (
-                    <div key={idx} style={{ marginBottom: 6 }}>
-                      <p style={{ margin: "4px 0" }}>
-                        <strong>
-                          {item.produto?.nome || item.nome || "Açaí"} (x{item.quantidade || 1})
-                        </strong>
-                      </p>
+      {/* 🔥 BADGE */}
+      {temFidelidade && (
+        <div style={{
+          background: "#16a34a",
+          color: "#fff",
+          padding: "4px 10px",
+          borderRadius: 999,
+          fontSize: 11,
+          fontWeight: 700,
+          display: "inline-block",
+          marginBottom: 8
+        }}>
+          🎁 Fidelidade
+        </div>
+      )}
 
-                      {Array.isArray(item.extras) && item.extras.map((e, i) => (
-                        <p key={i} style={{ fontSize: 12, opacity: 0.7, margin: "2px 0" }}>
-                          + {e.nome}
-                        </p>
-                      ))}
-                    </div>
-                  ))
-                ) : (
-                  <p style={{ margin: "4px 0" }}>
-                    <strong>
-                      {p.produto?.nome || "Açaí"} (x{p.quantidade || 1})
-                    </strong>
-                  </p>
-                )}
+      <div style={{ marginBottom: 8 }}>
+        <strong>{p.cliente?.nome || "Cliente"}</strong><br />
+        <small>📞 {p.cliente?.telefone}</small><br />
+        <small>
+          📍 {p.cliente?.endereco}, {p.cliente?.numero}
+        </small>
+      </div>
 
-                <p style={{ margin: "8px 0" }}>
-                  Status:
-                  <strong style={{ marginLeft: 6, color: cores[status] }}>
-                    {status}
-                  </strong>
-                </p>
+      <p style={{ margin: "8px 0" }}>
+        Código: <strong>{p.codigo || "—"}</strong>
+      </p>
 
-                <p style={{ margin: "8px 0" }}>
-                  Pagamento:
-                  <span style={{
-                    background:
-                      p.formaPagamento === "pix" ? "#a855f7" :
-                      p.formaPagamento === "dinheiro" ? "#22c55e" :
-                      "#3b82f6",
-                    color: "#fff",
-                    padding: "4px 8px",
-                    borderRadius: 8,
-                    fontSize: 12,
-                    marginLeft: 6
-                  }}>
-                    {p.formaPagamento === "pix" && "Pix"}
-                    {p.formaPagamento === "dinheiro" && "Dinheiro"}
-                    {p.formaPagamento === "cartao_online" && "Cartão"}
-                    {p.formaPagamento === "cartao" && "Cartão"}
-                  </span>
-                </p>
+      {Array.isArray(p.itens) && p.itens.map((item, idx) => (
+        <div key={idx} style={{ marginBottom: 6 }}>
+          <p style={{ margin: "4px 0" }}>
+            <strong>
+              {item.produto?.nome || item.nome || "Açaí"} (x{item.quantidade || 1})
+            </strong>
 
-                <p style={{ margin: "8px 0" }}>
-                  Total: <strong>{formatarReal(p.total)}</strong>
-                </p>
+            {/* 🔥 MARCA ITEM GRÁTIS */}
+            {item.gratis && (
+              <span style={{
+                marginLeft: 6,
+                fontSize: 11,
+                color: "#16a34a",
+                fontWeight: 700
+              }}>
+                🎁 GRÁTIS
+              </span>
+            )}
+          </p>
 
-                <small style={{ color: "#666" }}>
-                  {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
-                </small>
+          {Array.isArray(item.extras) && item.extras.map((e, i) => (
+            <p key={i} style={{ fontSize: 12, opacity: 0.7, margin: "2px 0" }}>
+              + {e.nome}
+            </p>
+          ))}
+        </div>
+      ))}
 
-                <div style={{
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  marginTop: 10
-                }}>
-                  {status === "novo" && (
-                    <button onClick={() => atualizarStatus(p.id, "preparando")}>
-                      🔥 Preparar
-                    </button>
-                  )}
+      <p style={{ margin: "8px 0" }}>
+        Status:
+        <strong style={{ marginLeft: 6, color: cores[status] }}>
+          {status}
+        </strong>
+      </p>
 
-                  {status === "preparando" && (
-                    <button onClick={() => atualizarStatus(p.id, "saiu")}>
-                      🚚 Saiu
-                    </button>
-                  )}
+      <p style={{ margin: "8px 0" }}>
+        Pagamento:
+        <span style={{
+          background:
+            p.formaPagamento === "pix" ? "#a855f7" :
+            p.formaPagamento === "dinheiro" ? "#22c55e" :
+            "#3b82f6",
+          color: "#fff",
+          padding: "4px 8px",
+          borderRadius: 8,
+          fontSize: 12,
+          marginLeft: 6
+        }}>
+          {p.formaPagamento === "pix" && "Pix"}
+          {p.formaPagamento === "dinheiro" && "Dinheiro"}
+          {p.formaPagamento === "cartao_online" && "Cartão"}
+          {p.formaPagamento === "cartao" && "Cartão"}
+        </span>
+      </p>
 
-                  {status === "saiu" && (
-                    <button onClick={() => atualizarStatus(p.id, "entregue")}>
-                      ✅ Entregue
-                    </button>
-                  )}
-                </div>
-              </div>
+      <p style={{ margin: "8px 0" }}>
+        Total: <strong>{formatarReal(p.total)}</strong>
+      </p>
+
+      <small style={{ color: "#666" }}>
+        {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
+      </small>
+
+      <div style={{
+        display: "flex",
+        gap: 10,
+        flexWrap: "wrap",
+        marginTop: 10
+      }}>
+        {status === "novo" && (
+          <button onClick={() => atualizarStatus(p.id, "preparando")}>
+            🔥 Preparar
+          </button>
+        )}
+
+        {status === "preparando" && (
+          <button onClick={() => atualizarStatus(p.id, "saiu")}>
+            🚚 Saiu
+          </button>
+        )}
+
+        {status === "saiu" && (
+          <button onClick={() => atualizarStatus(p.id, "entregue")}>
+            ✅ Entregue
+          </button>
+        )}
+      </div>
+    </div>
+  
             );
           })}
 
@@ -6025,50 +6053,102 @@ if (loadingAuth) {
           .filter(p => p.status === "entregue")
           .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0))
           .slice(0, 10)
-          .map((p) => (
-            <div
-              key={p.id}
-              style={{
-                opacity: 0.9,
-                borderLeft: "5px solid #00c853",
-                marginBottom: 15,
-                background: "#ffffff",
-                borderRadius: 16,
-                padding: 14,
-                boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
-                border: "1px solid #ececec",
-                color: "#111"
-              }}
-            >
-              <div style={{ marginBottom: 8 }}>
-                <strong>{p.cliente?.nome || "Cliente"}</strong><br />
-                <small>📞 {p.cliente?.telefone}</small><br />
-                <small>
-                  📍 {p.cliente?.endereco}, {p.cliente?.numero}
-                </small>
-              </div>
+          .map((p) => {
 
-              <p style={{ margin: "8px 0" }}>
-                Código: <strong>{p.codigo || "—"}</strong>
-              </p>
+  // 🔥 DETECTA FIDELIDADE
+  const temFidelidade = Array.isArray(p.itens)
+    && p.itens.some(item => item.gratis);
 
-              {p.itens?.map((item, idx) => (
-                <p key={idx} style={{ margin: "4px 0" }}>
-                  <strong>
-                    {item.produto?.nome || item.nome || "Açaí"} (x{item.quantidade || 1})
-                  </strong>
-                </p>
-              ))}
+  return (
+    <div
+      key={p.id}
+      style={{
+        opacity: 0.9,
+        borderLeft: `5px solid ${temFidelidade ? "#16a34a" : "#00c853"}`,
+        marginBottom: 15,
+        background: temFidelidade ? "#f0fdf4" : "#ffffff",
+        borderRadius: 16,
+        padding: 14,
+        boxShadow: "0 4px 14px rgba(0,0,0,0.05)",
+        border: temFidelidade
+          ? "1px solid #bbf7d0"
+          : "1px solid #ececec",
+        color: "#111"
+      }}
+    >
 
-              <p style={{ margin: "8px 0" }}>
-                Total: <strong>{formatarReal(p.total)}</strong>
-              </p>
+      {/* 🔥 BADGE FIDELIDADE */}
+      {temFidelidade && (
+        <div style={{
+          background: "#16a34a",
+          color: "#fff",
+          padding: "4px 10px",
+          borderRadius: 999,
+          fontSize: 11,
+          fontWeight: 700,
+          display: "inline-block",
+          marginBottom: 8
+        }}>
+          🎁 Fidelidade
+        </div>
+      )}
 
-              <small style={{ color: "#666" }}>
-                {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
-              </small>
-            </div>
+      <div style={{ marginBottom: 8 }}>
+        <strong>{p.cliente?.nome || "Cliente"}</strong><br />
+        <small>📞 {p.cliente?.telefone}</small><br />
+        <small>
+          📍 {p.cliente?.endereco}, {p.cliente?.numero}
+        </small>
+      </div>
+
+      <p style={{ margin: "8px 0" }}>
+        Código: <strong>{p.codigo || "—"}</strong>
+      </p>
+
+      {Array.isArray(p.itens) && p.itens.map((item, idx) => (
+        <div key={idx} style={{ marginBottom: 6 }}>
+          <p style={{ margin: "4px 0" }}>
+            <strong>
+              {item.produto?.nome || item.nome || "Açaí"} (x{item.quantidade || 1})
+            </strong>
+
+            {/* 🔥 ITEM GRÁTIS */}
+            {item.gratis && (
+              <span style={{
+                marginLeft: 6,
+                fontSize: 11,
+                color: "#16a34a",
+                fontWeight: 700
+              }}>
+                🎁 GRÁTIS
+              </span>
+            )}
+          </p>
+
+          {Array.isArray(item.extras) && item.extras.map((e, i) => (
+            <p key={i} style={{
+              fontSize: 12,
+              opacity: 0.7,
+              margin: "2px 0"
+            }}>
+              + {e.nome}
+            </p>
           ))}
+        </div>
+      ))}
+
+      <p style={{ margin: "8px 0" }}>
+        Total: <strong>{formatarReal(p.total)}</strong>
+      </p>
+
+      <small style={{ color: "#666" }}>
+        {p.data ? new Date(p.data).toLocaleString("pt-BR") : ""}
+      </small>
+    </div>
+    
+  );
+})
+}
 
         {pedidos
           .filter(p => {

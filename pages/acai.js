@@ -401,7 +401,23 @@ const [podeInstalar, setPodeInstalar] = useState(false);
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
 
-  
+ const [pontosFidelidade, setPontosFidelidade] = useState(0); 
+ const PONTOS_PARA_PREMIO = 10;
+ const progresso = Math.min(
+  pontosFidelidade / PONTOS_PARA_PREMIO,
+  1
+);
+
+const faltam = Math.max(
+  0,
+  PONTOS_PARA_PREMIO - pontosFidelidade
+);
+
+
+const temPremio = pontosFidelidade >= PONTOS_PARA_PREMIO;
+
+const [modoFidelidade, setModoFidelidade] = useState(false);
+
 const [etapaPagamento, setEtapaPagamento] = useState(1);
 
 const [banners, setBanners] = useState([]);
@@ -834,6 +850,67 @@ useEffect(() => {
     }
   }
 }, []);
+
+
+
+
+useEffect(() => {
+  if (!pedidos || !pedidos.length) return;
+
+  const processarFidelidade = async () => {
+    for (const p of pedidos) {
+
+      // 🔥 VERIFICA SE FOI PAGO
+      const pago =
+        p.formaPagamento === "dinheiro"
+          ? true
+          : p.formaPagamento === "pix"
+          ? p.status !== "aguardando_pagamento"
+          : p.formaPagamento === "cartao_online"
+          ? p.paymentStatus === "approved"
+          : false;
+
+      if (
+        p.status === "entregue" &&
+        pago &&
+        !p.fidelidadeContabilizada &&
+        p.cliente?.uid
+      ) {
+        try {
+          await adicionarPontoFidelidade(p);
+
+          await updateDoc(doc(db, "pedidos", p.id), {
+            fidelidadeContabilizada: true
+          });
+
+        } catch (e) {
+          console.log("Erro fidelidade:", e);
+        }
+      }
+    }
+  };
+
+  processarFidelidade();
+
+}, [pedidos]);
+
+
+
+useEffect(() => {
+  if (!user?.uid) return;
+
+  const ref = doc(db, "fidelidade", user.uid);
+
+  const unsub = onSnapshot(ref, (snap) => {
+    if (snap.exists()) {
+      setPontosFidelidade(Number(snap.data().pontos || 0));
+    } else {
+      setPontosFidelidade(0);
+    }
+  });
+
+  return () => unsub();
+}, [user]);
 
 
 useEffect(() => {
@@ -1425,6 +1502,7 @@ useEffect(() => {
 }, []);
 
 
+
 useEffect(() => {
   if (!user) return;
 
@@ -1558,6 +1636,33 @@ useEffect(() => {
     console.log(e);
     mostrarToast("Erro no pagamento online", "erro");
   }
+}
+
+
+function adicionarAcaiGratis() {
+  const acaiBase = produtos.find(
+    (p) => p.categoria === "acai"
+  );
+
+  if (!acaiBase) return;
+
+  const acaiGratis = {
+    produto: {
+      ...acaiBase,
+      preco: 0
+    },
+    quantidade: 1,
+    total: 0,
+    extras: [],
+    gratis: true
+  };
+
+  setCarrinho((prev) => {
+    const jaExiste = prev.some((p) => p.gratis);
+    if (jaExiste) return prev;
+
+    return [...prev, acaiGratis];
+  });
 }
 
 // criar tela sem o emoje
@@ -2109,6 +2214,7 @@ const totalFinalItem =
 // 🔥 TOTAL DO CARRINHO (CENTAVOS)
 const total = Array.isArray(carrinho)
   ? carrinho.reduce((acc, item) => {
+      if (item.gratis) return acc; // 🔥 IGNORA GRATIS
       return acc + Number(item.total || 0);
     }, 0)
   : 0;
@@ -2142,7 +2248,10 @@ const temItens = carrinho.length > 0;
 const LIMITE_FRETE_GRATIS = 3000; // R$ 30,00
 
 const subtotalProdutos = Array.isArray(carrinho)
-  ? carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+  ? carrinho.reduce((acc, item) => {
+      if (item.gratis) return acc; // 🔥 IGNORA GRATIS
+      return acc + Number(item.total || 0);
+    }, 0)
   : 0;
 
 const bairroClienteNormalizado = (clienteBairro || "")
@@ -2441,29 +2550,75 @@ function adicionarCarrinho() {
   const precoBase = Math.round(Number(produto?.preco || 0));
 
   const totalExtras = Object.values(extrasSelecionados)
-  .flat()
-  .reduce((acc, e) => {
-    return acc + (Math.round(Number(e.preco || 0)) * Number(e.qtd || 1));
-  }, 0);
+    .flat()
+    .reduce((acc, e) => {
+      return acc + (Math.round(Number(e.preco || 0)) * Number(e.qtd || 1));
+    }, 0);
 
   const totalItem = Math.round((precoBase + totalExtras) * quantidade);
 
   const extrasFinal = Object.entries(extrasSelecionados)
-  .flatMap(([categoria, lista]) =>
-    lista.map(e => ({
-      nome: e.nome,
-      preco: Math.round(Number(e.preco || 0)),
-      categoria,
-      qtd: Number(e.qtd || 1)
-    }))
-  );
+    .flatMap(([categoria, lista]) =>
+      lista.map(e => ({
+        nome: e.nome,
+        preco: Math.round(Number(e.preco || 0)),
+        categoria,
+        qtd: Number(e.qtd || 1)
+      }))
+    );
 
-  const novoItem = {
+  let novoItem = {
     produto,
     quantidade,
     extras: extrasFinal,
     total: totalItem
   };
+
+  // 🔥 FIDELIDADE (AÇAÍ GRÁTIS)
+  if (modoFidelidade) {
+
+    const nomeLower = (produto.nome || "").toLowerCase();
+    const categoriaLower = (produto.categoria || "").toLowerCase();
+
+    // 🔥 BLOQUEIOS
+    if (
+      nomeLower.includes("clone") ||
+      nomeLower.includes("combo") ||
+      categoriaLower.includes("promo") ||
+      categoriaLower.includes("oferta")
+    ) {
+      setToast({
+        tipo: "erro",
+        texto: "Este produto não participa da fidelidade"
+      });
+
+      setModoFidelidade(false);
+      return;
+    }
+
+    // 🔥 SÓ 1 GRÁTIS
+    const jaTemGratis = carrinho.some(item => item.gratis);
+
+    if (jaTemGratis) {
+      setModoFidelidade(false);
+      return;
+    }
+
+    const totalSomenteExtras = Math.round(totalExtras * quantidade);
+
+    novoItem = {
+      ...novoItem,
+
+      // 🔥 ZERA PRODUTO
+      produto: {
+        ...produto,
+        preco: 0
+      },
+
+      total: totalSomenteExtras, // 🔥 SÓ EXTRAS
+      gratis: true
+    };
+  }
 
   if (editandoIndex !== null) {
     setCarrinho(prev => {
@@ -2477,13 +2632,21 @@ function adicionarCarrinho() {
     setCarrinho(prev => [...prev, novoItem]);
   }
 
+  // 🔥 RESET
+  setModoFidelidade(false);
+
   setExtrasSelecionados({});
   setQuantidade(1);
 
   setAba("carrinho");
   setStep(3);
 
-  setToast({ nome: nomeProduto });
+  setToast({
+    nome: novoItem.gratis
+      ? "Açaí grátis adicionado "
+      : nomeProduto
+  });
+
   setTimeout(() => setToast(null), 2500);
 }
 
@@ -2922,6 +3085,36 @@ function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = 
 }
 
 
+
+async function adicionarPontoFidelidade(pedido) {
+  try {
+    if (!pedido?.cliente?.uid) return;
+
+    const ref = doc(db, "fidelidade", pedido.cliente.uid);
+
+    const snap = await getDoc(ref);
+
+    let pontos = 0;
+
+    if (snap.exists()) {
+      pontos = Number(snap.data().pontos || 0);
+    }
+
+    // 🔥 +1 ponto por pedido entregue
+    pontos += 1;
+
+    await setDoc(ref, {
+      uid: pedido.cliente.uid,
+      pontos,
+      atualizadoEm: Date.now()
+    }, { merge: true });
+
+  } catch (e) {
+    console.log("Erro fidelidade:", e);
+  }
+}
+
+
 function aplicarCupomDireto(cupom) {
   let valorDesconto = 0;
 
@@ -2965,7 +3158,6 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 só exige endereço se for entrega
   if (
     tipoEntrega !== "retirada" &&
     (!clienteEndereco || !clienteNumeroCasa || !clienteBairro)
@@ -2992,25 +3184,24 @@ async function finalizarPedido() {
     setLoadingPedido(true);
 
     const pedidoId = Date.now().toString();
-    const codigo = Math.floor(
-      100000 + Math.random() * 900000
-    );
+    const codigo = Math.floor(100000 + Math.random() * 900000);
 
-    // 🔥 FRETE DINÂMICO
     const taxaEntregaFinal =
       tipoEntrega === "retirada"
         ? 0
         : Number(taxaEntrega || 0);
 
-    const totalFinal =
+    const totalFinalCalc =
       tipoEntrega === "retirada"
         ? Number(subtotalProdutos || 0)
         : Number(totalFinalComFrete || 0);
 
+    const usouGratis = carrinho.some((item) => item.gratis);
+
     const pedido = {
       codigo,
 
-      tipoEntrega: tipoEntrega || "entrega", // 🔥 ESSENCIAL
+      tipoEntrega: tipoEntrega || "entrega",
 
       cliente: {
         nome: clienteNome || "Cliente",
@@ -3021,11 +3212,13 @@ async function finalizarPedido() {
         uid: user?.uid || null
       },
 
+      // 🔥 ITENS CORRIGIDOS (GRÁTIS)
       itens: (carrinho || []).map((item) => ({
         produtoId: item?.produto?.id || "",
         nome: item?.produto?.nome || item?.nome || "Produto",
         quantidade: Number(item?.quantidade || 1),
-        total: Number(item?.total || 0),
+        total: item.gratis ? 0 : Number(item?.total || 0), // 🔥 NÃO COBRA
+        gratis: item.gratis === true, // 🔥 IDENTIFICA
         extras: (item?.extras || []).map((e) => ({
           nome: e?.nome || "",
           preco: Number(e?.preco || 0),
@@ -3039,7 +3232,7 @@ async function finalizarPedido() {
 
       taxaEntrega: taxaEntregaFinal,
 
-      total: totalFinal,
+      total: totalFinalCalc,
 
       formaPagamento,
 
@@ -3070,6 +3263,13 @@ async function finalizarPedido() {
     // 🔥 SALVA PEDIDO
     await setDoc(doc(db, "pedidos", pedidoId), pedido);
 
+    // 🔥 ZERA FIDELIDADE SE USOU GRÁTIS
+    if (usouGratis) {
+      await updateDoc(doc(db, "fidelidade", user.uid), {
+        pontos: 0
+      });
+    }
+
     const usoRegistrado = await registrarUsoCupom();
     if (!usoRegistrado) {
       setLoadingPedido(false);
@@ -3089,11 +3289,10 @@ async function finalizarPedido() {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            total: totalFinal / 100,
+            total: totalFinalCalc / 100,
             pedidoId,
             nome: clienteNome,
             email: clienteEmail,
-            cpf: clienteCpf,
             telefone: clienteTelefone,
             rua: clienteEndereco,
             numero: clienteNumeroCasa,
@@ -3104,10 +3303,7 @@ async function finalizarPedido() {
         const data = await res.json();
 
         if (!data.url) {
-          mostrarMensagemPagamento(
-            "Erro ao abrir pagamento online.",
-            "erro"
-          );
+          mostrarMensagemPagamento("Erro ao abrir pagamento online.", "erro");
           setLoadingPedido(false);
           return;
         }
@@ -3119,10 +3315,8 @@ async function finalizarPedido() {
           paymentStatus: "pending"
         });
 
-        // 🔥 ABRE PAGAMENTO
         window.open(data.url, "_blank");
 
-        // 🔥 ENVIA WHATSAPP TAMBÉM
         setTimeout(async () => {
           await enviarWhatsApp({
             ...pedido,
@@ -3134,10 +3328,7 @@ async function finalizarPedido() {
         return;
       } catch (e) {
         console.log("ERRO CARTAO ONLINE:", e);
-        mostrarMensagemPagamento(
-          "Erro ao abrir pagamento online.",
-          "erro"
-        );
+        mostrarMensagemPagamento("Erro ao abrir pagamento online.", "erro");
         setLoadingPedido(false);
         return;
       }
@@ -3162,12 +3353,9 @@ async function finalizarPedido() {
     }
 
     /* =========================
-       💵 DINHEIRO / CARTÃO ENTREGA
+       💵 DINHEIRO
     ========================== */
-    mostrarMensagemPagamento(
-      "Pedido confirmado com sucesso.",
-      "sucesso"
-    );
+    mostrarMensagemPagamento("Pedido confirmado com sucesso.", "sucesso");
 
     setCarrinho([]);
     setFormaPagamento(null);
@@ -3205,7 +3393,6 @@ const enviarWhatsApp = async (pedido) => {
   const descontoCupom = Number(pedido?.cupom?.desconto || 0);
   const forma = pedido?.formaPagamento || formaPagamento || "Não informado";
 
-  // 🔥 NOVO: tipo de entrega
   const tipoEntregaFinal =
     pedido?.tipoEntrega || tipoEntrega || "entrega";
 
@@ -3230,7 +3417,15 @@ const enviarWhatsApp = async (pedido) => {
   const codigoCupom =
     pedido?.cupom?.codigo || pedido?.cupom?.nome || "";
 
+  // 🔥 VERIFICA SE TEM FIDELIDADE
+  const temGratis = itens.some(i => i?.gratis === true);
+
   let mensagem = `*Pedido #${codigo}*\n\n`;
+
+  // 🔥 TOPO DESTACADO
+  if (temGratis) {
+    mensagem += `🎉 *PEDIDO COM AÇAÍ GRÁTIS (FIDELIDADE)*\n\n`;
+  }
 
   // 🛒 ITENS
   itens.forEach((item, i) => {
@@ -3242,8 +3437,15 @@ const enviarWhatsApp = async (pedido) => {
     const quantidade = Number(item?.quantidade || 1);
     const totalItem = Number(item?.total || 0);
 
+    const isGratis = item?.gratis === true;
+
     mensagem += `*${i + 1}. ${nomeProduto}*\n`;
     mensagem += `Qtd: ${quantidade}\n`;
+
+    // 🔥 MARCA ITEM GRÁTIS
+    if (isGratis) {
+      mensagem += `🎁 *AÇAÍ GRÁTIS (FIDELIDADE)*\n`;
+    }
 
     if (Array.isArray(item?.extras) && item.extras.length > 0) {
       const extrasPorCategoria = {};
@@ -3268,10 +3470,15 @@ const enviarWhatsApp = async (pedido) => {
       });
     }
 
-    mensagem += `\nValor: ${(totalItem / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    })}\n\n`;
+    // 🔥 SÓ MOSTRA VALOR SE NÃO FOR GRÁTIS
+    if (!isGratis) {
+      mensagem += `\nValor: ${(totalItem / 100).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      })}\n`;
+    }
+
+    mensagem += `\n`;
   });
 
   mensagem += `━━━━━━━━━━━━━━━\n`;
@@ -3331,10 +3538,10 @@ const enviarWhatsApp = async (pedido) => {
     }
   }
 
-  //  CLIENTE
+  // 👤 CLIENTE
   mensagem += `\n\n*Cliente:*\n${nomeCliente}\n${telefoneCliente}`;
 
-  //  OBSERVAÇÃO
+  // 📝 OBSERVAÇÃO
   if (observacao && observacao.trim()) {
     mensagem += `\n\n━━━━━━━━━━━━━━━\n`;
     mensagem += `*Observações:*\n${observacao.trim()}`;
@@ -6455,6 +6662,55 @@ return (
           </div>
         </div>
 
+
+        {/* FIDELIDADE */}
+<div
+  style={{
+    background: "#fff",
+    borderRadius: 20,
+    padding: 16,
+    marginTop: 10,
+    marginBottom: 10,
+    border: "1px solid #eee",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+  }}
+>
+  <div style={{ fontSize: 15, fontWeight: 800, color: "#111" }}>
+    Ganhe 1 açaí grátis 
+  </div>
+
+  <div style={{ marginTop: 6, fontSize: 13, color: "#666" }}>
+    {pontosFidelidade}/10 pedidos
+  </div>
+
+  <div
+    style={{
+      height: 8,
+      background: "#eee",
+      borderRadius: 999,
+      marginTop: 8,
+      overflow: "hidden"
+    }}
+  >
+    <div
+      style={{
+        width: `${progresso * 100}%`,
+        height: "100%",
+        background: "#ea1d2c",
+        borderRadius: 999,
+        transition: "0.3s"
+      }}
+    />
+  </div>
+
+  <div style={{ marginTop: 6, fontSize: 12, color: "#999" }}>
+  {pontosFidelidade >= 10
+    ? "Você já pode resgatar seu açaí "
+    : `Faltam ${10 - pontosFidelidade} pedidos para ganhar um grátis`}
+</div>
+</div>
+
+
         {/* CUPOM ATIVO */}
         {cupomAplicado && (
           <div
@@ -6650,6 +6906,41 @@ return (
           </div>
         </div>
 
+
+        {temPremio && !carrinho.some(i => i.gratis) && (
+  <div style={{
+    marginTop: 20,
+    background: "#ecfdf3",
+    border: "1px solid #bbf7d0",
+    borderRadius: 16,
+    padding: 14
+  }}>
+    <strong style={{ color: "#166534" }}>
+       Você ganhou um Açaí Cremoso (P) Grátis!
+    </strong>
+
+    <button
+      onClick={() => {
+  setModoFidelidade(true); // 🔥 ativa modo grátis
+  setAba("home");
+  setStep(1); // 🔥 volta pra lista
+}}
+      style={{
+        marginTop: 10,
+        background: "#16a34a",
+        color: "#fff",
+        border: "none",
+        padding: "10px 14px",
+        borderRadius: 10,
+        fontWeight: 700,
+        cursor: "pointer"
+      }}
+    >
+      Resgatar meu açaí
+    </button>
+  </div>
+)}
+
         {/* RESUMO DE VALORES */}
         <div
           style={{
@@ -6722,6 +7013,7 @@ return (
       </div>
     </div>
 
+    
     {/* BARRA FIXA FINAL */}
 <div
   style={{
@@ -7621,6 +7913,7 @@ const statusTexto =
     : p.status === "entregue"
     ? "Entregue"
     : "Processando";
+
 
 /* COR STATUS */
 const corStatus =
