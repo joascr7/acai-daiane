@@ -83,6 +83,7 @@ import {
   Receipt,
   CircleDollarSign,
   Store,
+  Gift,
   CheckCircle
   
 } from "lucide-react";
@@ -6667,28 +6668,72 @@ return (
 <div
   style={{
     background: "#fff",
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 16,
     marginTop: 10,
     marginBottom: 10,
     border: "1px solid #eee",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+    boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
   }}
 >
-  <div style={{ fontSize: 15, fontWeight: 800, color: "#111" }}>
-    Ganhe 1 açaí grátis 
+  {/* HEADER */}
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  }}>
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }}>
+      <div style={{
+        width: 34,
+        height: 34,
+        borderRadius: 10,
+        background: "#f1f5f9",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}>
+        <Gift size={18} color="#111" />
+      </div>
+
+      <div style={{
+        fontSize: 15,
+        fontWeight: 700,
+        color: "#111"
+      }}>
+        Cartão fidelidade
+      </div>
+    </div>
+
+    {/* CONTADOR */}
+    <div style={{
+      fontSize: 12,
+      fontWeight: 700,
+      color: pontosFidelidade >= 10 ? "#16a34a" : "#666"
+    }}>
+      {pontosFidelidade}/10
+    </div>
   </div>
 
-  <div style={{ marginTop: 6, fontSize: 13, color: "#666" }}>
-    {pontosFidelidade}/10 pedidos
+  {/* DESCRIÇÃO */}
+  <div style={{
+    marginTop: 6,
+    fontSize: 13,
+    color: "#666"
+  }}>
+    Ganhe um açaí grátis a cada 10 pedidos
   </div>
 
+  {/* BARRA */}
   <div
     style={{
       height: 8,
       background: "#eee",
       borderRadius: 999,
-      marginTop: 8,
+      marginTop: 10,
       overflow: "hidden"
     }}
   >
@@ -6696,18 +6741,27 @@ return (
       style={{
         width: `${progresso * 100}%`,
         height: "100%",
-        background: "#ea1d2c",
+        background:
+          pontosFidelidade >= 10
+            ? "linear-gradient(90deg, #16a34a, #22c55e)"
+            : "#ea1d2c",
         borderRadius: 999,
-        transition: "0.3s"
+        transition: "width 0.35s ease"
       }}
     />
   </div>
 
-  <div style={{ marginTop: 6, fontSize: 12, color: "#999" }}>
-  {pontosFidelidade >= 10
-    ? "Você já pode resgatar seu açaí "
-    : `Faltam ${10 - pontosFidelidade} pedidos para ganhar um grátis`}
-</div>
+  {/* TEXTO */}
+  <div style={{
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: 500,
+    color: pontosFidelidade >= 10 ? "#16a34a" : "#777"
+  }}>
+    {pontosFidelidade >= 10
+      ? "Disponível para resgate"
+      : `Faltam ${10 - pontosFidelidade} pedidos`}
+  </div>
 </div>
 
 
@@ -6821,36 +6875,111 @@ return (
 
 
           {/* 🔥 ENDEREÇO ADICIONADO */}
-        <div style={{
-          marginTop: 22,
-          background: "#fff",
-          borderRadius: 22,
-          padding: 18,
-          border: "1px solid #eee"
-        }}>
-          <strong>Endereço de entrega</strong>
+        <div
+  style={{
+    marginTop: 16,
+    background: "#fff",
+    borderRadius: 16,
+    padding: 12,
+    border: "1px solid #eee",
+    boxShadow: "0 3px 10px rgba(0,0,0,0.04)"
+  }}
+>
+  {/* HEADER */}
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10
+  }}>
+    <MapPin size={16} color="#111" />
+    <span style={{
+      fontSize: 13,
+      fontWeight: 700,
+      color: "#111"
+    }}>
+      Entrega
+    </span>
+  </div>
 
-          <input
-            placeholder="CEP"
-            value={clienteCep}
-            onChange={(e) => {
-              const v = e.target.value.replace(/\D/g, "").slice(0, 8);
-              setClienteCep(v);
-              if (v.length === 8) buscarCEP(v);
-            }}
-            style={input}
-          />
+  {/* LINHA 1: CEP + Nº */}
+  <div style={{
+    display: "flex",
+    gap: 6
+  }}>
+    <div style={{ flex: 1, position: "relative" }}>
+      <input
+        value={clienteCep}
+        onChange={(e) => {
+          const v = e.target.value.replace(/\D/g, "").slice(0, 8);
+          setClienteCep(v);
+          if (v.length === 8) buscarCEP(v);
+        }}
+        placeholder="CEP"
+        style={{
+          width: "100%",
+          height: 38,
+          borderRadius: 10,
+          border: "1px solid #e5e7eb",
+          padding: "0 34px 0 10px",
+          fontSize: 13,
+          outline: "none"
+        }}
+      />
 
-          <input value={clienteEndereco} readOnly placeholder="Rua" style={{ ...input, background: "#f5f5f5" }} />
-          <input value={clienteBairro} readOnly placeholder="Bairro" style={{ ...input, background: "#f5f5f5" }} />
+      {/* ÍCONE CEP */}
+      <Search
+        size={14}
+        style={{
+          position: "absolute",
+          right: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "#aaa"
+        }}
+      />
+    </div>
 
-          <input
-            placeholder="Número"
-            value={clienteNumeroCasa}
-            onChange={(e) => setClienteNumeroCasa(e.target.value)}
-            style={input}
-          />
+    <input
+      value={clienteNumeroCasa}
+      onChange={(e) => setClienteNumeroCasa(e.target.value)}
+      placeholder="Nº"
+      style={{
+        width: 60,
+        height: 38,
+        borderRadius: 10,
+        border: "1px solid #e5e7eb",
+        padding: "0 8px",
+        fontSize: 13,
+        outline: "none",
+        textAlign: "center"
+      }}
+    />
+  </div>
+
+  {/* LINHA 2: ENDEREÇO + BAIRRO */}
+  <div style={{
+    marginTop: 6,
+    fontSize: 13,
+    color: "#444",
+    lineHeight: 1.4
+  }}>
+    {clienteEndereco || clienteBairro ? (
+      <>
+        <div style={{ fontWeight: 600 }}>
+          {clienteEndereco || "Rua"}
         </div>
+        <div style={{ fontSize: 12, color: "#777" }}>
+          {clienteBairro || "Bairro"}
+        </div>
+      </>
+    ) : (
+      <div style={{ color: "#aaa" }}>
+        Digite o CEP para preencher automaticamente
+      </div>
+    )}
+  </div>
+</div>
 
         {/* OBS */}
         <div
@@ -6920,24 +7049,61 @@ return (
     </strong>
 
     <button
-      onClick={() => {
-  setModoFidelidade(true); // 🔥 ativa modo grátis
-  setAba("home");
-  setStep(1); // 🔥 volta pra lista
-}}
-      style={{
-        marginTop: 10,
-        background: "#16a34a",
-        color: "#fff",
-        border: "none",
-        padding: "10px 14px",
-        borderRadius: 10,
-        fontWeight: 700,
-        cursor: "pointer"
-      }}
-    >
-      Resgatar meu açaí
-    </button>
+  onClick={() => {
+    try {
+      // 🔥 valida antes de tudo
+      if (!temPremio) return;
+      if (carrinho.some(i => i.gratis)) return;
+
+      // 🔥 haptic mobile
+      if (navigator.vibrate) navigator.vibrate(40);
+
+      // 🔥 ativa fidelidade com segurança
+      setModoFidelidade(true);
+
+      // 🔥 navegação segura (evita crash)
+      setTimeout(() => {
+        setAba("home");
+        setStep(1);
+      }, 50);
+
+    } catch (e) {
+      console.log("Erro ao ativar fidelidade:", e);
+    }
+  }}
+  style={{
+    marginTop: 10,
+    background: "#16a34a",
+    color: "#fff",
+    border: "none",
+    padding: "12px 14px",
+    borderRadius: 12,
+    fontWeight: 700,
+    fontSize: 13,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    boxShadow: "0 6px 18px rgba(34,197,94,0.35)",
+    transition: "all .2s ease"
+  }}
+  onMouseDown={(e) => {
+    e.currentTarget.style.transform = "scale(0.97)";
+  }}
+  onMouseUp={(e) => {
+    e.currentTarget.style.transform = "scale(1)";
+  }}
+>
+  {/* ÍCONE (sem emoji) */}
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7" stroke="white" strokeWidth="2"/>
+    <path d="M12 3v12" stroke="white" strokeWidth="2"/>
+    <path d="M7 8l5-5 5 5" stroke="white" strokeWidth="2"/>
+  </svg>
+
+  Resgatar açaí grátis
+</button>
   </div>
 )}
 
