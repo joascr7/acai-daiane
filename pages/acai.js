@@ -4843,147 +4843,145 @@ return (
         
 
         {/* BANNER */}
-        <div
-          style={{
-            marginTop: 20,
-            borderRadius: 30,
-            overflow: "hidden",
-            position: "relative",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-            width: "100%",
-            height: isMobile ? 130 : 220,
-            background: "#111"
-          }}
-        >
-          {Array.isArray(banners) && banners.length > 0 ? (
-            <>
-              <div
-                ref={bannerRef}
-                onScroll={handleBannerScroll}
-                style={{
-                  display: "flex",
-                  width: "100%",
-                  height: "150%",
-                  overflowX: "auto",
-                  overflowY: "hidden",
-                  WebkitOverflowScrolling: "touch",
-                  scrollSnapType: "x mandatory",
-                  touchAction: "auto",
-                  msOverflowStyle: "none",
-                  scrollbarWidth: "none"
-                }}
-              >
-                {banners.map((b) => (
-                  <div
-                    key={b.id}
-                    onClick={() => {
-                      setCategoriaSelecionada(b.categoria || "promocoes");
-                      setAba("home");
-                      setStep(9);
-                    }}
-                    style={{
-                      minWidth: "100%",
-                      width: "100%",
-                      height: "100%",
-                      flex: "0 0 100%",
-                      scrollSnapAlign: "start",
-                      position: "relative",
-                      cursor: "pointer"
-                    }}
-                  >
-                    <img
-                      src={b.imagem}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                        display: "block",
-                        pointerEvents: "none"
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        background:
-                          "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.10) 100%)",
-                        pointerEvents: "none"
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {banners.length > 1 && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 14,
-                    left: 18,
-                    right: 18,
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 8,
-                    zIndex: 3,
-                    pointerEvents: "none"
-                  }}
-                >
-                  {banners.map((_, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        width: i === bannerIndex ? 28 : 8,
-                        height: 6,
-                        borderRadius: 999,
-                        background:
-                          i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
-                        transition: "width 0.2s ease"
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div
-              onClick={() => {
-                setCategoriaSelecionada("promocoes");
-                setAba("home");
-                setStep(9);
-              }}
+<div
+  style={{
+    marginTop: 20,
+    borderRadius: 30,
+    overflow: "hidden",
+    position: "relative",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+    width: "100%",
+    height: isMobile ? 130 : 220,
+    background: "#111"
+  }}
+>
+  {Array.isArray(banners) && banners.length > 0 ? (
+    <>
+      <div
+        ref={bannerRef}
+        onScroll={handleBannerScroll}
+        style={{
+          display: "flex",
+          width: "100%",
+          height: "100%", // ✅ CORRIGIDO
+          overflowX: "auto",
+          overflowY: "hidden",
+          WebkitOverflowScrolling: "touch",
+          scrollSnapType: "x mandatory",
+          msOverflowStyle: "none",
+          scrollbarWidth: "none"
+        }}
+      >
+        {banners.map((b) => (
+          <div
+            key={b.id}
+            onClick={() => {
+              setCategoriaSelecionada(b.categoria || "promocoes");
+              setAba("home");
+              setStep(9);
+            }}
+            style={{
+              minWidth: "100%",
+              width: "100%",
+              height: "100%",
+              flex: "0 0 100%",
+              scrollSnapAlign: "start",
+              position: "relative",
+              cursor: "pointer"
+            }}
+          >
+            <img
+              src={b.imagem}
               style={{
                 width: "100%",
-                height: "100%",
-                position: "relative",
-                cursor: "pointer"
+                height: "100%", // ✅ CORRIGIDO
+              /*  objectFit: "cover",*/
+                objectPosition: "center",
+                display: "block"
               }}
-            >
-              <img
-                src="/t1.jpg"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center",
-                  display: "block",
-                  pointerEvents: "none"
-                }}
-              />
+            />
 
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.10) 100%)",
-                  pointerEvents: "none"
-                }}
-              />
-            </div>
-          )}
+            {/* overlay leve */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.10) 100%)"
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {banners.length > 1 && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 14,
+            left: 18,
+            right: 18,
+            display: "flex",
+            justifyContent: "center",
+            gap: 8,
+            zIndex: 3
+          }}
+        >
+          {banners.map((_, i) => (
+            <div
+              key={i}
+              style={{
+                width: i === bannerIndex ? 28 : 8,
+                height: 6,
+                borderRadius: 999,
+                background:
+                  i === bannerIndex ? "#fff" : "rgba(255,255,255,0.50)",
+                transition: "width 0.2s ease"
+              }}
+            />
+          ))}
         </div>
+      )}
+    </>
+  ) : (
+    <div
+      onClick={() => {
+        setCategoriaSelecionada("promocoes");
+        setAba("home");
+        setStep(9);
+      }}
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "relative",
+        cursor: "pointer"
+      }}
+    >
+      <img
+        src="/t1.jpg"
+        style={{
+          width: "100%",
+          height: "100%", // ✅ CORRIGIDO
+          objectFit: "cover",
+          objectPosition: "center",
+          display: "block"
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.10) 100%)"
+        }}
+      />
+    </div>
+    
+  )}
+</div>
+          
+        
       </div>
 
       {/* CONTEÚDO BRANCO */}
