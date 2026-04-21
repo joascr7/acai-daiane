@@ -53,6 +53,8 @@ import {
   Home,
   DollarSign,
   Store,
+  Bell,
+  Truck,
   CircleDollarSign
 } from "lucide-react";
 
@@ -6582,7 +6584,8 @@ if (loadingAuth) {
 
 
 
-{isMobile && (
+
+  {isMobile && (
   <div
     style={{
       position: "fixed",
@@ -6602,6 +6605,9 @@ if (loadingAuth) {
       { id: "pedidos", icon: ClipboardList },
       { id: "produtos", icon: Package },
       { id: "gastos", icon: DollarSign },
+      { id: "fretes", icon: Truck },          // ✅ ADICIONADO
+      { id: "notificacoes", icon: Bell },     // ✅ ADICIONADO
+      { id: "banners", icon: ImagePlus },     // ✅ ADICIONADO
       { id: "avaliacoes", icon: Star },
       { id: "loja", icon: Store }
     ].map((item) => {
@@ -6620,7 +6626,7 @@ if (loadingAuth) {
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
-            height: 40,
+            height: 44,
             cursor: "pointer"
           }}
         >
@@ -6629,7 +6635,7 @@ if (loadingAuth) {
             color={ativo ? "#ea1d2c" : "#6b7280"}
           />
 
-          {/* 🔥 BADGE */}
+          {/* 🔥 BADGE PEDIDOS */}
           {item.id === "pedidos" && pedidosEmAndamento > 0 && (
             <div
               style={{
@@ -6647,6 +6653,28 @@ if (loadingAuth) {
               {pedidosEmAndamento}
             </div>
           )}
+
+          {/* 🔔 BADGE NOTIFICAÇÕES */}
+          {item.id === "notificacoes" &&
+            notificacoesAdmin.filter(n => !n.lida).length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  right: "28%",
+                  background: "#ea1d2c",
+                  color: "#fff",
+                  borderRadius: 999,
+                  fontSize: 9,
+                  padding: "2px 5px",
+                  fontWeight: 800
+                }}
+              >
+                {
+                  notificacoesAdmin.filter(n => !n.lida).length
+                }
+              </div>
+            )}
         </button>
       );
     })}
