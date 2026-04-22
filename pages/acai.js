@@ -22,6 +22,7 @@ import { updatePassword } from "firebase/auth";
 
 
 
+
 // 🔥 FIRESTORE
 import {
   collection,
@@ -423,7 +424,7 @@ const faltam = Math.max(
 
 const temPremio = pontosFidelidade >= PONTOS_PARA_PREMIO;
 
-const [modoFidelidade, setModoFidelidade] = useState(false);
+
 
 const [etapaPagamento, setEtapaPagamento] = useState(1);
 
@@ -552,6 +553,8 @@ const nomeCategoriaAtual = categoriaAtualObj?.nome || categoriaSelecionada;
 const [novaSenha, setNovaSenha] = useState("");
 const [confirmarNovaSenha, setConfirmarNovaSenha] = useState("");
 const [loadingSenha, setLoadingSenha] = useState(false);
+
+const produtoFidelidade = produtos.find(p => p.resgate === true);
   
   const [statusPagamento, setStatusPagamento] = useState("pendente");
   const [mostrarPagamento, setMostrarPagamento] = useState(false);
@@ -588,9 +591,18 @@ const [filtroBusca, setFiltroBusca] = useState("todos");
   const [animacao, setAnimacao] = useState("slide-enter");
   const [loadingCupons, setLoadingCupons] = useState(false);
 
-  const produtosCategoria = produtos.filter(
-  p => p.categoria === categoriaSelecionada && p.ativo !== false
-);
+  const [bloqueioMsg, setBloqueioMsg] = useState(null);
+
+  const getProdutoFidelidade = () => {
+  return produtos.find(p => p.resgate === true);
+};
+
+ const produtosCategoria =
+  modoCompra === "fidelidade"
+    ? produtos.filter(p => p.resgate === true)
+    : produtos.filter(
+        p => p.categoria === categoriaSelecionada && p.ativo !== false
+      );
 
 
 const mostrarMensagemPagamento = (texto, tipo = "info") => {
@@ -603,12 +615,15 @@ const mostrarMensagemPagamento = (texto, tipo = "info") => {
 };
 
 function adicionarPorCategoria(categoria) {
-  const produto = produtos.find(
-    p => p.categoria === categoria && p.ativo !== false
-  );
+
+  const produto = modoCompra === "fidelidade"
+    ? produtos.find(p => p.resgate === true)
+    : produtos.find(
+        p => p.categoria === categoria && p.ativo !== false
+      );
 
   if (!produto) {
-    alert("Nenhum produto disponível nessa categoria");
+    alert("Nenhum produto disponível");
     return;
   }
 
@@ -638,8 +653,6 @@ function adicionarPorCategoria(categoria) {
     setStep(3);
     return;
   }
-
-  alert("Categoria sem regra definida");
 }
   
 
@@ -1648,10 +1661,13 @@ useEffect(() => {
 
 function adicionarAcaiGratis() {
   const acaiBase = produtos.find(
-    (p) => p.categoria === "acai"
+    (p) => p.resgate === true
   );
 
-  if (!acaiBase) return;
+  if (!acaiBase) {
+    alert("Nenhum produto disponível para resgate");
+    return;
+  }
 
   const acaiGratis = {
     produto: {
@@ -2219,12 +2235,9 @@ const totalFinalItem =
 
 // 🔥 TOTAL DO CARRINHO (OFICIAL)
 // 🔥 TOTAL DO CARRINHO (CENTAVOS)
-const total = Array.isArray(carrinho)
-  ? carrinho.reduce((acc, item) => {
-      if (item.gratis) return acc; // 🔥 IGNORA GRATIS
-      return acc + Number(item.total || 0);
-    }, 0)
-  : 0;
+const total = carrinho.reduce((acc, item) => {
+  return acc + item.total; // 🔥 SEM CONDIÇÃO
+}, 0);
 
 // 🔥 DESCONTO (CENTAVOS)
 
@@ -2256,8 +2269,7 @@ const LIMITE_FRETE_GRATIS = 3000; // R$ 30,00
 
 const subtotalProdutos = Array.isArray(carrinho)
   ? carrinho.reduce((acc, item) => {
-      if (item.gratis) return acc; // 🔥 IGNORA GRATIS
-      return acc + Number(item.total || 0);
+      return acc + Number(item.total || 0); // ✅ SOMA TUDO
     }, 0)
   : 0;
 
@@ -2377,8 +2389,12 @@ async function instalarApp() {
         ...atual,
         {
           nome: item.nome,
-          preco: item.preco,
-          categoria: categoria // 🔥 AQUI É A CORREÇÃO
+
+          // 🔥 CORREÇÃO DEFININITIVA
+          preco: Number(String(item.preco || 0).replace(",", ".")),
+
+          categoria: categoria,
+          qtd: 1
         }
       ];
     }
@@ -2389,6 +2405,7 @@ async function instalarApp() {
     };
   });
 }
+
 // SAIR
 async function sair() {
 
@@ -2581,23 +2598,27 @@ function adicionarCarrinho() {
 
   const precoBase = Math.round(Number(produto?.preco || 0));
 
+  // 🔥 CALCULA EXTRAS (FUNCIONA COM 2,50 E 2.50)
   const totalExtras = Object.values(extrasSelecionados)
     .flat()
     .reduce((acc, e) => {
-      return acc + (Math.round(Number(e.preco || 0)) * Number(e.qtd || 1));
+      const preco = Number(String(e.preco || 0).replace(",", "."));
+      const qtd = Number(e.qtd || 1);
+      return acc + (preco * qtd);
     }, 0);
 
   const totalItem = Math.round((precoBase + totalExtras) * quantidade);
 
-  const extrasFinal = Object.entries(extrasSelecionados)
-    .flatMap(([categoria, lista]) =>
-      lista.map(e => ({
-        nome: e.nome,
-        preco: Math.round(Number(e.preco || 0)),
-        categoria,
-        qtd: Number(e.qtd || 1)
-      }))
-    );
+  // 🔥 EXTRAS FORMATADOS
+ const extrasFinal = Object.entries(extrasSelecionados)
+  .flatMap(([categoria, lista]) =>
+    lista.map(e => ({
+      nome: e.nome,
+      preco: Number(String(e.preco || 0).replace(",", ".")), // 🔥 CORRETO
+      categoria,
+      qtd: Number(e.qtd || 1)
+    }))
+  );
 
   let novoItem = {
     produto,
@@ -2607,51 +2628,52 @@ function adicionarCarrinho() {
   };
 
   // 🔥 FIDELIDADE (AÇAÍ GRÁTIS)
-  if (modoFidelidade) {
+  if (modoCompra === "fidelidade") {
+    console.log("ANTES:", extrasFinal);
 
-    const nomeLower = (produto.nome || "").toLowerCase();
-    const categoriaLower = (produto.categoria || "").toLowerCase();
-
-    // 🔥 BLOQUEIOS
-    if (
-      nomeLower.includes("clone") ||
-      nomeLower.includes("combo") ||
-      categoriaLower.includes("promo") ||
-      categoriaLower.includes("oferta")
-    ) {
+    // 🔥 BLOQUEIO
+    if (produto.resgate !== true) {
       setToast({
         tipo: "erro",
-        texto: "Este produto não participa da fidelidade"
+        texto: "Esse produto não faz parte do plano fidelidade"
       });
-
-      setModoFidelidade(false);
       return;
     }
 
-    // 🔥 SÓ 1 GRÁTIS
+    // 🔥 NÃO DUPLICAR
     const jaTemGratis = carrinho.some(item => item.gratis);
+    if (jaTemGratis) return;
 
-    if (jaTemGratis) {
-      setModoFidelidade(false);
-      return;
-    }
+    // 🔥 CORREÇÃO PRINCIPAL
+    // cobra SOMENTE extras que tem valor > 0
+    const totalExtrasFidelidade = extrasFinal.reduce((acc, e) => {
+      const preco = Number(e.preco || 0);
 
-    const totalSomenteExtras = Math.round(totalExtras * quantidade);
+      if (preco > 0) {
+        return acc + (preco * e.qtd);
+      }
 
+      return acc;
+    }, 0);
+
+    // 🔥 CRIA ITEM SEM QUEBRAR EXTRAS
     novoItem = {
-      ...novoItem,
-
-      // 🔥 ZERA PRODUTO
       produto: {
         ...produto,
-        preco: 0
+        preco: 0 // produto grátis
       },
 
-      total: totalSomenteExtras, // 🔥 SÓ EXTRAS
+      quantidade,
+
+      extras: extrasFinal,
+
+      total: Math.round(totalExtrasFidelidade * quantidade),
+
       gratis: true
     };
   }
 
+  // 🔥 ADICIONA NO CARRINHO
   if (editandoIndex !== null) {
     setCarrinho(prev => {
       const novo = [...prev];
@@ -2665,8 +2687,7 @@ function adicionarCarrinho() {
   }
 
   // 🔥 RESET
-  setModoFidelidade(false);
-
+  setModoCompra("normal");
   setExtrasSelecionados({});
   setQuantidade(1);
 
@@ -2675,8 +2696,49 @@ function adicionarCarrinho() {
 
   setToast({
     nome: novoItem.gratis
-      ? "Açaí grátis adicionado "
+      ? "Açaí grátis adicionado"
       : nomeProduto
+  });
+
+  setTimeout(() => setToast(null), 2500);
+}
+
+
+
+function resgatarAcai() {
+  if (!validarLojaAberta()) return;
+
+  const produtoResgate = produtos.find(p => p.resgate === true);
+
+  if (!produtoResgate) {
+    setToast({
+      tipo: "erro",
+      texto: "Nenhum produto disponível para resgate"
+    });
+    return;
+  }
+
+  const jaTemGratis = carrinho.some(item => item.gratis);
+  if (jaTemGratis) return;
+
+  const novoItem = {
+    produto: {
+      ...produtoResgate,
+      preco: 0
+    },
+    quantidade: 1,
+    extras: [],
+    total: 0,
+    gratis: true
+  };
+
+  setCarrinho(prev => [...prev, novoItem]);
+
+  setAba("carrinho");
+  setStep(3);
+
+  setToast({
+    nome: "Açaí grátis adicionado"
   });
 
   setTimeout(() => setToast(null), 2500);
@@ -5100,8 +5162,7 @@ return (
     
   )}
 </div>
-          
-        
+                 
       </div>
 
       {/* CONTEÚDO BRANCO */}
@@ -5166,31 +5227,39 @@ return (
   .map((p, i) => {
     const abrirProduto = () => {
 
-      // 🔥 CORREÇÃO AQUI
+      // 🔥 BLOQUEIO GLOBAL (fidelidade)
       if (modoCompra === "fidelidade" && p.resgate !== true) {
-        alert("Escolha apenas o açaí do plano fidelidade");
+        setBloqueioMsg("Escolha apenas o açaí do plano fidelidade");
         return;
       }
 
+      // 🔥 PROTEÇÕES
       if (!p.ativo) return;
       if (!validarLojaAberta()) return;
 
+      // 🔥 PRODUTO COM EXTRAS
       if (categoriaTemExtras(p.categoria)) {
         setProduto({
           ...p,
+          fidelidade: p.fidelidade === true,
+          resgate: p.resgate === true,
           preco: precoFinalProduto(p)
         });
+
         setAba("home");
         setStep(2);
         return;
       }
 
+      // 🔥 PRODUTO DIRETO PRO CARRINHO
       if (categoriaVaiDiretoCarrinho(p.categoria)) {
         setCarrinho((prev) => [
           ...prev,
           {
             produto: {
               ...p,
+              fidelidade: p.fidelidade === true,
+              resgate: p.resgate === true,
               preco: Number(p.preco || 0),
               precoPromocional: Number(p.precoPromocional || 0),
               promocao: p.promocao === true
@@ -5200,8 +5269,10 @@ return (
             total: Number(precoFinalProduto(p) || 0)
           }
         ]);
+
         setAba("carrinho");
         setStep(3);
+        return;
       }
     };
 
@@ -7283,23 +7354,32 @@ return (
     padding: 14
   }}>
     <strong style={{ color: "#166534" }}>
-       Você ganhou um Açaí Cremoso (P) Grátis!
+       Você ganhou um Açaí Fidelidade Totalmente Grátis!
     </strong>
 
     <button
   onClick={() => {
     try {
-      // 🔥 valida antes de tudo
       if (!temPremio) return;
+
+      // 🔥 NÃO TEM PRODUTO → NÃO ENTRA
+      if (!produtoFidelidade) {
+        setToast({
+          tipo: "erro",
+          texto: "Nenhum produto disponível para resgate"
+        });
+        return;
+      }
+
+      // 🔥 NÃO DUPLICA
       if (carrinho.some(i => i.gratis)) return;
 
-      // 🔥 haptic mobile
+      // 🔥 FEEDBACK
       if (navigator.vibrate) navigator.vibrate(40);
 
-      // 🔥 ativa fidelidade com segurança
-      setModoFidelidade(true);
+      // 🔥 ATIVA FIDELIDADE
+      setModoCompra("fidelidade");
 
-      // 🔥 navegação segura (evita crash)
       setTimeout(() => {
         setAba("home");
         setStep(1);
@@ -7309,39 +7389,141 @@ return (
       console.log("Erro ao ativar fidelidade:", e);
     }
   }}
+
+  disabled={!produtoFidelidade}
+
   style={{
     marginTop: 10,
-    background: "#16a34a",
+
+    background: produtoFidelidade
+      ? "#16a34a"
+      : "#d1d5db",
+
     color: "#fff",
     border: "none",
     padding: "12px 14px",
     borderRadius: 12,
+
     fontWeight: 700,
     fontSize: 13,
-    cursor: "pointer",
+
+    cursor: produtoFidelidade ? "pointer" : "not-allowed",
+
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    boxShadow: "0 6px 18px rgba(34,197,94,0.35)",
-    transition: "all .2s ease"
+
+    boxShadow: produtoFidelidade
+      ? "0 6px 18px rgba(34,197,94,0.35)"
+      : "none",
+
+    transition: "all .2s ease",
+    opacity: produtoFidelidade ? 1 : 0.7
   }}
+
   onMouseDown={(e) => {
+    if (!produtoFidelidade) return;
     e.currentTarget.style.transform = "scale(0.97)";
   }}
+
   onMouseUp={(e) => {
     e.currentTarget.style.transform = "scale(1)";
   }}
 >
-  {/* ÍCONE (sem emoji) */}
+  {/* ÍCONE */}
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
     <path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7" stroke="white" strokeWidth="2"/>
     <path d="M12 3v12" stroke="white" strokeWidth="2"/>
     <path d="M7 8l5-5 5 5" stroke="white" strokeWidth="2"/>
   </svg>
 
-  Resgatar açaí grátis
+  {produtoFidelidade
+    ? "Resgatar açaí grátis"
+    : "Resgate indisponível"}
 </button>
+  </div>
+)}
+
+{modoCompra === "fidelidade" && (
+  <div
+    style={{
+      margin: "12px 16px",
+      padding: 12,
+      background: "#fff",
+      borderRadius: 16,
+      border: "1px solid #e5e7eb",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      boxShadow: "0 6px 18px rgba(0,0,0,0.06)"
+    }}
+  >
+    {/* ESQUERDA */}
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      
+      {/* SE TIVER PRODUTO */}
+      {produtoFidelidade ? (
+        <>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              overflow: "hidden",
+              background: "#f4f4f5"
+            }}
+          >
+            <img
+              src={produtoFidelidade.imagem || "/acai.png"}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          </div>
+
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>
+              {produtoFidelidade.nome}
+            </div>
+
+            <div style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>
+              Disponível no seu plano fidelidade
+            </div>
+          </div>
+        </>
+      ) : (
+        // 🔥 CASO NÃO TENHA PRODUTO
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>
+            Nenhum produto disponível
+          </div>
+
+          <div style={{ fontSize: 11, color: "#ef4444" }}>
+            O resgate não está configurado
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* BOTÃO SEMPRE EXISTE */}
+    <button
+      onClick={() => setModoCompra("normal")}
+      style={{
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        padding: "8px 12px",
+        borderRadius: 10,
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: "pointer"
+      }}
+    >
+      Cancelar
+    </button>
   </div>
 )}
 
@@ -11440,6 +11622,87 @@ const corStatus =
     </div>
   );
 })()}
+
+
+{bloqueioMsg && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 16
+    }}
+    onClick={() => setBloqueioMsg(null)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        width: "100%",
+        maxWidth: 320,
+        background: "#fff",
+        borderRadius: 20,
+        padding: "24px 18px 18px",
+        textAlign: "center",
+        boxShadow: "0 25px 60px rgba(0,0,0,0.25)"
+      }}
+    >
+      {/* ÍCONE CENTRAL */}
+      <div
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: "50%",
+          background: "#fee2e2",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 16px"
+        }}
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#dc2626" strokeWidth="2"/>
+          <path d="M12 7v5" stroke="#dc2626" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="12" cy="16" r="1.2" fill="#dc2626"/>
+        </svg>
+      </div>
+
+      {/* TEXTO */}
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 600,
+          color: "#111",
+          lineHeight: 1.4,
+          marginBottom: 18
+        }}
+      >
+        {bloqueioMsg}
+      </div>
+
+      {/* BOTÃO */}
+      <button
+        onClick={() => setBloqueioMsg(null)}
+        style={{
+          width: "100%",
+          background: "#111",
+          color: "#fff",
+          border: "none",
+          padding: "12px 0",
+          borderRadius: 12,
+          fontWeight: 600,
+          fontSize: 14,
+          cursor: "pointer"
+        }}
+      >
+        Entendi
+      </button>
+    </div>
+  </div>
+)}
 
 
 

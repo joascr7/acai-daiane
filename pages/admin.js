@@ -1398,7 +1398,12 @@ function abrirEdicao(p) {
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
   setCategoria(p.categoria || "");
+
+  // 🔥 FIDELIDADE
   setFidelidade(p.fidelidade || false);
+
+  // 🔥 RESGATE (ESSA LINHA FALTAVA)
+  setResgate(p.resgate || false);
 
   setExtras(p.extras || []);
 
@@ -1413,7 +1418,7 @@ function abrirEdicao(p) {
       : ""
   );
 
-  // 🔥🔥🔥 AVALIAÇÃO (NOVO)
+  // 🔥 AVALIAÇÃO
   setMostrarAvaliacao(!!p.avaliacao);
   setNovaAvaliacao(p.avaliacao ? String(p.avaliacao) : "");
   setNovoTotalAvaliacoes(
@@ -1422,6 +1427,7 @@ function abrirEdicao(p) {
 
   setMostrarModalProduto(true);
 }
+
 
 // 🔥 EDITAR PRODUTOS
 async function salvarProduto() {
@@ -1451,39 +1457,42 @@ async function salvarProduto() {
     : 0;
 
   const dados = {
-    nome: novoNome,
-    preco: converterParaCentavos(novoPreco),
+  nome: novoNome,
+  preco: converterParaCentavos(novoPreco),
 
-    promocao: promocaoAtiva,
-    precoPromocional:
-      promocaoAtiva && novoPrecoPromocional
-        ? converterParaCentavos(novoPrecoPromocional)
-        : null,
+  promocao: promocaoAtiva,
+  precoPromocional:
+    promocaoAtiva && novoPrecoPromocional
+      ? converterParaCentavos(novoPrecoPromocional)
+      : null,
 
-    tamanho: novoTamanho,
-    descricao: novaDescricao,
-    imagem: novaImagem,
-    ativo: true,
-    maisVendido,
-    categoria,
-    extras: extrasFormatados,
+  tamanho: novoTamanho,
+  descricao: novaDescricao,
+  imagem: novaImagem,
+  ativo: true,
+  maisVendido,
+  categoria,
+  extras: extrasFormatados,
 
-    // 🔥 NOVO CAMPO
-    fidelidade: fidelidade === true,
+  // 🔥 FIDELIDADE
+  fidelidade: fidelidade === true,
 
-    // 🔥 avaliação
-    mostrarAvaliacao: mostrarAvaliacao === true,
-    avaliacao:
-      mostrarAvaliacao && avaliacaoNumero > 0
-        ? Number(avaliacaoNumero.toFixed(1))
-        : null,
-    totalAvaliacoes:
-      mostrarAvaliacao && totalAvaliacoesNumero > 0
-        ? Number(totalAvaliacoesNumero)
-        : 0,
+  // 🔥 RESGATE (ESSA LINHA RESOLVE TUDO)
+  resgate: resgate === true,
 
-    ordem: produtoEditandoId ? undefined : Date.now()
-  };
+  // 🔥 avaliação
+  mostrarAvaliacao: mostrarAvaliacao === true,
+  avaliacao:
+    mostrarAvaliacao && avaliacaoNumero > 0
+      ? Number(avaliacaoNumero.toFixed(1))
+      : null,
+  totalAvaliacoes:
+    mostrarAvaliacao && totalAvaliacoesNumero > 0
+      ? Number(totalAvaliacoesNumero)
+      : 0,
+
+  ordem: produtoEditandoId ? undefined : Date.now()
+};
 
   try {
     if (produtoEditandoId) {

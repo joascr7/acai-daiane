@@ -24,6 +24,7 @@ if (!getApps().length) {
 }
 
 // 🔥 EXPORTS
+export { app };
 export const authCliente = getAuth(app);
 export const authAdmin = getAuth(app);
 
