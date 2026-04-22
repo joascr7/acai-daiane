@@ -89,6 +89,9 @@ import {
   Mail,
   Ticket,
   TicketPercent,
+  ArrowRight,
+  Plus,
+  Eye,
   CheckCircle
   
 } from "lucide-react";
@@ -5245,6 +5248,7 @@ return (
       <div
         key={i}
         style={{
+          position: "relative",
           background: "#fff",
           borderRadius: 24,
           padding: 12,
@@ -5412,7 +5416,8 @@ return (
   style={{
     fontSize: 15,
     fontWeight: 800,
-    color: "#111"
+    color: "#111",
+    lineHeight: 1.2
   }}
 >
   {p.nome} {p.maisVendido && "🔥"}
@@ -5428,26 +5433,33 @@ return (
       WebkitLineClamp: 2,
       display: "-webkit-box",
       WebkitBoxOrient: "vertical",
-      overflow: "hidden"
+      overflow: "hidden",
+      lineHeight: 1.4
     }}
   >
     {p.descricao}
   </div>
 )}
 
-{/* TAMANHO MELHORADO */}
-<div
-  style={{
-    marginTop: 6,
-    fontSize: 12,
-    color: "#1d1c1c",
-    fontWeight: 600
-  }}
->
-  {p.tamanho ? `P • M disponíveis` : ""}
-</div>
+{/* 🔥 TAMANHO (IGUAL IMAGEM) */}
+{p.tamanho && (
+  <div
+    style={{
+      marginTop: 8,
+      display: "inline-block",
+      fontSize: 12,
+      fontWeight: 700,
+      color: "#510eec",
+      background: "#e9e3f3",
+      padding: "4px 8px",
+      borderRadius: 999
+    }}
+  >
+    P • M disponíveis
+  </div>
+)}
 
-{/* PREÇO MELHORADO */}
+{/* 🔥 PREÇO (FORMATO IFOOD) */}
 <div style={{ marginTop: 8 }}>
   {produtoEmPromocao(p) ? (
     <>
@@ -5455,38 +5467,88 @@ return (
         {formatarReal(p.preco || 0)}
       </div>
 
-      <strong style={precoPromo}>
-        A partir de {formatarReal(precoFinalProduto(p))}
-      </strong>
+      <span
+        style={{
+          fontSize: 12,
+          color: "#888",
+          fontWeight: 600
+        }}
+      >
+        A partir de
+      </span>
+
+      <div
+        style={{
+          fontSize: 18,
+          fontWeight: 900,
+          color: "#111",
+          marginTop: 2
+        }}
+      >
+        {formatarReal(precoFinalProduto(p))}
+      </div>
     </>
   ) : (
-    <strong style={precoNormal}>
-      A partir de {formatarReal(precoFinalProduto(p))}
-    </strong>
+    <>
+      <span
+        style={{
+          fontSize: 12,
+          color: "#888",
+          fontWeight: 600
+        }}
+      >
+        A partir de
+      </span>
+
+      <div
+        style={{
+          fontSize: 18,
+          fontWeight: 900,
+          color: "#111",
+          marginTop: 2
+        }}
+      >
+        {formatarReal(precoFinalProduto(p))}
+      </div>
+    </>
   )}
 </div>
 
-{/* CTA */}
-{/* <div
+{/* 🔥 BOTÃO ULTRA PREMIUM */}
+{/*<div
   onClick={(e) => {
     e.stopPropagation();
     abrirProduto();
   }}
   style={{
-    marginTop: 10,
-    background: "#111",
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: 700,
-    padding: "8px 10px",
-    borderRadius: 10,
-    display: "inline-flex",
+    position: "absolute",
+    bottom: 12,
+    right: 12,
+
+    width: 42,
+    height: 42,
+    borderRadius: "50%",
+
+    background: "rgba(255,255,255,0.9)",
+    backdropFilter: "blur(8px)",
+
+    display: "flex",
     alignItems: "center",
-    gap: 6,
-    cursor: "pointer"
+    justifyContent: "center",
+
+    boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+
+    cursor: "pointer",
+    transition: "all .2s ease"
+  }}
+  onTouchStart={(e) => {
+    e.currentTarget.style.transform = "scale(0.92)";
+  }}
+  onTouchEnd={(e) => {
+    e.currentTarget.style.transform = "scale(1)";
   }}
 >
-  Montar
+  <Eye size={18} strokeWidth={2.2} color="#111" />
 </div>*/}
           </div>
         </div>
