@@ -387,6 +387,8 @@ useEffect(() => {
 const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
+const [modoCompra, setModoCompra] = useState("normal");
+
 
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
@@ -5160,9 +5162,17 @@ return (
   }}
 >
   {produtos
-  .filter((p) => p.ativo !== false)
+  .filter((p) => p.ativo === true)
   .map((p, i) => {
     const abrirProduto = () => {
+
+      // 🔥 CORREÇÃO AQUI
+      if (modoCompra === "fidelidade" && p.resgate !== true) {
+        alert("Escolha apenas o açaí do plano fidelidade");
+        return;
+      }
+
+      if (!p.ativo) return;
       if (!validarLojaAberta()) return;
 
       if (categoriaTemExtras(p.categoria)) {

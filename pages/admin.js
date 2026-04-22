@@ -225,6 +225,8 @@ const [toast, setToast] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
 
+  const [fidelidade, setFidelidade] = useState(false);
+
   const [produtoOrigemExtras, setProdutoOrigemExtras] = useState("");
 
 
@@ -313,6 +315,8 @@ useEffect(() => {
   const [novoExtraNome, setNovoExtraNome] = useState("");
   const [novoExtraPreco, setNovoExtraPreco] = useState("");
   const [produtoNotificacao, setProdutoNotificacao] = useState("");
+
+  const [resgate, setResgate] = useState(false);
 
 
   const [mostrarAvaliacao, setMostrarAvaliacao] = useState(false);
@@ -1394,6 +1398,7 @@ function abrirEdicao(p) {
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
   setCategoria(p.categoria || "");
+  setFidelidade(p.fidelidade || false);
 
   setExtras(p.extras || []);
 
@@ -1463,6 +1468,9 @@ async function salvarProduto() {
     categoria,
     extras: extrasFormatados,
 
+    // 🔥 NOVO CAMPO
+    fidelidade: fidelidade === true,
+
     // 🔥 avaliação
     mostrarAvaliacao: mostrarAvaliacao === true,
     avaliacao:
@@ -1494,6 +1502,7 @@ async function salvarProduto() {
       alert("Produto criado!");
     }
 
+    // 🔥 RESET
     setProdutoEditandoId(null);
     setNovoNome("");
     setNovoPreco("");
@@ -1507,6 +1516,9 @@ async function salvarProduto() {
     setExtras([]);
     setNovaCategoria("");
     setProdutoOrigemExtras("");
+
+    // 🔥 RESET FIDELIDADE
+    setFidelidade(false);
 
     // 🔥 limpa avaliação
     setMostrarAvaliacao(false);
@@ -4441,6 +4453,100 @@ if (loadingAuth) {
       boxSizing: "border-box"
     }}>
 
+
+      {/* 🔥 FIDELIDADE */}
+<div
+  style={{
+    marginTop: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "#f9fafb",
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid #eee"
+  }}
+>
+  <div>
+    <div
+      style={{
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#111"
+      }}
+    >
+      Participa do fidelidade
+    </div>
+
+    <div
+      style={{
+        fontSize: 11,
+        color: "#666",
+        marginTop: 2
+      }}
+    >
+      Produto conta pontos para o cliente
+    </div>
+  </div>
+
+  <input
+    type="checkbox"
+    checked={fidelidade}
+    onChange={(e) => setFidelidade(e.target.checked)}
+    style={{
+      width: 18,
+      height: 18,
+      cursor: "pointer"
+    }}
+  />
+</div>
+
+<div
+  style={{
+    marginTop: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    background: "#f9fafb",
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid #eee"
+  }}
+>
+  <div>
+    <div
+      style={{
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#111"
+      }}
+    >
+      Pode ser resgatado grátis
+    </div>
+
+    <div
+      style={{
+        fontSize: 11,
+        color: "#666",
+        marginTop: 2
+      }}
+    >
+      Produto liberado no plano fidelidade
+    </div>
+  </div>
+
+  <input
+    type="checkbox"
+    checked={resgate}
+    onChange={(e) => setResgate(e.target.checked)}
+    style={{
+      width: 18,
+      height: 18,
+      cursor: "pointer"
+    }}
+  />
+</div>
+
       {/* TOPO */}
       <div style={{ marginBottom: 16 }}>
         <h3 style={{
@@ -4683,6 +4789,7 @@ if (loadingAuth) {
     </div>
   )}
 </div>
+
 
 {/* COPIAR EXTRAS DE OUTRO PRODUTO */}
 <div
@@ -5092,6 +5199,8 @@ if (loadingAuth) {
     </div>
   </div>
 )}
+
+
       {/* PRODUTOS */}
       {abaAdmin === "produtos" && (
   <div
