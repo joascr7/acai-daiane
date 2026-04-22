@@ -1,12 +1,23 @@
+// pages/api/webhook.js
+
+// 🔥 Garante runtime Node (importante pro process.env)
+export const config = { runtime: "nodejs" };
+
 import { dbAdmin } from "../../services/firebaseAdmin";
 
 export default async function handler(req, res) {
   try {
     console.log("🔥 WEBHOOK RECEBIDO");
 
-    // 🔥 aceita GET (teste) e POST (real)
+    // aceita GET (teste) e POST (real)
     if (req.method !== "POST") {
       return res.status(200).json({ ok: true });
+    }
+
+    // 🔎 Segurança: se Firebase não subiu, não tenta usar
+    if (!dbAdmin) {
+      console.log("❌ dbAdmin NÃO inicializado (ENV não chegou)");
+      return res.status(200).json({ ok: false });
     }
 
     const paymentId =
@@ -33,8 +44,9 @@ export default async function handler(req, res) {
 
     console.log("STATUS:", pagamento.status);
     console.log("DETAIL:", pagamento.status_detail);
+    console.log("METHOD:", pagamento.payment_method_id);
 
-    // 🔥 IGNORA TUDO QUE NÃO FOR PIX PAGO REAL
+    // 🔥 só continua se for PIX pago de verdade
     if (
       pagamento.status !== "approved" ||
       pagamento.status_detail !== "accredited" ||
@@ -62,7 +74,7 @@ export default async function handler(req, res) {
 
     const pedido = snap.data();
 
-    // 🔥 evita duplicar
+    // 🔁 evita duplicar
     if (pedido.statusPagamento === "pago") {
       console.log("⚠️ Já estava pago");
       return res.status(200).json({ ok: true });
@@ -72,17 +84,16 @@ export default async function handler(req, res) {
       statusPagamento: "pago",
       status: "preparando",
       paymentId: String(paymentId),
-      dataPagamento: new Date().toISOString()
+      dataPagamento: new Date().toISOString(),
     });
 
-    console.log("✅ PAGAMENTO CONFIRMADO");
+    console.log("✅ PAGAMENTO CONFIRMADO:", pedidoId);
 
     return res.status(200).json({ ok: true });
 
   } catch (e) {
     console.log("🔥 ERRO WEBHOOK:", e);
-
-    // 🔥 IMPORTANTE: sempre retorna 200
+    // Mercado Pago exige 200
     return res.status(200).json({ ok: false });
   }
 }
