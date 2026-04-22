@@ -3898,6 +3898,124 @@ return (
 )}
 
 
+{!isMobile && (
+  <div
+    style={{
+      width: "100%",
+      maxWidth: 1200,
+      margin: "12px auto 20px",
+      padding: "10px 16px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      background: "#fff",
+      borderRadius: 16,
+      boxShadow: "0 6px 20px rgba(0,0,0,0.06)"
+    }}
+  >
+    {/* ESQUERDA */}
+    <div style={{ display: "flex", gap: 18 }}>
+
+      <div
+        onClick={() => { setAba("home"); setStep(1); }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          cursor: "pointer",
+          color: aba === "home" ? "#ea1d2c" : "#555",
+          fontWeight: 700
+        }}
+      >
+        <Home size={18} />
+        Início
+      </div>
+
+      <div
+        onClick={() => { setAba("busca"); setStep(10); }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          cursor: "pointer",
+          color: aba === "busca" ? "#ea1d2c" : "#555",
+          fontWeight: 700
+        }}
+      >
+        <Search size={18} />
+        Buscar
+      </div>
+
+      <div
+        onClick={() => { setAba("pedidos"); setStep(5); }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          cursor: "pointer",
+          color: aba === "pedidos" ? "#ea1d2c" : "#555",
+          fontWeight: 700
+        }}
+      >
+        <FileText size={18} />
+        Pedidos
+      </div>
+
+    </div>
+
+    {/* DIREITA */}
+    <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+
+      {/* CARRINHO */}
+      <div
+        onClick={() => { setAba("carrinho"); setStep(3); }}
+        style={{
+          position: "relative",
+          cursor: "pointer",
+          color: aba === "carrinho" ? "#ea1d2c" : "#555"
+        }}
+      >
+        <ShoppingCart size={20} />
+
+        {carrinho.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: -6,
+              right: -8,
+              background: "#ea1d2c",
+              color: "#fff",
+              borderRadius: "50%",
+              fontSize: 10,
+              width: 16,
+              height: 16,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700
+            }}
+          >
+            {carrinho.length}
+          </div>
+        )}
+      </div>
+
+      {/* PERFIL */}
+      <div
+        onClick={() => { setAba("perfil"); setStep(4); }}
+        style={{
+          cursor: "pointer",
+          color: aba === "perfil" ? "#ea1d2c" : "#555"
+        }}
+      >
+        <User size={20} />
+      </div>
+
+    </div>
+  </div>
+)}
+
+
 
 
  {/* ========================= */}
@@ -4837,7 +4955,7 @@ return (
     }}
   />
 
-  {lojaAberta ? "Loja aberta" : "Loja fechada"}
+  {lojaAberta ? "Aberto das 18:30 às 23:00" : "Funcionamos das 18:30 às 23:00. "}
 </div>
 
         
@@ -5015,7 +5133,7 @@ return (
               lineHeight: 1.2
             }}
           >
-            Personalize ou peça pronto
+            Personalize seu açaí
           </strong>
         </div>
 
@@ -5156,26 +5274,47 @@ return (
   </span>
 </div>
  */}
-            {(produtoEmPromocao(p) || p.maisVendido) && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 8,
-                  left: 8,
-                  display: "flex",
-                  gap: 6,
-                  flexWrap: "wrap"
-                }}
-              >
-                {produtoEmPromocao(p) && (
-                  <span style={badgeOferta}>Oferta</span>
-                )}
+           {(produtoEmPromocao(p) || p.maisVendido) && (
+  <div
+    style={{
+      position: "absolute",
+      top: 6,
+      left: "50%", // 🔥 centraliza horizontal
+      transform: "translateX(-50%)", // 🔥 ajusta pro meio
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center", // 🔥 centraliza os badges
+      gap: 4,
+      zIndex: 2
+    }}
+  >
+    {produtoEmPromocao(p) && (
+      <span
+        style={{
+          ...badgeOferta,
+          fontSize: 9,
+          padding: "1px 6px",
+          whiteSpace: "nowrap"
+        }}
+      >
+        Oferta
+      </span>
+    )}
 
-                {p.maisVendido && (
-                  <span style={badgeMais}>Mais vendido</span>
-                )}
-              </div>
-            )}
+    {p.maisVendido && (
+      <span
+        style={{
+          ...badgeMais,
+          fontSize: 9,
+          padding: "1px 6px",
+          whiteSpace: "nowrap"
+        }}
+      >
+        Mais vendido
+      </span>
+    )}
+  </div>
+)}
           </div>
 
           {/* CONTEÚDO */}
@@ -5223,58 +5362,86 @@ return (
 )}
 
             {/* NOME */}
-            <div
-              style={{
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#111"
-              }}
-            >
-              {p.nome}
-            </div>
+<div
+  style={{
+    fontSize: 15,
+    fontWeight: 800,
+    color: "#111"
+  }}
+>
+  {p.nome} {p.maisVendido && "🔥"}
+</div>
 
-            {/* DESCRIÇÃO */}
-            {!!p.descricao && (
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 12,
-                  color: "#666",
-                  WebkitLineClamp: 2,
-                  display: "-webkit-box",
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden"
-                }}
-              >
-                {p.descricao}
-              </div>
-            )}
+{/* DESCRIÇÃO */}
+{!!p.descricao && (
+  <div
+    style={{
+      marginTop: 6,
+      fontSize: 12,
+      color: "#666",
+      WebkitLineClamp: 2,
+      display: "-webkit-box",
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden"
+    }}
+  >
+    {p.descricao}
+  </div>
+)}
 
-            {/* TAMANHO */}
-            <div style={{ marginTop: 6, fontSize: 12, color: "#8b8b8b" }}>
-              {p.tamanho ? `• ${p.tamanho}` : ""}
-            </div>
+{/* TAMANHO MELHORADO */}
+<div
+  style={{
+    marginTop: 6,
+    fontSize: 12,
+    color: "#1d1c1c",
+    fontWeight: 600
+  }}
+>
+  {p.tamanho ? `P • M disponíveis` : ""}
+</div>
 
-            {/* PREÇO */}
-            <div style={{ marginTop: 10 }}>
-              {produtoEmPromocao(p) ? (
-                <>
-                  <div style={precoAntigo}>
-                    {formatarReal(p.preco || 0)}
-                  </div>
+{/* PREÇO MELHORADO */}
+<div style={{ marginTop: 8 }}>
+  {produtoEmPromocao(p) ? (
+    <>
+      <div style={precoAntigo}>
+        {formatarReal(p.preco || 0)}
+      </div>
 
-                  <strong style={precoPromo}>
-                    {formatarReal(precoFinalProduto(p))}
-                  </strong>
-                </>
-                
-              ) : (
-                <strong style={precoNormal}>
-                  {formatarReal(precoFinalProduto(p))}
-                </strong>
-              )}
+      <strong style={precoPromo}>
+        A partir de {formatarReal(precoFinalProduto(p))}
+      </strong>
+    </>
+  ) : (
+    <strong style={precoNormal}>
+      A partir de {formatarReal(precoFinalProduto(p))}
+    </strong>
+  )}
+</div>
 
-            </div>
+{/* CTA */}
+{/* <div
+  onClick={(e) => {
+    e.stopPropagation();
+    abrirProduto();
+  }}
+  style={{
+    marginTop: 10,
+    background: "#111",
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: 700,
+    padding: "8px 10px",
+    borderRadius: 10,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    cursor: "pointer"
+  }}
+>
+  Montar
+</div>*/}
           </div>
         </div>
       </div>
@@ -10057,7 +10224,7 @@ const corStatus =
           {p.maisVendido && (
             <div
               style={{
-                background: "#ee660b",
+                background: "#e0800b",
                 color: "#fff",
                 fontSize: 10,
                 padding: "3px 8px",
@@ -10561,73 +10728,78 @@ const corStatus =
     }}
   >
     {/* IMAGEM */}
-    <div
-      style={{
-        width: 70,
-        height: 70,
-        borderRadius: 14,
-        overflow: "hidden",
-        flexShrink: 0,
-        position: "relative",
-        background: "#f4f4f5"
-      }}
-    >
-      <img
-        src={p.imagem || "/acai.png"}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block"
-        }}
-      />
+<div
+  style={{
+    width: 70,
+    height: 70,
+    minWidth: 70,
+    minHeight: 70,
+    borderRadius: 14,
+    overflow: "hidden",
+    position: "relative",
+    background: "#f4f4f5"
+  }}
+>
 
-      {(produtoEmPromocao(p) || p.maisVendido) && (
+  <img
+    src={p.imagem || "/acai.png"}
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "cover"
+    }}
+  />
+
+  {/* 🔥 BADGE FIXA REAL */}
+  {(produtoEmPromocao(p) || p.maisVendido) && (
+  <div
+    style={{
+      position: "absolute",
+      top: 4,
+      left: "50%", // 🔥 centraliza horizontal
+      transform: "translateX(-50%)", // 🔥 ajusta pro meio
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center", // 🔥 centraliza os badges
+      gap: 3,
+      zIndex: 999
+    }}
+  >
+
+      {produtoEmPromocao(p) && (
         <div
           style={{
-            position: "absolute",
-            top: 6,
-            left: 6,
-            display: "flex",
-            gap: 4,
-            flexWrap: "wrap",
-            zIndex: 2,
-            maxWidth: "90%"
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 8,
+            padding: "2px 6px",
+            borderRadius: 999,
+            fontWeight: 800,
+            whiteSpace: "nowrap"
           }}
         >
-          {produtoEmPromocao(p) && (
-            <div
-              style={{
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 8,
-                padding: "3px 6px",
-                borderRadius: 999,
-                fontWeight: 800,
-                lineHeight: 1
-              }}
-            >
-              Oferta
-            </div>
-          )}
-
-          {p.maisVendido && (
-            <div
-              style={{
-                background: "#ee660b",
-                color: "#fff",
-                fontSize: 8,
-                padding: "3px 6px",
-                borderRadius: 999,
-                fontWeight: 800,
-                lineHeight: 1
-              }}
-            >
-              Mais vendido
-            </div>
-          )}
+          Oferta
         </div>
       )}
+
+      {p.maisVendido && (
+        <div
+          style={{
+            background: "#ff7a00",
+            color: "#fff",
+            fontSize: 8,
+            padding: "2px 6px",
+            borderRadius: 999,
+            fontWeight: 700,
+            whiteSpace: "nowrap"
+          }}
+        >
+          Mais vendido
+        </div>
+      )}
+
+  </div>
+)}
     </div>
 
     {/* INFO */}
@@ -10734,6 +10906,7 @@ const corStatus =
 
 
 {/* 🔥 NAVBAR FIXA */}
+{isMobile && (
 <div style={{
   position: "fixed",
   bottom: 0,
@@ -10870,6 +11043,7 @@ const corStatus =
   </div>
 
 </div>
+)}
 
  {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
 
