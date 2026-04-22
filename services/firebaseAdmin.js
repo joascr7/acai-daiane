@@ -4,25 +4,27 @@ const projectId = process.env.ID_DO_PROJETO_FB;
 const clientEmail = process.env.FB_CLIENT_EMAIL;
 const privateKeyRaw = process.env.FB_PRIVATE_KEY;
 
-console.log("🔥 DEBUG:");
-console.log("PROJECT:", projectId);
-console.log("EMAIL:", clientEmail);
-console.log("KEY TYPE:", typeof privateKeyRaw);
-
 if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId,
-        clientEmail,
-        privateKey: privateKeyRaw?.replace(/\\n/g, "\n"),
-      }),
-    });
+  if (!projectId || !clientEmail || !privateKeyRaw) {
+    console.error("❌ ENV Firebase faltando");
+  } else {
+    try {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId,
+          clientEmail,
+          privateKey: privateKeyRaw.replace(/\\n/g, "\n"),
+        }),
+      });
 
-    console.log("✅ Firebase Admin OK");
-  } catch (e) {
-    console.log("💥 ERRO FIREBASE:", e);
+      console.log("✅ Firebase Admin inicializado");
+    } catch (e) {
+      console.error("💥 ERRO AO INICIALIZAR FIREBASE:", e);
+    }
   }
 }
 
-export const dbAdmin = admin.firestore();
+// 🔥 SÓ EXPORTA SE EXISTIR APP
+export const dbAdmin = admin.apps.length
+  ? admin.firestore()
+  : null;
