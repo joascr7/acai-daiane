@@ -5024,17 +5024,17 @@ return (
 
         
 
-        {/* BANNER */}
+        {/* BANNER RESPONSIVO PROFISSIONAL */}
 {Array.isArray(banners) && banners.length > 0 && (
   <div
     style={{
-      marginTop: 20,
+      marginTop: 16,
       borderRadius: 20,
       overflow: "hidden",
       position: "relative",
       boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
       width: "100%",
-      height: isMobile ? 130 : 220,
+      height: isMobile ? 160 : 460,
       background: "#111"
     }}
   >
@@ -5046,9 +5046,8 @@ return (
         width: "100%",
         height: "100%",
         overflowX: "auto",
-        overflowY: "hidden",
-        WebkitOverflowScrolling: "touch",
         scrollSnapType: "x mandatory",
+        WebkitOverflowScrolling: "touch",
         msOverflowStyle: "none",
         scrollbarWidth: "none"
       }}
@@ -5063,7 +5062,6 @@ return (
           }}
           style={{
             minWidth: "100%",
-            width: "100%",
             height: "100%",
             flex: "0 0 100%",
             scrollSnapAlign: "start",
@@ -5071,50 +5069,50 @@ return (
             cursor: "pointer"
           }}
         >
+          {/* IMAGEM ÚNICA (RESPONSIVA) */}
           <img
             src={b.imagem}
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "cover", // ✅ corrigido
-              objectPosition: "center",
-              display: "block",
-              filter: "brightness(0.92)" // 🔥 visual premium
+              objectFit: "cover",
+              objectPosition: "left center", // 🔥 NÃO CORTA TEXTO
+              display: "block"
             }}
           />
 
-          {/* overlay premium */}
+          {/* OVERLAY LEVE (DEIXA PREMIUM SEM ATRAPALHAR) */}
           <div
             style={{
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0.00) 40%, rgba(0,0,0,0.35) 100%)"
+                "linear-gradient(90deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.05) 60%)"
             }}
           />
         </div>
       ))}
     </div>
 
-    {/* indicadores */}
+    {/* INDICADORES */}
     {banners.length > 1 && (
       <div
         style={{
           position: "absolute",
-          bottom: 12,
+          bottom: 10,
           left: 0,
           right: 0,
           display: "flex",
           justifyContent: "center",
           gap: 6,
-          zIndex: 3
+          zIndex: 2
         }}
       >
         {banners.map((_, i) => (
           <div
             key={i}
             style={{
-              width: i === bannerIndex ? 22 : 6,
+              width: i === bannerIndex ? 20 : 6,
               height: 6,
               borderRadius: 999,
               background:
