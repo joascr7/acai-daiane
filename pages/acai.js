@@ -5178,7 +5178,7 @@ return (
             lineHeight: 1.4
           }}
         >
-          O sabor é garantido de qualquer forma.
+          Feito pra quem entende de açaí.
         </div>
 
         {/* LISTA DE PRODUTOS HORIZONTAL */}
