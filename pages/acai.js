@@ -5455,9 +5455,12 @@ return (
       borderRadius: 999
     }}
   >
-    P • M disponíveis
+     {p.tamanho}
   </div>
 )}
+    
+  
+  
 
 {/* 🔥 PREÇO (FORMATO IFOOD) */}
 <div style={{ marginTop: 8 }}>

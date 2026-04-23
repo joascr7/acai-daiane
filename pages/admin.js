@@ -5264,25 +5264,41 @@ if (loadingAuth) {
           </p>
         </div>
 
-        onClick={() => {
-  setProdutoEditandoId(null);
-  setNovoNome("");
-  setNovoPreco("");
-  setNovoPrecoPromocional("");
-  setPromocaoAtiva(false);
-  setNovoTamanho("");
-  setNovaDescricao("");
-  setNovaImagem("");
-  setMaisVendido(false);
-  setCategoria(categorias?.[0]?.slug || "");
-  setExtras([]);
-  setNovaCategoria("");
-  setProdutoOrigemExtras("");
-  setMostrarAvaliacao(false);
-  setNovaAvaliacao("");
-  setNovoTotalAvaliacoes("");
-  setMostrarModalProduto(true);
-}}
+        <button
+  onClick={() => {
+    setProdutoEditandoId(null);
+    setNovoNome("");
+    setNovoPreco("");
+    setNovoPrecoPromocional("");
+    setPromocaoAtiva(false);
+    setNovoTamanho("");
+    setNovaDescricao("");
+    setNovaImagem("");
+    setMaisVendido(false);
+    setCategoria(categorias?.[0]?.slug || "");
+    setExtras([]);
+    setNovaCategoria("");
+    setProdutoOrigemExtras("");
+    setMostrarAvaliacao(false);
+    setNovaAvaliacao("");
+    setNovoTotalAvaliacoes("");
+    setMostrarModalProduto(true);
+  }}
+  style={{
+    height: 42,
+    padding: "0 16px",
+    borderRadius: 12,
+    border: "none",
+    background: "#ea1d2c",
+    color: "#fff",
+    fontWeight: 700,
+    fontSize: 13,
+    cursor: "pointer",
+    whiteSpace: "nowrap"
+  }}
+>
+  + Novo produto
+</button>
       </div>
     </div>
 
