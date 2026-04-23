@@ -1576,6 +1576,24 @@ async function toggleProduto(p) {
 }
 
 
+async function cancelarPedido(id) {
+  const confirmar = confirm("Cancelar este pedido?");
+  if (!confirmar) return;
+
+  try {
+    await updateDoc(doc(db, "pedidos", id), {
+      status: "cancelado",
+      canceladoEm: Date.now()
+    });
+
+    alert("Pedido cancelado");
+  } catch (e) {
+    console.log(e);
+    alert("Erro ao cancelar");
+  }
+}
+
+
 // 🔥 STATUS LOJA
 async function toggleLoja(status) {
   setLoadingLoja(true);
@@ -1897,6 +1915,7 @@ if (loadingAuth) {
         {[
           { id: "dashboard", nome: "Dashboard" },
           { id: "pedidos", nome: "Pedidos" },
+          { id: "cancelados", nome: "Cancelados" },
           { id: "produtos", nome: "Produtos" },
           { id: "avaliacoes", nome: "Avaliações" },
           { id: "gastos", nome: "Gastos" },
@@ -5919,6 +5938,8 @@ if (loadingAuth) {
       />
     </div>
 
+    
+
     {/* GRID */}
     <div className="gridPedidos">
 
@@ -6115,6 +6136,21 @@ if (loadingAuth) {
           </button>
         )}
       </div>
+
+      <button
+  onClick={() => cancelarPedido(p.id)}
+  style={{
+    padding: "8px 12px",
+    borderRadius: 10,
+    border: "none",
+    background: "#dc2626",
+    color: "#fff",
+    fontWeight: 700,
+    cursor: "pointer"
+  }}
+>
+  Cancelar
+</button>
     </div>
   
             );
@@ -6309,6 +6345,40 @@ if (loadingAuth) {
       </div>
 
     </div>
+  </div>
+)}
+
+
+{abaAdmin === "cancelados" && (
+  <div>
+    {pedidos
+      .filter(p => p.status === "cancelado")
+      .map((p) => (
+        <div key={p.id} style={card}>
+          <strong>Pedido #{p.codigo}</strong>
+
+          <div style={{ marginTop: 6 }}>
+            Cliente: {p?.cliente?.nome}
+          </div>
+
+          <div style={{ marginTop: 6 }}>
+            Total: {formatarReal(p.total)}
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              background: "#fee2e2",
+              color: "#b91c1c",
+              padding: "6px 10px",
+              borderRadius: 10,
+              fontWeight: 800
+            }}
+          >
+            Cancelado
+          </div>
+        </div>
+      ))}
   </div>
 )}
 

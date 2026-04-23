@@ -1130,11 +1130,12 @@ function voltarPara(abaDestino, stepDestino) {
 function renderTimeline(status) {
 
   const etapas = [
-    { key: "recebido", label: "Recebido" },
-    { key: "preparando", label: "Em preparo" },
-    { key: "saiu", label: "Saiu" },
-    { key: "entregue", label: "Entregue" }
-  ];
+  { key: "recebido", label: "Recebido" },
+  { key: "preparando", label: "Em preparo" },
+  { key: "saiu", label: "Saiu" },
+  { key: "entregue", label: "Entregue" },
+  { key: "cancelado", label: "Cancelado" }
+];
 
   const ordem = ["recebido", "preparando", "saiu", "entregue"];
 
@@ -8834,6 +8835,22 @@ const corStatus =
                     )}
                   </div>
                 </div>
+
+  {p.status === "cancelado" && (
+  <div
+    style={{
+      marginTop: 10,
+      background: "#fee2e2",
+      color: "#b91c1c",
+      padding: "8px 12px",
+      borderRadius: 10,
+      fontWeight: 800,
+      textAlign: "center"
+    }}
+  >
+    Pedido cancelado
+  </div>
+)}
 
                {/* TOTAL + AÇÕES */}
 <div
