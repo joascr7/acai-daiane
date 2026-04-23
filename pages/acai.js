@@ -92,6 +92,7 @@ import {
   ArrowRight,
   Plus,
   Eye,
+  Sparkles,
   CheckCircle
   
 } from "lucide-react";
@@ -5146,40 +5147,60 @@ return (
         }}
       >
         {/* TÍTULO */}
-        <div
-          style={{
-            marginBottom: 14,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "0 6px"
-          }}
-        >
-          <strong
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              color: "#111",
-              letterSpacing: "-0.02em",
-              lineHeight: 1.2
-            }}
-          >
-            Personalize seu açaí
-          </strong>
-        </div>
+<div
+  style={{
+    marginBottom: 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "0 6px"
+  }}
+>
+  <strong
+    style={{
+      fontSize: 20,
+      fontWeight: 900,
+      color: "#111",
+      letterSpacing: "-0.02em"
+    }}
+  >
+    Personalize seu açaí
+  </strong>
+</div>
 
-        <div
-          style={{
-            padding: "0 6px",
-            marginTop: -4,
-            marginBottom: 14,
-            fontSize: 13,
-            color: "#666",
-            lineHeight: 1.4
-          }}
-        >
-          Feito pra quem entende de açaí.
-        </div>
+{/* SUBTÍTULO */}
+<div
+  style={{
+    padding: "0 6px",
+    fontSize: 13,
+    color: "#666",
+    lineHeight: 1.4,
+    marginBottom: 8
+  }}
+>
+  Feito pra quem entende de açaí.
+</div>
+
+{/* FRASE PREMIUM COM ÍCONE */}
+<div
+  style={{
+    marginTop: 4,
+    marginBottom: 16,
+    padding: "6px 10px",
+    marginLeft: 6,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "#fcf1ff",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#7507dd"
+  }}
+>
+  <Sparkles size={14} strokeWidth={2.5} />
+  Escolha, personalize e aproveite
+</div>
 
         {/* LISTA DE PRODUTOS HORIZONTAL */}
 <div
