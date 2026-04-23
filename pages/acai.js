@@ -9560,12 +9560,12 @@ const corStatus =
                 icone: <CreditCard size={20} color={formaPagamento === "cartao_online" ? "#ea1d2c" : "#666"} />
               },
 
-              {
+             /* {
                 id: "cartao",
                 nome: "Cartão",
                 descricao: "Pagar na entrega",
-                icone: <CreditCard size={20} color={formaPagamento === "cartao" ? "#ea1d2c" : "#666"} />
-              },
+                icone: <CreditCard size={20} color={formaPagamento === "cartao" ? "#ea1d2c" : "#666"} /> 
+              }, */
               {
                 id: "dinheiro",
                 nome: "Dinheiro",
