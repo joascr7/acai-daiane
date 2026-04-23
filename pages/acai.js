@@ -3230,6 +3230,52 @@ function aplicarCupomDireto(cupom) {
 async function finalizarPedido() {
   if (!validarLojaAberta()) return;
 
+  // 🔥 GARANTE ARRAY
+  if (!Array.isArray(carrinho)) {
+    mostrarMensagemPagamento("Erro no carrinho.", "erro");
+    return;
+  }
+
+  // 🔥 ITENS VÁLIDOS
+  const itensValidos = carrinho.filter(item =>
+    item &&
+    item.produto &&
+    item.produto.id &&
+    item.produto.nome &&
+    Number(item.quantidade) > 0
+  );
+
+  // 🚨 BLOQUEIO TOTAL
+  if (itensValidos.length === 0) {
+    console.log("🚨 BLOQUEADO - carrinho vazio:", carrinho);
+
+    mostrarMensagemPagamento(
+      "Adicione produtos ao carrinho.",
+      "erro"
+    );
+    return;
+  }
+
+  // 🔥 RECALCULA SUBTOTAL (NÃO CONFIA NO ESTADO)
+  const subtotalCalc = itensValidos.reduce((acc, item) => {
+    const totalItem = item.gratis
+      ? 0
+      : Number(item.total || 0);
+
+    return acc + totalItem;
+  }, 0);
+
+  // 🚨 BLOQUEIA FRETE SOZINHO
+  if (subtotalCalc <= 0) {
+    console.log("🚨 BLOQUEADO - subtotal zero");
+
+    mostrarMensagemPagamento(
+      "Adicione produtos válidos.",
+      "erro"
+    );
+    return;
+  }
+
   if (!user) {
     localStorage.setItem("redirectAfterLogin", "finalizar");
     router.push("/login");
@@ -3241,16 +3287,8 @@ async function finalizarPedido() {
   const cupomValidoAgora = await validarCupomAntes();
   if (!cupomValidoAgora) return;
 
-  if (!carrinho.length) {
-    mostrarMensagemPagamento("Sua sacola está vazia.", "erro");
-    return;
-  }
-
   if (!clienteNome || !clienteTelefone) {
-    mostrarMensagemPagamento(
-      "Preencha seus dados antes de continuar.",
-      "erro"
-    );
+    mostrarMensagemPagamento("Preencha seus dados.", "erro");
     setAba("perfil");
     setStep(4);
     setAbaPerfil("dados");
@@ -3261,10 +3299,7 @@ async function finalizarPedido() {
     tipoEntrega !== "retirada" &&
     (!clienteEndereco || !clienteNumeroCasa || !clienteBairro)
   ) {
-    mostrarMensagemPagamento(
-      "Preencha endereço, número e bairro para continuar.",
-      "erro"
-    );
+    mostrarMensagemPagamento("Preencha o endereço.", "erro");
     setAba("perfil");
     setStep(4);
     setAbaPerfil("endereco");
@@ -3272,10 +3307,7 @@ async function finalizarPedido() {
   }
 
   if (!formaPagamento) {
-    mostrarMensagemPagamento(
-      "Escolha a forma de pagamento.",
-      "erro"
-    );
+    mostrarMensagemPagamento("Escolha o pagamento.", "erro");
     return;
   }
 
@@ -3290,14 +3322,9 @@ async function finalizarPedido() {
         ? 0
         : Number(taxaEntrega || 0);
 
-    const totalFinalCalc =
-      tipoEntrega === "retirada"
-        ? Number(subtotalProdutos || 0)
-        : Number(totalFinalComFrete || 0);
+    const totalFinalCalc = subtotalCalc + taxaEntregaFinal;
 
-    const usouGratis = carrinho.some((item) => item.gratis);
-
-    const pedido = {
+    const pedidoBase = {
       codigo,
 
       tipoEntrega: tipoEntrega || "entrega",
@@ -3311,40 +3338,24 @@ async function finalizarPedido() {
         uid: user?.uid || null
       },
 
-      // 🔥 ITENS CORRIGIDOS (GRÁTIS)
-      itens: (carrinho || []).map((item) => ({
-        produtoId: item?.produto?.id || "",
-        nome: item?.produto?.nome || item?.nome || "Produto",
-        quantidade: Number(item?.quantidade || 1),
-        total: item.gratis ? 0 : Number(item?.total || 0), // 🔥 NÃO COBRA
-        gratis: item.gratis === true, // 🔥 IDENTIFICA
-        extras: (item?.extras || []).map((e) => ({
-          nome: e?.nome || "",
-          preco: Number(e?.preco || 0),
-          categoria: e?.categoria || "Extras"
+      itens: itensValidos.map(item => ({
+        produtoId: item.produto.id,
+        nome: item.produto.nome,
+        quantidade: Number(item.quantidade),
+        total: item.gratis ? 0 : Number(item.total || 0),
+        gratis: item.gratis === true,
+
+        extras: (item.extras || []).map(e => ({
+          nome: e.nome || "",
+          preco: Number(e.preco || 0),
+          categoria: e.categoria || "Extras"
         }))
       })),
 
-      bairro: clienteBairro || "",
-
-      subtotal: Number(subtotalProdutos || 0),
-
+      subtotal: subtotalCalc,
       taxaEntrega: taxaEntregaFinal,
-
       total: totalFinalCalc,
-
       formaPagamento,
-
-      status:
-        formaPagamento === "cartao_online"
-          ? "aguardando_pagamento_online"
-          : "preparando",
-
-      paymentStatus:
-        formaPagamento === "cartao_online"
-          ? "pending"
-          : null,
-
       data: Date.now(),
 
       observacao: String(observacaoPedido || "").trim(),
@@ -3359,27 +3370,7 @@ async function finalizarPedido() {
         : null
     };
 
-    // 🔥 SALVA PEDIDO
-    await setDoc(doc(db, "pedidos", pedidoId), pedido);
-
-    // 🔥 ZERA FIDELIDADE SE USOU GRÁTIS
-    if (usouGratis) {
-      await updateDoc(doc(db, "fidelidade", user.uid), {
-        pontos: 0
-      });
-    }
-
-    const usoRegistrado = await registrarUsoCupom();
-    if (!usoRegistrado) {
-      setLoadingPedido(false);
-      return;
-    }
-
-    localStorage.setItem("pedidoAtual", pedidoId);
-
-    /* =========================
-       💳 CARTÃO ONLINE
-    ========================== */
+    // 💳 CARTÃO ONLINE (SALVA DEPOIS)
     if (formaPagamento === "cartao_online") {
       try {
         const res = await fetch("/api/checkoutpro", {
@@ -3391,90 +3382,67 @@ async function finalizarPedido() {
             total: totalFinalCalc / 100,
             pedidoId,
             nome: clienteNome,
-            email: clienteEmail,
-            telefone: clienteTelefone,
-            rua: clienteEndereco,
-            numero: clienteNumeroCasa,
-            cep: clienteCep
+            email: clienteEmail
           })
         });
 
         const data = await res.json();
 
         if (!data.url) {
-          mostrarMensagemPagamento("Erro ao abrir pagamento online.", "erro");
+          mostrarMensagemPagamento("Erro no pagamento.", "erro");
           setLoadingPedido(false);
           return;
         }
 
-        await updateDoc(doc(db, "pedidos", pedidoId), {
-          checkoutUrl: data.url,
-          checkoutId: data.id || null,
+        // 🔥 AGORA SIM SALVA
+        await setDoc(doc(db, "pedidos", pedidoId), {
+          ...pedidoBase,
           status: "aguardando_pagamento_online",
-          paymentStatus: "pending"
+          checkoutUrl: data.url,
+          checkoutId: data.id
         });
 
         window.open(data.url, "_blank");
-
-        setTimeout(async () => {
-          await enviarWhatsApp({
-            ...pedido,
-            tipoEntrega,
-            formaPagamento
-          });
-        }, 800);
-
         return;
+
       } catch (e) {
-        console.log("ERRO CARTAO ONLINE:", e);
-        mostrarMensagemPagamento("Erro ao abrir pagamento online.", "erro");
+        console.log(e);
+        mostrarMensagemPagamento("Erro no pagamento.", "erro");
         setLoadingPedido(false);
         return;
       }
     }
 
-    /* =========================
-       🟢 PIX
-    ========================== */
+    // 🟢 PIX
     if (formaPagamento === "pix") {
-      mostrarMensagemPagamento(
-        "Pedido criado. Realize o pagamento Pix.",
-        "sucesso"
-      );
-
-      setPedidoPixAberto({
-        ...pedido,
-        id: pedidoId
+      await setDoc(doc(db, "pedidos", pedidoId), {
+        ...pedidoBase,
+        status: "aguardando_pagamento_pix"
       });
 
+      mostrarMensagemPagamento("Pedido criado. Pague no Pix.", "sucesso");
+
+      setPedidoPixAberto({ ...pedidoBase, id: pedidoId });
       setMostrarPagamento(true);
       return;
     }
 
-    /* =========================
-       💵 DINHEIRO
-    ========================== */
-    mostrarMensagemPagamento("Pedido confirmado com sucesso.", "sucesso");
+    // 💵 DINHEIRO
+    await setDoc(doc(db, "pedidos", pedidoId), {
+      ...pedidoBase,
+      status: "preparando"
+    });
+
+    mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
 
     setCarrinho([]);
     setFormaPagamento(null);
     setMostrarPagamento(false);
-    setQrBase64(null);
-    setQrCode(null);
-    setPaymentId(null);
     setPedidoPixAberto(null);
-
-    setTimeout(async () => {
-      await enviarWhatsApp(pedido);
-    }, 500);
 
   } catch (e) {
     console.log(e);
-
-    mostrarMensagemPagamento(
-      "Ocorreu um erro ao finalizar o pedido.",
-      "erro"
-    );
+    mostrarMensagemPagamento("Erro ao finalizar.", "erro");
   } finally {
     setLoadingPedido(false);
   }
@@ -3665,6 +3633,21 @@ const enviarWhatsApp = async (pedido) => {
 const LIMITE_FRETE = 3000; // 30 reais
 const subtotalAtual = subtotalProdutos || 0;
 const faltaFrete = LIMITE_FRETE - subtotalAtual;
+
+
+const itensValidos = (carrinho || []).filter(item =>
+  item &&
+  item.produto &&
+  item.produto.id &&
+  Number(item.quantidade) > 0
+);
+
+const subtotalCalc = itensValidos.reduce(
+  (acc, item) => acc + Number(item.total || 0),
+  0
+);
+
+const podeFinalizar = itensValidos.length > 0 && subtotalCalc > 0;
 
 return (
 
@@ -5062,8 +5045,8 @@ return (
           key={b.id}
           onClick={() => {
             setCategoriaSelecionada(b.categoria || "promocoes");
-            setAba("home");
-            setStep(9);
+            setAba("busca");
+            setStep(10);
           }}
           style={{
             minWidth: "100%",
@@ -9786,70 +9769,92 @@ const corStatus =
       }}
     >
       <button
-        onClick={async () => {
-          if (!tipoEntrega) {
-            mostrarToast("Escolha entrega ou retirada", "erro");
-            return;
-          }
+  onClick={async () => {
 
-          if (!formaPagamento) {
-            mostrarToast("Escolha uma forma de pagamento", "erro");
-            return;
-          }
+    // 🚨 BLOQUEIO ABSOLUTO (MESMO SE CLICAR)
+    if (!podeFinalizar) {
+      mostrarToast("Adicione itens ao carrinho", "erro");
+      return;
+    }
 
-          if (formaPagamento === "pix") {
-            setQrBase64(null);
-            setQrCode(null);
-            setPaymentId(null);
-            setMostrarPagamento(true);
-            return;
-          }
+    if (!tipoEntrega) {
+      mostrarToast("Escolha entrega ou retirada", "erro");
+      return;
+    }
 
-          if (formaPagamento === "cartao_online") {
-            await finalizarPedido();
-            return;
-          }
+    if (!formaPagamento) {
+      mostrarToast("Escolha uma forma de pagamento", "erro");
+      return;
+    }
 
-          await finalizarPedido();
-        }}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-          height: isMobile ? 54 : 48,
-          borderRadius: 14,
-          background: "#ea1d2c",
-          color: "#fff",
-          border: "none",
-          fontWeight: 700,
-          fontSize: isMobile ? 14 : 13,
-          cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(234,29,44,0.16)",
-          boxSizing: "border-box",
-          padding: "6px 10px",
-          lineHeight: 1.2
-        }}
-      >
-        {/* TEXTO PRINCIPAL */}
-        <span>
-          Finalizar pedido • {formatarReal(totalFinalComFrete)}
-        </span>
+    if (formaPagamento === "pix") {
+      setQrBase64(null);
+      setQrCode(null);
+      setPaymentId(null);
+      setMostrarPagamento(true);
+      return;
+    }
 
-        {/* FRETE GRATIS */}
-        {tipoEntrega === "entrega" && faltaFrete > 0 && (
-          <span style={{ fontSize: 11 }}>
-            Falta {formatarReal(faltaFrete)} para frete grátis
-          </span>
-        )}
+    if (formaPagamento === "cartao_online") {
+      await finalizarPedido();
+      return;
+    }
 
-        {tipoEntrega === "entrega" && faltaFrete <= 0 && (
-          <span style={{ fontSize: 11, color: "#bfffd0" }}>
-            Frete grátis liberado
-          </span>
-        )}
-      </button>
+    await finalizarPedido();
+  }}
+
+  // 🔥 BLOQUEIA BOTÃO
+  disabled={!podeFinalizar}
+
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: isMobile ? 54 : 48,
+    borderRadius: 14,
+
+    // 🔥 VISUAL DINÂMICO
+    background: podeFinalizar ? "#ea1d2c" : "#e5e5e5",
+    color: podeFinalizar ? "#fff" : "#999",
+
+    border: "none",
+    fontWeight: 700,
+    fontSize: isMobile ? 14 : 13,
+
+    cursor: podeFinalizar ? "pointer" : "not-allowed",
+    boxShadow: podeFinalizar
+      ? "0 4px 12px rgba(234,29,44,0.16)"
+      : "none",
+
+    boxSizing: "border-box",
+    padding: "6px 10px",
+    lineHeight: 1.2,
+    transition: "all .2s ease",
+    opacity: podeFinalizar ? 1 : 0.7
+  }}
+>
+  {/* TEXTO PRINCIPAL */}
+  <span>
+    {podeFinalizar
+      ? `Finalizar pedido • ${formatarReal(totalFinalComFrete)}`
+      : "Adicione itens ao carrinho"}
+  </span>
+
+  {/* FRETE */}
+  {podeFinalizar && tipoEntrega === "entrega" && faltaFrete > 0 && (
+    <span style={{ fontSize: 11 }}>
+      Falta {formatarReal(faltaFrete)} para frete grátis
+    </span>
+  )}
+
+  {podeFinalizar && tipoEntrega === "entrega" && faltaFrete <= 0 && (
+    <span style={{ fontSize: 11, color: "#bfffd0" }}>
+      Frete grátis liberado
+    </span>
+  )}
+</button>
     </div>
   </div>
 </div>
