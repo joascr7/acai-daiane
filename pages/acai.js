@@ -2260,7 +2260,6 @@ if (cupomAplicado) {
     descontoCalculado = Number(cupomAplicado.desconto || 0);
   }
 
-  // 🔥 NÃO DEIXA PASSAR DO TOTAL
   descontoCalculado = Math.min(descontoCalculado, totalSeguro);
 }
 
@@ -2973,7 +2972,6 @@ async function registrarUsoCupom() {
 async function aplicarMelhorCupom() {
   if (!carrinho.length) {
     setCupomAplicado(null);
-    setDesconto(0);
 
     setToast({
       tipo: "info",
@@ -2985,7 +2983,6 @@ async function aplicarMelhorCupom() {
 
   if (!cupons || !cupons.length) {
     setCupomAplicado(null);
-    setDesconto(0);
 
     setToast({
       tipo: "info",
@@ -2995,28 +2992,53 @@ async function aplicarMelhorCupom() {
     return;
   }
 
-  const totalPedido = Number(total || 0);
+  // 🔥 TOTAL REAL
+  const totalPedido = carrinho.reduce((acc, item) => {
+    const totalItem = item?.gratis ? 0 : Number(item?.total || 0);
+    return acc + totalItem;
+  }, 0);
+
   const cpfLimpo = String(clienteCpf || "").replace(/\D/g, "");
   const agora = Date.now();
 
   const validos = cupons.filter((c) => {
-    if (!c?.ativo) return false;
+    if (!c) return false;
 
-    if (c?.validade) {
+    // 🔥 ATIVO FLEXÍVEL
+    const ativo =
+      c.ativo === true ||
+      c.ativo === "true" ||
+      c.ativo === 1;
+
+    if (!ativo) return false;
+
+    // 🔥 VALIDADE SEGURA
+    if (c.validade) {
       const validadeMs = new Date(c.validade).getTime();
-      if (!Number.isNaN(validadeMs) && validadeMs < agora) return false;
+      if (!isNaN(validadeMs) && validadeMs < agora) return false;
     }
 
-    if (totalPedido < Number(c?.minimo || 0)) return false;
+    // 🔥 MINIMO FLEXÍVEL
+    const minimo = parseFloat(
+      String(c.minimo || "0").replace(",", ".")
+    );
 
-    if (cpfLimpo && c?.usos && c.usos[cpfLimpo]) return false;
+    if (!isNaN(minimo) && totalPedido < minimo) return false;
+
+    // 🔥 CPF (SE QUISER USAR, DEIXA)
+    if (cpfLimpo && c.usos && c.usos[cpfLimpo]) {
+      return false;
+    }
 
     return true;
   });
 
+  // 🔥 DEBUG
+  console.log("TOTAL:", totalPedido);
+  console.log("VALIDOS:", validos);
+
   if (!validos.length) {
     setCupomAplicado(null);
-    setDesconto(0);
 
     setToast({
       tipo: "info",
@@ -3032,7 +3054,11 @@ async function aplicarMelhorCupom() {
   validos.forEach((c) => {
     let descontoTemp = 0;
 
-    if (c.tipo === "porcentagem") {
+    const tipo = String(c.tipo || "")
+      .toLowerCase()
+      .trim();
+
+    if (tipo.includes("porcent") || tipo.includes("%")) {
       descontoTemp = Math.floor(
         totalPedido * (Number(c.desconto || 0) / 100)
       );
@@ -3048,25 +3074,25 @@ async function aplicarMelhorCupom() {
 
   if (!melhor) {
     setCupomAplicado(null);
-    setDesconto(0);
-
-    setToast({
-      tipo: "info",
-      texto: "Nenhum cupom disponível para este pedido."
-    });
-    setTimeout(() => setToast(null), 2200);
     return;
   }
 
+  // 🔥 LIMITE
   maiorDesconto = Math.min(maiorDesconto, totalPedido);
 
-  setCupomAplicado(melhor);
-  setDesconto(maiorDesconto);
+  // 🔥 APLICA
+  setCupomAplicado({
+    ...melhor,
+    valorCalculado: maiorDesconto
+  });
 
   setToast({
     tipo: "sucesso",
-    texto: `Cupom aplicado: ${melhor.codigo || melhor.nome || "desconto"}`
+    texto: `Cupom aplicado: ${
+      melhor.codigo || melhor.nome || "desconto"
+    }`
   });
+
   setTimeout(() => setToast(null), 2200);
 }
 
