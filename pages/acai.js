@@ -3230,13 +3230,11 @@ function aplicarCupomDireto(cupom) {
 async function finalizarPedido() {
   if (!validarLojaAberta()) return;
 
-  // 🔥 GARANTE ARRAY
   if (!Array.isArray(carrinho)) {
     mostrarMensagemPagamento("Erro no carrinho.", "erro");
     return;
   }
 
-  // 🔥 ITENS VÁLIDOS
   const itensValidos = carrinho.filter(item =>
     item &&
     item.produto &&
@@ -3245,34 +3243,18 @@ async function finalizarPedido() {
     Number(item.quantidade) > 0
   );
 
-  // 🚨 BLOQUEIO TOTAL
   if (itensValidos.length === 0) {
-    console.log("🚨 BLOQUEADO - carrinho vazio:", carrinho);
-
-    mostrarMensagemPagamento(
-      "Adicione produtos ao carrinho.",
-      "erro"
-    );
+    mostrarMensagemPagamento("Adicione produtos ao carrinho.", "erro");
     return;
   }
 
-  // 🔥 RECALCULA SUBTOTAL (NÃO CONFIA NO ESTADO)
   const subtotalCalc = itensValidos.reduce((acc, item) => {
-    const totalItem = item.gratis
-      ? 0
-      : Number(item.total || 0);
-
+    const totalItem = item.gratis ? 0 : Number(item.total || 0);
     return acc + totalItem;
   }, 0);
 
-  // 🚨 BLOQUEIA FRETE SOZINHO
   if (subtotalCalc <= 0) {
-    console.log("🚨 BLOQUEADO - subtotal zero");
-
-    mostrarMensagemPagamento(
-      "Adicione produtos válidos.",
-      "erro"
-    );
+    mostrarMensagemPagamento("Adicione produtos válidos.", "erro");
     return;
   }
 
@@ -3326,7 +3308,6 @@ async function finalizarPedido() {
 
     const pedidoBase = {
       codigo,
-
       tipoEntrega: tipoEntrega || "entrega",
 
       cliente: {
@@ -3370,14 +3351,12 @@ async function finalizarPedido() {
         : null
     };
 
-    // 💳 CARTÃO ONLINE (SALVA DEPOIS)
+    // 💳 CARTÃO ONLINE
     if (formaPagamento === "cartao_online") {
       try {
         const res = await fetch("/api/checkoutpro", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             total: totalFinalCalc / 100,
             pedidoId,
@@ -3394,7 +3373,6 @@ async function finalizarPedido() {
           return;
         }
 
-        // 🔥 AGORA SIM SALVA
         await setDoc(doc(db, "pedidos", pedidoId), {
           ...pedidoBase,
           status: "aguardando_pagamento_online",
@@ -3427,13 +3405,20 @@ async function finalizarPedido() {
       return;
     }
 
-    // 💵 DINHEIRO
+    // 💵 DINHEIRO (AQUI ENVIA WHATSAPP)
     await setDoc(doc(db, "pedidos", pedidoId), {
       ...pedidoBase,
       status: "preparando"
     });
 
     mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
+
+    // 🔥 ENVIO WHATSAPP (CORRIGIDO)
+    await enviarWhatsApp({
+      ...pedidoBase,
+      codigo,
+      total: totalFinalCalc
+    });
 
     setCarrinho([]);
     setFormaPagamento(null);
