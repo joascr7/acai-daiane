@@ -3599,7 +3599,7 @@ const enviarWhatsApp = async (pedido) => {
     mensagem += `*Observações:*\n${observacao.trim()}`;
   }
 
-  const url = `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
+  const url = `https://wa.me/5581973258842?text=${encodeURIComponent(mensagem)}`;
 
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -3614,7 +3614,7 @@ const enviarWhatsApp = async (pedido) => {
   });
 };
 
-{/* 🔥 CALCULO FRETE GRATIS */}
+{/*  CALCULO FRETE GRATIS */}
 const LIMITE_FRETE = 3000; // 30 reais
 const subtotalAtual = subtotalProdutos || 0;
 const faltaFrete = LIMITE_FRETE - subtotalAtual;
