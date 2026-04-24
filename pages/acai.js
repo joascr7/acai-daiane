@@ -3614,7 +3614,7 @@ const enviarWhatsApp = async (pedido) => {
     mensagem += `*Observações:*\n${observacao.trim()}`;
   }
 
-  const url = `https://wa.me/5581973119512?text=${encodeURIComponent(mensagem)}`;
+  const url = `https://wa.me/5581973258842?text=${encodeURIComponent(mensagem)}`;
 
   return new Promise((resolve) => {
     setTimeout(() => {
