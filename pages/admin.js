@@ -258,6 +258,80 @@ const btnDelete = {
   fontWeight: 600
 };
 
+
+const cardMini = {
+  background: "#ffffff",
+  padding: 16,
+  borderRadius: 16,
+  border: "1px solid #e5e7eb",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+  display: "flex",
+  flexDirection: "column",
+  gap: 10
+};
+
+const titleMini = {
+  margin: 0,
+  fontSize: 14,
+  fontWeight: 700
+};
+
+const rowMini = {
+  display: "flex",
+  gap: 6,
+  alignItems: "center"
+};
+
+const inputMini = {
+  flex: 1,
+  padding: "10px 12px",
+  borderRadius: 10,
+  border: "1px solid #ddd",
+  background: "#fff",
+  color: "#111",
+  fontSize: 14
+};
+
+const btnMini = {
+  padding: "6px 10px",
+  borderRadius: 8,
+  border: "none",
+  background: "#f3f4f6",
+  color: "#111",
+  fontSize: 12,
+  cursor: "pointer"
+};
+
+const btnPrimaryMini = {
+  padding: "8px 10px",
+  borderRadius: 10,
+  border: "none",
+  background: "#ea1d2c",
+  color: "#fff",
+  fontWeight: 700,
+  cursor: "pointer"
+};
+
+const btnSuccessMini = {
+  flex: 1,
+  padding: 10,
+  borderRadius: 10,
+  border: "none",
+  background: "#16a34a",
+  color: "#fff",
+  fontWeight: 700
+};
+
+const btnDangerMini = {
+  flex: 1,
+  padding: 10,
+  borderRadius: 10,
+  border: "none",
+  background: "#dc2626",
+  color: "#fff",
+  fontWeight: 700
+};
+
   const router = useRouter();
 
   const [produtoEditandoId, setProdutoEditandoId] = useState(null);
@@ -1042,13 +1116,7 @@ useEffect(() => {
 
 
 
-function limparFormularioBanner() {
-  setBannerTitulo("");
-  setBannerSubtitulo("");
-  setBannerImagemFile(null);
-  setBannerPreview("");
-  setBannerEditandoId(null);
-}
+
 
 
 
@@ -1767,10 +1835,16 @@ async function deletarCupom(id) {
 
 
 // 💰 FATURAMENTO
-const totalFaturado = pedidos.reduce(
-  (acc, p) => acc + (Number(p.total) || 0),
+const totalPedidos = pedidos
+  .filter(p => p.status === "entregue")
+  .reduce((acc, p) => acc + Number(p.total || 0), 0);
+
+const totalVendasManuais = vendasManuais.reduce(
+  (acc, v) => acc + Number(v.valor || 0),
   0
 );
+
+const totalFaturado = totalPedidos + totalVendasManuais;
 
 
 const totalGastos = gastos.reduce(
@@ -1795,36 +1869,26 @@ const margemLucro =
 // 📊 GRÁFICO CORRIGIDO (compatível com novo sistema)
 const vendasPorDia = {};
 
-pedidos.forEach(p => {
+// PEDIDOS
+pedidos
+  .filter(p => p.status === "entregue")
+  .forEach(p => {
+    const data = new Date(Number(p.data));
+    if (isNaN(data)) return;
 
-  if (!p.data) return;
+    const dia = data.toLocaleDateString("pt-BR");
 
-  let dia = "";
+    vendasPorDia[dia] =
+      (vendasPorDia[dia] || 0) + Number(p.total || 0);
+  });
 
- const dataObj = new Date(Number(p.data));
+// VENDAS MANUAIS
+vendasManuais.forEach(v => {
+  const data = new Date(Number(v.data || Date.now()));
+  const dia = data.toLocaleDateString("pt-BR");
 
-const hoje = new Date();
-const ontem = new Date();
-ontem.setDate(ontem.getDate() - 1);
-
-let label;
-
-if (dataObj.toDateString() === hoje.toDateString()) {
-  label = "Hoje";
-} else if (dataObj.toDateString() === ontem.toDateString()) {
-  label = "Ontem";
-} else {
-  label = dataObj.toLocaleDateString("pt-BR");
-}
-
-  if (!dia) return;
-
-  if (!vendasPorDia[dia]) {
-    vendasPorDia[dia] = 0;
-  }
-
-  vendasPorDia[dia] += Number(p.total) || 0;
-
+  vendasPorDia[dia] =
+    (vendasPorDia[dia] || 0) + Number(v.valor || 0);
 });
 
 const valores = Object.values(vendasPorDia);
@@ -3035,17 +3099,68 @@ if (loadingAuth) {
     }}
   >
     {(() => {
-      const vendasSite = pedidos
-        .filter(p => p.status === "entregue")
-        .reduce((acc, p) => acc + Number(p.total || 0), 0);
 
+      // 🔥 DATA HOJE
+      const hoje = new Date().toDateString();
+
+      // 🔥 FUNÇÃO PRA DATA (firebase + normal)
+      const getData = (d) => {
+        if (!d) return null;
+        if (d?.toDate) return d.toDate();
+        return new Date(d);
+      };
+
+      // =========================
+      // 🔥 VENDAS SITE (TOTAL)
+      // =========================
+      const vendasSiteLista = pedidos.filter(p => p.status === "entregue");
+
+      const vendasSite = vendasSiteLista.reduce(
+        (acc, p) => acc + Number(p.total || 0),
+        0
+      );
+
+      // 🔥 VENDAS SITE HOJE
+      const vendasSiteHoje = vendasSiteLista.reduce((acc, p) => {
+        const data = getData(p.data);
+        if (!data) return acc;
+
+        if (data.toDateString() === hoje) {
+          return acc + Number(p.total || 0);
+        }
+
+        return acc;
+      }, 0);
+
+      // =========================
+      // 🔥 VENDAS MANUAIS (TOTAL)
+      // =========================
       const totalVendasManuais = vendasManuais.reduce(
         (acc, v) => acc + Number(v.valor || 0),
         0
       );
 
-      const totalVendas = vendasSite + totalVendasManuais;
+      // 🔥 VENDAS MANUAIS HOJE
+      const vendasManuaisHoje = vendasManuais.reduce((acc, v) => {
+        const data = getData(v.data);
+        if (!data) return acc;
 
+        if (data.toDateString() === hoje) {
+          return acc + Number(v.valor || 0);
+        }
+
+        return acc;
+      }, 0);
+
+      // =========================
+      // 🔥 TOTAL GERAL
+      // =========================
+      const totalVendas = vendasSite + totalVendasManuais;
+      const totalHoje = vendasSiteHoje + vendasManuaisHoje;
+
+      // =========================
+      // 🔥 GASTOS
+      // =========================
       const totalGastosCalc = gastos.reduce(
         (acc, g) => acc + Number(g.valor || 0),
         0
@@ -3081,13 +3196,22 @@ if (loadingAuth) {
           </div>
 
           {/* RESUMO */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr",
-            gap: 10
-          }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr 1fr",
+              gap: 10
+            }}
+          >
             <div style={cardResumo}>
-              <span>Vendas</span>
+              <span>Hoje</span>
+              <strong style={{ color: "#16a34a" }}>
+                {formatarReal(totalHoje)}
+              </strong>
+            </div>
+
+            <div style={cardResumo}>
+              <span>Total vendas</span>
               <strong style={{ color: "#16a34a" }}>
                 {formatarReal(totalVendas)}
               </strong>
@@ -3112,55 +3236,63 @@ if (loadingAuth) {
           <div style={cardBox}>
             <h3>Gastos</h3>
 
-            {gastos.map(g => (
-              <div key={g.id} style={linha}>
-                <span>{g.nome}</span>
+            {gastos.length === 0 ? (
+              <div>Nenhum gasto cadastrado</div>
+            ) : (
+              gastos.map(g => (
+                <div key={g.id} style={linha}>
+                  <span>{g.nome}</span>
 
-                <div style={{ display: "flex", gap: 8 }}>
-                  <strong style={{ color: "#ea1d2c" }}>
-                    {formatarReal(g.valor)}
-                  </strong>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <strong style={{ color: "#ea1d2c" }}>
+                      {formatarReal(g.valor)}
+                    </strong>
 
-                  <button
-                    onClick={() => excluirGasto(g.id)}
-                    style={btnDelete}
-                  >
-                    Excluir
-                  </button>
+                    <button
+                      onClick={() => excluirGasto(g.id)}
+                      style={btnDelete}
+                    >
+                      Excluir
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* VENDAS */}
           <div style={cardBox}>
             <h3>Vendas manuais</h3>
 
-            {vendasManuais.map(v => (
-              <div key={v.id} style={linha}>
-                <span>{v.descricao}</span>
+            {vendasManuais.length === 0 ? (
+              <div>Nenhuma venda manual</div>
+            ) : (
+              vendasManuais.map(v => (
+                <div key={v.id} style={linha}>
+                  <span>{v.descricao}</span>
 
-                <div style={{ display: "flex", gap: 8 }}>
-                  <strong style={{ color: "#16a34a" }}>
-                    {formatarReal(v.valor)}
-                  </strong>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <strong style={{ color: "#16a34a" }}>
+                      {formatarReal(v.valor)}
+                    </strong>
 
-                  <button
-                    onClick={() => abrirEditarVenda(v)}
-                    style={btnEdit}
-                  >
-                    Editar
-                  </button>
+                    <button
+                      onClick={() => abrirEditarVenda(v)}
+                      style={btnEdit}
+                    >
+                      Editar
+                    </button>
 
-                  <button
-                    onClick={() => excluirVenda(v.id)}
-                    style={btnDelete}
-                  >
-                    Excluir
-                  </button>
+                    <button
+                      onClick={() => excluirVenda(v.id)}
+                      style={btnDelete}
+                    >
+                      Excluir
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </>
       );
@@ -3418,271 +3550,285 @@ if (loadingAuth) {
 )}
 
       {/* LOJA */}
-     {abaAdmin === "loja" && (
-  <div style={{
-    marginTop: 15,
-    padding: 18,
-    background: "#f4f5f7",
-    borderRadius: 20
-  }}>
+    {abaAdmin === "loja" && (
+  <div
+    style={{
+      marginTop: 12,
+      padding: isMobile ? 12 : 18,
+      background: "#eef1f6",
+      borderRadius: 20
+    }}
+  >
 
-    {/* TOPO */}
-    <div style={{
-      background: "#fff",
-      borderRadius: 20,
-      padding: 18,
-      marginBottom: 16,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      border: "1px solid #ececec"
-    }}>
-      <h2 style={{
-        margin: 0,
-        color: "#111",
-        fontSize: 24
-      }}>
+    {/* HEADER */}
+    <div
+      style={{
+        background: "#ffffff",
+        borderRadius: 18,
+        padding: isMobile ? 14 : 18,
+        marginBottom: 14,
+        border: "1px solid #e5e7eb",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+      }}
+    >
+      <h2 style={{ margin: 0, fontSize: 20, color: "#111" }}>
         Loja
       </h2>
 
-      <p style={{
-        marginTop: 6,
-        marginBottom: 0,
-        fontSize: 13,
-        color: "#666"
-      }}>
-        Gerencie categorias, status da loja e logo
+      <p style={{ margin: 0, fontSize: 13, color: "#6b7280" }}>
+        Configurações gerais da loja
       </p>
     </div>
 
-    {/* CATEGORIAS */}
-    <div style={{
-      background: "#fff",
-      border: "1px solid #ececec",
-      color: "#111",
-      padding: 20,
-      borderRadius: 20,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      marginBottom: 16
-    }}>
-      <h3 style={{
-        marginTop: 0,
-        marginBottom: 14,
-        color: "#111"
-      }}>
-        Categorias
-      </h3>
+    {/* GRID */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: 14
+      }}
+    >
 
-      {categorias.map(c => (
+      {/* CATEGORIAS */}
+      <div
+        style={{
+          background: "#ffffff",
+          padding: 16,
+          borderRadius: 16,
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+        }}
+      >
+        <h3 style={{ marginBottom: 12, color: "#111" }}>
+          Categorias
+        </h3>
+
+        {categorias.map(c => (
+          <div
+            key={c.id}
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              padding: "8px 10px",
+              borderRadius: 10,
+              background: "#f9fafb",
+              marginBottom: 6,
+              border: "1px solid #f1f1f1"
+            }}
+          >
+            {editandoCategoriaId === c.id ? (
+              <input
+                value={editandoCategoria[c.id] || ""}
+                onChange={(e) =>
+                  setEditandoCategoria(prev => ({
+                    ...prev,
+                    [c.id]: e.target.value
+                  }))
+                }
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd"
+                }}
+              />
+            ) : (
+              <span
+                style={{
+                  flex: 1,
+                  fontWeight: 600,
+                  color: "#111"
+                }}
+              >
+                {c.nome}
+              </span>
+            )}
+
+            <button
+              onClick={() =>
+                editandoCategoriaId === c.id
+                  ? salvarEdicaoCategoria(c.id)
+                  : (
+                      setEditandoCategoriaId(c.id),
+                      setEditandoCategoria(prev => ({
+                        ...prev,
+                        [c.id]: c.nome
+                      }))
+                    )
+              }
+              style={{
+                padding: "6px 10px",
+                borderRadius: 8,
+                border: "none",
+                background:
+                  editandoCategoriaId === c.id ? "#16a34a" : "#111",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            >
+              {editandoCategoriaId === c.id ? "Salvar" : "Editar"}
+            </button>
+          </div>
+        ))}
+
+        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+          <input
+            placeholder="Nova categoria"
+            value={novaCategoria}
+            onChange={(e) => setNovaCategoria(e.target.value)}
+            style={{
+              flex: 1,
+              padding: "10px",
+              borderRadius: 10,
+              border: "1px solid #ddd"
+            }}
+          />
+
+          <button
+            onClick={criarCategoria}
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 10,
+              border: "none",
+              background: "#ea1d2c",
+              color: "#fff",
+              fontWeight: 900,
+              fontSize: 18,
+              cursor: "pointer"
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* STATUS */}
+      <div
+        style={{
+          background: "#ffffff",
+          padding: 16,
+          borderRadius: 16,
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+        }}
+      >
+        <h3 style={{ marginBottom: 12, color: "#111" }}>
+          Status da loja
+        </h3>
+
         <div
-          key={c.id}
           style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 10,
-            alignItems: "center",
-            padding: 10,
-            borderRadius: 14,
-            background: "#fafafa",
-            border: "1px solid #eee"
+            padding: 14,
+            borderRadius: 12,
+            textAlign: "center",
+            fontWeight: 700,
+            fontSize: 14,
+            background: lojaAberta ? "#dcfce7" : "#fee2e2",
+            color: lojaAberta ? "#166534" : "#991b1b",
+            marginBottom: 12
           }}
         >
-          {editandoCategoriaId === c.id ? (
-            <input
-              value={editandoCategoria[c.id] || ""}
-              onChange={(e) =>
-                setEditandoCategoria(prev => ({
-                  ...prev,
-                  [c.id]: e.target.value
-                }))
-              }
-              style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
-            />
-          ) : (
-            <span style={{
-              flex: 1,
-              color: "#111",
-              fontWeight: 500
-            }}>
-              {c.nome}
-            </span>
-          )}
-
-          {editandoCategoriaId === c.id ? (
-            <button
-              onClick={() => salvarEdicaoCategoria(c.id)}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "none",
-                background: "#16a34a",
-                color: "#fff",
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}
-            >
-              Salvar
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setEditandoCategoriaId(c.id);
-                setEditandoCategoria(prev => ({
-                  ...prev,
-                  [c.id]: c.nome
-                }));
-              }}
-              style={{
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "none",
-                background: "#ea1d2c",
-                color: "#fff",
-                fontWeight: "bold",
-                cursor: "pointer"
-              }}
-            >
-              Editar
-            </button>
-          )}
+          {lojaAberta ? "Loja aberta" : "Loja fechada"}
         </div>
-      ))}
 
-      {/* NOVA CATEGORIA */}
-      <div style={{
-        marginTop: 14,
-        display: "flex",
-        gap: 8,
-        flexWrap: "wrap"
-      }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => toggleLoja(true)}
+            style={{
+              flex: 1,
+              padding: 12,
+              borderRadius: 10,
+              border: "none",
+              background: "#16a34a",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            Abrir
+          </button>
+
+          <button
+            onClick={() => toggleLoja(false)}
+            style={{
+              flex: 1,
+              padding: 12,
+              borderRadius: 10,
+              border: "none",
+              background: "#dc2626",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+
+      {/* LOGO */}
+      <div
+        style={{
+          background: "#ffffff",
+          padding: 16,
+          borderRadius: 16,
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+        }}
+      >
+        <h3 style={{ marginBottom: 12, color: "#111" }}>
+          Logo da loja
+        </h3>
+
         <input
-          placeholder="Nova categoria"
-          value={novaCategoria}
-          onChange={(e) => setNovaCategoria(e.target.value)}
+          placeholder="URL da logo"
+          value={logoInput}
+          onChange={(e) => setLogoInput(e.target.value)}
           style={{
-            ...input,
-            flex: 1,
-            minWidth: 180
+            width: "100%",
+            padding: "10px",
+            borderRadius: 10,
+            border: "1px solid #ddd"
           }}
         />
 
-        <button
-          onClick={criarCategoria}
-          style={btnPrimary}
-        >
-          Criar
-        </button>
-      </div>
-
-      {/* SELECT */}
-      <div style={{ marginTop: 14 }}>
-        <select
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-          style={inputStyle}
-        >
-          {categorias.map(c => (
-            <option key={c.slug} value={c.slug}>
-              {c.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-
-    {/* STATUS DA LOJA */}
-    <div style={{
-      background: "#fff",
-      border: "1px solid #ececec",
-      color: "#111",
-      padding: 20,
-      borderRadius: 20,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-      marginBottom: 16
-    }}>
-      <h3 style={{
-        marginTop: 0,
-        marginBottom: 14,
-        color: "#111"
-      }}>
-        Status da loja
-      </h3>
-
-      <div style={{
-        marginBottom: 14,
-        padding: 14,
-        borderRadius: 16,
-        background: lojaAberta ? "#e6fff1" : "#ffecec",
-        color: lojaAberta ? "#15803d" : "#b91c1c",
-        fontWeight: "bold",
-        textAlign: "center",
-        border: lojaAberta ? "1px solid #bbf7d0" : "1px solid #fecaca"
-      }}>
-        {lojaAberta === null
-          ? "Carregando..."
-          : lojaAberta
-            ? "Loja aberta"
-            : "Loja fechada"}
-      </div>
-
-      <div style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap"
-      }}>
-        <button onClick={() => toggleLoja(true)} style={btnSuccess}>
-          Abrir
-        </button>
-
-        <button onClick={() => toggleLoja(false)} style={btnDanger}>
-          Fechar
-        </button>
-      </div>
-    </div>
-
-    {/* LOGO */}
-    <div style={{
-      background: "#fff",
-      border: "1px solid #ececec",
-      color: "#111",
-      padding: 20,
-      borderRadius: 20,
-      boxShadow: "0 8px 24px rgba(0,0,0,0.05)"
-    }}>
-      <h3 style={{
-        marginTop: 0,
-        marginBottom: 14,
-        color: "#111"
-      }}>
-        Logo da loja
-      </h3>
-
-      <input
-        placeholder="URL da logo"
-        value={logoInput}
-        onChange={(e) => setLogoInput(e.target.value)}
-        style={input}
-      />
-
-      {logoInput && (
-        <div style={{ marginTop: 14, marginBottom: 14 }}>
+        {logoInput && (
           <img
             src={logoInput}
             style={{
-              width: 120,
-              height: 120,
+              width: 90,
+              height: 90,
+              borderRadius: 14,
+              marginTop: 10,
               objectFit: "cover",
-              borderRadius: 20,
-              border: "1px solid #eee",
-              background: "#fff"
+              border: "1px solid #eee"
             }}
           />
-        </div>
-      )}
+        )}
 
-      <button onClick={salvarLogo} style={btnPrimary}>
-        Salvar Logo
-      </button>
+        <button
+          onClick={salvarLogo}
+          style={{
+            marginTop: 10,
+            width: "100%",
+            padding: 12,
+            borderRadius: 10,
+            border: "none",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontWeight: 700,
+            cursor: "pointer"
+          }}
+        >
+          Salvar
+        </button>
+      </div>
+
     </div>
-
   </div>
 )}
 
