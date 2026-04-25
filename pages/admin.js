@@ -767,12 +767,50 @@ function moverItem(catIndex, itemIndex, direcao) {
   });
 }
 
-function excluirVenda(id) {
-  setVendasManuais(prev => prev.filter(v => v.id !== id));
+async function excluirVenda(id) {
+  try {
+    await deleteDoc(doc(db, "vendasManuais", id));
+
+    setToast({
+      tipo: "sucesso",
+      texto: "Venda removida com sucesso"
+    });
+
+    setTimeout(() => setToast(null), 2000);
+
+  } catch (e) {
+    console.log("Erro ao excluir venda:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao excluir venda"
+    });
+
+    setTimeout(() => setToast(null), 2000);
+  }
 }
 
-function excluirGasto(id) {
-  setGastos(prev => prev.filter(g => g.id !== id));
+async function excluirGasto(id) {
+  try {
+    await deleteDoc(doc(db, "gastos", id));
+
+    setToast({
+      tipo: "sucesso",
+      texto: "Gasto removido com sucesso"
+    });
+
+    setTimeout(() => setToast(null), 2000);
+
+  } catch (e) {
+    console.log("Erro ao excluir gasto:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao excluir gasto"
+    });
+
+    setTimeout(() => setToast(null), 2000);
+  }
 }
 
 function abrirEditarVenda(v) {
