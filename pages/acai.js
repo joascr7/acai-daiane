@@ -376,6 +376,20 @@ const backBtn = {
   boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
 };
 
+
+const agora = new Date();
+const diaSemana = agora.getDay();
+
+let horarioTexto = "";
+
+if (diaSemana === 6 || diaSemana === 0) {
+  horarioTexto = "das 16:00 às 23:00";
+} else if (diaSemana === 5) {
+  horarioTexto = "das 18:30 às 23:00";
+} else {
+  horarioTexto = "das 18:30 às 23:00";
+}
+
   
 
   const router = useRouter();
@@ -4990,8 +5004,8 @@ return (
         </div>
 
         
-        {/* LOJA ABERTA/FECHADA */}
-        <div
+       {/* LOJA ABERTA/FECHADA */}
+<div
   style={{
     margin: "12px 16px 0",
     padding: "10px 14px",
@@ -5018,7 +5032,9 @@ return (
     }}
   />
 
-  {lojaAberta ? "Aberto das 18:30 às 23:00" : "Funcionamos das 18:30 às 23:00. "}
+  {lojaAberta
+    ? `Aberto ${horarioTexto}`
+    : `Funcionamos ${horarioTexto}`}
 </div>
 
         

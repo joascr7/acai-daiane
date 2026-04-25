@@ -1116,6 +1116,21 @@ useEffect(() => {
 
 
 
+useEffect(() => {
+  const unsub = onSnapshot(collection(db, "vendasManuais"), (snap) => {
+    const lista = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    setVendasManuais(lista);
+  });
+
+  return () => unsub();
+}, []);
+
+
+
 
 
 
@@ -4330,93 +4345,151 @@ if (loadingAuth) {
 
 
       {mostrarModalVenda && (
-  <div style={{
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.5)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: "#555454",
-      padding: 20,
-      borderRadius: 16,
-      width: "90%",
-      maxWidth: 400
-    }}>
-      <h3>{editandoVenda ? "Editar venda" : "Nova venda"}</h3>
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.55)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 12
+    }}
+  >
+    <div
+      style={{
+        background: "#ffffff",
+        padding: 20,
+        borderRadius: 18,
+        width: "100%",
+        maxWidth: 380,
+        boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+        border: "1px solid #eee"
+      }}
+    >
+      {/* TÍTULO */}
+      <h3
+        style={{
+          marginTop: 0,
+          marginBottom: 16,
+          fontSize: 18,
+          fontWeight: 800,
+          color: "#111"
+        }}
+      >
+        {editandoVenda ? "Editar venda" : "Nova venda"}
+      </h3>
 
+      {/* INPUT DESCRIÇÃO */}
       <input
-        placeholder="Descrição"
+        placeholder="Descrição (ex: venda balcão)"
         value={novaVendaDesc}
         onChange={(e) => setNovaVendaDesc(e.target.value)}
-        style={{ width: "100%", padding: 10, marginBottom: 10 }}
+        style={{
+          width: "100%",
+          padding: "12px 14px",
+          marginBottom: 10,
+          borderRadius: 12,
+          border: "1px solid #ddd",
+          fontSize: 14,
+          outline: "none"
+        }}
       />
 
+      {/* INPUT VALOR */}
       <input
         type="number"
-        placeholder="Valor"
+        placeholder="Valor (ex: 25.90)"
         value={novaVendaValor}
         onChange={(e) => setNovaVendaValor(e.target.value)}
-        style={{ width: "100%", padding: 10, marginBottom: 16 }}
+        style={{
+          width: "100%",
+          padding: "12px 14px",
+          marginBottom: 16,
+          borderRadius: 12,
+          border: "1px solid #ddd",
+          fontSize: 14,
+          outline: "none"
+        }}
       />
 
+      {/* BOTÕES */}
       <div style={{ display: "flex", gap: 10 }}>
+        {/* SALVAR */}
         <button
-          onClick={() => {
-            if (!novaVendaDesc || !novaVendaValor) return;
-
-            if (editandoVenda) {
-              setVendasManuais(prev =>
-                prev.map(v =>
-                  v.id === editandoVenda.id
-                    ? {
-                        ...v,
-                        descricao: novaVendaDesc,
-                        valor: Math.round(Number(novaVendaValor) * 100)
-                      }
-                    : v
-                )
-              );
-            } else {
-              setVendasManuais(prev => [
-                ...prev,
-                {
-                  id: Date.now(),
-                  descricao: novaVendaDesc,
-                  valor: Math.round(Number(novaVendaValor) * 100),
-                  data: Date.now()
-                }
-              ]);
+          onClick={async () => {
+            if (!novaVendaDesc || !novaVendaValor) {
+              alert("Preencha os campos");
+              return;
             }
 
-            setMostrarModalVenda(false);
-            setEditandoVenda(null);
-            setNovaVendaDesc("");
-            setNovaVendaValor("");
+            try {
+              const valorCentavos = Math.round(
+                Number(novaVendaValor) * 100
+              );
+
+              if (editandoVenda) {
+                // 🔥 EDITAR
+                await updateDoc(
+                  doc(db, "vendasManuais", editandoVenda.id),
+                  {
+                    descricao: novaVendaDesc,
+                    valor: valorCentavos
+                  }
+                );
+              } else {
+                // 🔥 CRIAR
+                await addDoc(collection(db, "vendasManuais"), {
+                  descricao: novaVendaDesc,
+                  valor: valorCentavos,
+                  data: Date.now()
+                });
+              }
+
+              // 🔥 LIMPA ESTADO
+              setMostrarModalVenda(false);
+              setEditandoVenda(null);
+              setNovaVendaDesc("");
+              setNovaVendaValor("");
+
+            } catch (e) {
+              console.log("Erro ao salvar:", e);
+              alert("Erro ao salvar venda");
+            }
           }}
           style={{
             flex: 1,
             background: "#16a34a",
             color: "#fff",
-            padding: 10,
+            padding: 12,
             border: "none",
-            borderRadius: 10
+            borderRadius: 12,
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer",
+            boxShadow: "0 8px 18px rgba(22,163,74,0.25)"
           }}
         >
           Salvar
         </button>
 
+        {/* CANCELAR */}
         <button
-          onClick={() => setMostrarModalVenda(false)}
+          onClick={() => {
+            setMostrarModalVenda(false);
+            setEditandoVenda(null);
+          }}
           style={{
             flex: 1,
-            background: "#eee",
-            padding: 10,
+            background: "#f3f4f6",
+            color: "#111",
+            padding: 12,
             border: "none",
-            borderRadius: 10
+            borderRadius: 12,
+            fontWeight: 700,
+            fontSize: 14,
+            cursor: "pointer"
           }}
         >
           Cancelar
