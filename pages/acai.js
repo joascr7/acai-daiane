@@ -10169,7 +10169,7 @@ const corStatus =
           lineHeight: 1.6
         }}>
           <div>Sexta-feira: 18:30h às 23:00h</div>
-          <div>Sábado e Domingo: 18:00h às 23:00h</div>
+          <div>Sábado e Domingo: 16:00h às 23:00h</div>
         </div>
       </div>
 
