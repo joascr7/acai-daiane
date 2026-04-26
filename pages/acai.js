@@ -6798,23 +6798,23 @@ return (
           {nomeProduto}
         </div>
 
-        {!!descricaoProduto && (
-          <div
-  style={{
-    marginTop: 6,
-    fontSize: 13,
-    color: "#666",
-    display: "-webkit-box",
-    WebkitLineClamp: 3, // 🔥 antes era 2
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    lineHeight: 1.4,
-    minHeight: 54 // 🔥 mantém alinhamento bonito
-  }}
->
-            {descricaoProduto}
-          </div>
-        )}
+      {!!descricaoProduto && (
+  <div
+    style={{
+      marginTop: 6,
+      fontSize: 13,
+      color: "#666",
+      display: "-webkit-box",
+      WebkitLineClamp: 3,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      lineHeight: 1.5,
+      maxHeight: "4.5em" // 🔥 mais fluido que minHeight
+    }}
+  >
+    {descricaoProduto}
+  </div>
+)}
 
         {Array.isArray(item?.extras) && item.extras.length > 0 && (
           <div
