@@ -6800,17 +6800,18 @@ return (
 
         {!!descricaoProduto && (
           <div
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              color: "#777",
-              lineHeight: 1.35,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical"
-            }}
-          >
+  style={{
+    marginTop: 6,
+    fontSize: 13,
+    color: "#666",
+    display: "-webkit-box",
+    WebkitLineClamp: 3, // 🔥 antes era 2
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    lineHeight: 1.4,
+    minHeight: 54 // 🔥 mantém alinhamento bonito
+  }}
+>
             {descricaoProduto}
           </div>
         )}
