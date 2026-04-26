@@ -390,6 +390,21 @@ if (diaSemana === 6 || diaSemana === 0) {
   horarioTexto = "das 18:30 às 23:00";
 }
 
+
+
+const ORDEM_CATEGORIAS = [
+  "promocoes",
+  "acai",
+  "combos",
+  "bebidas"
+];
+
+const normalizar = (str) =>
+  (str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
   
 
   const router = useRouter();
@@ -5222,74 +5237,95 @@ return (
     padding: "4px 6px 14px"
   }}
 >
-  {produtos
-  .filter((p) => p.ativo === true)
-  .map((p, i) => {
-    const abrirProduto = () => {
+ {[...categorias]
+  .sort((a, b) => {
+    const ia = ORDEM_CATEGORIAS.indexOf(normalizar(a.nome));
+    const ib = ORDEM_CATEGORIAS.indexOf(normalizar(b.nome));
 
-      // 🔥 BLOQUEIO GLOBAL (fidelidade)
-      if (modoCompra === "fidelidade" && p.resgate !== true) {
-        setBloqueioMsg("Escolha apenas o açaí do plano fidelidade");
-        return;
-      }
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  })
+  .map((cat) => {
 
-      // 🔥 PROTEÇÕES
-      if (!p.ativo) return;
-      if (!validarLojaAberta()) return;
+    const lista = produtos.filter(
+      (p) =>
+        p.ativo === true &&
+        normalizar(p.categoria) === normalizar(cat.nome)
+    );
 
-      // 🔥 PRODUTO COM EXTRAS
-      if (categoriaTemExtras(p.categoria)) {
-        setProduto({
-          ...p,
-          fidelidade: p.fidelidade === true,
-          resgate: p.resgate === true,
-          preco: precoFinalProduto(p)
-        });
+    if (lista.length === 0) return null;
 
-        setAba("home");
-        setStep(2);
-        return;
-      }
+  return (
+    <div key={cat.id} style={{ marginBottom: 24 }}>
 
-      // 🔥 PRODUTO DIRETO PRO CARRINHO
-      if (categoriaVaiDiretoCarrinho(p.categoria)) {
-        setCarrinho((prev) => [
-          ...prev,
-          {
-            produto: {
+      {/* TÍTULO */}
+      <div
+        style={{
+          fontSize: 18,
+          fontWeight: 900,
+          marginBottom: 12,
+          color: "#111"
+        }}
+      >
+        {cat.nome}
+      </div>
+
+      {/* LISTA DE PRODUTOS */}
+      {lista.map((p, i) => {
+
+        const abrirProduto = () => {
+
+          if (modoCompra === "fidelidade" && p.resgate !== true) {
+            setBloqueioMsg("Escolha apenas o açaí do plano fidelidade");
+            return;
+          }
+
+          if (!p.ativo) return;
+          if (!validarLojaAberta()) return;
+
+          if (categoriaTemExtras(p.categoria)) {
+            setProduto({
               ...p,
               fidelidade: p.fidelidade === true,
               resgate: p.resgate === true,
-              preco: Number(p.preco || 0),
-              precoPromocional: Number(p.precoPromocional || 0),
-              promocao: p.promocao === true
-            },
-            quantidade: 1,
-            extras: [],
-            total: Number(precoFinalProduto(p) || 0)
+              preco: precoFinalProduto(p)
+            });
+
+            setAba("home");
+            setStep(2);
+            return;
           }
-        ]);
 
-        setAba("carrinho");
-        setStep(3);
-        return;
-      }
-    };
+          if (categoriaVaiDiretoCarrinho(p.categoria)) {
+            setCarrinho((prev) => [
+              ...prev,
+              {
+                produto: p,
+                quantidade: 1,
+                extras: [],
+                total: Number(precoFinalProduto(p) || 0)
+              }
+            ]);
 
-    return (
-      <div
-        key={i}
-        style={{
-          position: "relative",
-          background: "#fff",
-          borderRadius: 24,
-          padding: 12,
-          border: "1px solid #f0f0f0",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-          transition: "all 0.15s ease",
-          cursor: "pointer"
-        }}
-        onClick={abrirProduto}
+            setAba("carrinho");
+            setStep(3);
+            return;
+          }
+        };
+
+        return (
+          <div
+            key={i}
+            style={{
+              position: "relative",
+              background: "#fff",
+              borderRadius: 24,
+              padding: 12,
+              border: "1px solid #f0f0f0",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+              marginBottom: 10,
+              cursor: "pointer"
+            }}
+            onClick={abrirProduto}
       >
         <div
           style={{
@@ -5379,7 +5415,7 @@ return (
           whiteSpace: "nowrap"
         }}
       >
-        Oferta
+        Oferta imperdível
       </span>
     )}
 
@@ -5591,6 +5627,10 @@ return (
     );
   })}
 </div>
+ );
+      })}
+    </div>
+ 
 
 {/* BARRA FLUTUANTE DO CARRINHO */}
 {carrinho.length > 0 && (
