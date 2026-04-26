@@ -8538,23 +8538,153 @@ return (
     </div>
 
     <div style={{ padding: 16 }}>
-      {/* VAZIO */}
-      {pedidos.length === 0 && (
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: 70,
-            color: "#777"
-          }}
-        >
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#111" }}>
-            Nenhum pedido ainda
+    {/* VAZIO + SUGESTÕES */}
+{pedidos.length === 0 && (
+  <div
+    style={{
+      marginTop: 50,
+      padding: "0 16px",
+      maxWidth: 510,
+      marginLeft: "auto",
+      marginRight: "auto"
+    }}
+  >
+    {/* TEXTO */}
+    <div style={{ textAlign: "center", marginBottom: 20 }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: "#111" }}>
+        Nenhum pedido ainda
+      </div>
+
+      <div style={{ fontSize: 13, color: "#777", marginTop: 6 }}>
+        Que tal pedir seu primeiro açaí?
+      </div>
+    </div>
+
+    {/* CTA */}
+    <div
+      onClick={() => {
+        setAba("home");
+        setStep(1);
+      }}
+      style={{
+        background: "linear-gradient(135deg,#ea1d2c,#ff2e2e)",
+        borderRadius: 16,
+        padding: 14,
+        color: "#fff",
+        fontWeight: 700,
+        textAlign: "center",
+        marginBottom: 20,
+        cursor: "pointer",
+        boxShadow: "0 10px 25px rgba(234,29,44,0.25)"
+      }}
+    >
+      Ver cardápio
+    </div>
+
+    {/* SUGESTÕES */}
+    <div>
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 800,
+          marginBottom: 10,
+          color: "#111"
+        }}
+      >
+        Sugestões pra você
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          overflowX: "auto",
+          paddingBottom: 10
+        }}
+      >
+        {produtos.slice(0, 6).map((p) => (
+          <div
+            key={p.id}
+            onClick={() => {
+              setProdutoSelecionado(p);
+              setStep(2);
+            }}
+            style={{
+              minWidth: 150,
+              background: "#fff",
+              borderRadius: 18,
+              padding: 10,
+              boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+              cursor: "pointer",
+              transition: "0.2s"
+            }}
+          >
+            <img
+              src={p.imagem || "/acai.png"}
+              onError={(e) => (e.target.src = "/acai.png")}
+              style={{
+                width: "100%",
+                height: 95,
+                objectFit: "cover",
+                borderRadius: 12,
+                marginBottom: 8
+              }}
+            />
+
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                marginBottom: 4,
+                color: "#111"
+              }}
+            >
+              {p.nome}
+            </div>
+
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 800,
+                color: "#111"
+              }}
+            >
+              {formatarReal(p.preco)}
+            </div>
+
+           {/* BOTÃO */}
+<div
+  onClick={(e) => {
+    e.stopPropagation();
+
+    setProduto(p);
+    setAba("home");
+    setStep(2);
+  }}
+  style={{
+    marginTop: 8,
+    background: "#ea1d2c",
+    color: "#fff",
+    borderRadius: 999,
+    textAlign: "center",
+    padding: "10px 0",
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: "pointer",
+    transition: "0.2s",
+    boxShadow: "0 4px 12px rgba(234,29,44,0.25)"
+  }}
+  onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+  onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+>
+  Pedir
+</div>
           </div>
-          <div style={{ fontSize: 13, marginTop: 6 }}>
-            Seus pedidos aparecerão aqui.
-          </div>
-        </div>
-      )}
+        ))}
+      </div>
+    </div>
+  </div>
+)}
 
       {/* AGRUPAMENTO */}
       {Object.entries(
@@ -9924,18 +10054,20 @@ const corStatus =
             setStep(1);
           }}
           style={{
-            width: 22,
-            height: 22,
-            borderRadius: 14,
-            border: "none",
-            background: "#f3f3f3",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer"
+          width: 22,
+          height: 22,
+          borderRadius: 14,
+          border: "none",
+          background: "#fff",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          flexShrink: 0
           }}
         >
-          <ArrowLeft size={20} color="#e11d48" strokeWidth={2.5} />
+          <ArrowLeft size={20} color="#0f0e0e" strokeWidth={2.5} />
         </button>
 
         <div
@@ -11423,7 +11555,7 @@ const corStatus =
   <div
     style={{
       position: "fixed",
-      bottom: -env(safe-area-inset-bottom),
+      bottom: "calc(env(safe-area-inset-bottom) + 10px)",
 
       left: 0,
       right: 0,
