@@ -7280,31 +7280,51 @@ if (loadingAuth) {
         right: 0,
         background: "#fff",
         borderTop: "1px solid #e5e7eb",
-        padding: "6px 6px calc(env(safe-area-inset-bottom) + 6px)",
         display: "flex",
-        zIndex: 9999,
-        boxShadow: "0 -6px 20px rgba(0,0,0,0.08)"
+        zIndex: 9999
       }}
     >
+      {/* BOTÕES PRINCIPAIS */}
       {[
         { id: "dashboard", icon: Home },
         { id: "pedidos", icon: ClipboardList },
         { id: "produtos", icon: Package },
         { id: "gastos", icon: DollarSign }
       ].map((item) => {
-        const ativo = abaAdmin === item.id;
         const Icon = item.icon;
+        const ativo = abaAdmin === item.id;
 
         return (
           <button
             key={item.id}
             onClick={() => setAbaAdmin(item.id)}
-            style={navBtn}
+            style={{
+              flex: 1,
+              height: 50,
+              border: "none",
+              background: "transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative"
+            }}
           >
             <Icon size={22} color={ativo ? "#ea1d2c" : "#6b7280"} />
 
             {item.id === "pedidos" && pedidosEmAndamento > 0 && (
-              <div style={badgeStyle}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: 4,
+                  right: "25%",
+                  background: "#ea1d2c",
+                  color: "#fff",
+                  borderRadius: 999,
+                  fontSize: 9,
+                  padding: "2px 5px",
+                  fontWeight: 800
+                }}
+              >
                 {pedidosEmAndamento}
               </div>
             )}
@@ -7315,73 +7335,69 @@ if (loadingAuth) {
       {/* BOTÃO MAIS */}
       <button
         onClick={() => setAbrirMaisMenu(true)}
-        style={navBtn}
+        style={{
+          flex: 1,
+          height: 50,
+          border: "none",
+          background: "transparent",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center"
+        }}
       >
-        <MoreHorizontal size={22} color="#6b7280" />
+        <span style={{ fontSize: 22 }}>⋯</span>
       </button>
     </div>
 
-    {/* MENU MAIS */}
+    {/* MENU SIMPLES (SEM BUG) */}
     {abrirMaisMenu && (
       <div
-        onClick={() => setAbrirMaisMenu(false)}
         style={{
           position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.4)",
-          zIndex: 10000,
-          display: "flex",
-          alignItems: "flex-end"
+          bottom: 60,
+          right: 10,
+          background: "#fff",
+          borderRadius: 16,
+          padding: 10,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+          zIndex: 10000
         }}
       >
+        {[
+          "fretes",
+          "notificacoes",
+          "banners",
+          "avaliacoes",
+          "loja"
+        ].map((item) => (
+          <div
+            key={item}
+            onClick={() => {
+              setAbaAdmin(item);
+              setAbrirMaisMenu(false);
+            }}
+            style={{
+              padding: "10px 14px",
+              cursor: "pointer",
+              borderRadius: 10,
+              fontSize: 14
+            }}
+          >
+            {item}
+          </div>
+        ))}
+
         <div
-          onClick={(e) => e.stopPropagation()}
+          onClick={() => setAbrirMaisMenu(false)}
           style={{
-            width: "100%",
-            background: "#fff",
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 20,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 16,
-            animation: "slideUp 0.25s ease"
+            marginTop: 6,
+            padding: "10px 14px",
+            color: "#ea1d2c",
+            fontWeight: 700,
+            cursor: "pointer"
           }}
         >
-          {[
-            { id: "fretes", icon: Truck },
-            { id: "notificacoes", icon: Bell },
-            { id: "banners", icon: ImagePlus },
-            { id: "avaliacoes", icon: Star },
-            { id: "loja", icon: Store }
-          ].map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setAbaAdmin(item.id);
-                  setAbrirMaisMenu(false);
-                }}
-                style={{
-                  border: "none",
-                  background: "#f8fafc",
-                  borderRadius: 16,
-                  padding: 14,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6
-                }}
-              >
-                <Icon size={22} color="#111" />
-                <span style={{ fontSize: 12, fontWeight: 600 }}>
-                  {item.id}
-                </span>
-              </button>
-            );
-          })}
+          Fechar
         </div>
       </div>
     )}
