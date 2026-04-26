@@ -6609,13 +6609,13 @@ return (
             style={{
               width: 40,
               height: 40,
-              borderRadius: 12,
+              borderRadius: 14,
               border: "none",
               background: "#fff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#ea1d2c",
+              color: "#030202",
               cursor: "pointer"
             }}
           >
@@ -7846,8 +7846,8 @@ return (
               setStep(1);
             }}
             style={{
-              width: 40,
-              height: 40,
+              width: 20,
+              height: 20,
               borderRadius: 14,
               border: "1px solid #f1f1f1",
               background: "#fff",
@@ -8515,7 +8515,7 @@ return (
           style={{
             width: 22,
             height: 22,
-            borderRadius: 28,
+            borderRadius: 14,
             border: "none",
             background: "#fff",
             display: "flex",
@@ -9287,7 +9287,7 @@ const corStatus =
             style={{
               width: 22,
               height: 22,
-              borderRadius: 28,
+              borderRadius: 14,
               border: "none",
               background: "#fff",
               display: "flex",
@@ -9926,7 +9926,7 @@ const corStatus =
           style={{
             width: 22,
             height: 22,
-            borderRadius: 28,
+            borderRadius: 14,
             border: "none",
             background: "#f3f3f3",
             display: "flex",
@@ -10123,8 +10123,8 @@ const corStatus =
     setStep(1);
   }}
   style={{
-    width: 42,
-    height: 42,
+    width: 20,
+    height: 20,
     borderRadius: 14,
     border: "none",
     background: "#fff",
@@ -10329,7 +10329,7 @@ const corStatus =
         style={{
           width: 22,
           height: 22,
-          borderRadius: 28,
+          borderRadius: 14,
           border: "none",
           background: "#fff",
           cursor: "pointer",
@@ -10748,7 +10748,7 @@ const corStatus =
                 style={{
                   width: 22,
                   height: 22,
-                  borderRadius: 28,
+                  borderRadius: 14,
                   border: "none",
                   background: "#fff",
                   display: "flex",
