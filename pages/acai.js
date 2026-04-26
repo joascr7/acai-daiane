@@ -9011,24 +9011,26 @@ return (
         position: "relative"
       }}
     >
-      {/* 🔥 TAG PROMO */}
-      {emPromo && (
-        <div
-          style={{
-            position: "absolute",
-            top: 8,
-            left: 8,
-            background: "#ea1d2c",
-            color: "#fff",
-            fontSize: 10,
-            fontWeight: 800,
-            padding: "4px 8px",
-            borderRadius: 999
-          }}
-        >
-          PROMO
-        </div>
-      )}
+     {/* 🔥 TAG PROMO */}
+{emPromo && (
+  <div
+    style={{
+      position: "absolute",
+      top: 8,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#ea1d2c",
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: 800,
+      padding: "4px 10px",
+      borderRadius: 999,
+      whiteSpace: "nowrap"
+    }}
+  >
+    Oferta imperdível
+  </div>
+)}
 
       <img
         src={p.imagem || "/acai.png"}
@@ -11086,19 +11088,23 @@ const corStatus =
         >
           {produtoEmPromocao(p) && (
             <div
-              style={{
-                background: "#ea1d2c",
-                color: "#fff",
-                fontSize: 10,
-                padding: "3px 8px",
-                borderRadius: 8,
-                fontWeight: "bold",
-                boxShadow: "0 4px 10px rgba(234,29,44,0.18)"
-              }}
-            >
-              Oferta
-            </div>
-          )}
+    style={{
+      position: "absolute",
+      top: 8,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#ea1d2c",
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: 800,
+      padding: "4px 10px",
+      borderRadius: 999,
+      whiteSpace: "nowrap"
+    }}
+  >
+    Oferta imperdível
+  </div>
+)}
 
           {p.maisVendido && (
             <div
@@ -11647,19 +11653,23 @@ const corStatus =
 
       {produtoEmPromocao(p) && (
         <div
-          style={{
-            background: "#ea1d2c",
-            color: "#fff",
-            fontSize: 8,
-            padding: "2px 6px",
-            borderRadius: 999,
-            fontWeight: 800,
-            whiteSpace: "nowrap"
-          }}
-        >
-          Oferta
-        </div>
-      )}
+    style={{
+      position: "absolute",
+      top: 48,
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "#ea1d2c",
+      color: "#fff",
+      fontSize: 10,
+      fontWeight: 800,
+      padding: "1px 16px",
+      borderRadius: 999,
+      whiteSpace: "nowrap"
+    }}
+  >
+    imperdível
+  </div>
+)}
 
       {p.maisVendido && (
         <div
