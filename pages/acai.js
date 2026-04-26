@@ -3,6 +3,7 @@
 // 🔥 REACT
 import { useState, useEffect, useRef } from "react";
 
+
 // 🔥 NEXT
 import { useRouter } from "next/router";
 
@@ -107,9 +108,12 @@ import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
 
+
+const LOJA = {
   
-
-
+  lat: -8.0208,
+  lng: -34.8895
+};
 
 const NAVBAR = 60;
 const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
@@ -423,6 +427,9 @@ const [pedidoAberto,  setPedidoAberto] = useState(null);
 
 const [modoCompra, setModoCompra] = useState("normal");
 
+const [clienteLat, setClienteLat] = useState(null);
+const [clienteLng, setClienteLng] = useState(null);
+
 
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
@@ -473,6 +480,60 @@ const [observacaoPedido, setObservacaoPedido] = useState("");
   const [menuAberto, setMenuAberto] = useState(false);
   const [pedidoPixAberto,  setPedidoPixAberto] = useState(null);
 
+ 
+
+const [loadingGeo, setLoadingGeo] = useState(false);
+const [erroGeo, setErroGeo] = useState("");
+
+const pegarLocalizacao = () => {
+  if (!navigator.geolocation) {
+    setErroGeo("Seu dispositivo não suporta localização");
+    return;
+  }
+
+  setLoadingGeo(true);
+  setErroGeo("");
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      setClienteLat(lat);
+      setClienteLng(lng);
+
+      // 🔥 LIMPA O QUE TAVA ERRADO
+      setClienteCep("");
+      setClienteEndereco("");
+      setClienteBairro("");
+
+      // 🔥 BUSCA ENDEREÇO REAL
+      await buscarEnderecoGoogle(lat, lng);
+
+      mostrarToast(
+      "Confira seu endereço e número da casa",
+      "info"
+    );
+
+      setLoadingGeo(false);
+
+      mostrarToast("Localização obtida com sucesso", "sucesso");
+    },
+    (err) => {
+      setLoadingGeo(false);
+
+      if (err.code === 1) {
+        setErroGeo("Permissão negada. Ative a localização.");
+      } else {
+        setErroGeo("Não foi possível obter localização");
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000
+    }
+  );
+};
   
 
   const [categorias, setCategorias] = useState([]);
@@ -707,6 +768,8 @@ function adicionarPorCategoria(categoria) {
       : "0 5px 20px rgba(255, 0, 0, 0.33)",
     transition: "all 0.2s ease"
   };
+
+  
 
 
 
@@ -1693,6 +1756,8 @@ useEffect(() => {
 }
 
 
+
+
 function adicionarAcaiGratis() {
   const acaiBase = produtos.find(
     (p) => p.resgate === true
@@ -2256,29 +2321,25 @@ const totalExtras = Object.values(extrasSelecionados)
   .flat()
   .reduce((acc, e) => acc + (Number(e.preco || 0) * (e.qtd || 1)), 0);
 
- const podeContinuar = extrasDoProduto.every(grupo => {
+const podeContinuar = extrasDoProduto.every(grupo => {
   const selecionados = extrasSelecionados[grupo.categoria] || [];
   return selecionados.length >= grupo.min;
 });
-
 
 const precoBase = Math.round(Number(produto?.preco || 0));
 
 const totalFinalItem =
   (precoBase + totalExtras) * quantidade;
 
-// 🔥 TOTAL DO CARRINHO (OFICIAL)
 // 🔥 TOTAL DO CARRINHO (CENTAVOS)
 const total = carrinho.reduce((acc, item) => {
-  return acc + item.total; // 🔥 SEM CONDIÇÃO
+  return acc + Number(item.total || 0);
 }, 0);
 
-// 🔥 DESCONTO (CENTAVOS)
-
+// 🔥 DESCONTO
 let descontoCalculado = 0;
 
 if (cupomAplicado) {
-
   const totalSeguro = Number(total || 0);
 
   if (cupomAplicado.tipo === "porcentagem") {
@@ -2292,40 +2353,112 @@ if (cupomAplicado) {
   descontoCalculado = Math.min(descontoCalculado, totalSeguro);
 }
 
-// 🔥 TOTAL FINAL
+// 🔥 TOTAL FINAL (SEM FRETE)
 const totalFinal = Math.max(0, total - descontoCalculado);
 
-// 🔥 FRETE GRÁTIS
-const temItens = carrinho.length > 0;
+// =============================
+// 🚀 FRETE NÍVEL IFOOD
+// =============================
 
-const LIMITE_FRETE_GRATIS = 3000; // R$ 30,00
 
+function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+const LIMITE_FRETE_GRATIS = 3000; // R$30
+const LIMITE_KM = 7;
+
+// 🔥 SUBTOTAL
 const subtotalProdutos = Array.isArray(carrinho)
-  ? carrinho.reduce((acc, item) => {
-      return acc + Number(item.total || 0); // ✅ SOMA TUDO
-    }, 0)
+  ? carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
   : 0;
 
+// 🔥 BAIRRO
 const bairroClienteNormalizado = (clienteBairro || "")
   .trim()
   .toLowerCase();
 
+// 🔥 FRETE ADMIN
 const freteEncontrado = Array.isArray(fretes)
-  ? fretes.find(f =>
-      String(f?.bairro || "").trim().toLowerCase() === bairroClienteNormalizado &&
-      f?.ativo !== false
+  ? fretes.find(
+      (f) =>
+        String(f?.bairro || "").trim().toLowerCase() ===
+          bairroClienteNormalizado && f?.ativo !== false
     )
   : null;
 
-const faltaFreteGratis = Math.max(0, LIMITE_FRETE_GRATIS - subtotalProdutos);
+// 🔥 LOCALIZAÇÃO CLIENTE
+const lat = clienteLat ?? null;
+const lng = clienteLng ?? null;
 
-const taxaEntrega =
-  tipoEntrega === "retirada"
-    ? 0
-    : subtotalProdutos >= LIMITE_FRETE_GRATIS
-    ? 0
-    : Number(freteEncontrado?.valor || 0);
+// 🔥 DISTÂNCIA
+let distanciaCliente = null;
 
+if (lat !== null && lng !== null) {
+  distanciaCliente = calcularDistanciaKm(
+    LOJA.lat,
+    LOJA.lng,
+    lat,
+    lng
+  );
+}
+
+console.log("LAT:", lat);
+console.log("LNG:", lng);
+console.log("DISTANCIA:", distanciaCliente);
+
+// 🔥 CONTROLE
+let taxaEntrega = Number(freteEncontrado?.valor || 0);
+let freteGratis = false;
+let foraDaArea = false;
+let precisaLocalizacao = false;
+
+// 🚫 RETIRADA
+if (tipoEntrega === "retirada") {
+  taxaEntrega = 0;
+}
+
+// 📍 ENTREGA
+else {
+
+  // ❗ SEM LOCALIZAÇÃO
+  if (lat === null || lng === null) {
+    precisaLocalizacao = true;
+  }
+
+  // 🚫 FORA DA ÁREA
+  else if (distanciaCliente > LIMITE_KM) {
+    foraDaArea = true;
+  }
+
+  // 🎁 FRETE GRÁTIS (SÓ AQUI)
+  else if (subtotalProdutos >= LIMITE_FRETE_GRATIS) {
+    taxaEntrega = 0;
+    freteGratis = true;
+  }
+
+}
+
+// 🔥 FALTA PARA FRETE GRÁTIS
+const faltaFreteGratis = Math.max(
+  0,
+  LIMITE_FRETE_GRATIS - subtotalProdutos
+);
+
+// 🔥 TOTAL FINAL COM FRETE
 const totalFinalComFrete = totalFinal + taxaEntrega;
 
 
@@ -2504,6 +2637,44 @@ async function salvarDadosCliente() {
   }
 }
 
+
+const API_KEY = "AIzaSyDcYjwISarAZtgTuDeDgwQIBmNpE3aG5ks";
+
+const buscarEnderecoGoogle = async (lat, lng) => {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_KEY}&language=pt-BR`
+    );
+
+    const data = await res.json();
+
+    console.log("RESPOSTA GOOGLE:", data); // 🔥 DEBUG
+
+    if (data.status !== "OK") {
+      console.log("Erro API:", data.status);
+      return;
+    }
+
+    const comp = data.results[0].address_components;
+
+    const get = (type) =>
+      comp.find(c => c.types.includes(type))?.long_name || "";
+
+    const rua = get("route");
+    const numero = get("street_number");
+    const bairro = get("sublocality") || get("neighborhood");
+    const cep = get("postal_code");
+
+    setClienteEndereco(rua);
+    setClienteNumeroCasa(numero || "");
+    setClienteBairro(bairro);
+    setClienteCep(cep);
+
+  } catch (e) {
+    console.log("Erro:", e);
+  }
+};
+
 // 🔥 buscar cep
 const buscarCEP = async (cep) => {
   try {
@@ -2620,6 +2791,7 @@ function formatarTelefone(valor) {
     return valor;
   }
 }
+
 
 
    // 🔥 FUNÇÕES rempover item carrinho
@@ -3348,6 +3520,29 @@ async function finalizarPedido() {
     return;
   }
 
+  // 🔥 BLOQUEIO FRETE (NÍVEL IFOOD)
+  if (tipoEntrega !== "retirada") {
+
+    if (precisaLocalizacao) {
+      mostrarMensagemPagamento(
+        "Informe seu endereço para calcular o frete.",
+        "erro"
+      );
+      setAba("perfil");
+      setStep(4);
+      setAbaPerfil("endereco");
+      return;
+    }
+
+    if (foraDaArea) {
+      mostrarMensagemPagamento(
+        "Endereço fora da área de entrega (máx 7km).",
+        "erro"
+      );
+      return;
+    }
+  }
+
   try {
     setLoadingPedido(true);
 
@@ -3359,7 +3554,8 @@ async function finalizarPedido() {
         ? 0
         : Number(taxaEntrega || 0);
 
-    const totalFinalCalc = subtotalCalc + taxaEntregaFinal;
+    // 🔥 TOTAL CORRETO (COM DESCONTO + FRETE)
+    const totalFinalCalc = totalFinal + taxaEntregaFinal;
 
     const pedidoBase = {
       codigo,
@@ -3460,7 +3656,7 @@ async function finalizarPedido() {
       return;
     }
 
-    // 💵 DINHEIRO (AQUI ENVIA WHATSAPP)
+    // 💵 DINHEIRO
     await setDoc(doc(db, "pedidos", pedidoId), {
       ...pedidoBase,
       status: "preparando"
@@ -3468,7 +3664,6 @@ async function finalizarPedido() {
 
     mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
 
-    // 🔥 ENVIO WHATSAPP (CORRIGIDO)
     await enviarWhatsApp({
       ...pedidoBase,
       codigo,
@@ -3688,6 +3883,13 @@ const subtotalCalc = itensValidos.reduce(
 );
 
 const podeFinalizar = itensValidos.length > 0 && subtotalCalc > 0;
+
+
+const podeFreteGratis =
+  tipoEntrega === "entrega" &&
+  !foraDaArea &&
+  !precisaLocalizacao &&
+  subtotalProdutos >= LIMITE_FRETE_GRATIS;
 
 return (
 
@@ -5692,21 +5894,33 @@ return (
           />
 
           <div style={{ minWidth: 0 }}>
+            {/* STATUS FRETE */}
             <div
               style={{
-                fontSize: 10,
-                color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
-                fontWeight: 600,
+                fontSize: 11,
+                fontWeight: 700,
+                color: foraDaArea
+                  ? "#dc2626"
+                  : podeFreteGratis
+                  ? "#16a34a"
+                  : "#666",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis"
               }}
             >
-              {faltaFreteGratis > 0
+              {foraDaArea
+                ? "Fora da área de entrega"
+                : precisaLocalizacao
+                ? "Informe seu endereço"
+                : podeFreteGratis
+                ? "Entrega grátis aplicada"
+                : faltaFreteGratis > 0
                 ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-                : "Entrega grátis aplicada"}
+                : ""}
             </div>
 
+            {/* VALOR */}
             <div
               style={{
                 fontSize: 16,
@@ -5718,10 +5932,18 @@ return (
               {formatarReal(
                 typeof subtotalProdutos !== "undefined"
                   ? subtotalProdutos
-                  : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
+                  : carrinho.reduce(
+                      (acc, item) => acc + Number(item.total || 0),
+                      0
+                    )
               )}{" "}
               <span style={{ fontWeight: 500, color: "#666" }}>
-                / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
+                /{" "}
+                {carrinho.reduce(
+                  (acc, item) => acc + Number(item.quantidade || 0),
+                  0
+                )}{" "}
+                item
               </span>
             </div>
           </div>
@@ -5734,16 +5956,20 @@ return (
             setStep(3);
           }}
           style={{
-            height: 46,
-            padding: "0 22px",
-            borderRadius: 14,
+            height: 48,
+            padding: "0 20px",
+            borderRadius: 16,
             border: "none",
             background: "#ea1d2c",
             color: "#fff",
             fontSize: 14,
             fontWeight: 800,
             cursor: "pointer",
-            flexShrink: 0
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 6px 18px rgba(234,29,44,0.25)"
           }}
         >
           Ver sacola
@@ -7292,6 +7518,84 @@ return (
     </span>
   </div>
 
+  {/* 🔥 BOTÃO LOCALIZAÇÃO */}
+  <div
+  style={{
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    marginBottom: 12
+  }}
+>
+   <button
+    onClick={pegarLocalizacao}
+    disabled={!user?.uid}
+    style={{
+      width: "100%",
+      maxWidth: 420, // 🔥 limita no desktop
+      height: 44,
+
+      borderRadius: 12,
+      border: "1px solid #e5e7eb",
+
+      background: "#fff",
+      color: "#111",
+
+      fontWeight: 700,
+      fontSize: 13,
+
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+
+      cursor: !user?.uid ? "not-allowed" : "pointer",
+
+      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+
+      transition: "all .2s ease",
+      opacity: !user?.uid ? 0.6 : 1
+    }}
+    onMouseEnter={(e) => {
+      if (user?.uid) e.currentTarget.style.background = "#f9fafb";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.background = "#fff";
+    }}
+  >
+    {/* ÍCONE */}
+    <MapPin size={16} color="#ea1d2c" />
+
+    {/* TEXTO */}
+    {loadingGeo ? "Obtendo localização..." : "Usar minha localização"}
+  </button>
+</div>
+{clienteLat && (
+  <div
+    style={{
+      fontSize: 12,
+      color: "#b45309",
+      background: "#fff7ed",
+      padding: "8px 10px",
+      borderRadius: 10,
+      marginBottom: 10,
+      border: "1px solid #fed7aa"
+    }}
+  >
+    📍 Localização aproximada. Verifique se a rua, número e bairro estão corretos.
+  </div>
+)}
+  {/* ERRO GEO */}
+  {erroGeo && (
+    <div style={{
+      color: "#dc2626",
+      fontSize: 12,
+      marginBottom: 8
+    }}>
+      {erroGeo}
+    </div>
+  )}
+
   {/* 🔥 AVISO DESLOGADO */}
   {!user?.uid && (
     <div style={{
@@ -7313,7 +7617,6 @@ return (
           const v = e.target.value.replace(/\D/g, "").slice(0, 8);
           setClienteCep(v);
 
-          // 🔥 PROTEÇÃO LOGIN
           if (v.length === 8) {
             if (!user?.uid) {
               setAba("perfil");
@@ -7392,7 +7695,7 @@ return (
       </>
     ) : (
       <div style={{ color: "#aaa" }}>
-        Digite o CEP para preencher automaticamente
+        Digite o CEP ou use sua localização
       </div>
     )}
   </div>
@@ -7733,35 +8036,29 @@ return (
     }}
   >
     {/* INFO */}
-    <div style={{ minWidth: 0, flex: 1 }}>
+<div style={{ minWidth: 0, flex: 1 }}>
   {carrinho.length > 0 && (
     <>
-      {faltaFreteGratis > 0 ? (
-        <div
-          style={{
-            fontSize: 12,
-            color: "#666",
-            marginBottom: 2
-          }}
-        >
-          Faltam{" "}
-          <strong style={{ color: "#111" }}>
-            {formatarReal(faltaFreteGratis)}
-          </strong>{" "}
-          para entrega grátis
-        </div>
-      ) : (
-        <div
-          style={{
-            fontSize: 12,
-            color: "#16a34a",
-            fontWeight: 700,
-            marginBottom: 2
-          }}
-        >
-          Entrega grátis aplicada
-        </div>
-      )}
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          marginBottom: 2,
+          color: foraDaArea
+            ? "#dc2626"
+            : freteGratis
+            ? "#16a34a"
+            : "#666"
+        }}
+      >
+        {foraDaArea
+          ? "Fora da área de entrega grátis"
+          : freteGratis
+          ? "Entrega grátis aplicada"
+          : faltaFreteGratis > 0
+          ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+          : ""}
+      </div>
     </>
   )}
 
@@ -9972,93 +10269,114 @@ const corStatus =
       }}
     >
       <button
-  onClick={async () => {
+        onClick={async () => {
 
-    // 🚨 BLOQUEIO ABSOLUTO (MESMO SE CLICAR)
-    if (!podeFinalizar) {
-      mostrarToast("Adicione itens ao carrinho", "erro");
-      return;
-    }
+          if (!podeFinalizar) {
+            mostrarToast("Adicione itens ao carrinho", "erro");
+            return;
+          }
 
-    if (!tipoEntrega) {
-      mostrarToast("Escolha entrega ou retirada", "erro");
-      return;
-    }
+          if (!tipoEntrega) {
+            mostrarToast("Escolha entrega ou retirada", "erro");
+            return;
+          }
 
-    if (!formaPagamento) {
-      mostrarToast("Escolha uma forma de pagamento", "erro");
-      return;
-    }
+          if (!formaPagamento) {
+            mostrarToast("Escolha uma forma de pagamento", "erro");
+            return;
+          }
 
-    if (formaPagamento === "pix") {
-      setQrBase64(null);
-      setQrCode(null);
-      setPaymentId(null);
-      setMostrarPagamento(true);
-      return;
-    }
+          // 🔥 BLOQUEIO REAL DE FRETE
+          if (tipoEntrega === "entrega") {
 
-    if (formaPagamento === "cartao_online") {
-      await finalizarPedido();
-      return;
-    }
+            if (foraDaArea) {
+              mostrarToast("Fora da área de entrega ", "erro");
+              return;
+            }
 
-    await finalizarPedido();
-  }}
+            if (precisaLocalizacao) {
+              mostrarToast("Informe seu endereço", "erro");
+              return;
+            }
+          }
 
-  // 🔥 BLOQUEIA BOTÃO
-  disabled={!podeFinalizar}
+          if (formaPagamento === "pix") {
+            setQrBase64(null);
+            setQrCode(null);
+            setPaymentId(null);
+            setMostrarPagamento(true);
+            return;
+          }
 
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    height: isMobile ? 54 : 48,
-    borderRadius: 14,
+          if (formaPagamento === "cartao_online") {
+            await finalizarPedido();
+            return;
+          }
 
-    // 🔥 VISUAL DINÂMICO
-    background: podeFinalizar ? "#ea1d2c" : "#e5e5e5",
-    color: podeFinalizar ? "#fff" : "#999",
+          await finalizarPedido();
+        }}
 
-    border: "none",
-    fontWeight: 700,
-    fontSize: isMobile ? 14 : 13,
+        disabled={!podeFinalizar}
 
-    cursor: podeFinalizar ? "pointer" : "not-allowed",
-    boxShadow: podeFinalizar
-      ? "0 4px 12px rgba(234,29,44,0.16)"
-      : "none",
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+          height: isMobile ? 54 : 48,
+          borderRadius: 14,
 
-    boxSizing: "border-box",
-    padding: "6px 10px",
-    lineHeight: 1.2,
-    transition: "all .2s ease",
-    opacity: podeFinalizar ? 1 : 0.7
-  }}
->
-  {/* TEXTO PRINCIPAL */}
-  <span>
-    {podeFinalizar
-      ? `Finalizar pedido • ${formatarReal(totalFinalComFrete)}`
-      : "Adicione itens ao carrinho"}
-  </span>
+          background: podeFinalizar ? "#ea1d2c" : "#e5e5e5",
+          color: podeFinalizar ? "#fff" : "#999",
 
-  {/* FRETE */}
-  {podeFinalizar && tipoEntrega === "entrega" && faltaFrete > 0 && (
-    <span style={{ fontSize: 11 }}>
-      Falta {formatarReal(faltaFrete)} para frete grátis
-    </span>
-  )}
+          border: "none",
+          fontWeight: 700,
+          fontSize: isMobile ? 14 : 13,
 
-  {podeFinalizar && tipoEntrega === "entrega" && faltaFrete <= 0 && (
-    <span style={{ fontSize: 11, color: "#bfffd0" }}>
-      Frete grátis liberado
-    </span>
-  )}
-</button>
-    </div>
+          cursor: podeFinalizar ? "pointer" : "not-allowed",
+          boxShadow: podeFinalizar
+            ? "0 4px 12px rgba(234,29,44,0.16)"
+            : "none",
+
+          boxSizing: "border-box",
+          padding: "6px 10px",
+          lineHeight: 1.2,
+          transition: "all .2s ease",
+          opacity: podeFinalizar ? 1 : 0.7
+        }}
+      >
+        {/* TEXTO PRINCIPAL */}
+        <span>
+          {podeFinalizar
+            ? `Finalizar pedido • ${formatarReal(totalFinalComFrete)}`
+            : "Adicione itens ao carrinho"}
+        </span>
+
+        {/* STATUS FRETE CORRIGIDO */}
+        {podeFinalizar && tipoEntrega === "entrega" && (
+          <span
+            style={{
+              fontSize: 11,
+              marginTop: 2,
+              color: foraDaArea
+                ? "#ffb3b3"
+                : freteGratis
+                ? "#bfffd0"
+                : "#fff"
+            }}
+          >
+            {foraDaArea
+              ? "Fora da área de entrega grátis"
+              : freteGratis
+              ? "Frete grátis liberado"
+              : faltaFreteGratis > 0
+              ? `Faltam ${formatarReal(faltaFreteGratis)} para frete grátis`
+              : ""}
+          </span>
+        )}
+      </button>
+      </div>
   </div>
 </div>
   
@@ -11768,134 +12086,144 @@ const corStatus =
           boxSizing: "border-box"
         }}
       >
-        {/* PROGRESSO FRETE */}
-        <div style={{ marginBottom: 8 }}>
-          <div
-            style={{
-              width: "100%",
-              height: 6,
-              background: "#eee",
-              borderRadius: 999,
-              overflow: "hidden",
-              position: "relative"
-            }}
-          >
-            <div
-              style={{
-                width: `${progresso}%`,
-                height: "100%",
-                borderRadius: 999,
-                background:
-                  progresso >= 100
-                    ? "#16a34a"
-                    : "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
-                transition: "width 0.4s ease"
-              }}
-            />
+       {/* PROGRESSO FRETE */}
+<div style={{ marginBottom: 8 }}>
+  <div
+    style={{
+      width: "100%",
+      height: 6,
+      background: "#eee",
+      borderRadius: 999,
+      overflow: "hidden",
+      position: "relative"
+    }}
+  >
+    <div
+      style={{
+        width: `${progresso}%`,
+        height: "100%",
+        borderRadius: 999,
+        background: foraDaArea
+          ? "#dc2626"
+          : progresso >= 100 && freteGratis
+          ? "#16a34a"
+          : "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
+        transition: "width 0.4s ease"
+      }}
+    />
 
-            {/* CAMINHÃO */}
-            {progresso > 0 && progresso < 100 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: `calc(${progresso}% - 10px)`,
-                  transform: "translateY(-50%)",
-                  fontSize: 12,
-                  transition: "left 0.4s ease",
-                  lineHeight: 1
-                }}
-              >
-                🚚
-              </div>
-            )}
-          </div>
-        </div>
+    {/* CAMINHÃO */}
+    {!foraDaArea && progresso > 0 && progresso < 100 && (
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: `calc(${progresso}% - 10px)`,
+          transform: "translateY(-50%)",
+          fontSize: 12,
+          transition: "left 0.4s ease"
+        }}
+      >
+        🚚
+      </div>
+    )}
+  </div>
+</div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 14
-          }}
-        >
-          {/* ESQUERDA */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              flex: 1,
-              minWidth: 0
-            }}
-          >
-            <img
-              src={logo || "/bg.png"}
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: "50%",
-                objectFit: "cover",
-                flexShrink: 0
-              }}
-            />
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14
+  }}
+>
+  {/* ESQUERDA */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      flex: 1,
+      minWidth: 0
+    }}
+  >
+    <img
+      src={logo || "/bg.png"}
+      style={{
+        width: 42,
+        height: 42,
+        borderRadius: "50%",
+        objectFit: "cover",
+        flexShrink: 0
+      }}
+    />
 
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis"
-                }}
-              >
-                {faltaFreteGratis > 0
-                  ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-                  : "Entrega grátis aplicada"}
-              </div>
+    <div style={{ minWidth: 0, flex: 1 }}>
+      {/* STATUS CORRIGIDO */}
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 700,
+          color: foraDaArea
+            ? "#dc2626"
+            : freteGratis
+            ? "#16a34a"
+            : "#666",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        }}
+      >
+        {foraDaArea
+          ? "Fora da área de entrega grátis"
+          : freteGratis
+          ? "Entrega grátis aplicada"
+          : faltaFreteGratis > 0
+          ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+          : ""}
+      </div>
 
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: "#111",
-                  marginTop: 2
-                }}
-              >
-                {formatarReal(totalSacola)}{" "}
-                <span style={{ fontWeight: 500, color: "#666" }}>
-                  / {totalItens} {totalItens === 1 ? "item" : "itens"}
-                </span>
-              </div>
-            </div>
-          </div>
+      {/* VALOR */}
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 800,
+          color: "#111",
+          marginTop: 2
+        }}
+      >
+        {formatarReal(totalSacola)}{" "}
+        <span style={{ fontWeight: 500, color: "#666" }}>
+          / {totalItens} {totalItens === 1 ? "item" : "itens"}
+        </span>
+      </div>
+    </div>
+  </div>
 
-          {/* BOTÃO */}
-          <button
-            onClick={() => {
-              setAba("carrinho");
-              setStep(3);
-            }}
-            style={{
-              height: 46,
-              padding: "0 22px",
-              borderRadius: 14,
-              border: "none",
-              background: "#ea1d2c",
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 800,
-              cursor: "pointer",
-              flexShrink: 0,
-              boxShadow: "0 6px 16px rgba(234,29,44,0.18)"
-            }}
-          >
-            Ver sacola
-          </button>
-        </div>
+  {/* BOTÃO */}
+  <button
+    onClick={() => {
+      setAba("carrinho");
+      setStep(3);
+    }}
+    style={{
+      height: 46,
+      padding: "0 22px",
+      borderRadius: 14,
+      border: "none",
+      background: "#ea1d2c",
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 800,
+      cursor: "pointer",
+      flexShrink: 0,
+      boxShadow: "0 6px 16px rgba(234,29,44,0.18)"
+    }}
+  >
+    Ver sacola
+  </button>
+</div>
       </div>
     </div>
   );
