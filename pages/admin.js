@@ -68,11 +68,30 @@ import {
   getDownloadURL
 } from "firebase/storage";
 
+import {
+  LineChart, Line, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, CartesianGrid
+} from "recharts";
+
+import { motion } from "framer-motion";
+
+import {
+  DndContext, closestCenter
+} from "@dnd-kit/core";
+
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from "@dnd-kit/sortable";
+
+import { CSS } from "@dnd-kit/utilities";
 
 
 
 export default function Admin() {
 
+  
 
 const [abaAdmin, setAbaAdmin] = useState("dashboard");
 
@@ -332,6 +351,93 @@ const btnDangerMini = {
   fontWeight: 700
 };
 
+const navBtn = {
+  flex: 1,
+  border: "none",
+  background: "transparent",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  position: "relative",
+  height: 48,
+  cursor: "pointer"
+};
+
+const badgeStyle = {
+  position: "absolute",
+  top: 2,
+  right: "25%",
+  background: "#ea1d2c",
+  color: "#fff",
+  borderRadius: 999,
+  fontSize: 9,
+  padding: "2px 5px",
+  fontWeight: 800
+};
+
+
+const MotionCard = ({ children }) => (
+  <motion.div
+    whileHover={{ scale: 1.03 }}
+    whileTap={{ scale: 0.97 }}
+    style={styles.card}
+  >
+    {children}
+  </motion.div>
+);
+
+function SortableCard({ id, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
+
+const styles = {
+  container: {
+    padding: 16,
+    background: "linear-gradient(180deg,#eef2f7,#e2e8f0)"
+  },
+
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: 16
+  },
+
+  gridTop: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: 12
+  },
+
+  card: {
+    background: "#fff",
+    padding: 16,
+    borderRadius: 16,
+    boxShadow: "0 10px 30px rgba(0,0,0,0.08)"
+  },
+
+  cta: {
+    marginTop: 16,
+    padding: 16,
+    background: "#111827",
+    color: "#fff",
+    borderRadius: 16,
+    textAlign: "center",
+    cursor: "pointer"
+  }
+};
+
   const router = useRouter();
 
   const [produtoEditandoId, setProdutoEditandoId] = useState(null);
@@ -367,6 +473,8 @@ const [novaCategoriaGasto, setNovaCategoriaGasto] = useState("insumos");
 const [novaDataGasto, setNovaDataGasto] = useState("");
 const [novaObservacaoGasto, setNovaObservacaoGasto] = useState("");
 const [loadingGasto, setLoadingGasto] = useState(false);
+
+const [abrirMaisMenu, setAbrirMaisMenu] = useState(false);
 
 
 const [banners, setBanners] = useState([]);
@@ -592,6 +700,31 @@ async function salvarBanner() {
   }
 }
 
+
+function GraficoVendas({ data }) {
+  return (
+    <div style={styles.card}>
+      <h3>Vendas por dia</h3>
+
+      <div style={{ width: "100%", height: 220 }}>
+        <ResponsiveContainer>
+          <LineChart data={data}>
+            <CartesianGrid stroke="#eee" />
+            <XAxis dataKey="dia" />
+            <YAxis />
+            <Tooltip formatter={(v) => formatarReal(v)} />
+            <Line
+              dataKey="valor"
+              stroke="#ea1d2c"
+              strokeWidth={3}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 async function alternarStatusBanner(item) {
   try {
     await updateDoc(doc(db, "banners", item.id), {
@@ -686,6 +819,29 @@ async function salvarEdicaoCategoria(id) {
   });
 
   setEditandoCategoriaId(null);
+}
+
+
+function getVendasPorDia(pedidos = [], vendasManuais = []) {
+  const map = {};
+
+  pedidos
+    .filter(p => p.status === "entregue")
+    .forEach(p => {
+      const d = new Date(Number(p.data || Date.now()))
+        .toLocaleDateString("pt-BR");
+
+      map[d] = (map[d] || 0) + Number(p.total || 0);
+    });
+
+  vendasManuais.forEach(v => {
+    const d = new Date(Number(v.data || Date.now()))
+      .toLocaleDateString("pt-BR");
+
+    map[d] = (map[d] || 0) + Number(v.valor || 0);
+  });
+
+  return Object.keys(map).map(d => ({ dia: d, valor: map[d] }));
 }
 
 // nova funcao add no painel
@@ -2923,195 +3079,239 @@ if (loadingAuth) {
       </div>
 
       {/* PEDIDOS */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 24,
-          padding: 20,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.05)",
-          border: "1px solid #ececf2"
-        }}
-      >
+<div
+  style={{
+    background: "#ffffff",
+    borderRadius: 20,
+    padding: 18,
+    boxShadow: "0 15px 40px rgba(0,0,0,0.12)",
+    border: "1px solid #e5e7eb"
+  }}
+>
+  {/* HEADER */}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+      gap: 10,
+      flexWrap: "wrap"
+    }}
+  >
+    <h3
+      style={{
+        margin: 0,
+        fontSize: 18,
+        fontWeight: 900,
+        color: "#0f172a"
+      }}
+    >
+      Últimos pedidos
+    </h3>
+
+    {/* FILTRO VISUAL */}
+    <div
+      style={{
+        display: "flex",
+        gap: 6,
+        background: "#f1f5f9",
+        padding: 4,
+        borderRadius: 12
+      }}
+    >
+      {["Hoje", "7 dias", "30 dias"].map((filtro, i) => (
         <div
+          key={i}
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 14,
-            gap: 10,
-            flexWrap: "wrap"
+            padding: "6px 12px",
+            borderRadius: 8,
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            background: i === 0 ? "#020617" : "transparent",
+            color: i === 0 ? "#fff" : "#475569"
           }}
         >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 20,
-              fontWeight: 800,
-              color: "#111827"
-            }}
-          >
-            Últimos pedidos
-          </h3>
+          {filtro}
+        </div>
+      ))}
+    </div>
+  </div>
 
+  {/* LISTA */}
+  {pedidos.length === 0 ? (
+    <div
+      style={{
+        textAlign: "center",
+        color: "#64748b",
+        padding: "30px 20px",
+        background: "#f8fafc",
+        borderRadius: 16,
+        border: "1px dashed #e2e8f0",
+        fontSize: 14,
+        fontWeight: 500
+      }}
+    >
+      Nenhum pedido encontrado
+    </div>
+  ) : (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {pedidos.slice(0, 4).map((p, i) => {
+
+        // 🔥 NORMALIZA STATUS
+        const status = (p.status || "").toLowerCase();
+
+        // 🔥 LABEL
+        const statusLabel =
+          status === "entregue"
+            ? "Entregue"
+            : status === "saiu"
+            ? "Saiu para entrega"
+            : status === "preparando"
+            ? "Preparando"
+            : status === "cancelado"
+            ? "Cancelado"
+            : "Confirmado";
+
+        // 🔥 COR
+        const statusBg =
+          status === "entregue"
+            ? "#dcfce7"
+            : status === "saiu"
+            ? "#fff7ed"
+            : status === "preparando"
+            ? "#eef2ff"
+            : status === "cancelado"
+            ? "#fee2e2"
+            : "#fef3c7";
+
+        const statusColor =
+          status === "entregue"
+            ? "#166534"
+            : status === "saiu"
+            ? "#9a3412"
+            : status === "preparando"
+            ? "#3730a3"
+            : status === "cancelado"
+            ? "#991b1b"
+            : "#92400e";
+
+        return (
           <div
+            key={p.id || i}
             style={{
               display: "flex",
-              gap: 6,
-              background: "#f3f4f6",
-              padding: 4,
-              borderRadius: 12
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "14px 16px",
+              borderRadius: 16,
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.08)"
             }}
           >
-            {["Hoje", "7 dias", "30 dias"].map((filtro, i) => (
+            {/* ESQUERDA */}
+            <div style={{ flex: 1 }}>
+              
               <div
-                key={i}
                 style={{
-                  padding: "6px 10px",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  background: i === 0 ? "#fff" : "transparent",
-                  color: i === 0 ? "#111" : "#777",
-                  boxShadow: i === 0 ? "0 2px 6px rgba(0,0,0,0.08)" : "none"
-                }}
-              >
-                {filtro}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {pedidos.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              color: "#6b7280",
-              padding: "28px 18px",
-              background: "#fafafa",
-              borderRadius: 18,
-              border: "1px dashed #e5e7eb",
-              fontSize: 14,
-              fontWeight: 500
-            }}
-          >
-            Nenhum pedido encontrado
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {pedidos.slice(0, 4).map((p, i) => (
-              <div
-                key={p.id || i}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: isMobile ? "1fr" : "auto 1fr auto auto",
-                  gap: 10,
+                  display: "flex",
                   alignItems: "center",
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  background: "#f9fafb",
-                  border: "1px solid #eee"
+                  gap: 8,
+                  marginBottom: 4,
+                  flexWrap: "wrap"
                 }}
               >
-                <strong
-                  style={{
-                    fontSize: 14,
-                    color: "#111",
-                    minWidth: 70
-                  }}
-                >
+                <strong style={{ fontSize: 14, color: "#0f172a" }}>
                   #{p.codigo || p.id?.slice(0, 5) || i + 1}
                 </strong>
 
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    flexWrap: "wrap"
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 12,
-                      padding: "4px 10px",
-                      borderRadius: 999,
-                      fontWeight: 700,
-                      background:
-                        p.status === "entregue"
-                          ? "#ecfdf3"
-                          : p.status === "saiu"
-                          ? "#fff7ed"
-                          : p.status === "preparando"
-                          ? "#eef2ff"
-                          : "#f3f4f6",
-                      color:
-                        p.status === "entregue"
-                          ? "#16a34a"
-                          : p.status === "saiu"
-                          ? "#ea580c"
-                          : p.status === "preparando"
-                          ? "#4338ca"
-                          : "#6b7280"
-                    }}
-                  >
-                    {p.status === "entregue"
-                      ? "Pedido entregue"
-                      : p.status === "saiu"
-                      ? "Saiu para entrega"
-                      : p.status === "preparando"
-                      ? "Preparando"
-                      : "Pagamento confirmado"}
-                  </span>
-
-                  <span
-                    style={{
-                      fontSize: 14,
-                      color: "#374151",
-                      fontWeight: 600
-                    }}
-                  >
-                    {p.cliente?.nome || p.clienteNome || "Cliente"}
-                  </span>
-                </div>
-
+                {/* STATUS */}
                 <span
                   style={{
-                    fontSize: 13,
-                    color: "#6b7280",
-                    fontWeight: 700
+                    fontSize: 11,
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    background: statusBg,
+                    color: statusColor
                   }}
                 >
-                  {p.data
-                    ? new Date(Number(p.data)).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })
-                    : "--:--"}
+                  {statusLabel}
                 </span>
-
-                <button
-                  onClick={() => setAbaAdmin("pedidos")}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    border: "1px solid #e5e7eb",
-                    background: "#fff",
-                    color: "#111",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    justifySelf: isMobile ? "flex-start" : "end"
-                  }}
-                >
-                  <ArrowRight size={14} />
-                </button>
               </div>
-            ))}
+
+              {/* CLIENTE */}
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#111827"
+                }}
+              >
+                {p.cliente?.nome || p.clienteNome || "Cliente"}
+              </div>
+
+              {/* HORA */}
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#64748b",
+                  marginTop: 2
+                }}
+              >
+                {p.data
+                  ? new Date(Number(p.data)).toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })
+                  : "--:--"}
+              </div>
+            </div>
+
+            {/* DIREITA */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              
+              {/* PREÇO */}
+              <div
+                style={{
+                  background: "#020617",
+                  color: "#fff",
+                  padding: "6px 10px",
+                  borderRadius: 10,
+                  fontWeight: 800,
+                  fontSize: 13
+                }}
+              >
+                {formatarReal(p.total || 0)}
+              </div>
+
+              {/* BOTÃO */}
+              <button
+                onClick={() => setAbaAdmin("pedidos")}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  border: "1px solid #e5e7eb",
+                  background: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                <ArrowRight size={14} />
+              </button>
+            </div>
           </div>
-        )}
+        );
+      })}
+    </div>
+  )}
+
 
         <div
           style={{
@@ -4677,8 +4877,8 @@ if (loadingAuth) {
       padding: 20,
       borderRadius: 24,
       width: "100%",
-      maxWidth: 420,
-      maxHeight: "90vh",
+      maxWidth: 380,           // 🔥 menor largura (mobile fica melhor)
+      maxHeight: "82vh",
       overflowY: "auto",
       boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
       border: "1px solid #eee",
@@ -5400,35 +5600,55 @@ if (loadingAuth) {
     Mais vendido
   </label>
 
-  {/* BOTÕES FIXOS */}
-  <div
+ {/* BOTÕES FIXOS DENTRO DO MODAL */}
+<div
+  style={{
+    position: "sticky",
+    bottom: -20, // 🔥 sobe um pouco (ajuste fino)
+    marginTop: 20,
+    paddingTop: 10,
+
+    background: "#fff",
+    display: "flex",
+    gap: 10,
+    borderTop: "1px solid #eee",
+
+    // 🔥 sombra pra destacar
+    boxShadow: "0 -50px 180px rgba(0,0,0,0.08)"
+  }}
+>
+  <button
+    onClick={salvarProduto}
     style={{
-      position: "sticky",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: "#fff",
-      padding: 12,
-      borderTop: "1px solid #eee",
-      display: "flex",
-      gap: 10,
-      zIndex: 20
+      flex: 1,
+      height: 50,
+      borderRadius: 16,
+      border: "none",
+      background: "linear-gradient(135deg,#16a34a,#22c55e)",
+      color: "#fff",
+      fontWeight: 800,
+      fontSize: 15
     }}
   >
-    <button
-      onClick={salvarProduto}
-      style={{ ...btnPrimary, flex: 1 }}
-    >
-      Salvar
-    </button>
+    Salvar
+  </button>
 
-    <button
-      onClick={() => setMostrarModalProduto(false)}
-      style={{ ...btnCancel, flex: 1 }}
-    >
-      Cancelar
-    </button>
-  </div>
+  <button
+    onClick={() => setMostrarModalProduto(false)}
+    style={{
+      flex: 1,
+      height: 50,
+      borderRadius: 16,
+      border: "1px solid #e5e7eb",
+      background: "#fff",
+      color: "#111",
+      fontWeight: 700,
+      fontSize: 15
+    }}
+  >
+    Cancelar
+  </button>
+</div>
 
 </div>
     </div>
@@ -7050,99 +7270,122 @@ if (loadingAuth) {
 
 
   {isMobile && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: "#fff",
-      borderTop: "1px solid #e5e7eb",
-      padding: "6px 4px",
-      display: "flex",
-      zIndex: 9999,
-      boxShadow: "0 -6px 20px rgba(0,0,0,0.06)"
-    }}
-  >
-    {[
-      { id: "dashboard", icon: Home },
-      { id: "pedidos", icon: ClipboardList },
-      { id: "produtos", icon: Package },
-      { id: "gastos", icon: DollarSign },
-      { id: "fretes", icon: Truck },          // ✅ ADICIONADO
-      { id: "notificacoes", icon: Bell },     // ✅ ADICIONADO
-      { id: "banners", icon: ImagePlus },     // ✅ ADICIONADO
-      { id: "avaliacoes", icon: Star },
-      { id: "loja", icon: Store }
-    ].map((item) => {
-      const ativo = abaAdmin === item.id;
-      const Icon = item.icon;
+  <>
+    {/* NAVBAR */}
+    <div
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: "#fff",
+        borderTop: "1px solid #e5e7eb",
+        padding: "6px 6px calc(env(safe-area-inset-bottom) + 6px)",
+        display: "flex",
+        zIndex: 9999,
+        boxShadow: "0 -6px 20px rgba(0,0,0,0.08)"
+      }}
+    >
+      {[
+        { id: "dashboard", icon: Home },
+        { id: "pedidos", icon: ClipboardList },
+        { id: "produtos", icon: Package },
+        { id: "gastos", icon: DollarSign }
+      ].map((item) => {
+        const ativo = abaAdmin === item.id;
+        const Icon = item.icon;
 
-      return (
-        <button
-          key={item.id}
-          onClick={() => setAbaAdmin(item.id)}
-          style={{
-            flex: 1,
-            border: "none",
-            background: "transparent",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-            height: 44,
-            cursor: "pointer"
-          }}
-        >
-          <Icon
-            size={20}
-            color={ativo ? "#ea1d2c" : "#6b7280"}
-          />
+        return (
+          <button
+            key={item.id}
+            onClick={() => setAbaAdmin(item.id)}
+            style={navBtn}
+          >
+            <Icon size={22} color={ativo ? "#ea1d2c" : "#6b7280"} />
 
-          {/* 🔥 BADGE PEDIDOS */}
-          {item.id === "pedidos" && pedidosEmAndamento > 0 && (
-            <div
-              style={{
-                position: "absolute",
-                top: 2,
-                right: "28%",
-                background: "#ea1d2c",
-                color: "#fff",
-                borderRadius: 999,
-                fontSize: 9,
-                padding: "2px 5px",
-                fontWeight: 800
-              }}
-            >
-              {pedidosEmAndamento}
-            </div>
-          )}
-
-          {/* 🔔 BADGE NOTIFICAÇÕES */}
-          {item.id === "notificacoes" &&
-            notificacoesAdmin.filter(n => !n.lida).length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 2,
-                  right: "28%",
-                  background: "#ea1d2c",
-                  color: "#fff",
-                  borderRadius: 999,
-                  fontSize: 9,
-                  padding: "2px 5px",
-                  fontWeight: 800
-                }}
-              >
-                {
-                  notificacoesAdmin.filter(n => !n.lida).length
-                }
+            {item.id === "pedidos" && pedidosEmAndamento > 0 && (
+              <div style={badgeStyle}>
+                {pedidosEmAndamento}
               </div>
             )}
-        </button>
-      );
-    })}
-  </div>
+          </button>
+        );
+      })}
+
+      {/* BOTÃO MAIS */}
+      <button
+        onClick={() => setAbrirMaisMenu(true)}
+        style={navBtn}
+      >
+        <MoreHorizontal size={22} color="#6b7280" />
+      </button>
+    </div>
+
+    {/* MENU MAIS */}
+    {abrirMaisMenu && (
+      <div
+        onClick={() => setAbrirMaisMenu(false)}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.4)",
+          zIndex: 10000,
+          display: "flex",
+          alignItems: "flex-end"
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "100%",
+            background: "#fff",
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            padding: 20,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 16,
+            animation: "slideUp 0.25s ease"
+          }}
+        >
+          {[
+            { id: "fretes", icon: Truck },
+            { id: "notificacoes", icon: Bell },
+            { id: "banners", icon: ImagePlus },
+            { id: "avaliacoes", icon: Star },
+            { id: "loja", icon: Store }
+          ].map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setAbaAdmin(item.id);
+                  setAbrirMaisMenu(false);
+                }}
+                style={{
+                  border: "none",
+                  background: "#f8fafc",
+                  borderRadius: 16,
+                  padding: 14,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 6
+                }}
+              >
+                <Icon size={22} color="#111" />
+                <span style={{ fontSize: 12, fontWeight: 600 }}>
+                  {item.id}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    )}
+  </>
 )}
 
       <style jsx>{`
