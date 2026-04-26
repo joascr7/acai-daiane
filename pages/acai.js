@@ -5407,17 +5407,22 @@ return (
     }}
   >
     {produtoEmPromocao(p) && (
-      <span
-        style={{
-          ...badgeOferta,
-          fontSize: 9,
-          padding: "1px 6px",
-          whiteSpace: "nowrap"
-        }}
-      >
-        Oferta imperdível
-      </span>
-    )}
+  <span
+    style={{
+      ...badgeOferta,
+      background: "#ea1d2c",   // 🔥 vermelho forte
+      color: "#fff",
+      fontSize: 9,
+      padding: "2px 8px",
+      borderRadius: 999,
+      fontWeight: 800,
+      whiteSpace: "nowrap",
+      boxShadow: "0 4px 10px rgba(234,29,44,0.35)"
+    }}
+  >
+    Oferta imperdível
+  </span>
+)}
 
     {p.maisVendido && (
       <span
@@ -5549,15 +5554,15 @@ return (
       </span>
 
       <div
-        style={{
-          fontSize: 18,
-          fontWeight: 900,
-          color: "#111",
-          marginTop: 2
-        }}
-      >
-        {formatarReal(precoFinalProduto(p))}
-      </div>
+  style={{
+    fontSize: 18,
+    fontWeight: 900,
+    color: produtoEmPromocao(p) ? "#ea1d2c" : "#111", // 🔥 AQUI
+    marginTop: 2
+  }}
+>
+  {formatarReal(precoFinalProduto(p))}
+</div>
     </>
   ) : (
     <>
