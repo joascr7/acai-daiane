@@ -5503,7 +5503,7 @@ return (
       marginTop: 6,
       fontSize: 12,
       color: "#666",
-      WebkitLineClamp: 2,
+      WebkitLineClamp: 3,
       display: "-webkit-box",
       WebkitBoxOrient: "vertical",
       overflow: "hidden",
