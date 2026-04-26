@@ -3891,6 +3891,34 @@ const podeFreteGratis =
   !precisaLocalizacao &&
   subtotalProdutos >= LIMITE_FRETE_GRATIS;
 
+
+  // 🔥 PRODUTOS EM PROMOÇÃO
+const produtosPromocao = produtos.filter(p =>
+  p.promocao === true &&
+  Number(p.precoPromocional || 0) > 0 &&
+  Number(p.precoPromocional || 0) < Number(p.preco || 0)
+);
+
+// 🔥 MAIS VENDIDO (simples)
+const produtosOrdenados = [...produtos].sort((a, b) => {
+  const aScore = a.maisVendido ? 1 : 0;
+  const bScore = b.maisVendido ? 1 : 0;
+  return bScore - aScore;
+});
+
+// 🔥 REMOVE DUPLICADOS
+const idsPromo = produtosPromocao.map(p => p.id);
+
+const outrosProdutos = produtosOrdenados.filter(
+  p => !idsPromo.includes(p.id)
+);
+
+// 🔥 JUNTA TUDO
+const sugestoes = [
+  ...produtosPromocao,
+  ...outrosProdutos
+].slice(0, 6);
+
 return (
 
 
@@ -8881,153 +8909,216 @@ return (
     </div>
 
     <div style={{ padding: 16 }}>
-    {/* VAZIO + SUGESTÕES */}
-{pedidos.length === 0 && (
-  <div
-    style={{
-      marginTop: 50,
-      padding: "0 16px",
-      maxWidth: 510,
-      marginLeft: "auto",
-      marginRight: "auto"
-    }}
-  >
-    {/* TEXTO */}
-    <div style={{ textAlign: "center", marginBottom: 20 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: "#111" }}>
-        Nenhum pedido ainda
-      </div>
+   {/* VAZIO + SUGESTÕES */}
+{pedidos.length === 0 && (() => {
 
-      <div style={{ fontSize: 13, color: "#777", marginTop: 6 }}>
-        Que tal pedir seu primeiro açaí?
-      </div>
-    </div>
+  // 🔥 PROMOÇÕES PRIMEIRO
+  const sugestoes = [
+    ...produtos.filter(p => produtoEmPromocao(p)),
+    ...produtos.filter(p => !produtoEmPromocao(p))
+  ].slice(0, 6);
 
-    {/* CTA */}
+ 
+
+  return (
     <div
-      onClick={() => {
-        setAba("home");
-        setStep(1);
-      }}
       style={{
-        background: "linear-gradient(135deg,#ea1d2c,#ff2e2e)",
-        borderRadius: 16,
-        padding: 14,
-        color: "#fff",
-        fontWeight: 700,
-        textAlign: "center",
-        marginBottom: 20,
-        cursor: "pointer",
-        boxShadow: "0 10px 25px rgba(234,29,44,0.25)"
+        marginTop: 50,
+        padding: "0 16px",
+        maxWidth: 510,
+        marginLeft: "auto",
+        marginRight: "auto"
       }}
     >
-      Ver cardápio
-    </div>
+      {/* TEXTO */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#111" }}>
+          Nenhum pedido ainda
+        </div>
 
-    {/* SUGESTÕES */}
-    <div>
+        <div style={{ fontSize: 13, color: "#777", marginTop: 6 }}>
+          Que tal pedir seu primeiro açaí?
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div
+        onClick={() => {
+          setAba("home");
+          setStep(1);
+        }}
+        style={{
+          background: "linear-gradient(135deg,#ea1d2c,#ff2e2e)",
+          borderRadius: 16,
+          padding: 14,
+          color: "#fff",
+          fontWeight: 700,
+          textAlign: "center",
+          marginBottom: 20,
+          cursor: "pointer",
+          boxShadow: "0 10px 25px rgba(234,29,44,0.25)"
+        }}
+      >
+        Ver cardápio
+      </div>
+
+      {/* SUGESTÕES */}
+      <div>
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 800,
+            marginBottom: 10,
+            color: "#111"
+          }}
+        >
+          Sugestões pra você
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            overflowX: "auto",
+            paddingBottom: 10
+          }}
+        >
+         {sugestoes.map((p) => {
+  const emPromo =
+    p.promocao === true &&
+    Number(p.precoPromocional || 0) > 0 &&
+    Number(p.precoPromocional || 0) < Number(p.preco || 0);
+
+  const precoFinal = emPromo
+    ? Number(p.precoPromocional)
+    : Number(p.preco);
+
+  return (
+    <div
+      key={p.id}
+      onClick={() => {
+        setProdutoSelecionado(p);
+        setStep(2);
+      }}
+      style={{
+        minWidth: 150,
+        background: "#fff",
+        borderRadius: 18,
+        padding: 10,
+        boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+        cursor: "pointer",
+        transition: "0.2s",
+        position: "relative"
+      }}
+    >
+      {/* 🔥 TAG PROMO */}
+      {emPromo && (
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 10,
+            fontWeight: 800,
+            padding: "4px 8px",
+            borderRadius: 999
+          }}
+        >
+          PROMO
+        </div>
+      )}
+
+      <img
+        src={p.imagem || "/acai.png"}
+        onError={(e) => (e.target.src = "/acai.png")}
+        style={{
+          width: "100%",
+          height: 95,
+          objectFit: "cover",
+          borderRadius: 12,
+          marginBottom: 8
+        }}
+      />
+
       <div
         style={{
-          fontSize: 15,
-          fontWeight: 800,
-          marginBottom: 10,
+          fontSize: 13,
+          fontWeight: 700,
+          marginBottom: 4,
           color: "#111"
         }}
       >
-        Sugestões pra você
+        {p.nome}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          overflowX: "auto",
-          paddingBottom: 10
-        }}
-      >
-        {produtos.slice(0, 6).map((p) => (
-          <div
-            key={p.id}
-            onClick={() => {
-              setProdutoSelecionado(p);
-              setStep(2);
-            }}
+      {/* 🔥 PREÇO */}
+      <div style={{ fontSize: 13, fontWeight: 800 }}>
+        {emPromo && (
+          <span
             style={{
-              minWidth: 150,
-              background: "#fff",
-              borderRadius: 18,
-              padding: 10,
-              boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
-              cursor: "pointer",
-              transition: "0.2s"
+              fontSize: 11,
+              color: "#aaa",
+              textDecoration: "line-through",
+              marginRight: 6
             }}
           >
-            <img
-              src={p.imagem || "/acai.png"}
-              onError={(e) => (e.target.src = "/acai.png")}
-              style={{
-                width: "100%",
-                height: 95,
-                objectFit: "cover",
-                borderRadius: 12,
-                marginBottom: 8
-              }}
-            />
+            {formatarReal(p.preco)}
+          </span>
+        )}
 
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                marginBottom: 4,
-                color: "#111"
-              }}
-            >
-              {p.nome}
-            </div>
+        <span style={{ color: emPromo ? "#ea1d2c" : "#111" }}>
+          {formatarReal(precoFinal)}
+        </span>
+      </div>
 
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 800,
-                color: "#111"
-              }}
-            >
-              {formatarReal(p.preco)}
-            </div>
+      {/* 🔥 BOTÃO */}
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
 
-           {/* BOTÃO */}
-<div
-  onClick={(e) => {
-    e.stopPropagation();
+          if (!lojaAberta) {
+            mostrarToast("Loja fechada no momento", "erro");
+            return;
+          }
 
-    setProduto(p);
-    setAba("home");
-    setStep(2);
-  }}
-  style={{
-    marginTop: 8,
-    background: "#ea1d2c",
-    color: "#fff",
-    borderRadius: 999,
-    textAlign: "center",
-    padding: "10px 0",
-    fontSize: 13,
-    fontWeight: 800,
-    cursor: "pointer",
-    transition: "0.2s",
-    boxShadow: "0 4px 12px rgba(234,29,44,0.25)"
-  }}
-  onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
-  onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
->
-  Pedir
-</div>
-          </div>
-        ))}
+          setProduto({
+           ...p,
+           preco: emPromo ? p.precoPromocional : p.preco,
+           precoOriginal: p.preco,
+           emPromocao: emPromo
+           });
+          setAba("home");
+          setStep(2);
+        }}
+        style={{
+          marginTop: 8,
+          background: lojaAberta ? "#ea1d2c" : "#ccc",
+          color: "#fff",
+          borderRadius: 999,
+          textAlign: "center",
+          padding: "10px 0",
+          fontSize: 13,
+          fontWeight: 800,
+          cursor: lojaAberta ? "pointer" : "not-allowed",
+          boxShadow: lojaAberta
+            ? "0 4px 12px rgba(234,29,44,0.25)"
+            : "none",
+          opacity: lojaAberta ? 1 : 0.7
+        }}
+      >
+        {lojaAberta ? "Pedir" : "Loja fechada"}
       </div>
     </div>
-  </div>
-)}
+  );
+})}
+        </div>
+      </div>
+    </div>
+  );
+})()}
+         
 
       {/* AGRUPAMENTO */}
       {Object.entries(
