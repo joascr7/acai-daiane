@@ -6838,7 +6838,7 @@ return (
   style={{
     marginTop: 10,
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 8,
     flexWrap: "wrap"
   }}
