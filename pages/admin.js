@@ -7278,13 +7278,13 @@ if (loadingAuth) {
         bottom: 0,
         left: 0,
         right: 0,
-        background: "#fff",
+        background: "#ffffff",
         borderTop: "1px solid #e5e7eb",
         display: "flex",
-        zIndex: 9999
+        zIndex: 9999,
+        paddingBottom: "env(safe-area-inset-bottom)"
       }}
     >
-      {/* BOTÕES PRINCIPAIS */}
       {[
         { id: "dashboard", icon: Home },
         { id: "pedidos", icon: ClipboardList },
@@ -7300,28 +7300,33 @@ if (loadingAuth) {
             onClick={() => setAbaAdmin(item.id)}
             style={{
               flex: 1,
-              height: 50,
+              height: 52,
               border: "none",
               background: "transparent",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              position: "relative"
+              position: "relative",
+              cursor: "pointer"
             }}
           >
-            <Icon size={22} color={ativo ? "#ea1d2c" : "#6b7280"} />
+            <Icon
+              size={22}
+              color={ativo ? "#ea1d2c" : "#6b7280"}
+            />
 
+            {/* BADGE PEDIDOS */}
             {item.id === "pedidos" && pedidosEmAndamento > 0 && (
               <div
                 style={{
                   position: "absolute",
-                  top: 4,
+                  top: 6,
                   right: "25%",
                   background: "#ea1d2c",
                   color: "#fff",
                   borderRadius: 999,
                   fontSize: 9,
-                  padding: "2px 5px",
+                  padding: "2px 6px",
                   fontWeight: 800
                 }}
               >
@@ -7337,61 +7342,113 @@ if (loadingAuth) {
         onClick={() => setAbrirMaisMenu(true)}
         style={{
           flex: 1,
-          height: 50,
+          height: 52,
           border: "none",
           background: "transparent",
           display: "flex",
           alignItems: "center",
-          justifyContent: "center"
+          justifyContent: "center",
+          cursor: "pointer"
         }}
       >
-        <span style={{ fontSize: 22 }}>⋯</span>
+        <span style={{ fontSize: 22, color: "#6b7280" }}>⋯</span>
       </button>
     </div>
 
-    {/* MENU SIMPLES (SEM BUG) */}
+    {/* FUNDO ESCURO (FECHAR AO CLICAR FORA) */}
+    {abrirMaisMenu && (
+      <div
+        onClick={() => setAbrirMaisMenu(false)}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.3)",
+          zIndex: 10000
+        }}
+      />
+    )}
+
+    {/* MENU MAIS */}
     {abrirMaisMenu && (
       <div
         style={{
           position: "fixed",
-          bottom: 60,
-          right: 10,
-          background: "#fff",
+          bottom: 70,
+          right: 12,
+          background: "#ffffff",
           borderRadius: 16,
           padding: 10,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-          zIndex: 10000
+          boxShadow: "0 15px 40px rgba(0,0,0,0.25)",
+          zIndex: 10001,
+          minWidth: 180
         }}
       >
         {[
-          "fretes",
-          "notificacoes",
-          "banners",
-          "avaliacoes",
-          "loja"
-        ].map((item) => (
-          <div
-            key={item}
-            onClick={() => {
-              setAbaAdmin(item);
-              setAbrirMaisMenu(false);
-            }}
-            style={{
-              padding: "10px 14px",
-              cursor: "pointer",
-              borderRadius: 10,
-              fontSize: 14
-            }}
-          >
-            {item}
-          </div>
-        ))}
+          { id: "fretes", label: "Fretes", icon: Truck },
+          { id: "notificacoes", label: "Notificações", icon: Bell },
+          { id: "banners", label: "Banners", icon: ImagePlus },
+          { id: "avaliacoes", label: "Avaliações", icon: Star },
+          { id: "loja", label: "Loja", icon: Store }
+        ].map((item) => {
+          const Icon = item.icon;
 
+          return (
+            <div
+              key={item.id}
+              onClick={() => {
+                setAbaAdmin(item.id);
+                setAbrirMaisMenu(false);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 12px",
+                borderRadius: 10,
+                cursor: "pointer",
+                color: "#111",
+                fontSize: 14,
+                fontWeight: 600
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#f1f5f9")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "#fff")
+              }
+            >
+              <Icon size={18} color="#111" />
+              {item.label}
+
+              {/* BADGE NOTIFICAÇÕES */}
+              {item.id === "notificacoes" &&
+                notificacoesAdmin.filter(n => !n.lida).length > 0 && (
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      background: "#ea1d2c",
+                      color: "#fff",
+                      borderRadius: 999,
+                      fontSize: 10,
+                      padding: "2px 6px",
+                      fontWeight: 800
+                    }}
+                  >
+                    {
+                      notificacoesAdmin.filter(n => !n.lida).length
+                    }
+                  </div>
+                )}
+            </div>
+          );
+        })}
+
+        {/* FECHAR */}
         <div
           onClick={() => setAbrirMaisMenu(false)}
           style={{
             marginTop: 6,
-            padding: "10px 14px",
+            padding: "10px 12px",
             color: "#ea1d2c",
             fontWeight: 700,
             cursor: "pointer"
