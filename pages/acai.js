@@ -5718,16 +5718,26 @@ return (
 )}
 
     {p.maisVendido && (
-      <span
-        style={{
-          ...badgeMais,
-          fontSize: 18,
-          padding: "1px 8px",
-          whiteSpace: "nowrap"
-        }}
-      >
-        Mais pedido
-      </span>
+      <div
+  style={{
+    
+    top: 8,
+    left: 8,
+    background: "#0f0c0c",
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: 700,
+    padding: "3px 8px",
+    borderRadius: 999,
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+    whiteSpace: "nowrap"
+  }}
+>
+  🔥 Mais pedido
+</div>
     )}
   </div>
 )}
@@ -5753,22 +5763,24 @@ return (
         gap: 4,
         background: "#fff7ed",
         color: "#ea580c",
-        padding: "4px 8px",
+        padding: "3px 8px",
         borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 800
+        fontSize: 11,
+        fontWeight: 700,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        whiteSpace: "nowrap"
       }}
     >
-      <span>Avaliação</span>
-      <span>{Number(p.avaliacao).toFixed(1)}</span>
+      ⭐ {Number(p.avaliacao).toFixed(1)}
     </div>
 
     {Number(p.totalAvaliacoes || 0) > 0 && (
       <span
         style={{
-          fontSize: 12,
+          fontSize: 11,
           color: "#6b7280",
-          fontWeight: 600
+          fontWeight: 500,
+          whiteSpace: "nowrap"
         }}
       >
         {p.totalAvaliacoes} avaliações
@@ -5794,7 +5806,7 @@ return (
   <div
     style={{
       marginTop: 6,
-      fontSize: 12,
+      fontSize: 10,
       color: "#666",
       WebkitLineClamp: 3,
       display: "-webkit-box",
@@ -5813,7 +5825,7 @@ return (
     style={{
       marginTop: 8,
       display: "inline-block",
-      fontSize: 12,
+      fontSize: 10,
       fontWeight: 700,
       color: "#510eec",
       background: "#e9e3f3",
@@ -11171,17 +11183,25 @@ const corStatus =
 
           {p.maisVendido && (
             <div
-              style={{
-                background: "#e0800b",
-                color: "#fff",
-                fontSize: 10,
-                padding: "3px 8px",
-                borderRadius: 8,
-                fontWeight: "bold"
-              }}
-            >
-              Mais pedido
-            </div>
+  style={{
+    
+    top: 8,
+    left: 8,
+    background: "#0f0c0c",
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: 700,
+    padding: "3px 8px",
+    borderRadius: 999,
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+    whiteSpace: "nowrap"
+  }}
+>
+  🔥 Mais pedido
+</div>
           )}
         </div>
       )}
@@ -11736,18 +11756,23 @@ const corStatus =
 
       {p.maisVendido && (
         <div
-          style={{
-            background: "#ff7a00",
-            color: "#fff",
-            fontSize: 10,
-            padding: "2px 6px",
-            borderRadius: 999,
-            fontWeight: 700,
-            whiteSpace: "nowrap"
-          }}
-        >
-          Mais pedido
-        </div>
+  style={{
+    
+    background: "#0f0c0c",
+    color: "#fff",
+    fontSize: 8,
+    fontWeight: 700,
+    padding: "2px 8px",
+    borderRadius: 999,
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+    whiteSpace: "nowrap"
+  }}
+>
+  🔥 Mais pedido
+</div>
       )}
 
   </div>
