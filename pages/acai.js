@@ -5630,8 +5630,8 @@ return (
           {/* IMAGEM */}
           <div
             style={{
-              width: 104,
-              height: 104,
+              width: 160,
+              height: 160,
               borderRadius: 18,
               overflow: "hidden",
               background: "#f6f6f6",
@@ -5721,7 +5721,7 @@ return (
       <span
         style={{
           ...badgeMais,
-          fontSize: 10,
+          fontSize: 12,
           padding: "1px 6px",
           whiteSpace: "nowrap"
         }}
