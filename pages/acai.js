@@ -208,7 +208,7 @@ const badgeMais = {
 };
 
 const precoAntigo = {
-  fontSize: 11,
+  fontSize: 16,
   color: "#aaa",
   textDecoration: "line-through"
 };
@@ -5838,7 +5838,7 @@ return (
 
       <span
         style={{
-          fontSize: 12,
+          fontSize: 14,
           color: "#888",
           fontWeight: 600
         }}
@@ -5848,7 +5848,7 @@ return (
 
       <div
   style={{
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 900,
     color: produtoEmPromocao(p) ? "#ea1d2c" : "#111", // 🔥 AQUI
     marginTop: 2
@@ -5861,7 +5861,7 @@ return (
     <>
       <span
         style={{
-          fontSize: 12,
+          fontSize: 14,
           color: "#888",
           fontWeight: 600
         }}
@@ -5871,7 +5871,7 @@ return (
 
       <div
         style={{
-          fontSize: 18,
+          fontSize: 22,
           fontWeight: 900,
           color: "#111",
           marginTop: 2
