@@ -382,17 +382,59 @@ const backBtn = {
 
 
 const agora = new Date();
-const diaSemana = agora.getDay();
+const dia = agora.getDay(); // 0 dom, 5 sex, 6 sab
+const hora = agora.getHours();
+const minuto = agora.getMinutes();
 
-let horarioTexto = "";
+// 🔥 DIAS
+const nomesDias = [
+  "Domingo",
+  "Segunda",
+  "Terça",
+  "Quarta",
+  "Quinta",
+  "Sexta",
+  "Sábado"
+];
 
-if (diaSemana === 6 || diaSemana === 0) {
-  horarioTexto = "das 16:00 às 23:00";
-} else if (diaSemana === 5) {
-  horarioTexto = "das 18:30 às 23:00";
-} else {
-  horarioTexto = "das 18:30 às 23:00";
+// 🔥 HORÁRIOS
+function getHorario(dia) {
+  if (dia === 5) return { abre: "18:30", fecha: "23:00" }; // sexta
+  if (dia === 6 || dia === 0) return { abre: "16:00", fecha: "23:00" }; // sab/dom
+  return null; // fechado nos outros dias
 }
+
+// 🔥 VERIFICA SE ESTÁ ABERTO
+function estaAberto() {
+  const h = getHorario(dia);
+  if (!h) return false;
+
+  const [hA, mA] = h.abre.split(":").map(Number);
+  const [hF, mF] = h.fecha.split(":").map(Number);
+
+  const agoraMin = hora * 60 + minuto;
+  const abreMin = hA * 60 + mA;
+  const fechaMin = hF * 60 + mF;
+
+  return agoraMin >= abreMin && agoraMin < fechaMin;
+}
+
+// 🔥 PRÓXIMO DIA QUE ABRE
+function proximoDiaAbertura() {
+  for (let i = 0; i < 7; i++) {
+    const d = (dia + i) % 7;
+    const h = getHorario(d);
+    if (h) {
+      return {
+        dia: nomesDias[d],
+        hora: h.abre
+      };
+    }
+  }
+}
+
+const aberto = estaAberto();
+const proximo = proximoDiaAbertura();
 
 
 
@@ -479,6 +521,9 @@ const [observacaoPedido, setObservacaoPedido] = useState("");
   const [loadingProdutos, setLoadingProdutos] = useState(true);
   const [menuAberto, setMenuAberto] = useState(false);
   const [pedidoPixAberto,  setPedidoPixAberto] = useState(null);
+
+  
+
 
  
 
@@ -639,6 +684,8 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
 // 🔥 forma de pagamento
   const [formaPagamento, setFormaPagamento] = useState(null);
  
+  const abertoFinal = lojaAberta || estaAberto();
+
 
 const categoriaAtualObj = categorias.find(c => c.slug === categoriaSelecionada);
 const nomeCategoriaAtual = categoriaAtualObj?.nome || categoriaSelecionada;
@@ -5252,34 +5299,50 @@ return (
        {/* LOJA ABERTA/FECHADA */}
 <div
   style={{
-    margin: "12px 16px 0",
-    padding: "10px 14px",
-    borderRadius: 999,
-    background: lojaAberta ? "#e6f4ea" : "#fde8e8",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    fontSize: 13,
-    fontWeight: 600,
-    color: lojaAberta ? "#166534" : "#991b1b"
-  }}
+  margin: "12px 16px 0",
+  padding: "10px 14px",
+  borderRadius: 999,
+  background: abertoFinal ? "#e6f4ea" : "#fde8e8",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center", // 🔥 mantém centralizado
+  justifyContent: "center",
+  textAlign: "center", // 🔥 ESSENCIAL
+  gap: 4,
+  fontSize: 13,
+  fontWeight: 600,
+  color: abertoFinal ? "#166534" : "#991b1b"
+}}
 >
+  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <div
+      style={{
+        width: 8,
+        height: 8,
+        borderRadius: "50%",
+        background: abertoFinal ? "#16a34a" : "#dc2626",
+        boxShadow: abertoFinal
+          ? "0 0 6px rgba(22,163,74,0.6)"
+          : "0 0 6px rgba(220,38,38,0.6)"
+      }}
+    />
+
+    {abertoFinal ? (
+      <>Aberto agora • até 23:00</>
+    ) : (
+      <>Fechado agora • abre {proximo?.dia} às {proximo?.hora}</>
+    )}
+  </div>
+
   <div
     style={{
-      width: 8,
-      height: 8,
-      borderRadius: "50%",
-      background: lojaAberta ? "#16a34a" : "#dc2626",
-      boxShadow: lojaAberta
-        ? "0 0 6px rgba(22,163,74,0.6)"
-        : "0 0 6px rgba(220,38,38,0.6)"
+      fontSize: 11,
+      fontWeight: 500,
+      opacity: 0.7
     }}
-  />
-
-  {lojaAberta
-    ? `Aberto ${horarioTexto}`
-    : `Funcionamos ${horarioTexto}`}
+  >
+    Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+  </div>
 </div>
 
         
@@ -5658,12 +5721,12 @@ return (
       <span
         style={{
           ...badgeMais,
-          fontSize: 9,
+          fontSize: 10,
           padding: "1px 6px",
           whiteSpace: "nowrap"
         }}
       >
-        Mais vendido
+        Mais pedido
       </span>
     )}
   </div>
@@ -11117,7 +11180,7 @@ const corStatus =
                 fontWeight: "bold"
               }}
             >
-              Mais vendido
+              Mais pedido
             </div>
           )}
         </div>
@@ -11676,14 +11739,14 @@ const corStatus =
           style={{
             background: "#ff7a00",
             color: "#fff",
-            fontSize: 8,
+            fontSize: 10,
             padding: "2px 6px",
             borderRadius: 999,
             fontWeight: 700,
             whiteSpace: "nowrap"
           }}
         >
-          Mais vendido
+          Mais pedido
         </div>
       )}
 
