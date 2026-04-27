@@ -5721,13 +5721,11 @@ return (
       <div
   style={{
     
-    top: 8,
-    left: 8,
     background: "#0f0c0c",
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 700,
-    padding: "3px 8px",
+    padding: "1px 10px",
     borderRadius: 999,
     display: "flex",
     alignItems: "center",
@@ -9118,7 +9116,7 @@ return (
             color: "#fff",
             fontSize: 11,
             fontWeight: 800,
-            padding: "3px 10px",
+            padding: "1px 10px",
             borderRadius: 999,
             whiteSpace: "nowrap",
             boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
@@ -11212,14 +11210,12 @@ const corStatus =
           {p.maisVendido && (
             <div
   style={{
-    
-    top: 8,
-    left: 8,
+   
     background: "#0f0c0c",
     color: "#fff",
     fontSize: 10,
-    fontWeight: 700,
-    padding: "3px 8px",
+    fontWeight: 400,
+    padding: "1px 8px",
     borderRadius: 999,
     display: "flex",
     alignItems: "center",
@@ -11790,7 +11786,7 @@ const corStatus =
     color: "#fff",
     fontSize: 14,
     fontWeight: 700,
-    padding: "2px 8px",
+    padding: "1px 5px",
     borderRadius: 999,
     display: "flex",
     alignItems: "center",
