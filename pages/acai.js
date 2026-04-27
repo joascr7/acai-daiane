@@ -598,7 +598,7 @@ const pegarLocalizacao = () => {
   const [clienteNumeroCasa, setClienteNumeroCasa] = useState("");
   const [clienteCep, setClienteCep] = useState("");
   const [abrirPagamento, setAbrirPagamento] = useState(false);
-
+const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [tipoEntrega, setTipoEntrega] = useState("entrega");
 
   
@@ -9068,57 +9068,83 @@ return (
     ? Number(p.precoPromocional)
     : Number(p.preco);
 
+  const isMaisVendido =
+    p.maisVendido === true || p.maisVendido === "true";
+
   return (
     <div
       key={p.id}
-      onClick={() => {
-        setProdutoSelecionado(p);
-        setStep(2);
-      }}
       style={{
         minWidth: 150,
         background: "#fff",
         borderRadius: 18,
         padding: 10,
         boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
-        cursor: "pointer",
         transition: "0.2s",
-        position: "relative"
+        position: "relative",
+        cursor: "default"
       }}
     >
-     {/* 🔥 TAG PROMO */}
-{emPromo && (
-  <div
-    style={{
-      position: "absolute",
-      top: 8,
-      left: "50%",
-      transform: "translateX(-50%)",
-      background: "#ea1d2c",
-      color: "#fff",
-      fontSize: 10,
-      fontWeight: 800,
-      padding: "4px 10px",
-      borderRadius: 999,
-      whiteSpace: "nowrap"
-    }}
-  >
-    Oferta imperdível
-  </div>
-)}
+      {/* 🔥 TAG PROMO */}
+      {emPromo && (
+        <div
+          style={{
+            position: "absolute",
+            top: 13,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 14,
+            fontWeight: 800,
+            padding: "2px 10px",
+            borderRadius: 999,
+            whiteSpace: "nowrap"
+          }}
+        >
+          Imperdível
+        </div>
+      )}
 
+      {/* ⭐ MAIS VENDIDO */}
+      {isMaisVendido && (
+        <div
+          style={{
+            position: "absolute",
+            top: emPromo ? 40 : 13,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "#111",
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 800,
+            padding: "3px 10px",
+            borderRadius: 999,
+            whiteSpace: "nowrap",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
+          }}
+        >
+          🔥 Mais pedido
+        </div>
+      )}
+
+      {/* IMAGEM */}
       <img
         src={p.imagem || "/acai.png"}
+        draggable={false}
         onError={(e) => (e.target.src = "/acai.png")}
         style={{
           width: "100%",
           height: 95,
           objectFit: "cover",
           borderRadius: 12,
-          marginBottom: 8
+          marginBottom: 8,
+          pointerEvents: "none",
+          userSelect: "none"
         }}
       />
 
+      {/* NOME */}
       <div
         style={{
           fontSize: 13,
@@ -9130,7 +9156,7 @@ return (
         {p.nome}
       </div>
 
-      {/* 🔥 PREÇO */}
+      {/* PREÇO */}
       <div style={{ fontSize: 13, fontWeight: 800 }}>
         {emPromo && (
           <span
@@ -9150,7 +9176,7 @@ return (
         </span>
       </div>
 
-      {/* 🔥 BOTÃO */}
+      {/* BOTÃO */}
       <div
         onClick={(e) => {
           e.stopPropagation();
@@ -9161,11 +9187,12 @@ return (
           }
 
           setProduto({
-           ...p,
-           preco: emPromo ? p.precoPromocional : p.preco,
-           precoOriginal: p.preco,
-           emPromocao: emPromo
-           });
+            ...p,
+            preco: emPromo ? p.precoPromocional : p.preco,
+            precoOriginal: p.preco,
+            emPromocao: emPromo
+          });
+
           setAba("home");
           setStep(2);
         }}
@@ -9190,6 +9217,7 @@ return (
     </div>
   );
 })}
+ 
         </div>
       </div>
     </div>
@@ -11698,8 +11726,8 @@ const corStatus =
     {/* IMAGEM */}
 <div
   style={{
-    width: 70,
-    height: 70,
+    width: 120,
+    height: 120,
     minWidth: 70,
     minHeight: 70,
     borderRadius: 14,
@@ -11738,12 +11766,12 @@ const corStatus =
         <div
     style={{
       position: "absolute",
-      top: 48,
+      top: 1,
       left: "50%",
       transform: "translateX(-50%)",
       background: "#ea1d2c",
       color: "#fff",
-      fontSize: 10,
+      fontSize: 14,
       fontWeight: 800,
       padding: "1px 16px",
       borderRadius: 999,
@@ -11760,7 +11788,7 @@ const corStatus =
     
     background: "#0f0c0c",
     color: "#fff",
-    fontSize: 8,
+    fontSize: 14,
     fontWeight: 700,
     padding: "2px 8px",
     borderRadius: 999,
