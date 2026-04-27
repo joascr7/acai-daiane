@@ -5705,7 +5705,7 @@ return (
       ...badgeOferta,
       background: "#ea1d2c",   // 🔥 vermelho forte
       color: "#fff",
-      fontSize: 9,
+      fontSize: 14,
       padding: "2px 8px",
       borderRadius: 999,
       fontWeight: 800,
