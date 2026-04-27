@@ -5721,8 +5721,8 @@ return (
       <span
         style={{
           ...badgeMais,
-          fontSize: 12,
-          padding: "1px 6px",
+          fontSize: 18,
+          padding: "1px 8px",
           whiteSpace: "nowrap"
         }}
       >
