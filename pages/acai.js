@@ -407,7 +407,7 @@ function getHorario(dia) {
 // 🔥 VERIFICA SE ESTÁ ABERTO
 function estaAberto() {
   const h = getHorario(dia);
-  if (!h) return false;
+  if (!h) return false; // 🔥 ESSENCIAL
 
   const [hA, mA] = h.abre.split(":").map(Number);
   const [hF, mF] = h.fecha.split(":").map(Number);
@@ -685,6 +685,7 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
   const [formaPagamento, setFormaPagamento] = useState(null);
  
   const abertoFinal = lojaAberta || estaAberto();
+  const horarioHoje = getHorario(dia);
 
 
 const categoriaAtualObj = categorias.find(c => c.slug === categoriaSelecionada);
@@ -5299,49 +5300,77 @@ return (
        {/* LOJA ABERTA/FECHADA */}
 <div
   style={{
-  margin: "12px 16px 0",
-  padding: "10px 14px",
-  borderRadius: 999,
-  background: abertoFinal ? "#e6f4ea" : "#fde8e8",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center", // 🔥 mantém centralizado
-  justifyContent: "center",
-  textAlign: "center", // 🔥 ESSENCIAL
-  gap: 4,
-  fontSize: 13,
-  fontWeight: 600,
-  color: abertoFinal ? "#166534" : "#991b1b"
-}}
+    margin: "12px 16px 0",
+    padding: "12px 14px",
+    borderRadius: 16,
+    background: abertoFinal ? "#e6f4ea" : "#fde8e8",
+    display: "flex",
+    alignItems: "center",
+    gap: 12
+  }}
 >
-  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-    <div
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: "50%",
-        background: abertoFinal ? "#16a34a" : "#dc2626",
-        boxShadow: abertoFinal
-          ? "0 0 6px rgba(22,163,74,0.6)"
-          : "0 0 6px rgba(220,38,38,0.6)"
-      }}
-    />
-
-    {abertoFinal ? (
-      <>Aberto agora • até 23:00</>
-    ) : (
-      <>Fechado agora • abre {proximo?.dia} às {proximo?.hora}</>
-    )}
-  </div>
-
+  {/* ÍCONE */}
   <div
     style={{
-      fontSize: 11,
-      fontWeight: 500,
-      opacity: 0.7
+      width: 36,
+      height: 36,
+      borderRadius: "50%",
+      background: abertoFinal ? "#dcfce7" : "#fecaca",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
     }}
   >
-    Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+    <Store size={18} color={abertoFinal ? "#16a34a" : "#dc2626"} />
+  </div>
+
+  {/* TEXTOS */}
+  <div style={{ display: "flex", flexDirection: "column" }}>
+    
+    {/* STATUS */}
+    <div
+      style={{
+        fontSize: 15,
+        fontWeight: 800,
+        color: abertoFinal ? "#166534" : "#b91c1c"
+      }}
+    >
+      {abertoFinal ? "Aberto agora" : "Fechado agora"}
+    </div>
+
+    {/* ABERTURA */}
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#111"
+      }}
+    >
+      <Clock size={14} color="#666" />
+   {abertoFinal ? (
+  horarioHoje ? (
+    <>Até {horarioHoje.fecha}</>
+  ) : (
+    <>Aberto até 23:00</>
+  )
+) : (
+  <>Abre {proximo?.dia} às {proximo?.hora}</>
+)}
+    </div>
+
+    {/* HORÁRIOS */}
+    <div
+      style={{
+        fontSize: 12,
+        color: "#666",
+        marginTop: 2
+      }}
+    >
+      Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+    </div>
   </div>
 </div>
 
@@ -5704,7 +5733,7 @@ return (
     style={{
       position: "absolute",
       top: 1,
-      left: 2,
+      left: 8,
       background: "#ea1d2c",
       color: "#fff",
       fontSize: 11,
