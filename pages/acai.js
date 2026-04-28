@@ -5685,57 +5685,60 @@ return (
   </span>
 </div>
  */}
-           {(produtoEmPromocao(p) || p.maisVendido) && (
+          {(produtoEmPromocao(p) || p.maisVendido) && (
   <div
     style={{
       position: "absolute",
-      top: 6,
-      left: "50%", // 🔥 centraliza horizontal
-      transform: "translateX(-50%)", // 🔥 ajusta pro meio
+      top: 8,
+      left: 8, // 🔥 fixa na esquerda
       display: "flex",
       flexDirection: "column",
-      alignItems: "center", // 🔥 centraliza os badges
+      alignItems: "flex-start", // 🔥 alinhado à esquerda
       gap: 4,
       zIndex: 2
     }}
   >
+    {/* 🔥 OFERTA */}
     {produtoEmPromocao(p) && (
-  <span
+  <div
     style={{
-      ...badgeOferta,
-      background: "#ea1d2c",   // 🔥 vermelho forte
+      position: "absolute",
+      top: 1,
+      left: 2,
+      background: "#ea1d2c",
       color: "#fff",
-      fontSize: 14,
-      padding: "2px 8px",
-      borderRadius: 999,
+      fontSize: 11,
       fontWeight: 800,
+      padding: "3px 10px",
+      borderRadius: 999,
       whiteSpace: "nowrap",
-      boxShadow: "0 4px 10px rgba(234,29,44,0.35)"
+      boxShadow: "0 4px 10px rgba(234,29,44,0.35)",
+      zIndex: 2
     }}
   >
-    Oferta imperdível
-  </span>
+    Imperdível
+  </div>
 )}
 
+    {/* ⭐ MAIS PEDIDO */}
     {p.maisVendido && (
-      <div
-  style={{
-    
-    background: "#0f0c0c",
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: 700,
-    padding: "1px 10px",
-    borderRadius: 999,
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-    whiteSpace: "nowrap"
-  }}
->
-  🔥 Mais pedido
-</div>
+      <span
+        style={{
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 700,
+          padding: "3px 10px",
+          borderRadius: 999,
+          whiteSpace: "nowrap",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.25)"
+        }}
+      >
+        Mais pedido
+      </span>
     )}
   </div>
 )}
@@ -9071,61 +9074,62 @@ return (
 
   return (
     <div
-      key={p.id}
+  key={p.id}
+  style={{
+    minWidth: 150,
+    background: "#fff",
+    borderRadius: 18,
+    padding: 10,
+    boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+    transition: "0.2s",
+    position: "relative",
+    cursor: "default"
+  }}
+>
+  {/* 🔥 TAG PROMO */}
+  {emPromo && (
+    <div
       style={{
-        minWidth: 150,
-        background: "#fff",
-        borderRadius: 18,
-        padding: 10,
-        boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
-        transition: "0.2s",
-        position: "relative",
-        cursor: "default"
+        position: "absolute",
+        top: 8,
+        left: 8, // 🔥 esquerda
+        background: "#ea1d2c",
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: 800,
+        padding: "3px 10px",
+        borderRadius: 999,
+        whiteSpace: "nowrap",
+        boxShadow: "0 4px 10px rgba(234,29,44,0.35)"
       }}
     >
-      {/* 🔥 TAG PROMO */}
-      {emPromo && (
-        <div
-          style={{
-            position: "absolute",
-            top: 13,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#ea1d2c",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 800,
-            padding: "2px 10px",
-            borderRadius: 999,
-            whiteSpace: "nowrap"
-          }}
-        >
-          Imperdível
-        </div>
-      )}
+      Imperdível
+    </div>
+  )}
 
-      {/* ⭐ MAIS VENDIDO */}
-      {isMaisVendido && (
-        <div
-          style={{
-            position: "absolute",
-            top: emPromo ? 40 : 13,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#111",
-            color: "#fff",
-            fontSize: 11,
-            fontWeight: 800,
-            padding: "1px 10px",
-            borderRadius: 999,
-            whiteSpace: "nowrap",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
-          }}
-        >
-          🔥 Mais pedido
-        </div>
-      )}
-
+  {/* ⭐ MAIS VENDIDO */}
+  {isMaisVendido && (
+    <div
+      style={{
+        position: "absolute",
+        top: emPromo ? 34 : 8, // 🔥 desce se tiver promo
+        left: 8, // 🔥 esquerda
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        color: "#fff",
+        fontSize: 11,
+        fontWeight: 700,
+        padding: "3px 10px",
+        borderRadius: 999,
+        whiteSpace: "nowrap",
+        border: "1px solid rgba(255,255,255,0.12)",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.25)"
+      }}
+    >
+      Mais pedido
+    </div>
+  )}
       {/* IMAGEM */}
       <img
         src={p.imagem || "/acai.png"}
@@ -11175,61 +11179,61 @@ const corStatus =
       }}
     >
 
-      {/* BADGES (CORRIGIDO) */}
-      {(produtoEmPromocao(p) || p.maisVendido) && (
-        <div
-          style={{
-            position: "absolute",
-            top: 8,
-            left: 8,
-            display: "flex",
-            gap: 6,
-            zIndex: 2
-          }}
-        >
-          {produtoEmPromocao(p) && (
-            <div
+     {/* BADGES */}
+{(produtoEmPromocao(p) || p.maisVendido) && (
+  <div
     style={{
       position: "absolute",
       top: 8,
-      left: "50%",
-      transform: "translateX(-50%)",
-      background: "#ea1d2c",
-      color: "#fff",
-      fontSize: 10,
-      fontWeight: 800,
-      padding: "4px 10px",
-      borderRadius: 999,
-      whiteSpace: "nowrap"
+      left: 8,
+      display: "flex",
+      flexDirection: "column", // 🔥 empilha vertical
+      alignItems: "flex-start",
+      gap: 4,
+      zIndex: 2
     }}
   >
-    Oferta imperdível
+    {/* 🔥 OFERTA */}
+    {produtoEmPromocao(p) && (
+      <div
+        style={{
+          background: "#ea1d2c",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 800,
+          padding: "3px 10px",
+          borderRadius: 999,
+          whiteSpace: "nowrap",
+          boxShadow: "0 4px 10px rgba(234,29,44,0.35)"
+        }}
+      >
+        Imperdível
+      </div>
+    )}
+
+    {/* ⭐ MAIS PEDIDO */}
+    {p.maisVendido && (
+      <div
+        style={{
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 700,
+          padding: "3px 10px",
+          borderRadius: 999,
+          whiteSpace: "nowrap",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.25)"
+        }}
+      >
+        Mais pedido
+      </div>
+    )}
   </div>
 )}
-
-          {p.maisVendido && (
-            <div
-  style={{
-   
-    background: "#0f0c0c",
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: 400,
-    padding: "1px 8px",
-    borderRadius: 999,
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-    whiteSpace: "nowrap"
-  }}
->
-  🔥 Mais pedido
-</div>
-          )}
-        </div>
-      )}
-
+        
       {/* IMAGEM */}
       <div style={{
         width: 80,
@@ -11747,60 +11751,56 @@ const corStatus =
   <div
     style={{
       position: "absolute",
-      top: 4,
-      left: "50%", // 🔥 centraliza horizontal
-      transform: "translateX(-50%)", // 🔥 ajusta pro meio
+      top: 6,
+      left: 6, // 🔥 esquerda
       display: "flex",
       flexDirection: "column",
-      alignItems: "center", // 🔥 centraliza os badges
-      gap: 3,
-      zIndex: 999
+      alignItems: "flex-start", // 🔥 alinhado à esquerda
+      gap: 4,
+      zIndex: 2
     }}
   >
+    {/* 🔥 OFERTA */}
+    {produtoEmPromocao(p) && (
+      <div
+        style={{
+          background: "#ea1d2c",
+          color: "#fff",
+          fontSize: 12,
+          fontWeight: 800,
+          padding: "3px 10px",
+          borderRadius: 999,
+          whiteSpace: "nowrap",
+          boxShadow: "0 4px 10px rgba(234,29,44,0.35)"
+        }}
+      >
+        Imperdível
+      </div>
+    )}
 
-      {produtoEmPromocao(p) && (
-        <div
-    style={{
-      position: "absolute",
-      top: 1,
-      left: "50%",
-      transform: "translateX(-50%)",
-      background: "#ea1d2c",
-      color: "#fff",
-      fontSize: 14,
-      fontWeight: 800,
-      padding: "1px 16px",
-      borderRadius: 999,
-      whiteSpace: "nowrap"
-    }}
-  >
-    imperdível
+    {/* ⭐ MAIS PEDIDO */}
+    {p.maisVendido && (
+      <div
+        style={{
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          color: "#fff",
+          fontSize: 12,
+          fontWeight: 700,
+          padding: "3px 10px",
+          borderRadius: 999,
+          whiteSpace: "nowrap",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.25)"
+        }}
+      >
+        Mais pedido
+      </div>
+    )}
   </div>
 )}
-
-      {p.maisVendido && (
-        <div
-  style={{
     
-    background: "#0f0c0c",
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: 700,
-    padding: "1px 5px",
-    borderRadius: 999,
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-    whiteSpace: "nowrap"
-  }}
->
-  🔥 Mais pedido
-</div>
-      )}
-
-  </div>
-)}
     </div>
 
     {/* INFO */}
