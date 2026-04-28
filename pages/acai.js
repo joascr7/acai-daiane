@@ -782,14 +782,18 @@ function adicionarPorCategoria(categoria) {
     const total = Number(produto.preco || 0);
 
     setCarrinho(prev => [
-      ...prev,
-      {
-        produto,
-        quantidade: 1,
-        extras: [],
-        total
-      }
-    ]);
+  ...prev,
+  {
+    produto,
+    quantidade: 1,
+    extras: [],
+    total,
+
+    // 🔥 ADICIONA ISSO
+    tamanho: produto?.tamanho || "",
+    descricaoTamanho: produto?.descricaoTamanho || ""
+  }
+]);
 
     setAba("carrinho");
     setStep(3);
@@ -2271,6 +2275,7 @@ const gerarPix = async () => {
     localStorage.setItem("paymentId", String(data.payment_id));
 
     console.log("PIX GERADO");
+    console.log("CARRINHO ANTES DE SALVAR:", carrinho);
 
     await setDoc(doc(db, "pedidos", pedidoId), {
       codigo: Math.floor(100000 + Math.random() * 900000),
@@ -2285,17 +2290,25 @@ const gerarPix = async () => {
       },
 
       itens: (carrinho || []).map(item => ({
-        produtoId: item?.produto?.id || "",
-        nome: item?.produto?.nome || item?.nome || "Produto",
-        quantidade: Number(item?.quantidade || 1),
-        total: Number(item?.total || 0),
+        
+  produtoId: item?.produto?.id || "",
+  nome: item?.produto?.nome || item?.nome || "Produto",
+  quantidade: Number(item?.quantidade || 1),
+  total: Number(item?.total || 0),
 
-        extras: (item?.extras || []).map(e => ({
-          nome: e?.nome || "",
-          preco: Number(e?.preco || 0),
-          categoria: e?.categoria || "Extras"
-        }))
-      })),
+  // 🔥 AQUI ESTÁ A CORREÇÃO
+  tamanho: item?.tamanho || item?.produto?.tamanho || "",
+  descricaoTamanho:
+    item?.descricaoTamanho ||
+    item?.produto?.descricaoTamanho ||
+    "",
+
+  extras: (item?.extras || []).map(e => ({
+    nome: e?.nome || "",
+    preco: Number(e?.preco || 0),
+    categoria: e?.categoria || "Extras"
+  }))
+})),
 
       bairro: clienteBairro || "",
       subtotal: Number(subtotalProdutos || 0),
@@ -2851,7 +2864,7 @@ function adicionarCarrinho() {
 
   const precoBase = Math.round(Number(produto?.preco || 0));
 
-  // 🔥 CALCULA EXTRAS (FUNCIONA COM 2,50 E 2.50)
+  // 🔥 CALCULA EXTRAS
   const totalExtras = Object.values(extrasSelecionados)
     .flat()
     .reduce((acc, e) => {
@@ -2863,28 +2876,30 @@ function adicionarCarrinho() {
   const totalItem = Math.round((precoBase + totalExtras) * quantidade);
 
   // 🔥 EXTRAS FORMATADOS
- const extrasFinal = Object.entries(extrasSelecionados)
-  .flatMap(([categoria, lista]) =>
-    lista.map(e => ({
-      nome: e.nome,
-      preco: Number(String(e.preco || 0).replace(",", ".")), // 🔥 CORRETO
-      categoria,
-      qtd: Number(e.qtd || 1)
-    }))
-  );
+  const extrasFinal = Object.entries(extrasSelecionados)
+    .flatMap(([categoria, lista]) =>
+      lista.map(e => ({
+        nome: e.nome,
+        preco: Number(String(e.preco || 0).replace(",", ".")),
+        categoria,
+        qtd: Number(e.qtd || 1)
+      }))
+    );
 
+  // 🔥 ITEM BASE (CORRIGIDO)
   let novoItem = {
-    produto,
-    quantidade,
-    extras: extrasFinal,
-    total: totalItem
-  };
+  produto,
+  quantidade,
+  extras: extrasFinal,
+  total: totalItem,
 
-  // 🔥 FIDELIDADE (AÇAÍ GRÁTIS)
+  // 🔥 CORREÇÃO
+  tamanho: produto?.tamanho || "",
+  descricaoTamanho: produto?.descricaoTamanho || ""
+};
+console.log("NOVO ITEM:", novoItem);
+  // 🔥 FIDELIDADE
   if (modoCompra === "fidelidade") {
-    console.log("ANTES:", extrasFinal);
-
-    // 🔥 BLOQUEIO
     if (produto.resgate !== true) {
       setToast({
         tipo: "erro",
@@ -2893,47 +2908,39 @@ function adicionarCarrinho() {
       return;
     }
 
-    // 🔥 NÃO DUPLICAR
     const jaTemGratis = carrinho.some(item => item.gratis);
     if (jaTemGratis) return;
 
-    // 🔥 CORREÇÃO PRINCIPAL
-    // cobra SOMENTE extras que tem valor > 0
     const totalExtrasFidelidade = extrasFinal.reduce((acc, e) => {
       const preco = Number(e.preco || 0);
-
-      if (preco > 0) {
-        return acc + (preco * e.qtd);
-      }
-
+      if (preco > 0) return acc + (preco * e.qtd);
       return acc;
     }, 0);
 
-    // 🔥 CRIA ITEM SEM QUEBRAR EXTRAS
+    // 🔥 ITEM FIDELIDADE (CORRIGIDO TAMBÉM)
     novoItem = {
-      produto: {
-        ...produto,
-        preco: 0 // produto grátis
-      },
+  produto: {
+    ...produto,
+    preco: 0
+  },
+  quantidade,
+  extras: extrasFinal,
+  total: Math.round(totalExtrasFidelidade * quantidade),
+  gratis: true,
 
-      quantidade,
-
-      extras: extrasFinal,
-
-      total: Math.round(totalExtrasFidelidade * quantidade),
-
-      gratis: true
-    };
+  // 🔥 ADICIONAR
+  tamanho: produto?.tamanho || "",
+  descricaoTamanho: produto?.descricaoTamanho || ""
+};
   }
 
-  // 🔥 ADICIONA NO CARRINHO
+  // 🔥 ADICIONA / EDITA
   if (editandoIndex !== null) {
     setCarrinho(prev => {
       const novo = [...prev];
       novo[editandoIndex] = novoItem;
       return novo;
     });
-
     setEditandoIndex(null);
   } else {
     setCarrinho(prev => [...prev, novoItem]);
@@ -7164,6 +7171,40 @@ return (
           {nomeProduto}
         </div>
 
+        {/* 🔥 TAMANHO (CARRINHO IGUAL PEDIDOS) */}
+{(() => {
+  const produtoBanco = produtos.find(prod =>
+    prod.id === item?.produto?.id ||
+    prod.nome === nomeProduto
+  );
+
+  const tamanhoFinal =
+    item?.tamanho ||
+    produtoBanco?.tamanho ||
+    "";
+
+  const descricaoFinal =
+    item?.descricaoTamanho ||
+    produtoBanco?.descricaoTamanho ||
+    "";
+
+  if (!tamanhoFinal && !descricaoFinal) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: 4,
+        fontSize: 12,
+        color: "#6b21a8",
+        fontWeight: 600
+      }}
+    >
+      {tamanhoFinal}
+      {descricaoFinal && ` • ${descricaoFinal}`}
+    </div>
+  );
+})()}
+
       {!!descricaoProduto && (
   <div
     style={{
@@ -9493,6 +9534,44 @@ const corStatus =
                         : `${nomePrincipal} +${p.itens.length - 1}`}
                     </strong>
 
+                   {(() => {
+  const produtoBanco = produtos.find(prod =>
+    prod.id === primeiroItem?.produtoId ||
+    prod.nome === primeiroItem?.nome ||
+    prod.nome === primeiroItem?.produto?.nome
+  );
+
+  const tamanho =
+    primeiroItem?.tamanho ||
+    produtoBanco?.tamanho ||
+    "";
+
+  const descricao =
+    primeiroItem?.descricaoTamanho ||
+    produtoBanco?.descricaoTamanho ||
+    "";
+
+  if (!tamanho && !descricao) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: 4,
+        fontSize: 12,
+        fontWeight: 700,
+        color: "#6b21a8",
+        background: "#f3e8ff",
+        padding: "3px 8px",
+        borderRadius: 999,
+        display: "inline-block"
+      }}
+    >
+      {tamanho}
+      {descricao && ` • ${descricao}`}
+    </div>
+  );
+})()}
+
                     <div
                       style={{
                         marginTop: 6,
@@ -9811,37 +9890,53 @@ const corStatus =
           );
 
           return {
-            produto: {
-              id:
-                produtoBanco?.id ||
-                item.produtoId ||
-                item.produto?.id ||
-                null,
-              nome:
-                produtoBanco?.nome ||
-                item.produto?.nome ||
-                item.nome ||
-                "Produto",
-              imagem:
-                produtoBanco?.imagem ||
-                item.produto?.imagem ||
-                item.imagem ||
-                "/acai.png",
-              preco: Number(
-                produtoBanco?.preco ??
-                item.produto?.preco ??
-                0
-              ),
-              categoria:
-                produtoBanco?.categoria ||
-                item.produto?.categoria ||
-                item.categoria ||
-                ""
-            },
-            quantidade: Number(item.quantidade || 1),
-            extras: item.extras || [],
-            total: Number(item.total || 0)
-          };
+  produto: {
+    id:
+      produtoBanco?.id ||
+      item.produtoId ||
+      item.produto?.id ||
+      null,
+
+    nome:
+      produtoBanco?.nome ||
+      item.produto?.nome ||
+      item.nome ||
+      "Produto",
+
+    imagem:
+      produtoBanco?.imagem ||
+      item.produto?.imagem ||
+      item.imagem ||
+      "/acai.png",
+
+    preco: Number(
+      produtoBanco?.preco ??
+      item.produto?.preco ??
+      0
+    ),
+
+    categoria:
+      produtoBanco?.categoria ||
+      item.produto?.categoria ||
+      item.categoria ||
+      ""
+  },
+
+  quantidade: Number(item.quantidade || 1),
+  extras: item.extras || [],
+  total: Number(item.total || 0),
+
+  // 🔥 CORREÇÃO FINAL (igual ao detalhe)
+  tamanho:
+    item.tamanho ||
+    produtoBanco?.tamanho ||
+    "",
+
+  descricaoTamanho:
+    item.descricaoTamanho ||
+    produtoBanco?.descricaoTamanho ||
+    ""
+};
         });
 
         setCarrinho(novosItens);
@@ -9878,6 +9973,7 @@ const corStatus =
     }}
   >
     {p.itens?.map((item, idx) => {
+      console.log("ITEM PEDIDO:", item);
       const jaAvaliadoNessePedido = Array.isArray(p.avaliacoesFeitas)
         ? p.avaliacoesFeitas.includes(item.produtoId)
         : false;
@@ -9895,14 +9991,50 @@ const corStatus =
           }}
         >
           <div
-            style={{
-              fontSize: 13,
-              color: "#111",
-              fontWeight: 700
-            }}
-          >
-            {item.quantidade}x {item.produto?.nome || item.nome}
-          </div>
+  style={{
+    fontSize: 13,
+    color: "#111",
+    fontWeight: 700
+  }}
+>
+  {item.quantidade}x {item.produto?.nome || item.nome}
+</div>
+
+{/* 🔥 TAMANHO AQUI */}
+{/* 🔥 TAMANHO (FORÇADO DO FIREBASE) */}
+{(() => {
+  const produtoBanco = produtos.find(prod =>
+    prod.id === item.produtoId ||
+    prod.nome === item.nome ||
+    prod.nome === item.produto?.nome
+  );
+
+  const tamanhoFinal =
+    item.tamanho ||
+    produtoBanco?.tamanho ||
+    "";
+
+  const descricaoFinal =
+    item.descricaoTamanho ||
+    produtoBanco?.descricaoTamanho ||
+    "";
+
+  if (!tamanhoFinal && !descricaoFinal) return null;
+
+  return (
+    <div
+      style={{
+        fontSize: 12,
+        color: "#6b21a8",
+        fontWeight: 600,
+        marginTop: 2
+      }}
+    >
+      {tamanhoFinal}
+      {descricaoFinal && ` • ${descricaoFinal}`}
+    </div>
+  );
+})()}
 
           {(item.extras || []).length > 0 && (
             <div style={{ marginTop: 6 }}>
@@ -10064,24 +10196,59 @@ const corStatus =
             Resumo do pedido
           </div>
 
-          {carrinho.map((item, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 12,
-                fontSize: 14,
-                color: "#444",
-                marginTop: i === 0 ? 0 : 8
-              }}
-            >
-              <span>
-                {item.quantidade}x {item.produto.nome}
-              </span>
-              <span>{formatarReal(item.total)}</span>
-            </div>
-          ))}
+         {carrinho.map((item, i) => {
+  const tamanho =
+    item?.tamanho ||
+    item?.produto?.tamanho ||
+    "";
+
+  const descricaoTamanho =
+    item?.descricaoTamanho ||
+    item?.produto?.descricaoTamanho ||
+    "";
+
+  return (
+    <div
+      key={i}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        fontSize: 14,
+        color: "#444",
+        marginTop: i === 0 ? 0 : 8
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12
+        }}
+      >
+        <span>
+          {item.quantidade}x {item.produto?.nome}
+        </span>
+
+        <span>{formatarReal(item.total)}</span>
+      </div>
+
+      {/* 🔥 TAMANHO */}
+      {(tamanho || descricaoTamanho) && (
+        <div
+          style={{
+            fontSize: 12,
+            color: "#6b21a8",
+            fontWeight: 600
+          }}
+        >
+          {tamanho}
+          {descricaoTamanho && ` • ${descricaoTamanho}`}
+        </div>
+      )}
+    </div>
+  );
+})}
 
           <div
             style={{

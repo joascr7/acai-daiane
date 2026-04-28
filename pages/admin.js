@@ -6520,6 +6520,45 @@ if (loadingAuth) {
                       </span>
                     )}
                   </p>
+                  {/* 🔥 TAMANHO (NOVO) */}
+{/* 🔥 TAMANHO (CORRIGIDO COM FALLBACK) */}
+{(() => {
+  const produtoBanco = produtos.find(prod =>
+    prod.id === item.produtoId ||
+    prod.nome === item.nome ||
+    prod.nome === item.produto?.nome
+  );
+
+  const tamanhoFinal =
+    item.tamanho ||
+    produtoBanco?.tamanho ||
+    "";
+
+  const descricaoFinal =
+    item.descricaoTamanho ||
+    produtoBanco?.descricaoTamanho ||
+    "";
+
+  if (!tamanhoFinal && !descricaoFinal) return null;
+
+  return (
+    <div
+      style={{
+        display: "inline-block",
+        background: "#f3e8ff",
+        color: "#6b21a8",
+        fontSize: 11,
+        fontWeight: 700,
+        padding: "3px 8px",
+        borderRadius: 999,
+        marginTop: 2
+      }}
+    >
+      {tamanhoFinal}
+      {descricaoFinal && ` • ${descricaoFinal}`}
+    </div>
+  );
+})()}
 
                   {Array.isArray(item.extras) &&
                     item.extras.map((e, i) => (
@@ -6786,6 +6825,46 @@ if (loadingAuth) {
               </span>
             )}
           </p>
+
+          {/* 🔥 TAMANHO (NOVO) */}
+{/* 🔥 TAMANHO (CORRIGIDO COM FALLBACK) */}
+{(() => {
+  const produtoBanco = produtos.find(prod =>
+    prod.id === item.produtoId ||
+    prod.nome === item.nome ||
+    prod.nome === item.produto?.nome
+  );
+
+  const tamanhoFinal =
+    item.tamanho ||
+    produtoBanco?.tamanho ||
+    "";
+
+  const descricaoFinal =
+    item.descricaoTamanho ||
+    produtoBanco?.descricaoTamanho ||
+    "";
+
+  if (!tamanhoFinal && !descricaoFinal) return null;
+
+  return (
+    <div
+      style={{
+        display: "inline-block",
+        background: "#f3e8ff",
+        color: "#6b21a8",
+        fontSize: 11,
+        fontWeight: 700,
+        padding: "3px 8px",
+        borderRadius: 999,
+        marginTop: 2
+      }}
+    >
+      {tamanhoFinal}
+      {descricaoFinal && ` • ${descricaoFinal}`}
+    </div>
+  );
+})()}
 
           {Array.isArray(item.extras) && item.extras.map((e, i) => (
             <p key={i} style={{
