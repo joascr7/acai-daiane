@@ -5854,16 +5854,23 @@ return (
   <div
     style={{
       marginTop: 8,
-      display: "inline-block",
-      fontSize: 10,
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 4,
+      fontSize: 11,
       fontWeight: 700,
-      color: "#510eec",
-      background: "#e9e3f3",
-      padding: "4px 8px",
+      color: "#6b21a8",
+      background: "#f3e8ff",
+      padding: "4px 10px",
       borderRadius: 999
     }}
   >
-     {p.tamanho}
+    {p.tamanho}
+    {p.descricaoTamanho && (
+      <span style={{ fontWeight: 600 }}>
+        • {p.descricaoTamanho}
+      </span>
+    )}
   </div>
 )}
     

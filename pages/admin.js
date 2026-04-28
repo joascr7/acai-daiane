@@ -497,6 +497,7 @@ const [freteEditandoId, setFreteEditandoId] = useState(null);
 const [loadingFrete, setLoadingFrete] = useState(false);
 
   const [usuarios, setUsuarios] = useState([]);
+  const [novaDescricaoTamanho, setNovaDescricaoTamanho] = useState("");
 
   const [promocaoAtiva, setPromocaoAtiva] = useState(false);
   const [novoPrecoPromocional, setNovoPrecoPromocional] = useState("");
@@ -1745,6 +1746,7 @@ function abrirEdicao(p) {
   );
 
   setNovoTamanho(p.tamanho || "");
+  setNovaDescricaoTamanho(p.descricaoTamanho || "");
   setNovaDescricao(p.descricao || "");
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
@@ -1818,6 +1820,7 @@ async function salvarProduto() {
       : null,
 
   tamanho: novoTamanho,
+  descricaoTamanho: novaDescricaoTamanho, // 🔥 NOVO CAMPO
   descricao: novaDescricao,
   imagem: novaImagem,
   ativo: true,
@@ -5090,7 +5093,13 @@ if (loadingAuth) {
         onChange={(e) => setNovoTamanho(e.target.value)}
         style={inputStyle}
       />
-
+      {/* NOVO TAMANHO */}
+     <input
+     placeholder="Ex: Ideal para 1 pessoa"
+     value={novaDescricaoTamanho}
+     onChange={(e) => setNovaDescricaoTamanho(e.target.value)}
+     style={inputStyle}
+    />
       {/* DESCRIÇÃO */}
       <input
         placeholder="Descrição"
@@ -5718,6 +5727,7 @@ if (loadingAuth) {
     setNovoPrecoPromocional("");
     setPromocaoAtiva(false);
     setNovoTamanho("");
+    setNovaDescricaoTamanho(produto.descricaoTamanho || "");
     setNovaDescricao("");
     setNovaImagem("");
     setMaisVendido(false);
