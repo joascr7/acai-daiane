@@ -1359,12 +1359,9 @@ useEffect(() => {
 
   let salvo = null;
 
-  // 🔐 usuário logado
   if (user?.uid) {
     salvo = localStorage.getItem(`carrinho_${user.uid}`);
-  } 
-  // 🔓 visitante
-  else {
+  } else {
     salvo = localStorage.getItem("carrinho");
   }
 
@@ -1374,13 +1371,19 @@ useEffect(() => {
   }
 
   try {
-    const carrinhoParseado = JSON.parse(salvo);
+    const carrinhoParseado = JSON.parse(salvo).map(item => ({
+      ...item,
+      extras: (item.extras || []).map(e => ({
+        nome: e.nome,
+        preco: e.preco,
+        categoria: e.categoria || "Extras",
+        qtd: Number(e.qtd || 1)
+      }))
+    }));
 
-    if (Array.isArray(carrinhoParseado)) {
-      setCarrinho(carrinhoParseado);
-    } else {
-      setCarrinho([]);
-    }
+    // 🔥 AQUI QUE FALTAVA
+    setCarrinho(carrinhoParseado);
+
   } catch (error) {
     console.log("Erro ao carregar carrinho:", error);
     setCarrinho([]);
@@ -2233,11 +2236,6 @@ const gerarPix = async () => {
     const valorPix = Number(totalFinalComFrete) / 100;
     const pedidoId = Date.now().toString();
 
-    console.log("USER LOGADO:", user?.uid);
-    console.log("INICIANDO PEDIDO:", pedidoId);
-    console.log("TOTAL FINAL COM FRETE:", totalFinalComFrete);
-    console.log("OBSERVACAO:", observacaoPedido);
-
     setQrBase64(null);
     setQrCode(null);
     setPaymentId(null);
@@ -2249,17 +2247,14 @@ const gerarPix = async () => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-      total: valorPix,
-      pedidoId,
-      nome: clienteNome || "Cliente",
-      email: user?.email || "cliente@email.com"
+        total: valorPix,
+        pedidoId,
+        nome: clienteNome || "Cliente",
+        email: user?.email || "cliente@email.com"
       })
     });
 
     const data = await res.json();
-
-    console.log("STATUS API PIX:", res.status);
-    console.log("RESPOSTA API PIX:", data);
 
     if (!data?.payment_id) {
       mostrarMensagemPagamento("Não foi possível gerar o Pix agora. Tente novamente.", "erro");
@@ -2274,11 +2269,24 @@ const gerarPix = async () => {
 
     localStorage.setItem("paymentId", String(data.payment_id));
 
-    console.log("PIX GERADO");
-    console.log("CARRINHO ANTES DE SALVAR:", carrinho);
+    // 🔥 CONGELA O CARRINHO
+    const carrinhoAtual = JSON.parse(JSON.stringify(carrinho));
+
+    // 🔥 DEBUG GERAL
+    console.log("=== DEBUG PEDIDO ===");
+    console.log("pedidoId:", pedidoId);
+    console.log("carrinhoAtual:", carrinhoAtual);
+
+    carrinhoAtual.forEach((item, i) => {
+      console.log(`ITEM ${i}:`, item);
+
+      (item.extras || []).forEach((e, j) => {
+        console.log(`EXTRA ORIGINAL ${i}-${j}:`, e);
+      });
+    });
 
     await setDoc(doc(db, "pedidos", pedidoId), {
-      codigo: Math.floor(100000 + Math.random() * 900000),
+      __origem: "PIX_DEBUG_FINAL",
 
       cliente: {
         nome: clienteNome || "Cliente",
@@ -2289,26 +2297,49 @@ const gerarPix = async () => {
         uid: user.uid
       },
 
-      itens: (carrinho || []).map(item => ({
-        
-  produtoId: item?.produto?.id || "",
-  nome: item?.produto?.nome || item?.nome || "Produto",
-  quantidade: Number(item?.quantidade || 1),
-  total: Number(item?.total || 0),
+      itens: carrinhoAtual.map((item, i) => {
+        console.log(`PROCESSANDO ITEM ${i}`);
 
-  // 🔥 AQUI ESTÁ A CORREÇÃO
-  tamanho: item?.tamanho || item?.produto?.tamanho || "",
-  descricaoTamanho:
-    item?.descricaoTamanho ||
-    item?.produto?.descricaoTamanho ||
-    "",
+        const extrasProcessados = (() => {
+          const mapa = {};
 
-  extras: (item?.extras || []).map(e => ({
-    nome: e?.nome || "",
-    preco: Number(e?.preco || 0),
-    categoria: e?.categoria || "Extras"
-  }))
-})),
+          (item?.extras || []).forEach((e, j) => {
+            const nome = e?.nome || "extra";
+
+            if (!mapa[nome]) {
+              mapa[nome] = {
+                nome,
+                preco: Number(e?.preco || 0),
+                categoria: e?.categoria || "Extras",
+                qtd: 0
+              };
+            }
+
+            mapa[nome].qtd += 1;
+
+            console.log(`CONTANDO EXTRA ${i}-${j}:`, mapa[nome]);
+          });
+
+          return Object.values(mapa);
+        })();
+
+        console.log(`EXTRAS FINAL ITEM ${i}:`, extrasProcessados);
+
+        return {
+          produtoId: item?.produto?.id || "",
+          nome: item?.produto?.nome || item?.nome || "Produto",
+          quantidade: Number(item?.quantidade || 1),
+          total: Number(item?.total || 0),
+
+          tamanho: item?.tamanho || item?.produto?.tamanho || "",
+          descricaoTamanho:
+            item?.descricaoTamanho ||
+            item?.produto?.descricaoTamanho ||
+            "",
+
+          extras: extrasProcessados
+        };
+      }),
 
       bairro: clienteBairro || "",
       subtotal: Number(subtotalProdutos || 0),
@@ -2346,7 +2377,7 @@ const gerarPix = async () => {
       data: Date.now()
     });
 
-    console.log("PEDIDO PIX SALVO (AGUARDANDO PAGAMENTO)");
+    console.log("🔥 PEDIDO SALVO COM SUCESSO");
 
     localStorage.setItem("pedidoId", pedidoId);
 
@@ -2359,12 +2390,12 @@ const gerarPix = async () => {
       "Pix gerado com sucesso. Faça o pagamento para liberar seu pedido.",
       "sucesso"
     );
+
   } catch (e) {
     console.log("ERRO GERAL PIX:", e);
     mostrarMensagemPagamento("Ocorreu um erro ao gerar o Pix. Tente novamente.", "erro");
   }
 };
-
 
 
 
@@ -2555,7 +2586,10 @@ function calcularTotalItem(produto, quantidade, extras) {
   let total = Number(produto.preco || 0);
 
   (extras || []).forEach(e => {
-    total += Number(e.preco || 0);
+    const preco = Number(e.preco || 0);
+    const qtd = Number(e.qtd || 1);
+
+    total += preco * qtd;
   });
 
   return Number(total * quantidade);
@@ -2602,13 +2636,12 @@ async function instalarApp() {
 
     const atual = prev[categoria] || [];
 
-    const existe = atual.find(e => e.nome === item.nome);
+    const index = atual.findIndex(e => e.nome === item.nome);
 
     let novos;
 
-    if (existe) {
-      novos = atual.filter(e => e.nome !== item.nome);
-    } else {
+    // 🔥 NÃO EXISTE → ADICIONA
+    if (index === -1) {
 
       if (atual.length >= max) return prev;
 
@@ -2616,14 +2649,20 @@ async function instalarApp() {
         ...atual,
         {
           nome: item.nome,
-
-          // 🔥 CORREÇÃO DEFININITIVA
           preco: Number(String(item.preco || 0).replace(",", ".")),
-
-          categoria: categoria,
+          categoria,
           qtd: 1
         }
       ];
+
+    } else {
+
+      // 🔥 CORREÇÃO AQUI (SEM MUTAÇÃO)
+      novos = atual.map((e, i) =>
+        i === index
+          ? { ...e, qtd: Number(e.qtd || 1) + 1 }
+          : e
+      );
     }
 
     return {
@@ -2875,29 +2914,43 @@ function adicionarCarrinho() {
 
   const totalItem = Math.round((precoBase + totalExtras) * quantidade);
 
-  // 🔥 EXTRAS FORMATADOS
+  // 🔥 EXTRAS AGRUPADOS (CORRETO)
   const extrasFinal = Object.entries(extrasSelecionados)
-    .flatMap(([categoria, lista]) =>
-      lista.map(e => ({
-        nome: e.nome,
-        preco: Number(String(e.preco || 0).replace(",", ".")),
-        categoria,
-        qtd: Number(e.qtd || 1)
-      }))
-    );
+    .flatMap(([categoria, lista]) => {
+      const agrupado = {};
 
-  // 🔥 ITEM BASE (CORRIGIDO)
+      lista.forEach(e => {
+        const chave = `${categoria}-${e.nome}`;
+
+        if (!agrupado[chave]) {
+          agrupado[chave] = {
+            nome: e.nome,
+            preco: Number(String(e.preco || 0).replace(",", ".")),
+            categoria,
+            qtd: 0
+          };
+        }
+
+        agrupado[chave].qtd += Number(e.qtd || 1);
+      });
+
+      return Object.values(agrupado);
+    });
+
+  console.log("EXTRAS FINAL:", extrasFinal); // ✅ AGORA NO LUGAR CERTO
+
+  // 🔥 ITEM BASE
   let novoItem = {
-  produto,
-  quantidade,
-  extras: extrasFinal,
-  total: totalItem,
+    produto,
+    quantidade,
+    extras: extrasFinal,
+    total: totalItem,
+    tamanho: produto?.tamanho || "",
+    descricaoTamanho: produto?.descricaoTamanho || ""
+  };
 
-  // 🔥 CORREÇÃO
-  tamanho: produto?.tamanho || "",
-  descricaoTamanho: produto?.descricaoTamanho || ""
-};
-console.log("NOVO ITEM:", novoItem);
+  console.log("NOVO ITEM:", novoItem);
+
   // 🔥 FIDELIDADE
   if (modoCompra === "fidelidade") {
     if (produto.resgate !== true) {
@@ -2917,21 +2970,18 @@ console.log("NOVO ITEM:", novoItem);
       return acc;
     }, 0);
 
-    // 🔥 ITEM FIDELIDADE (CORRIGIDO TAMBÉM)
     novoItem = {
-  produto: {
-    ...produto,
-    preco: 0
-  },
-  quantidade,
-  extras: extrasFinal,
-  total: Math.round(totalExtrasFidelidade * quantidade),
-  gratis: true,
-
-  // 🔥 ADICIONAR
-  tamanho: produto?.tamanho || "",
-  descricaoTamanho: produto?.descricaoTamanho || ""
-};
+      produto: {
+        ...produto,
+        preco: 0
+      },
+      quantidade,
+      extras: extrasFinal,
+      total: Math.round(totalExtrasFidelidade * quantidade),
+      gratis: true,
+      tamanho: produto?.tamanho || "",
+      descricaoTamanho: produto?.descricaoTamanho || ""
+    };
   }
 
   // 🔥 ADICIONA / EDITA
@@ -3385,7 +3435,13 @@ const limparHistoricoBusca = () => {
 };
 
 
-function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = true) {
+function alterarExtra(
+  categoria,
+  item,
+  delta,
+  max = Infinity,
+  permitirRepetir = true
+) {
   setExtrasSelecionados((prev) => {
     const listaAtual = prev[categoria] || [];
 
@@ -3393,15 +3449,12 @@ function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = 
 
     let novaLista = [...listaAtual];
 
-    // 🔥 TOTAL ATUAL DO GRUPO
     const totalAtual = listaAtual.reduce(
       (acc, e) => acc + Number(e.qtd || 0),
       0
     );
 
-    // =========================
     // ➖ REMOVER
-    // =========================
     if (delta < 0) {
       if (index >= 0) {
         const atual = novaLista[index];
@@ -3423,23 +3476,16 @@ function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = 
       };
     }
 
-    // =========================
     // ➕ ADICIONAR
-    // =========================
 
-    // 🔥 BLOQUEIA SE ATINGIU LIMITE DO GRUPO
-    if (max && totalAtual >= Number(max)) {
-      return prev;
-    }
+ if (max && totalAtual >= Number(max) && delta > 0) {
+  return prev;
+}
 
     if (index >= 0) {
       const atual = novaLista[index];
 
-      // 🔥 SE NÃO PODE REPETIR → NÃO SOMA
-      if (!permitirRepetir) {
-        return prev;
-      }
-
+      // 🔥 ESSA LINHA É A CHAVE
       novaLista[index] = {
         ...atual,
         qtd: Number(atual.qtd || 0) + 1
@@ -3451,16 +3497,17 @@ function alterarExtra(categoria, item, delta, max = Infinity, permitirRepetir = 
       };
     }
 
-    // 🔥 ITEM NOVO
-    novaLista.push({
-      ...item,
-      categoria,
-      qtd: 1
-    });
-
+    // 🔥 GARANTE QUE NÃO DUPLICA
     return {
       ...prev,
-      [categoria]: novaLista
+      [categoria]: [
+        ...novaLista,
+        {
+          ...item,
+          categoria,
+          qtd: 1
+        }
+      ]
     };
   });
 }
@@ -3575,17 +3622,12 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 BLOQUEIO FRETE (NÍVEL IFOOD)
   if (tipoEntrega !== "retirada") {
-
     if (precisaLocalizacao) {
       mostrarMensagemPagamento(
         "Informe seu endereço para calcular o frete.",
         "erro"
       );
-      setAba("perfil");
-      setStep(4);
-      setAbaPerfil("endereco");
       return;
     }
 
@@ -3605,11 +3647,8 @@ async function finalizarPedido() {
     const codigo = Math.floor(100000 + Math.random() * 900000);
 
     const taxaEntregaFinal =
-      tipoEntrega === "retirada"
-        ? 0
-        : Number(taxaEntrega || 0);
+      tipoEntrega === "retirada" ? 0 : Number(taxaEntrega || 0);
 
-    // 🔥 TOTAL CORRETO (COM DESCONTO + FRETE)
     const totalFinalCalc = totalFinal + taxaEntregaFinal;
 
     const pedidoBase = {
@@ -3632,10 +3671,12 @@ async function finalizarPedido() {
         total: item.gratis ? 0 : Number(item.total || 0),
         gratis: item.gratis === true,
 
+        // 🔥 CORREÇÃO AQUI
         extras: (item.extras || []).map(e => ({
           nome: e.nome || "",
           preco: Number(e.preco || 0),
-          categoria: e.categoria || "Extras"
+          categoria: e.categoria || "Extras",
+          qtd: Number(e.qtd || 1)
         }))
       })),
 
@@ -3659,42 +3700,36 @@ async function finalizarPedido() {
 
     // 💳 CARTÃO ONLINE
     if (formaPagamento === "cartao_online") {
-      try {
-        const res = await fetch("/api/checkoutpro", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            total: totalFinalCalc / 100,
-            pedidoId,
-            nome: clienteNome,
-            email: clienteEmail
-          })
-        });
+      const res = await fetch("/api/checkoutpro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          total: totalFinalCalc / 100,
+          pedidoId,
+          nome: clienteNome,
+          email: clienteEmail
+        })
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (!data.url) {
-          mostrarMensagemPagamento("Erro no pagamento.", "erro");
-          setLoadingPedido(false);
-          return;
-        }
-
-        await setDoc(doc(db, "pedidos", pedidoId), {
-          ...pedidoBase,
-          status: "aguardando_pagamento_online",
-          checkoutUrl: data.url,
-          checkoutId: data.id
-        });
-
-        window.open(data.url, "_blank");
-        return;
-
-      } catch (e) {
-        console.log(e);
+      if (!data.url) {
         mostrarMensagemPagamento("Erro no pagamento.", "erro");
         setLoadingPedido(false);
         return;
       }
+
+      await setDoc(doc(db, "pedidos", pedidoId), {
+        ...pedidoBase,
+        status: "aguardando_pagamento_online",
+        checkoutUrl: data.url,
+        checkoutId: data.id
+      });
+
+      window.open(data.url, "_blank");
+      return;
     }
 
     // 🟢 PIX
@@ -3705,7 +3740,6 @@ async function finalizarPedido() {
       });
 
       mostrarMensagemPagamento("Pedido criado. Pague no Pix.", "sucesso");
-
       setPedidoPixAberto({ ...pedidoBase, id: pedidoId });
       setMostrarPagamento(true);
       return;
@@ -3774,12 +3808,10 @@ const enviarWhatsApp = async (pedido) => {
   const codigoCupom =
     pedido?.cupom?.codigo || pedido?.cupom?.nome || "";
 
-  // 🔥 VERIFICA SE TEM FIDELIDADE
   const temGratis = itens.some(i => i?.gratis === true);
 
   let mensagem = `*Pedido #${codigo}*\n\n`;
 
-  // 🔥 TOPO DESTACADO
   if (temGratis) {
     mensagem += ` *PEDIDO COM AÇAÍ GRÁTIS (FIDELIDADE)*\n\n`;
   }
@@ -3799,35 +3831,37 @@ const enviarWhatsApp = async (pedido) => {
     mensagem += `*${i + 1}. ${nomeProduto}*\n`;
     mensagem += `Qtd: ${quantidade}\n`;
 
-    // 🔥 MARCA ITEM GRÁTIS
     if (isGratis) {
       mensagem += ` *AÇAÍ GRÁTIS (FIDELIDADE)*\n`;
     }
 
+    // 🔥 EXTRAS COM QTD CORRIGIDO
     if (Array.isArray(item?.extras) && item.extras.length > 0) {
       const extrasPorCategoria = {};
 
       item.extras.forEach((e) => {
         const categoria = e?.categoria || "Extras";
         const nomeExtra = e?.nome || "Item";
+        const qtd = Number(e?.qtd || 1);
 
         if (!extrasPorCategoria[categoria]) {
           extrasPorCategoria[categoria] = [];
         }
 
-        extrasPorCategoria[categoria].push(nomeExtra);
+        extrasPorCategoria[categoria].push(
+          qtd > 1 ? `${nomeExtra} x${qtd}` : nomeExtra
+        );
       });
 
       Object.keys(extrasPorCategoria).forEach((categoria) => {
         mensagem += `\n• ${categoria}:\n`;
 
-        extrasPorCategoria[categoria].forEach((nomeExtra) => {
-          mensagem += `  + ${nomeExtra}\n`;
+        extrasPorCategoria[categoria].forEach((texto) => {
+          mensagem += `  + ${texto}\n`;
         });
       });
     }
 
-    // 🔥 SÓ MOSTRA VALOR SE NÃO FOR GRÁTIS
     if (!isGratis) {
       mensagem += `\nValor: ${(totalItem / 100).toLocaleString("pt-BR", {
         style: "currency",
@@ -3840,7 +3874,6 @@ const enviarWhatsApp = async (pedido) => {
 
   mensagem += `━━━━━━━━━━━━━━━\n`;
 
-  // 💰 SUBTOTAL
   if (subtotal > 0) {
     mensagem += `*Subtotal:* ${(subtotal / 100).toLocaleString("pt-BR", {
       style: "currency",
@@ -3848,7 +3881,6 @@ const enviarWhatsApp = async (pedido) => {
     })}\n`;
   }
 
-  // 🎟 CUPOM
   if (descontoCupom > 0) {
     mensagem += `*Desconto${codigoCupom ? ` (${codigoCupom})` : ""}:* -${(descontoCupom / 100).toLocaleString("pt-BR", {
       style: "currency",
@@ -3856,7 +3888,6 @@ const enviarWhatsApp = async (pedido) => {
     })}\n`;
   }
 
-  // 🚚 ENTREGA / RETIRADA
   if (tipoEntregaFinal === "retirada") {
     mensagem += `*Retirada no local*\n`;
   } else {
@@ -3866,13 +3897,11 @@ const enviarWhatsApp = async (pedido) => {
     })}\n`;
   }
 
-  // 💵 TOTAL
   mensagem += `*Total:* ${(total / 100).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
   })}\n`;
 
-  // 💳 PAGAMENTO
   if (forma === "pix") {
     mensagem += `*Pagamento:* Pix confirmado\n`;
   } else if (forma === "cartao") {
@@ -3885,7 +3914,6 @@ const enviarWhatsApp = async (pedido) => {
     mensagem += `*Pagamento:* ${forma}\n`;
   }
 
-  // 📍 ENDEREÇO
   if (tipoEntregaFinal === "retirada") {
     mensagem += `\n*Retirada:*\nNo local da loja\n`;
   } else {
@@ -3895,10 +3923,8 @@ const enviarWhatsApp = async (pedido) => {
     }
   }
 
-  // 👤 CLIENTE
   mensagem += `\n\n*Cliente:*\n${nomeCliente}\n${telefoneCliente}`;
 
-  // 📝 OBSERVAÇÃO
   if (observacao && observacao.trim()) {
     mensagem += `\n\n━━━━━━━━━━━━━━━\n`;
     mensagem += `*Observações:*\n${observacao.trim()}`;
@@ -5223,6 +5249,8 @@ return (
               <ChevronDown size={16} color="#666" />
             </div>
           </div>
+
+          
 
           {/* DIREITA */}
           <div
@@ -6745,7 +6773,13 @@ return (
                         >
                           <button
                             onClick={() =>
-                              alterarExtra(grupo.categoria, item, -1, grupo.max)
+                              alterarExtra(
+                              grupo.categoria,
+                              item,
+                               -1,
+                              grupo.max,
+                              grupo.permitirRepetir !== false
+                              )
                             }
                             style={{
                               width: 28,
@@ -6780,7 +6814,13 @@ return (
                           <button
                             onClick={() => {
                               if (!podeAdicionar) return;
-                              alterarExtra(grupo.categoria, item, 1, grupo.max);
+                               alterarExtra(
+                            grupo.categoria,
+                            item,
+                             1,
+                            grupo.max,
+                            grupo.permitirRepetir !== false
+                            );
                             }}
                             disabled={!podeAdicionar}
                             style={{
@@ -6806,7 +6846,13 @@ return (
                         <button
                           onClick={() => {
                             if (!podeAdicionar) return;
-                            alterarExtra(grupo.categoria, item, 1, grupo.max);
+                            alterarExtra(
+                            grupo.categoria,
+                            item,
+                             1,
+                            grupo.max,
+                            grupo.permitirRepetir !== false
+                            );
                           }}
                           disabled={!podeAdicionar}
                           style={{
@@ -7223,23 +7269,58 @@ return (
   </div>
 )}
 
-        {Array.isArray(item?.extras) && item.extras.length > 0 && (
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              color: "#666",
-              lineHeight: 1.45
-            }}
-          >
-            {item.extras
-              .map((e) => {
-                const qtd = Number(e?.qtd || 1);
-                return `+ ${e?.nome || "Extra"}${qtd > 1 ? ` x${qtd}` : ""}`;
-              })
-              .join(", ")}
-          </div>
-        )}
+      {Array.isArray(item?.extras) && item.extras.length > 0 && (
+  <div
+    style={{
+      marginTop: 6,
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6
+    }}
+  >
+    {item.extras.map((e, i) => {
+      // 🔥 CORREÇÃO: garante qtd mínima = 1
+      const qtd = Number(e?.qtd ?? 1);
+
+      // 🔥 só remove se for realmente inválido
+      if (qtd < 1) return null;
+
+      return (
+        <div
+          key={i}
+          style={{
+            background: "#f5f5f5",
+            color: "#333",
+            fontSize: 12,
+            fontWeight: 600,
+            padding: "4px 8px",
+            borderRadius: 999,
+            display: "flex",
+            alignItems: "center",
+            gap: 4
+          }}
+        >
+          <span>{e.nome}</span>
+
+          {qtd > 1 && (
+            <span
+              style={{
+                background: "#111",
+                color: "#fff",
+                borderRadius: 999,
+                padding: "0px 6px",
+                fontSize: 10,
+                fontWeight: 700
+              }}
+            >
+              x{qtd}
+            </span>
+          )}
+        </div>
+      );
+    })}
+  </div>
+)}
 
         <div
   style={{
@@ -10036,23 +10117,23 @@ const corStatus =
   );
 })()}
 
-          {(item.extras || []).length > 0 && (
-            <div style={{ marginTop: 6 }}>
-              {(item.extras || []).map(e => (
-                <div
-                  key={e.nome}
-                  style={{
-                    fontSize: 12,
-                    color: "#777",
-                    marginLeft: 6,
-                    lineHeight: 1.45
-                  }}
-                >
-                  • {e.nome}
-                </div>
-              ))}
-            </div>
-          )}
+         {(item.extras || []).length > 0 && (
+  <div style={{ marginTop: 6 }}>
+    {(item.extras || []).map(e => (
+      <div
+        key={e.nome}
+        style={{
+          fontSize: 12,
+          color: "#777",
+          marginLeft: 6,
+          lineHeight: 1.45
+        }}
+      >
+        • {e.nome} {e.qtd > 1 ? `x${e.qtd}` : ""}
+      </div>
+    ))}
+  </div>
+)}
 
         </div>
       );
