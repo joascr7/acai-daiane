@@ -551,7 +551,21 @@ useEffect(() => {
   const [novoExtraNome, setNovoExtraNome] = useState("");
   const [novoExtraPreco, setNovoExtraPreco] = useState("");
   const [produtoNotificacao, setProdutoNotificacao] = useState("");
+ const [aberto, setAberto] = useState(null);
+ // 🔥 AGRUPA POR CLIENTE
+const pedidosCancelados = pedidos.filter(p => p.status === "cancelado");
 
+const agrupados = pedidosCancelados.reduce((acc, p) => {
+  const nome = p?.cliente?.nome || "Cliente";
+
+  if (!acc[nome]) {
+    acc[nome] = [];
+  }
+
+  acc[nome].push(p);
+
+  return acc;
+}, {});
   const [resgate, setResgate] = useState(false);
 
 
@@ -6955,35 +6969,162 @@ if (loadingAuth) {
 
 
 {abaAdmin === "cancelados" && (
-  <div>
-    {pedidos
-      .filter(p => p.status === "cancelado")
-      .map((p) => (
-        <div key={p.id} style={card}>
-          <strong>Pedido #{p.codigo}</strong>
+  <div
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      background: "#f3f4f6", // 🔥 fundo geral
+      padding: 10,
+      borderRadius: 12
+    }}
+  >
+    {Object.entries(agrupados).map(([cliente, lista]) => {
+      const abertoCliente = aberto === cliente;
 
-          <div style={{ marginTop: 6 }}>
-            Cliente: {p?.cliente?.nome}
-          </div>
-
-          <div style={{ marginTop: 6 }}>
-            Total: {formatarReal(p.total)}
-          </div>
-
+      return (
+        <div
+          key={cliente}
+          style={{
+            borderRadius: 14,
+            background: "#ffffff", // 🔥 card branco limpo
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            overflow: "hidden"
+          }}
+        >
+          {/* HEADER CLIENTE */}
           <div
+            onClick={() =>
+              setAberto(abertoCliente ? null : cliente)
+            }
             style={{
-              marginTop: 10,
-              background: "#fee2e2",
-              color: "#b91c1c",
-              padding: "6px 10px",
-              borderRadius: 10,
-              fontWeight: 800
+              padding: "12px 14px",
+              cursor: "pointer",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "#f9fafb" // 🔥 leve contraste
             }}
           >
-            Cancelado
+            <div>
+              <div style={{ fontWeight: 700, color: "#111" }}>
+                {cliente}
+              </div>
+              <div style={{ fontSize: 12, color: "#6b7280" }}>
+                {lista.length} pedido(s) cancelado(s)
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#ef4444",
+                color: "#fff",
+                padding: "4px 10px",
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 700
+              }}
+            >
+              Cancelados
+            </div>
           </div>
+
+          {/* LISTA */}
+          {abertoCliente && (
+            <div
+              style={{
+                borderTop: "1px solid #e5e7eb",
+                background: "#f3f4f6"
+              }}
+            >
+              {lista.map((p) => (
+                <div
+                  key={p.id}
+                  style={{
+                    padding: "10px 14px",
+                    borderBottom: "1px solid #e5e7eb"
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#111",
+                      fontWeight: 600
+                    }}
+                  >
+                    #{p.codigo} — {formatarReal(p.total)}
+                  </div>
+
+                  {/* ITENS */}
+                  {Array.isArray(p.itens) &&
+                    p.itens.map((item, i) => (
+                      <div key={i} style={{ marginTop: 4 }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#374151"
+                          }}
+                        >
+                          {item.nome} (x{item.quantidade})
+                        </div>
+
+                        {/* EXTRAS */}
+                        {Array.isArray(item.extras) &&
+                          item.extras.map((e, j) => {
+                            const qtd = Number(e?.qtd || 1);
+
+                            return (
+                              <div
+                                key={j}
+                                style={{
+                                  fontSize: 11,
+                                  color: "#6b7280",
+                                  marginLeft: 6
+                                }}
+                              >
+                                + {e.nome}{" "}
+                                {qtd > 1 ? `x${qtd}` : ""}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    ))}
+
+                  {/* DATA */}
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "#9ca3af",
+                      marginTop: 4
+                    }}
+                  >
+                    {p.data
+                      ? new Date(p.data).toLocaleString("pt-BR")
+                      : ""}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
+      );
+    })}
+
+    {pedidosCancelados.length === 0 && (
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 14,
+          padding: 18,
+          textAlign: "center",
+          color: "#6b7280",
+          border: "1px solid #e5e7eb"
+        }}
+      >
+        Nenhum pedido cancelado
+      </div>
+    )}
   </div>
 )}
 
