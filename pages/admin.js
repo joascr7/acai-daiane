@@ -2066,8 +2066,15 @@ const totalGastos = gastos.reduce(
 
 const lucroTotal = totalFaturado - totalGastos;
 
-const pedidosEmAndamento = pedidos.filter(
-  (p) => p.status !== "entregue"
+const statusAtivos = new Set([
+  "aguardando_pagamento",
+  "aguardando_pagamento_online",
+  "preparando",
+  "saiu"
+]);
+
+const pedidosEmAndamento = pedidos.filter(p =>
+  statusAtivos.has(p.status)
 ).length;
 
 const produtosAtivos = produtos.filter((p) => p.ativo).length;
