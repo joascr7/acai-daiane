@@ -583,17 +583,34 @@ function formatarReal(valor) {
   });
 }
 
+useEffect(() => {
+  const liberarAudio = () => {
+    const audio = new Audio("/notificacao.mp3");
+    audio.volume = 0;
+    audio.play().catch(() => {});
+    window.removeEventListener("click", liberarAudio);
+  };
+
+  window.addEventListener("click", liberarAudio);
+
+  return () => {
+    window.removeEventListener("click", liberarAudio);
+  };
+}, []);
+
 
   // 🔍 BUSCA
   const [buscaCodigo, setBuscaCodigo] = useState("");
 
   // 🔔 SOM
 function tocarSom() {
-  console.log("🔔 novo pedido");
-
-  // 🔥 se quiser som real depois:
-  // const audio = new Audio("/notificacao.mp3");
-  // audio.play();
+  try {
+    const audio = new Audio("/notificacao.mp3");
+    audio.volume = 1;
+    audio.play().catch(() => {});
+  } catch (e) {
+    console.log("Erro ao tocar som");
+  }
 }
 
 
