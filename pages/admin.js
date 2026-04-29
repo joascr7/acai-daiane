@@ -6585,18 +6585,22 @@ if (loadingAuth) {
 })()}
 
                   {Array.isArray(item.extras) &&
-                    item.extras.map((e, i) => (
-                      <p
-                        key={i}
-                        style={{
-                          fontSize: 12,
-                          opacity: 0.7,
-                          margin: "2px 0"
-                        }}
-                      >
-                        + {e.nome}
-                      </p>
-                    ))}
+  item.extras.map((e, i) => {
+    const qtd = Number(e?.qtd || 1);
+
+    return (
+      <p
+        key={i}
+        style={{
+          fontSize: 12,
+          opacity: 0.7,
+          margin: "2px 0"
+        }}
+      >
+        + {e.nome} {qtd > 1 ? `x${qtd}` : ""}
+      </p>
+    );
+  })}
                 </div>
               ))}
 
@@ -6890,15 +6894,23 @@ if (loadingAuth) {
   );
 })()}
 
-          {Array.isArray(item.extras) && item.extras.map((e, i) => (
-            <p key={i} style={{
-              fontSize: 12,
-              opacity: 0.7,
-              margin: "2px 0"
-            }}>
-              + {e.nome}
-            </p>
-          ))}
+          {Array.isArray(item.extras) &&
+  item.extras.map((e, i) => {
+    const qtd = Number(e?.qtd || 1);
+
+    return (
+      <p
+        key={i}
+        style={{
+          fontSize: 12,
+          opacity: 0.7,
+          margin: "2px 0"
+        }}
+      >
+        + {e.nome} {qtd > 1 ? `x${qtd}` : ""}
+      </p>
+    );
+  })}
         </div>
       ))}
 
