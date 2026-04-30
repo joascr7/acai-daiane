@@ -1,6 +1,6 @@
 
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from 'next/router';
 import Cropper from "react-easy-crop";
 import Head from "next/head";
@@ -440,6 +440,9 @@ const styles = {
 
   const router = useRouter();
 
+  const pedidosRef = useRef([]);
+  const primeiroLoad = useRef(true);
+
   const [produtoEditandoId, setProdutoEditandoId] = useState(null);
 const [toast, setToast] = useState(null);
   const [pedidos, setPedidos] = useState([]);
@@ -611,6 +614,33 @@ useEffect(() => {
     window.removeEventListener("click", liberarAudio);
   };
 }, []);
+
+
+useEffect(() => {
+  if (!Array.isArray(pedidos)) return;
+
+  // 🔥 PRIMEIRO LOAD → NÃO TOCA
+  if (primeiroLoad.current) {
+    pedidosRef.current = pedidos;
+    primeiroLoad.current = false;
+    return;
+  }
+
+  const idsAntigos = new Set(pedidosRef.current.map(p => p.id));
+
+  // 🔥 AQUI É O NOVO CÓDIGO
+  const novosPedidos = pedidos.filter(p =>
+    !idsAntigos.has(p.id) && p.status === "novo"
+  );
+
+  if (novosPedidos.length > 0) {
+    tocarSomPedido();
+  }
+
+  // 🔥 ATUALIZA REFERÊNCIA
+  pedidosRef.current = pedidos;
+
+}, [pedidos]);
 
 
   // 🔍 BUSCA
