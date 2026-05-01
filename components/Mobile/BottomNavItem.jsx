@@ -7,15 +7,22 @@ export default function BottomNavItem({
 }) {
   const isActive = ativo === id;
 
+  // 🔒 proteção total
+  const SafeIcon = Icon || (() => null);
+  const safeBadge = Number(badge) || 0;
+
   return (
     <button
-      onClick={() => onClick(id)}
+      onClick={() => onClick && onClick(id)}
       style={btn}
     >
-      <Icon size={22} color={isActive ? "#ea1d2c" : "#6b7280"} />
+      <SafeIcon
+        size={22}
+        color={isActive ? "#ea1d2c" : "#6b7280"}
+      />
 
-      {badge > 0 && (
-        <div style={badgeStyle}>{badge}</div>
+      {safeBadge > 0 && (
+        <div style={badgeStyle}>{safeBadge}</div>
       )}
     </button>
   );
