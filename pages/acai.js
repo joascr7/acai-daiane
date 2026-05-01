@@ -16,7 +16,7 @@ import ListaProdutos from "../components/acai/components/ListaProdutos";
 import useProdutos from "../components/acai/hooks/useProdutos";
 import usePedidosUsuario from "../components/acai/hooks/usePedidosUsuario";
 import useNotificacoes from "../components/acai/hooks/useNotificacoes";
-
+import Sidebar from "../components/Sidebar";
 
 import CardProduto from "../components/CardProduto";
 
@@ -480,7 +480,6 @@ const [clienteLat, setClienteLat] = useState(null);
 const [clienteLng, setClienteLng] = useState(null);
 const notificacoesRef = useRef([]);
 
-const [sidebarAberta, setSidebarAberta] = useState(false);
 
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
@@ -907,19 +906,6 @@ useEffect(() => {
 
   return () => {
     window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-  };
-}, []);
-
-
-useEffect(() => {
-  const handlePromo = () => {
-    setCategoriaSelecionada("promocoes"); // 🔥 ou o nome que você usa
-  };
-
-  window.addEventListener("verPromocoes", handlePromo);
-
-  return () => {
-    window.removeEventListener("verPromocoes", handlePromo);
   };
 }, []);
 
@@ -3961,77 +3947,30 @@ const sugestoes = [
 ].slice(0, 6);
 
 return (
-  <>
 
-    {/* RESET GLOBAL (garante sem espaço no topo) */}
-    <style>
-      {`
-        html, body {
-          margin: 0;
-          padding: 0;
-          background: #fff;
-        }
-      `}
-    </style>
 
-    {/* CONTAINER PRINCIPAL */}
-    <div
-      style={{
-        width: "100%",
-        minHeight: "100vh", // 🔥 NÃO usa dvh
-        background: "#fff",
-        color: themeAtual.text
-      }}
-    >
 
-      {/* HEADER */}
-      <div
-        style={{
-          width: "100%",
-          padding: "10px 16px 12px", // 🔥 sem safe-area
-          background: "#f5f5f5",
-          boxSizing: "border-box"
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12
-          }}
-        >
-          <div
-  style={{
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 50,
-    background: "#fff",
-    zIndex: 1000
-  }}
->
-  Açaí da Daiane
-</div>
 
-          <div style={{ display: "flex", gap: 10 }}>
-            {/* aqui seus botões */}
-          </div>
-        </div>
-      </div>
 
-      {/* CONTEÚDO */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: larguraApp,
-          margin: "0 auto",
-          padding: isMobile ? "10px 0 20px" : "20px",
-          boxSizing: "border-box"
-        }}
-      >
-  
+
+// CONTAINER ///
+<div style={{
+  minHeight: "100dvh",
+  background: "#fff",
+  color: themeAtual.text,
+  boxSizing: "border-box",
+  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
+}}>
+  <div style={{
+    width: "100%",
+    maxWidth: larguraApp,
+    margin: "0 auto",
+    padding: isMobile ? 0 : "0 20px",
+    boxSizing: "border-box",
+    background: "#fff"
+
+  }}>
+
 
 {/* ========================= */}
     {/* 🔥 MODAL DE AVALIACAO */}
@@ -4309,21 +4248,6 @@ return (
   </div>
 )}
 
-{isMobile && (
-  <button
-    onClick={() => setMenuAberto(true)}
-    style={{
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      marginRight: 10,
-      fontSize: 20
-    }}
-  >
-    ☰
-  </button>
-)}
-
 
 {!isMobile && (
   <div
@@ -4428,7 +4352,7 @@ return (
       </div>
 
       {/* PERFIL */}
-     <div
+      <div
         onClick={() => { setAba("perfil"); setStep(4); }}
         style={{
           cursor: "pointer",
@@ -4440,7 +4364,6 @@ return (
 
     </div>
   </div>
-  
 )}
 
 
@@ -4859,7 +4782,6 @@ return (
       </div>
     </div>
   </div>
-  
 )}
 
 {/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
@@ -5180,11 +5102,14 @@ return (
       >
         Fechar
       </button>
-      
     </div>
   </div>
-  )}
- 
+)}
+
+
+
+
+
 
 
 {/* STEP 1 */}
@@ -5205,13 +5130,11 @@ return (
     >
       {/* HEADER */}
       <div
-  style={{
-    padding: isMobile
-      ? "env(safe-area-inset-top) 16px 10px"
-      : "14px 16px 18px",
-    background: "#f5f5f5"
-  }}
->
+        style={{
+          padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
+          background: "#f5f5f5"
+        }}
+      >
         {/* TOPO */}
         <div
           style={{
@@ -6036,11 +5959,8 @@ return (
         </div>
       </div>
     </div>
-    
 
 )}
-
-
     </div>
 
     <style>
@@ -6063,7 +5983,6 @@ return (
     </style>
   </>
 )}
-
 
 
 {aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
@@ -8733,7 +8652,6 @@ return (
         boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
       }}
     >
-      
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <button
           onClick={() => {
@@ -12732,8 +12650,7 @@ const corStatus =
   }
   `}</style>
     
-       </div> 
-    </div>   
-  </>
-);
+    </div>
+    </div>
+  );
 }
