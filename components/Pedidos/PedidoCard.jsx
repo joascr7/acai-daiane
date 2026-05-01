@@ -184,18 +184,23 @@ export default function PedidoCard({
       </div>
 
       {/* CANCELAR */}
-      <button
-        onClick={() => cancelarPedido(p.id)}
-        style={{
-          marginTop: 8,
-          background: "#ef4444",
-          color: "#fff",
-          padding: "6px 10px",
-          borderRadius: 8
-        }}
-      >
-        Cancelar
-      </button>
+      {status !== "entregue" && status !== "cancelado" && (
+  <button
+    onClick={() => cancelarPedido(p.id)}
+    style={{
+      marginTop: 8,
+      background: "#ef4444",
+      color: "#fff",
+      padding: "6px 10px",
+      borderRadius: 8,
+      border: "none",
+      cursor: "pointer",
+      fontWeight: 600
+    }}
+  >
+    Cancelar
+  </button>
+)}
     </div>
   );
 }
