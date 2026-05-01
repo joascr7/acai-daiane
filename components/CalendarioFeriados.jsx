@@ -3,7 +3,6 @@ import { doc, updateDoc, deleteField } from "firebase/firestore";
 import { dbAdmin as db } from "../services/firebaseDual";
 
 
-
 export default function CalendarioFeriados({ horarios }) {
   const hoje = new Date();
 
@@ -105,6 +104,59 @@ export default function CalendarioFeriados({ horarios }) {
     </div>
   );
 }
+
+
+const container = {
+  width: "100%",
+  maxWidth: 500,        // 🔥 controla largura
+  margin: "0 auto",
+  padding: 12,
+  boxSizing: "border-box"
+};
+
+const grid = {
+  display: "grid",
+  gridTemplateColumns: "1fr", // 🔥 1 coluna SEMPRE (mobile perfeito)
+  gap: 12,
+  width: "100%"
+};
+
+const card = {
+  background: "#0f172a",
+  padding: 14,
+  borderRadius: 16,
+  border: "1px solid #1e293b",
+  width: "100%",
+  boxSizing: "border-box"
+};
+
+const title = {
+  fontSize: 14,
+  marginBottom: 8,
+  fontWeight: 700
+};
+
+const input = {
+  width: "100%",
+  padding: 10,
+  borderRadius: 10,
+  border: "1px solid #1e293b",
+  background: "#020617",
+  color: "#fff",
+  marginTop: 8,
+  boxSizing: "border-box"
+};
+
+const btnFull = {
+  width: "100%",            // 🔥 evita quebrar layout
+  padding: 12,
+  borderRadius: 12,
+  background: "#ea1d2c",
+  color: "#fff",
+  border: "none",
+  marginTop: 10,
+  fontWeight: 700
+};
 
 
 const calendarCard = {
