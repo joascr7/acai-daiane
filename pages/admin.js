@@ -116,12 +116,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 export default function Admin() {
 
-  if (typeof window !== "undefined") {
-  window.onerror = function (msg, url, line, col, error) {
-    console.log("🔥 ERRO REAL:", msg, error);
-    alert(msg);
-  };
-}
+if (typeof window === "undefined") return null;
 
   
 
@@ -2645,37 +2640,24 @@ if (loadingAuth) {
 
 
 
- {isMobile && (
+ {isMobile && typeof window !== "undefined" && (
   <>
-    {/* NAVBAR */}
     <BottomNav
       abaAdmin={abaAdmin || "dashboard"}
-      setAbaAdmin={(v) => setAbaAdmin && setAbaAdmin(v)}
+      setAbaAdmin={setAbaAdmin}
       pedidosEmAndamento={Number(pedidosEmAndamento) || 0}
-      setAbrirMaisMenu={(v) => setAbrirMaisMenu && setAbrirMaisMenu(v)}
+      setAbrirMaisMenu={setAbrirMaisMenu}
     />
 
-    {/* OVERLAY */}
-    {abrirMaisMenu === true && (
-      <Overlay
-        onClick={() =>
-          setAbrirMaisMenu && setAbrirMaisMenu(false)
-        }
-      />
+    {abrirMaisMenu && (
+      <Overlay onClick={() => setAbrirMaisMenu(false)} />
     )}
 
-    {/* MENU */}
-    {abrirMaisMenu === true && (
+    {abrirMaisMenu && (
       <MaisMenu
-        setAbaAdmin={(v) => setAbaAdmin && setAbaAdmin(v)}
-        setAbrirMaisMenu={(v) =>
-          setAbrirMaisMenu && setAbrirMaisMenu(v)
-        }
-        notificacoesAdmin={
-          Array.isArray(notificacoesAdmin)
-            ? notificacoesAdmin
-            : []
-        }
+        setAbaAdmin={setAbaAdmin}
+        setAbrirMaisMenu={setAbrirMaisMenu}
+        notificacoesAdmin={notificacoesAdmin || []}
       />
     )}
   </>
