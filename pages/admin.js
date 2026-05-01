@@ -2256,7 +2256,12 @@ if (loadingAuth) {
         }}
       >
         {/* HEADER */}
-        <Header lojaAberta={lojaAberta} />
+        <Header
+  lojaAberta={lojaAberta}
+  logout={logout}
+  isMobile={isMobile}
+  setSidebarAberta={setSidebarAberta}
+/> 
 
    
     {/* DASHBOARD */}
