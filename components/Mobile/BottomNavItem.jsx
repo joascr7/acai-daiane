@@ -1,4 +1,4 @@
-export default function BottomNavItem({
+/*/export default function BottomNavItem({
   id,
   icon: Icon,
   ativo,
@@ -45,4 +45,4 @@ const badgeStyle = {
   borderRadius: 999,
   fontSize: 10,
   padding: "2px 6px"
-};
+};/*/

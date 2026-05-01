@@ -1,4 +1,4 @@
-import { Truck, Bell, ImagePlus, Star, Store } from "lucide-react";
+/*/import { Truck, Bell, ImagePlus, Star, Store } from "lucide-react";
 
 export default function MaisMenu({
   setAbaAdmin,
@@ -86,4 +86,4 @@ const close = {
   color: "#ea1d2c",
   fontWeight: 700,
   cursor: "pointer"
-};
+};/*/

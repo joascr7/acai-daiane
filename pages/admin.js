@@ -28,6 +28,7 @@ import ProdutoBasico from "../components/Produto/ProdutoBasico";
 import ProdutoPromocao from "../components/Produto/ProdutoPromocao";
 import ProdutoExtras from "../components/Produto/ProdutoExtras";
 import ProdutoImagem from "../components/Produto/ProdutoImagem";
+import Sidebar from "../components/Sidebar";
 
 
 import { getApp } from "firebase/app";
@@ -487,6 +488,7 @@ const [novaVendaDesc, setNovaVendaDesc] = useState("");
 const [novaVendaValor, setNovaVendaValor] = useState("");
 const [editandoVenda, setEditandoVenda] = useState(null);
 const [editandoGasto, setEditandoGasto] = useState(null);
+const [sidebarAberta, setSidebarAberta] = useState(false);
 
   const [fidelidade, setFidelidade] = useState(false);
 
@@ -2225,88 +2227,38 @@ if (loadingAuth) {
 
 
   return (
+  <>
+    {/* SIDEBAR */}
+    <Sidebar
+      abaAdmin={abaAdmin}
+      setAbaAdmin={setAbaAdmin}
+      aberto={sidebarAberta}
+      setAberto={setSidebarAberta}
+      isMobile={isMobile}
+    />
 
-<div
-  className="container"
-  style={{
-    minHeight: "100vh",
-    background: "#f3f4f6",
-    padding: isMobile ? "12px 12px 90px" : "24px"
-  }}
->
-  <div
-    className="wrapper"
-    style={{
-      width: "100%",
-      maxWidth: 1240,
-      margin: "0 auto"
-    }}
-  >
-    {/* HEADER */}
-    <Header lojaAberta={lojaAberta} />
-
-    {/* MENU DESKTOP */}
-    {!isMobile && (
+    {/* CONTAINER */}
+    <div
+      className="container"
+      style={{
+        marginLeft: isMobile ? 0 : 240,
+        minHeight: "100vh",
+        background: "#f3f4f6",
+        padding: isMobile ? "12px" : "24px"
+      }}
+    >
       <div
+        className="wrapper"
         style={{
-          display: "flex",
-          gap: 10,
-          overflowX: "auto",
-          marginBottom: 18,
-          paddingBottom: 6
+          width: "100%",
+          maxWidth: 1240,
+          margin: "0 auto"
         }}
       >
-        {[
-          { id: "dashboard", nome: "Dashboard" },
-          { id: "pedidos", nome: "Pedidos" },
-          { id: "cancelados", nome: "Cancelados" },
-          { id: "produtos", nome: "Produtos" },
-          { id: "avaliacoes", nome: "Avaliações" },
-          { id: "gastos", nome: "Gastos" },
-          { id: "cupons", nome: "Cupons" },
-          { id: "fretes", nome: "Fretes" },
-          { id: "notificacoes", nome: "Notificações" },
-          { id: "banners", nome: "Banner" },
-          { id: "loja", nome: "Loja" }
-        ].map((item) => {
-          const ativo = abaAdmin === item.id;
+        {/* HEADER */}
+        <Header lojaAberta={lojaAberta} />
 
-          return (
-            <button
-              key={item.id}
-              onClick={() => setAbaAdmin(item.id)}
-              style={{
-                height: 42,
-                padding: "0 16px",
-                borderRadius: 999,
-                border: ativo ? "none" : "1px solid #e5e7eb",
-                whiteSpace: "nowrap",
-                background: ativo ? "#ea1d2c" : "#ffffff",
-                color: ativo ? "#ffffff" : "#374151",
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: "pointer",
-                transition: "0.2s",
-                boxShadow: ativo
-                  ? "0 8px 20px rgba(234,29,44,0.25)"
-                  : "0 2px 6px rgba(0,0,0,0.05)"
-              }}
-              onMouseEnter={(e) => {
-                if (!ativo)
-                  e.currentTarget.style.background = "#f9fafb";
-              }}
-              onMouseLeave={(e) => {
-                if (!ativo)
-                  e.currentTarget.style.background = "#ffffff";
-              }}
-            >
-              {item.nome}
-            </button>
-          );
-        })}
-      </div>
-    )}
-
+   
     {/* DASHBOARD */}
     {abaAdmin === "dashboard" && (
       <div
@@ -2636,33 +2588,6 @@ if (loadingAuth) {
 
 
 
-
-
-
-
- {isMobile && typeof window !== "undefined" && (
-  <>
-    <BottomNav
-      abaAdmin={abaAdmin || "dashboard"}
-      setAbaAdmin={setAbaAdmin}
-      pedidosEmAndamento={Number(pedidosEmAndamento) || 0}
-      setAbrirMaisMenu={setAbrirMaisMenu}
-    />
-
-    {abrirMaisMenu && (
-      <Overlay onClick={() => setAbrirMaisMenu(false)} />
-    )}
-
-    {abrirMaisMenu && (
-      <MaisMenu
-        setAbaAdmin={setAbaAdmin}
-        setAbrirMaisMenu={setAbrirMaisMenu}
-        notificacoesAdmin={notificacoesAdmin || []}
-      />
-    )}
-  </>
-)}
-
       <style jsx>{`
   .container {
     background: #f4f5f7;
@@ -2740,7 +2665,8 @@ if (loadingAuth) {
   }
 `}</style>
 
+        </div>
     </div>
-  </div>
+  </>
 );
 }

@@ -1,4 +1,4 @@
-import BottomNavItem from "./BottomNavItem";
+ /*import BottomNavItem from "./BottomNavItem";
 import { Home, ClipboardList, Package, DollarSign, MoreHorizontal } from "lucide-react";
 
 export default function BottomNav({
@@ -40,7 +40,7 @@ export default function BottomNav({
         onClick={(v) => setAbaAdmin && setAbaAdmin(v)}
       />
 
-      {/* BOTÃO MAIS */}
+      {/* BOTÃO MAIS 
       <button
         onClick={() => setAbrirMaisMenu && setAbrirMaisMenu(true)}
         style={btn}
@@ -49,4 +49,4 @@ export default function BottomNav({
       </button>
     </div>
   );
-}
+}/*/
