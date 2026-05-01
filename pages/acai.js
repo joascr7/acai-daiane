@@ -12,6 +12,10 @@ import Layout from "../components/layout";
 
 // 🔥 FIREBASE (INSTÂNCIAS)
 import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
+import ListaProdutos from "../components/acai/components/ListaProdutos";
+import useProdutos from "../components/acai/hooks/useProdutos";
+import usePedidosUsuario from "../components/acai/hooks/usePedidosUsuario";
+import useNotificacoes from "../components/acai/hooks/useNotificacoes";
 
 
 import CardProduto from "../components/CardProduto";
@@ -464,6 +468,9 @@ useEffect(() => {
   setMounted(true);
 }, []);
 
+
+
+
 const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
@@ -471,7 +478,9 @@ const [modoCompra, setModoCompra] = useState("normal");
 
 const [clienteLat, setClienteLat] = useState(null);
 const [clienteLng, setClienteLng] = useState(null);
+const notificacoesRef = useRef([]);
 
+const [sidebarAberta, setSidebarAberta] = useState(false);
 
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
@@ -637,7 +646,7 @@ const [comentario, setComentario] = useState("");
 }, [aba, step]);
 
   const [lojaAberta, setLojaAberta] = useState(true);
-  const [pedidos, setPedidos] = useState([]);
+  const { pedidos } = usePedidosUsuario(user);
   const [selectedId, setSelectedId] = useState(null);
 
 const [enderecoSelecionado, setEnderecoSelecionado] = useState(null);
@@ -656,7 +665,7 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
 
   // 🔥 PRODUTO
   const [produto, setProduto] = useState(null);
-  const [produtos, setProdutos] = useState([]);
+  const { produtos } = useProdutos();
   const maisVendido = calcularMaisVendido(pedidos);
   const extrasDoProduto = Array.isArray(produto?.extras) && produto.extras.length
   ? produto.extras
@@ -675,7 +684,7 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
     // 🔥 CARRINHO
   const [quantidade, setQuantidade] = useState(1);
   const [carrinho, setCarrinho] = useState([]);
-  const [notificacoes, setNotificacoes] = useState([]);
+  const { notificacoes } = useNotificacoes(user, authReady);
   const [temNotificacao, setTemNotificacao] = useState(false);
   const temNotificacaoAtiva =
   Array.isArray(notificacoes) &&
@@ -884,59 +893,6 @@ const blurInput = (e) => {
   boxSizing: "border-box"
 };
 
-// 🔥MAPA EM TEMPO REAL
-useEffect(() => {
-  const paymentId = localStorage.getItem("paymentId");
-
-  if (!paymentId) {
-    console.log("SEM PAYMENT ID");
-    return;
-  }
-
-  console.log("BUSCANDO PEDIDO COM:", paymentId);
-
-  const q = query(
-    collection(db, "pedidos"),
-    where("paymentId", "==", paymentId)
-  );
-
-  const unsub = onSnapshot(q, (snapshot) => {
-    if (snapshot.empty) {
-      console.log("PEDIDO NÃO ENCONTRADO AINDA...");
-      return;
-    }
-
-    const docSnap = snapshot.docs[0];
-    const pedido = docSnap.data();
-
-    console.log("PEDIDO ENCONTRADO:", pedido);
-
-    // 🔥 PAGAMENTO
-    if (pedido.statusPagamento === "pago") {
-      console.log("PAGAMENTO CONFIRMADO");
-    }
-
-    // 🔥 LOCALIZAÇÃO
-    if (pedido.entrega?.localizacao) {
-      console.log("LOCAL:", pedido.entrega.localizacao);
-    }
-
-    // 🔥 STATUS
-    if (pedido.status === "saiu") {
-      alert("Seu pedido saiu para entrega");
-    }
-
-    if (pedido.status === "chegou") {
-      alert("Entregador chegou");
-    }
-
-    if (pedido.status === "entregue") {
-      alert("Pedido entregue");
-    }
-  });
-
-  return () => unsub();
-}, []);
 
 
 
@@ -953,6 +909,38 @@ useEffect(() => {
     window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   };
 }, []);
+
+
+useEffect(() => {
+  const handlePromo = () => {
+    setCategoriaSelecionada("promocoes"); // 🔥 ou o nome que você usa
+  };
+
+  window.addEventListener("verPromocoes", handlePromo);
+
+  return () => {
+    window.removeEventListener("verPromocoes", handlePromo);
+  };
+}, []);
+
+
+useEffect(() => {
+  if (!notificacoes.length) return;
+
+  const novas = notificacoes.filter(n =>
+    !notificacoesRef.current.some(old => old.id === n.id)
+  );
+
+  if (novas.length > 0) {
+    console.log("🔔 nova notificação");
+
+    // 🔊 TOCAR SOM AQUI (se tiver)
+    // playSound()
+
+  }
+
+  notificacoesRef.current = notificacoes;
+}, [notificacoes]);
 
 
 
@@ -1061,6 +1049,62 @@ useEffect(() => {
   processarFidelidade();
 
 }, [pedidos]);
+
+
+
+// 🔥MAPA EM TEMPO REAL
+useEffect(() => {
+  const paymentId = localStorage.getItem("paymentId");
+
+  if (!paymentId) {
+    console.log("SEM PAYMENT ID");
+    return;
+  }
+
+  console.log("BUSCANDO PEDIDO COM:", paymentId);
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("paymentId", "==", paymentId)
+  );
+
+  const unsub = onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      console.log("PEDIDO NÃO ENCONTRADO AINDA...");
+      return;
+    }
+
+    const docSnap = snapshot.docs[0];
+    const pedido = docSnap.data();
+
+    console.log("PEDIDO ENCONTRADO:", pedido);
+
+    // 🔥 PAGAMENTO
+    if (pedido.statusPagamento === "pago") {
+      console.log("PAGAMENTO CONFIRMADO");
+    }
+
+    // 🔥 LOCALIZAÇÃO
+    if (pedido.entrega?.localizacao) {
+      console.log("LOCAL:", pedido.entrega.localizacao);
+    }
+
+    // 🔥 STATUS
+    if (pedido.status === "saiu") {
+      alert("Seu pedido saiu para entrega");
+    }
+
+    if (pedido.status === "chegou") {
+      alert("Entregador chegou");
+    }
+
+    if (pedido.status === "entregue") {
+      alert("Pedido entregue");
+    }
+  });
+
+  return () => unsub();
+}, []);
 
 
 
@@ -1181,41 +1225,6 @@ useEffect(() => {
   }, 800);
 }, []);
 
-
-
-useEffect(() => {
-  if (!authReady) return; // 🔥 ESPERA AUTH
-  if (!user?.uid) return;
-
-  const ref = collection(db, "notificacoes");
-
-  const unsubscribe = onSnapshot(ref, (snapshot) => {
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    const filtradas = lista.filter(n => {
-      if (!n?.ativo) return false;
-
-      if (n?.para === "todos") return true;
-
-      if (
-        n?.para === "usuario" &&
-        n?.uid &&
-        String(n.uid) === String(user.uid)
-      ) {
-        return true;
-      }
-
-      return false;
-    });
-
-    setNotificacoes(filtradas);
-  });
-
-  return () => unsubscribe();
-}, [user?.uid, authReady]);
 
 
 
@@ -1488,56 +1497,7 @@ useEffect(() => {
 
 }, []);
 
-  // 🔥 PRODUTOS FIREBASE
- useEffect(() => {
-  const unsub = onSnapshot(collection(db, "produtos"), (snapshot) => {
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
 
-    const listaAtiva = lista
-      .filter(p => p.ativo !== false)
-      .sort((a, b) => {
-        const ordemA = Number(a.ordem ?? 999999);
-        const ordemB = Number(b.ordem ?? 999999);
-
-        if (ordemA !== ordemB) return ordemA - ordemB;
-
-        return (a.nome || "").localeCompare(b.nome || "");
-      });
-
-    setProdutos(listaAtiva);
-  });
-
-  return () => unsub();
-}, []);
-
-
-// 🔥 salvar pedido na aba pedidos
-useEffect(() => {
-
-  if (!user) return;
-
-  const q = query(
-    collection(db, "pedidos"),
-    where("cliente.uid", "==", user.uid)
-  );
-
-  const unsub = onSnapshot(q, (snapshot) => {
-
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    setPedidos(lista);
-
-  });
-
-  return () => unsub();
-
-}, [user]);
 // 🔥 LOGA ABERTA OU FECHADA
 useEffect(() => {
 
@@ -4001,27 +3961,32 @@ const sugestoes = [
 ].slice(0, 6);
 
 return (
+  <>
 
 
 
-
-// CONTAINER ///
-<div style={{
-  minHeight: "100dvh",
-  background: "#fff",
-  color: themeAtual.text,
-  boxSizing: "border-box",
-  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
-}}>
-  <div style={{
-    width: "100%",
-    maxWidth: larguraApp,
-    margin: "0 auto",
-    padding: isMobile ? 0 : "0 20px",
-    boxSizing: "border-box",
-    background: "#fff"
-
-  }}>
+    {/* CONTEÚDO */}
+    <div
+      style={{
+        
+        minHeight: "100dvh",
+        background: "#fff",
+        color: themeAtual.text,
+        boxSizing: "border-box",
+        paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
+      }}
+    >
+      {/* WRAPPER ORIGINAL (SEU) */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: larguraApp,
+          margin: "0 auto",
+          padding: isMobile ? 0 : "0 20px",
+          boxSizing: "border-box",
+          background: "#fff"
+        }}
+      >
 
 
 {/* ========================= */}
@@ -4300,6 +4265,21 @@ return (
   </div>
 )}
 
+{isMobile && (
+  <button
+    onClick={() => setMenuAberto(true)}
+    style={{
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      marginRight: 10,
+      fontSize: 20
+    }}
+  >
+    ☰
+  </button>
+)}
+
 
 {!isMobile && (
   <div
@@ -4404,7 +4384,7 @@ return (
       </div>
 
       {/* PERFIL */}
-      <div
+   { /*  <div
         onClick={() => { setAba("perfil"); setStep(4); }}
         style={{
           cursor: "pointer",
@@ -4412,10 +4392,11 @@ return (
         }}
       >
         <User size={20} />
-      </div>
+      </div>*/}
 
     </div>
   </div>
+  
 )}
 
 
@@ -4834,6 +4815,7 @@ return (
       </div>
     </div>
   </div>
+  
 )}
 
 {/* 🔥 MODAL WHATSAPP (COLOCA AQUI) */}
@@ -5154,14 +5136,11 @@ return (
       >
         Fechar
       </button>
+      
     </div>
   </div>
-)}
-
-
-
-
-
+  )}
+ 
 
 
 {/* STEP 1 */}
@@ -5586,432 +5565,25 @@ return (
 </div>
 
         {/* LISTA DE PRODUTOS HORIZONTAL */}
-<div
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-    padding: "4px 6px 14px"
-  }}
->
- {[...categorias]
-  .sort((a, b) => {
-    const ia = ORDEM_CATEGORIAS.indexOf(normalizar(a.nome));
-    const ib = ORDEM_CATEGORIAS.indexOf(normalizar(b.nome));
-
-    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-  })
-  .map((cat) => {
-
-    const lista = produtos.filter(
-      (p) =>
-        p.ativo === true &&
-        normalizar(p.categoria) === normalizar(cat.nome)
-    );
-
-    if (lista.length === 0) return null;
-
-  return (
-    <div key={cat.id} style={{ marginBottom: 24 }}>
-
-      {/* TÍTULO */}
-      <div
-        style={{
-          fontSize: 18,
-          fontWeight: 900,
-          marginBottom: 12,
-          color: "#111"
-        }}
-      >
-        {cat.nome}
-      </div>
-
-      {/* LISTA DE PRODUTOS */}
-      {lista.map((p, i) => {
-
-        const abrirProduto = () => {
-
-          if (modoCompra === "fidelidade" && p.resgate !== true) {
-            setBloqueioMsg("Escolha apenas o açaí do plano fidelidade");
-            return;
-          }
-
-          if (!p.ativo) return;
-          if (!validarLojaAberta()) return;
-
-          if (categoriaTemExtras(p.categoria)) {
-            setProduto({
-              ...p,
-              fidelidade: p.fidelidade === true,
-              resgate: p.resgate === true,
-              preco: precoFinalProduto(p)
-            });
-
-            setAba("home");
-            setStep(2);
-            return;
-          }
-
-          if (categoriaVaiDiretoCarrinho(p.categoria)) {
-            setCarrinho((prev) => [
-              ...prev,
-              {
-                produto: p,
-                quantidade: 1,
-                extras: [],
-                total: Number(precoFinalProduto(p) || 0)
-              }
-            ]);
-
-            setAba("carrinho");
-            setStep(3);
-            return;
-          }
-        };
-
-        return (
-          <div
-            key={i}
-            style={{
-              position: "relative",
-              background: "#fff",
-              borderRadius: 24,
-              padding: 12,
-              border: "1px solid #f0f0f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-              marginBottom: 10,
-              cursor: "pointer"
-            }}
-            onClick={abrirProduto}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12
-          }}
-        >
-          {/* IMAGEM */}
-          <div
-            style={{
-              width: 160,
-              height: 160,
-              borderRadius: 18,
-              overflow: "hidden",
-              background: "#f6f6f6",
-              flexShrink: 0,
-              position: "relative"
-            }}
-          >
-            <img
-              src={p.imagem || "/acai.png"}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover"
-              }}
-            />
-
-   {/* CONTEÚDO         <div
-  onClick={(e) => {
-    e.stopPropagation();
-    abrirProduto();
-  }}
-  style={{
-    position: "absolute",
-    bottom: 3,
-    right: 22,
-    height: 20,
-    padding: "0 12px",
-    borderRadius: 999,
-    background: "rgba(248, 0, 0, 0.98)",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(0,0,0,0.20)",
-    zIndex: 5,
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)"
-  }}
->
-  <span
-    style={{
-      fontSize: 11,
-      fontWeight: 200,
-      letterSpacing: 0.2,
-      whiteSpace: "nowrap"
-    }}
-  >
-    Montar
-  </span>
-</div>
- */}
-          {(produtoEmPromocao(p) || p.maisVendido) && (
-  <div
-    style={{
-      position: "absolute",
-      top: 8,
-      left: 8, // 🔥 fixa na esquerda
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "flex-start", // 🔥 alinhado à esquerda
-      gap: 4,
-      zIndex: 2
-    }}
-  >
-    {/* 🔥 OFERTA */}
-    {produtoEmPromocao(p) && (
-  <div
-    style={{
-      position: "absolute",
-      top: 1,
-      left: 8,
-      background: "#ea1d2c",
-      color: "#fff",
-      fontSize: 11,
-      fontWeight: 800,
-      padding: "3px 10px",
-      borderRadius: 999,
-      whiteSpace: "nowrap",
-      boxShadow: "0 4px 10px rgba(234,29,44,0.35)",
-      zIndex: 2
-    }}
-  >
-    Imperdível
-  </div>
-)}
-
-    {/* ⭐ MAIS PEDIDO */}
-    {p.maisVendido && (
-      <span
-        style={{
-          background: "rgba(0,0,0,0.6)",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-          color: "#fff",
-          fontSize: 11,
-          fontWeight: 700,
-          padding: "3px 10px",
-          borderRadius: 999,
-          whiteSpace: "nowrap",
-          border: "1px solid rgba(255,255,255,0.12)",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.25)"
-        }}
-      >
-        Mais pedido
-      </span>
-    )}
-  </div>
-)}
-          </div>
-
-          {/* CONTEÚDO */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-
-   {/* ⭐ AVALIAÇÃO */}
-  {p.mostrarAvaliacao && Number(p.avaliacao || 0) > 0 && (
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 6,
-      marginBottom: 6
-    }}
-  >
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 4,
-        background: "#fff7ed",
-        color: "#ea580c",
-        padding: "3px 8px",
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 700,
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-        whiteSpace: "nowrap"
-      }}
-    >
-      ⭐ {Number(p.avaliacao).toFixed(1)}
-    </div>
-
-    {Number(p.totalAvaliacoes || 0) > 0 && (
-      <span
-        style={{
-          fontSize: 11,
-          color: "#6b7280",
-          fontWeight: 500,
-          whiteSpace: "nowrap"
-        }}
-      >
-        {p.totalAvaliacoes} avaliações
-      </span>
-    )}
-  </div>
-)}
-
-            {/* NOME */}
-<div
-  style={{
-    fontSize: 15,
-    fontWeight: 800,
-    color: "#111",
-    lineHeight: 1.2
-  }}
->
-  {p.nome} {p.maisVendido && "🔥"}
-</div>
-
-{/* DESCRIÇÃO */}
-{!!p.descricao && (
-  <div
-    style={{
-      marginTop: 6,
-      fontSize: 10,
-      color: "#666",
-      WebkitLineClamp: 3,
-      display: "-webkit-box",
-      WebkitBoxOrient: "vertical",
-      overflow: "hidden",
-      lineHeight: 1.4
-    }}
-  >
-    {p.descricao}
-  </div>
-)}
-
-{/* 🔥 TAMANHO (IGUAL IMAGEM) */}
-{p.tamanho && (
-  <div
-    style={{
-      marginTop: 8,
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 4,
-      fontSize: 11,
-      fontWeight: 700,
-      color: "#6b21a8",
-      background: "#f3e8ff",
-      padding: "4px 10px",
-      borderRadius: 999
-    }}
-  >
-    {p.tamanho}
-    {p.descricaoTamanho && (
-      <span style={{ fontWeight: 600 }}>
-        • {p.descricaoTamanho}
-      </span>
-    )}
-  </div>
-)}
-    
-  
-  
-
-{/* 🔥 PREÇO (FORMATO IFOOD) */}
-<div style={{ marginTop: 8 }}>
-  {produtoEmPromocao(p) ? (
-    <>
-      <div style={precoAntigo}>
-        {formatarReal(p.preco || 0)}
-      </div>
-
-      <span
-        style={{
-          fontSize: 14,
-          color: "#888",
-          fontWeight: 600
-        }}
-      >
-        A partir de
-      </span>
-
-      <div
-  style={{
-    fontSize: 22,
-    fontWeight: 900,
-    color: produtoEmPromocao(p) ? "#ea1d2c" : "#111", // 🔥 AQUI
-    marginTop: 2
-  }}
->
-  {formatarReal(precoFinalProduto(p))}
-</div>
-    </>
-  ) : (
-    <>
-      <span
-        style={{
-          fontSize: 14,
-          color: "#888",
-          fontWeight: 600
-        }}
-      >
-        A partir de
-      </span>
-
-      <div
-        style={{
-          fontSize: 22,
-          fontWeight: 900,
-          color: "#111",
-          marginTop: 2
-        }}
-      >
-        {formatarReal(precoFinalProduto(p))}
-      </div>
-    </>
-  )}
-</div>
-
-{/* 🔥 BOTÃO ULTRA PREMIUM */}
-{/*<div
-  onClick={(e) => {
-    e.stopPropagation();
-    abrirProduto();
-  }}
-  style={{
-    position: "absolute",
-    bottom: 12,
-    right: 12,
-
-    width: 42,
-    height: 42,
-    borderRadius: "50%",
-
-    background: "rgba(255,255,255,0.9)",
-    backdropFilter: "blur(8px)",
-
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-
-    boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
-
-    cursor: "pointer",
-    transition: "all .2s ease"
-  }}
-  onTouchStart={(e) => {
-    e.currentTarget.style.transform = "scale(0.92)";
-  }}
-  onTouchEnd={(e) => {
-    e.currentTarget.style.transform = "scale(1)";
-  }}
->
-  <Eye size={18} strokeWidth={2.2} color="#111" />
-</div>*/}
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>
- );
-      })}
-    </div>
+<ListaProdutos
+  categorias={categorias}
+  produtos={produtos}
+  carrinho={carrinho}
+  setCarrinho={setCarrinho}
+  modoCompra={modoCompra}
+  setBloqueioMsg={setBloqueioMsg}
+  validarLojaAberta={validarLojaAberta}
+  categoriaTemExtras={categoriaTemExtras}
+  categoriaVaiDiretoCarrinho={categoriaVaiDiretoCarrinho}
+  precoFinalProduto={precoFinalProduto}
+  produtoEmPromocao={produtoEmPromocao}
+  formatarReal={formatarReal}
+  setProduto={setProduto}
+  setAba={setAba}
+  setStep={setStep}
+  normalizar={normalizar}
+  ORDEM_CATEGORIAS={ORDEM_CATEGORIAS}
+/>
  
 
 {/* BARRA FLUTUANTE DO CARRINHO */}
@@ -6418,8 +5990,11 @@ return (
         </div>
       </div>
     </div>
+    
 
 )}
+
+
     </div>
 
     <style>
@@ -6442,6 +6017,7 @@ return (
     </style>
   </>
 )}
+
 
 
 {aba === "home" && step === 2 && produto && categoriaTemExtras(produto.categoria) && (
@@ -9111,6 +8687,7 @@ return (
         boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
       }}
     >
+      
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <button
           onClick={() => {
@@ -13109,7 +12686,8 @@ const corStatus =
   }
   `}</style>
     
-    </div>
-    </div>
-  );
+       </div> 
+    </div>   
+  </>
+);
 }

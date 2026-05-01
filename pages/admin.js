@@ -482,6 +482,10 @@ const [toast, setToast] = useState(null);
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
+
+const [tamanho, setTamanho] = useState("")
+const [descricaoTamanho, setDescricaoTamanho] = useState("")
+
 const [vendasManuais, setVendasManuais] = useState([]);
 const [mostrarModalVenda, setMostrarModalVenda] = useState(false);
 const [novaVendaDesc, setNovaVendaDesc] = useState("");
@@ -2485,14 +2489,22 @@ if (loadingAuth) {
   salvarProduto={salvarProduto}
 >
   <ProdutoBasico
-    novoNome={novoNome}
-    setNovoNome={setNovoNome}
-    categoria={categoria}
-    setCategoria={setCategoria}
-    categorias={categorias}
-    novoPreco={novoPreco}
-    setNovoPreco={setNovoPreco}
-  />
+  novoNome={novoNome}
+  setNovoNome={setNovoNome}
+  categoria={categoria}
+  setCategoria={setCategoria}
+  categorias={categorias}
+  novoPreco={novoPreco}
+  setNovoPreco={setNovoPreco}
+
+  novoTamanho={novoTamanho}
+  setNovoTamanho={setNovoTamanho}
+  novaDescricaoTamanho={novaDescricaoTamanho}
+  setNovaDescricaoTamanho={setNovaDescricaoTamanho}
+
+  novaDescricao={novaDescricao}
+  setNovaDescricao={setNovaDescricao}
+/>
 
   <ProdutoPromocao
     promocaoAtiva={promocaoAtiva}
