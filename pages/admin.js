@@ -2638,7 +2638,7 @@ if (loadingAuth) {
 
 
 
-  {isMobile && (
+ {/* {isMobile && (
   <>
     <BottomNav
       abaAdmin={abaAdmin}
@@ -2651,15 +2651,15 @@ if (loadingAuth) {
       <Overlay onClick={() => setAbrirMaisMenu(false)} />
     )}
 
-    {/* {abrirMaisMenu && (
+     {abrirMaisMenu && (
   <MaisMenu
     setAbaAdmin={setAbaAdmin}
     setAbrirMaisMenu={setAbrirMaisMenu}
     notificacoesAdmin={notificacoesAdmin}
   />
-)} */}
+)} 
   </>
-)}
+)}*/}
 
       <style jsx>{`
   .container {
