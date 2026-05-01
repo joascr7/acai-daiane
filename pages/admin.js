@@ -652,24 +652,30 @@ useEffect(() => {
 useEffect(() => {
   if (!Array.isArray(pedidos)) return;
 
-  // 🔥 primeira carga → só registra, não toca
+  console.log("PEDIDOS:", pedidos); // 👈 COLOCA AQUI
+
+  const statusValidos = [
+    "aguardando_pagamento",
+    "aguardando_pagamento_online"
+  ];
+
   if (!carregou.current) {
-    pedidos.forEach(p => pedidosNotificados.current.add(p.id));
+    pedidos.forEach(p => {
+      pedidosNotificados.current.add(p.id + "_" + p.status);
+    });
     carregou.current = true;
     return;
   }
 
   pedidos.forEach((p) => {
-    const statusValido = [
-      "aguardando_pagamento",
-      "aguardando_pagamento_online"
-    ].includes(p.status);
+    const chaveUnica = p.id + "_" + p.status;
 
-    if (!statusValido) return;
+    if (!statusValidos.includes(p.status)) return;
 
-    if (pedidosNotificados.current.has(p.id)) return;
+    if (pedidosNotificados.current.has(chaveUnica)) return;
 
-    pedidosNotificados.current.add(p.id);
+    pedidosNotificados.current.add(chaveUnica);
+
     tocarSom();
   });
 
@@ -683,8 +689,7 @@ useEffect(() => {
 function tocarSom() {
   const agora = Date.now();
 
-  // 🔥 bloqueia som repetido em menos de 5s
-  if (agora - ultimoSom.current < 5000) return;
+  if (agora - ultimoSom.current < 4000) return;
 
   ultimoSom.current = agora;
 
