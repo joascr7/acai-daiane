@@ -494,6 +494,7 @@ const ultimoSom = useRef(0);
 const pedidosNotificados = useRef(new Set());
 const carregou = useRef(false);
 
+
   const [fidelidade, setFidelidade] = useState(false);
 
   const [produtoOrigemExtras, setProdutoOrigemExtras] = useState("");
@@ -689,12 +690,14 @@ useEffect(() => {
 function tocarSom() {
   const agora = Date.now();
 
-  if (agora - ultimoSom.current < 4000) return;
+  // 🔥 trava anti-spam (10 segundos)
+  if (agora - ultimoSom.current < 10000) return;
 
   ultimoSom.current = agora;
 
   const audio = new Audio("/notificacao.mp3");
   audio.currentTime = 0;
+
   audio.play().catch(() => {});
 }
 
