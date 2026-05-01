@@ -9,20 +9,14 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
   const [ano, setAno] = useState(hoje.getFullYear());
   const [feriadosApi, setFeriadosApi] = useState([]);
 
-  // 🔥 BUSCAR FERIADOS
   useEffect(() => {
     async function carregarFeriados() {
-      try {
-        const res = await fetch(
-          `https://brasilapi.com.br/api/feriados/v1/${ano}`
-        );
-        const data = await res.json();
-        setFeriadosApi(data || []);
-      } catch (e) {
-        console.log(e);
-      }
+      const res = await fetch(
+        `https://brasilapi.com.br/api/feriados/v1/${ano}`
+      );
+      const data = await res.json();
+      setFeriadosApi(data || []);
     }
-
     carregarFeriados();
   }, [ano]);
 
@@ -44,40 +38,14 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
 
   for (let i = 1; i <= totalDias; i++) {
     const d = new Date(ano, mes, i);
-
-    const key = d.toLocaleDateString("en-CA"); // 🔥 sem bug
-
+    const key = d.toLocaleDateString("en-CA");
     dias.push({ date: d, key });
   }
 
   const hojeKey = hoje.toLocaleDateString("en-CA");
 
-  async function toggleFeriado(key) {
-    const existe = horarios?.feriados?.[key];
-
-    try {
-      if (existe) {
-        await updateDoc(doc(db, "config", "horarioFuncionamento"), {
-          [`feriados.${key}`]: deleteField()
-        });
-      } else {
-        await updateDoc(doc(db, "config", "horarioFuncionamento"), {
-          [`feriados.${key}`]: {
-            abre: "16:00",
-            fecha: "23:00",
-            ativo: true
-          }
-        });
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
   return (
-    <div style={card}>
-      
-      {/* HEADER */}
+    <div style={calendarCard}>
       <div style={header}>
         <button onClick={() => setMes(mes - 1)} style={navBtn}>◀</button>
 
@@ -88,66 +56,51 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
         <button onClick={() => setMes(mes + 1)} style={navBtn}>▶</button>
       </div>
 
-      {/* DIAS SEMANA */}
       <div style={weekGrid}>
         {diasSemana.map((d, i) => (
           <div key={i} style={weekDay}>{d}</div>
         ))}
       </div>
 
-      {/* CALENDÁRIO */}
-      <div style={grid}>
+      <div style={gridCalendar}>
         {dias.map((d, i) => {
           if (!d) return <div key={i} />;
 
           const feriadoInfo = feriadosApi.find(f => f.date === d.key);
-
           const isHoje = d.key === hojeKey;
-          const isFeriadoApi = !!feriadoInfo;
-          const isFeriadoManual = horarios?.feriados?.[d.key];
-
-          const isFeriado = isFeriadoManual || isFeriadoApi;
+          const isFeriado = !!feriadoInfo || horarios?.feriados?.[d.key];
 
           return (
             <div
               key={d.key}
-              onClick={() => toggleFeriado(d.key)}
               style={{
                 ...day,
                 background: isFeriado
                   ? "#ea1d2c"
                   : isHoje
                   ? "#1e293b"
-                  : "#020617",
-                border: isHoje ? "1px solid #475569" : "1px solid #1e293b"
+                  : "#020617"
               }}
             >
               <div>{d.date.getDate()}</div>
 
-              {/* 🔥 NOME CURTO */}
               {feriadoInfo && (
                 <div style={feriadoNome}>
                   {feriadoInfo.name.replace("Dia do", "").split(" ")[0]}
                 </div>
               )}
-
-              {isFeriado && <div style={dot} />}
             </div>
           );
         })}
-      </div>
-
-      <div style={legend}>
-        <span><b>•</b> Vermelho = Feriado</span>
       </div>
     </div>
   );
 }
 
-const card = {
+const calendarCard = {
   background: "#020617",
-  padding: 16,
-  borderRadius: 16,
+  padding: 12,
+  borderRadius: 14,
   border: "1px solid #1e293b"
 };
 
@@ -155,7 +108,7 @@ const header = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  marginBottom: 12
+  marginBottom: 10
 };
 
 const titulo = {
@@ -168,62 +121,38 @@ const navBtn = {
   border: "1px solid #1e293b",
   color: "#fff",
   borderRadius: 8,
-  padding: "4px 10px",
-  cursor: "pointer"
+  padding: "4px 8px"
 };
 
 const weekGrid = {
   display: "grid",
   gridTemplateColumns: "repeat(7, 1fr)",
-  marginBottom: 6
+  marginBottom: 4
 };
 
 const weekDay = {
-  textAlign: "center",
-  fontSize: 11,
-  color: "#64748b"
+  fontSize: 10,
+  color: "#64748b",
+  textAlign: "center"
 };
 
-const grid = {
+const gridCalendar = {
   display: "grid",
   gridTemplateColumns: "repeat(7, 1fr)",
-  gap: 6
+  gap: 4
 };
 
 const day = {
-  height: 52,
+  height: 44,
   borderRadius: 10,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  cursor: "pointer",
-  fontWeight: 600,
-  position: "relative"
+  fontSize: 12
 };
 
 const feriadoNome = {
-  fontSize: 9,
-  marginTop: 2,
-  opacity: 0.9,
-  textAlign: "center",
-  maxWidth: "100%",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap"
-};
-
-const dot = {
-  width: 5,
-  height: 5,
-  background: "#fff",
-  borderRadius: "50%",
-  position: "absolute",
-  bottom: 6
-};
-
-const legend = {
-  marginTop: 10,
-  fontSize: 11,
-  color: "#64748b"
+  fontSize: 7,
+  opacity: 0.8
 };
