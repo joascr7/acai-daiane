@@ -3963,30 +3963,75 @@ const sugestoes = [
 return (
   <>
 
-   {/* CONTEÚDO */}
-<div
-  style={{
-    minHeight: "100%",
-    background: "#fff",
-    color: themeAtual.text,
-    boxSizing: "border-box",
+    {/* RESET GLOBAL (garante sem espaço no topo) */}
+    <style>
+      {`
+        html, body {
+          margin: 0;
+          padding: 0;
+          background: #fff;
+        }
+      `}
+    </style>
 
-    // mantém safe area só embaixo
-    paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
+    {/* CONTAINER PRINCIPAL */}
+    <div
+      style={{
+        width: "100%",
+        minHeight: "100vh", // 🔥 NÃO usa dvh
+        background: "#fff",
+        color: themeAtual.text
+      }}
+    >
+
+      {/* HEADER */}
+      <div
+        style={{
+          width: "100%",
+          padding: "10px 16px 12px", // 🔥 sem safe-area
+          background: "#f5f5f5",
+          boxSizing: "border-box"
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12
+          }}
+        >
+          <div
+  style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 50,
+    background: "#fff",
+    zIndex: 1000
   }}
 >
-  {/* WRAPPER */}
-  <div
-    style={{
-      width: "100%",
-      maxWidth: larguraApp,
-      margin: "0 auto",
-      padding: isMobile ? 0 : "0 20px",
-      boxSizing: "border-box",
-      background: "#fff"
-    }}
-  >
+  Açaí da Daiane
+</div>
 
+          <div style={{ display: "flex", gap: 10 }}>
+            {/* aqui seus botões */}
+          </div>
+        </div>
+      </div>
+
+      {/* CONTEÚDO */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: larguraApp,
+          margin: "0 auto",
+          padding: isMobile ? "10px 0 20px" : "20px",
+          boxSizing: "border-box"
+        }}
+      >
+  
 
 {/* ========================= */}
     {/* 🔥 MODAL DE AVALIACAO */}
