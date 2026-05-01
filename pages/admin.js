@@ -116,6 +116,13 @@ import { CSS } from "@dnd-kit/utilities";
 
 export default function Admin() {
 
+  if (typeof window !== "undefined") {
+  window.onerror = function (msg, url, line, col, error) {
+    console.log("🔥 ERRO REAL:", msg, error);
+    alert(msg);
+  };
+}
+
   
 
 const [abaAdmin, setAbaAdmin] = useState("dashboard");
