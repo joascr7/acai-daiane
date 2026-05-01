@@ -3525,32 +3525,28 @@ async function finalizarPedido() {
     return;
   }
 
-  if (
-    tipoEntrega !== "retirada" &&
-    (!clienteEndereco || !clienteNumeroCasa || !clienteBairro)
-  ) {
-    mostrarMensagemPagamento("Preencha o endereço.", "erro");
-    setAba("perfil");
-    setStep(4);
-    setAbaPerfil("endereco");
-    return;
-  }
+  // 🔥 VALIDAÇÃO CORRETA DE ENTREGA
+  if (tipoEntrega === "entrega") {
 
-  if (!formaPagamento) {
-    mostrarMensagemPagamento("Escolha o pagamento.", "erro");
-    return;
-  }
+    const enderecoInvalido =
+      !clienteEndereco ||
+      !clienteNumeroCasa ||
+      !clienteBairro;
 
-  if (tipoEntrega !== "retirada") {
-    if (precisaLocalizacao) {
+    if (enderecoInvalido) {
       mostrarMensagemPagamento(
-        "Informe seu endereço para calcular o frete.",
+        "Preencha seu endereço completo.",
         "erro"
       );
+
+      setAba("perfil");
+      setStep(4);
+      setAbaPerfil("endereco");
+
       return;
     }
 
-    if (foraDaArea) {
+    if (foraDaArea === true) {
       mostrarMensagemPagamento(
         "Endereço fora da área de entrega (máx 7km).",
         "erro"
@@ -3558,6 +3554,22 @@ async function finalizarPedido() {
       return;
     }
   }
+
+  if (!formaPagamento) {
+    console.log("FORMA PAGAMENTO VAZIA");
+    mostrarMensagemPagamento("Escolha o pagamento.", "erro");
+    return;
+  }
+
+  // 🔥 DEBUG
+  console.log({
+    tipoEntrega,
+    clienteEndereco,
+    clienteNumeroCasa,
+    clienteBairro,
+    foraDaArea,
+    formaPagamento
+  });
 
   try {
     setLoadingPedido(true);
@@ -3568,7 +3580,7 @@ async function finalizarPedido() {
     const taxaEntregaFinal =
       tipoEntrega === "retirada" ? 0 : Number(taxaEntrega || 0);
 
-    const totalFinalCalc = totalFinal + taxaEntregaFinal;
+    const totalFinalCalc = Number(totalFinal || 0) + taxaEntregaFinal;
 
     const pedidoBase = {
       codigo,
@@ -3590,7 +3602,6 @@ async function finalizarPedido() {
         total: item.gratis ? 0 : Number(item.total || 0),
         gratis: item.gratis === true,
 
-        // 🔥 CORREÇÃO AQUI
         extras: (item.extras || []).map(e => ({
           nome: e.nome || "",
           preco: Number(e.preco || 0),
@@ -3602,9 +3613,8 @@ async function finalizarPedido() {
       subtotal: subtotalCalc,
       taxaEntrega: taxaEntregaFinal,
       total: totalFinalCalc,
-      formaPagamento,
+      formaPagamento: formaPagamento.toLowerCase(),
       data: Date.now(),
-
       observacao: String(observacaoPedido || "").trim(),
 
       cupom: cupomAplicado
@@ -3618,14 +3628,14 @@ async function finalizarPedido() {
     };
 
     // 💳 CARTÃO ONLINE
-    if (formaPagamento === "cartao_online") {
+    if (formaPagamento.toLowerCase() === "cartao_online") {
       const res = await fetch("/api/checkoutpro", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          total: totalFinalCalc / 100,
+          total: totalFinalCalc,
           pedidoId,
           nome: clienteNome,
           email: clienteEmail
@@ -3652,15 +3662,19 @@ async function finalizarPedido() {
     }
 
     // 🟢 PIX
-    if (formaPagamento === "pix") {
+    if (formaPagamento.toLowerCase() === "pix") {
+      console.log("PIX OK");
+
       await setDoc(doc(db, "pedidos", pedidoId), {
         ...pedidoBase,
         status: "aguardando_pagamento_pix"
       });
 
-      mostrarMensagemPagamento("Pedido criado. Pague no Pix.", "sucesso");
+      mostrarMensagemPagamento("Pedido criado. Gere o Pix.", "sucesso");
+
       setPedidoPixAberto({ ...pedidoBase, id: pedidoId });
       setMostrarPagamento(true);
+
       return;
     }
 
