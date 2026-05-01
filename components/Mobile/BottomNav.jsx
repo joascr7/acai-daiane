@@ -53,14 +53,22 @@ const nav = {
   background: "#020617",
   borderTop: "1px solid #1f2937",
   display: "flex",
-  zIndex: 9999
+  zIndex: 9999,
+
+  height: "calc(56px + env(safe-area-inset-bottom))",
+  paddingBottom: "env(safe-area-inset-bottom)",
+
+  backdropFilter: "blur(10px)"
 };
 
 const btn = {
   flex: 1,
-  height: 52,
+  height: 56,
   background: "transparent",
   border: "none",
   color: "#6b7280",
-  fontSize: 20
+  fontSize: 20,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
 };
