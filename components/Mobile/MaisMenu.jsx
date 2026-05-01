@@ -13,6 +13,13 @@ export default function MaisMenu({
     { id: "loja", label: "Loja", icon: Store }
   ];
 
+  // 🔒 seguro (não quebra se undefined)
+  const listaNotificacoes = Array.isArray(notificacoesAdmin)
+    ? notificacoesAdmin
+    : [];
+
+  const naoLidas = listaNotificacoes.filter((n) => !n?.lida).length;
+
   return (
     <div style={menu}>
       {itens.map((item) => {
@@ -29,14 +36,11 @@ export default function MaisMenu({
           >
             <Icon size={18} />
 
-            {item.label}
+            <span>{item.label}</span>
 
-            {item.id === "notificacoes" &&
-              notificacoesAdmin.filter(n => !n.lida).length > 0 && (
-                <div style={badge}>
-                  {notificacoesAdmin.filter(n => !n.lida).length}
-                </div>
-              )}
+            {item.id === "notificacoes" && naoLidas > 0 && (
+              <div style={badge}>{naoLidas}</div>
+            )}
           </div>
         );
       })}
