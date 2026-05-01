@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { doc, updateDoc, deleteField } from "firebase/firestore";
 import { dbAdmin as db } from "../services/firebaseDual";
 
-export default function CalendarioFeriados({ horarios, isMobile }) {
+import React, { useEffect, useState } from "react";
+
+export default function CalendarioFeriados({ horarios }) {
   const hoje = new Date();
 
   const [mes, setMes] = useState(hoje.getMonth());
@@ -11,11 +13,15 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
 
   useEffect(() => {
     async function carregarFeriados() {
-      const res = await fetch(
-        `https://brasilapi.com.br/api/feriados/v1/${ano}`
-      );
-      const data = await res.json();
-      setFeriadosApi(data || []);
+      try {
+        const res = await fetch(
+          `https://brasilapi.com.br/api/feriados/v1/${ano}`
+        );
+        const data = await res.json();
+        setFeriadosApi(data || []);
+      } catch (e) {
+        console.log(e);
+      }
     }
     carregarFeriados();
   }, [ano]);
@@ -46,6 +52,7 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
 
   return (
     <div style={calendarCard}>
+      {/* HEADER */}
       <div style={header}>
         <button onClick={() => setMes(mes - 1)} style={navBtn}>◀</button>
 
@@ -56,12 +63,14 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
         <button onClick={() => setMes(mes + 1)} style={navBtn}>▶</button>
       </div>
 
+      {/* DIAS */}
       <div style={weekGrid}>
         {diasSemana.map((d, i) => (
           <div key={i} style={weekDay}>{d}</div>
         ))}
       </div>
 
+      {/* CALENDÁRIO */}
       <div style={gridCalendar}>
         {dias.map((d, i) => {
           if (!d) return <div key={i} />;
@@ -86,7 +95,7 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
 
               {feriadoInfo && (
                 <div style={feriadoNome}>
-                  {feriadoInfo.name.replace("Dia do", "").split(" ")[0]}
+                  {feriadoInfo.name.replace("Dia do", "").slice(0, 10)}
                 </div>
               )}
             </div>
@@ -97,11 +106,15 @@ export default function CalendarioFeriados({ horarios, isMobile }) {
   );
 }
 
+
 const calendarCard = {
   background: "#020617",
-  padding: 12,
+  padding: 10,
   borderRadius: 14,
-  border: "1px solid #1e293b"
+  border: "1px solid #1e293b",
+  width: "100%",
+  boxSizing: "border-box",
+  overflow: "hidden"
 };
 
 const header = {
@@ -127,7 +140,7 @@ const navBtn = {
 const weekGrid = {
   display: "grid",
   gridTemplateColumns: "repeat(7, 1fr)",
-  marginBottom: 4
+  marginBottom: 6
 };
 
 const weekDay = {
@@ -139,20 +152,28 @@ const weekDay = {
 const gridCalendar = {
   display: "grid",
   gridTemplateColumns: "repeat(7, 1fr)",
-  gap: 4
+  gap: 6 // 🔥 aumenta espaço (corrige esmagamento)
 };
 
 const day = {
-  height: 44,
-  borderRadius: 10,
+  height: 48, // 🔥 mais altura
+  borderRadius: 12,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 12
+  fontSize: 12,
+  padding: 4,
+  boxSizing: "border-box"
 };
 
 const feriadoNome = {
-  fontSize: 7,
-  opacity: 0.8
+  fontSize: 8,
+  marginTop: 2,
+  opacity: 0.85,
+  textAlign: "center",
+  maxWidth: "100%",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap"
 };
