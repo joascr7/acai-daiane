@@ -4,26 +4,30 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from 'next/router';
 import Cropper from "react-easy-crop";
 import Head from "next/head";
-import Header from "./admin/components/Header";
-import DashboardOverview from "./admin/components/Dashboard/DashboardOverview";
-import GastosOverview from "./admin/components/gastos/GastosOverview";
-import FretesOverview from "./admin/components/fretes/FretesOverview";
-import LojaOverview from "./admin/components/loja/LojaOverview";
-import NotificacoesOverview from "./admin/components/Notificacoes/NotificacoesOverview";
-import CuponsOverview from "./admin/components/Cupons/CuponsOverview";
-import ProdutosOverview from "./admin/components/Produtos/ProdutosOverview";
-import AvaliacoesOverview from "./admin/components/Avaliacoes/AvaliacoesOverview";
-import PedidosOverview from "./admin/components/Pedidos/PedidosOverview";
-import CanceladosOverview from "./admin/components/Pedidos/CanceladosOverview";
-import BannersOverview from "./admin/components/Banners/BannersOverview";
-import ModalVenda from "./admin/components/Modals/ModalVenda";
-import ModalGasto from "./admin/components/Modals/ModalGasto";
-import ModalProduto from "./admin/components/Modals/ModalProduto";
+import Header from "../components/Header";
+import AvaliacoesOverview from "../components/Avaliacoes/AvaliacoesOverview";
+import BannersOverview from "../components/Banners/BannersOverview";
+import CuponsOverview from "../components/Cupons/CuponsOverview";
+import DashboardOverview from "../components/Dashboard/DashboardOverview";
 
-import ProdutoBasico from "./admin/components/Produto/ProdutoBasico";
-import ProdutoPromocao from "./admin/components/Produto/ProdutoPromocao";
-import ProdutoExtras from "./admin/components/Produto/ProdutoExtras";
-import ProdutoImagem from "./admin/components/Produto/ProdutoImagem";
+import FretesOverview from "../components/fretes/FretesOverview";
+import GastosOverview from "../components/gastos/GastosOverview";
+import LojaOverview from "../components/loja/LojaOverview";
+
+import NotificacoesOverview from "../components/Notificacoes/NotificacoesOverview";
+import PedidosOverview from "../components/Pedidos/PedidosOverview";
+import CanceladosOverview from "../components/Pedidos/CanceladosOverview";
+
+import ProdutosOverview from "../components/Produtos/ProdutosOverview";
+
+import ModalVenda from "../components/Modals/ModalVenda";
+import ModalGasto from "../components/Modals/ModalGasto";
+import ModalProduto from "../components/Modals/ModalProduto";
+
+import ProdutoBasico from "../components/Produto/ProdutoBasico";
+import ProdutoPromocao from "../components/Produto/ProdutoPromocao";
+import ProdutoExtras from "../components/Produto/ProdutoExtras";
+import ProdutoImagem from "../components/Produto/ProdutoImagem";
 
 
 import { getApp } from "firebase/app";

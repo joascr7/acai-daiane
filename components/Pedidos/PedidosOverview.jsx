@@ -68,7 +68,17 @@ export default function PedidosOverview({
       >
         {/* EM ANDAMENTO */}
         <div>
-          <h3>Em andamento ({emAndamento.length})</h3>
+          <h3
+  style={{
+    color: "#010408",
+    fontWeight: 700,
+    fontSize: 14,
+    letterSpacing: 0.3,
+    marginBottom: 12
+  }}
+>
+  Em andamento ({emAndamento.length})
+</h3>
 
           {emAndamento.map((p) => (
             <PedidoCard
@@ -84,7 +94,15 @@ export default function PedidosOverview({
 
         {/* ENTREGUES */}
         <div>
-          <h3>Entregues ({entregues.length})</h3>
+          <h3
+  style={{
+    color: "#010408",
+    fontWeight: 700,
+    fontSize: 14,
+    letterSpacing: 0.3,
+    marginBottom: 12
+  }}
+>Entregues ({entregues.length})</h3>
 
           {entregues.map((p) => (
             <PedidoCard
