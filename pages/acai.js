@@ -4384,7 +4384,7 @@ return (
       </div>
 
       {/* PERFIL */}
-   { /*  <div
+     <div
         onClick={() => { setAba("perfil"); setStep(4); }}
         style={{
           cursor: "pointer",
@@ -4392,7 +4392,7 @@ return (
         }}
       >
         <User size={20} />
-      </div>*/}
+      </div>
 
     </div>
   </div>
