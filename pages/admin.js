@@ -658,12 +658,11 @@ useEffect(() => {
 
   const novosPedidos = pedidos.filter(p =>
     !idsAntigos.has(p.id) &&
-    String(p.status).toLowerCase() === "novo"
+    ["aguardando_pagamento", "aguardando_pagamento_online"].includes(p.status)
   );
 
   if (novosPedidos.length > 0) {
-    console.log("NOVOS:", novosPedidos);
-    tocarSomPedido();
+    tocarSom();
   }
 
   pedidosRef.current = pedidos;
@@ -676,13 +675,13 @@ useEffect(() => {
 
   // 🔔 SOM
 function tocarSom() {
-  try {
-    const audio = new Audio("/notificacao.mp3");
-    audio.volume = 1;
-    audio.play().catch(() => {});
-  } catch (e) {
-    console.log("Erro ao tocar som");
-  }
+  const audio = new Audio("/notificacao.mp3");
+  audio.currentTime = 0;
+  audio.volume = 1;
+
+  audio.play().catch(() => {
+    console.log("bloqueado pelo navegador");
+  });
 }
 
 
