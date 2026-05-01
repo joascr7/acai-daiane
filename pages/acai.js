@@ -3966,15 +3966,12 @@ return (
    {/* CONTEÚDO */}
 <div
   style={{
-    minHeight: "100dvh",
+    minHeight: "100%",
     background: "#fff",
     color: themeAtual.text,
     boxSizing: "border-box",
 
-    // 🔥 evita espaço extra no mobile
-    paddingTop: isMobile ? 0 : 0,
-
-    // 🔥 mantém safe area embaixo
+    // mantém safe area só embaixo
     paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
   }}
 >
@@ -3984,10 +3981,7 @@ return (
       width: "100%",
       maxWidth: larguraApp,
       margin: "0 auto",
-
-      // 🔥 importante: sem padding no topo no mobile
-      padding: isMobile ? "0 0 10px" : "0 20px",
-
+      padding: isMobile ? 0 : "0 20px",
       boxSizing: "border-box",
       background: "#fff"
     }}
