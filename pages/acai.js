@@ -2434,13 +2434,15 @@ else {
 
   // ❗ SEM LOCALIZAÇÃO
   if (lat === null || lng === null) {
-    precisaLocalizacao = true;
-  }
+  console.log("Sem localização → permitindo pedido manual");
+
+  precisaLocalizacao = false; // 🔥 NÃO BLOQUEIA MAIS
+}
 
   // 🚫 FORA DA ÁREA
-  else if (distanciaCliente > LIMITE_KM) {
-    foraDaArea = true;
-  }
+  else if (distanciaCliente && distanciaCliente > LIMITE_KM) {
+  foraDaArea = true;
+}
 
   // 🎁 FRETE GRÁTIS (SÓ AQUI)
   else if (subtotalProdutos >= LIMITE_FRETE_GRATIS) {
@@ -3525,9 +3527,8 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 VALIDAÇÃO CORRETA DE ENTREGA
+  // 🔥 VALIDAÇÃO CORRETA DE ENTREGA (SEM DUPLICAÇÃO)
   if (tipoEntrega === "entrega") {
-
     const enderecoInvalido =
       !clienteEndereco ||
       !clienteNumeroCasa ||
@@ -3546,6 +3547,7 @@ async function finalizarPedido() {
       return;
     }
 
+    // 🔥 só bloqueia se tiver certeza
     if (foraDaArea === true) {
       mostrarMensagemPagamento(
         "Endereço fora da área de entrega (máx 7km).",
@@ -3553,15 +3555,18 @@ async function finalizarPedido() {
       );
       return;
     }
+
+    // 🔥 se não calculou distância → permite
+    if (foraDaArea === null || foraDaArea === undefined) {
+      console.log("Sem localização, permitindo pedido");
+    }
   }
 
   if (!formaPagamento) {
-    console.log("FORMA PAGAMENTO VAZIA");
     mostrarMensagemPagamento("Escolha o pagamento.", "erro");
     return;
   }
 
-  // 🔥 DEBUG
   console.log({
     tipoEntrega,
     clienteEndereco,
@@ -3627,13 +3632,11 @@ async function finalizarPedido() {
         : null
     };
 
-    // 💳 CARTÃO ONLINE
+    // 💳 CARTÃO
     if (formaPagamento.toLowerCase() === "cartao_online") {
       const res = await fetch("/api/checkoutpro", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           total: totalFinalCalc,
           pedidoId,
@@ -3663,8 +3666,6 @@ async function finalizarPedido() {
 
     // 🟢 PIX
     if (formaPagamento.toLowerCase() === "pix") {
-      console.log("PIX OK");
-
       await setDoc(doc(db, "pedidos", pedidoId), {
         ...pedidoBase,
         status: "aguardando_pagamento_pix"
