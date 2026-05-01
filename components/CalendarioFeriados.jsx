@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { doc, updateDoc, deleteField } from "firebase/firestore";
 import { dbAdmin as db } from "../services/firebaseDual";
 
-import React, { useEffect, useState } from "react";
+
 
 export default function CalendarioFeriados({ horarios }) {
   const hoje = new Date();
