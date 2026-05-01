@@ -2651,13 +2651,13 @@ if (loadingAuth) {
       <Overlay onClick={() => setAbrirMaisMenu(false)} />
     )}
 
-    {abrirMaisMenu && (
-      <MaisMenu
-        setAbaAdmin={setAbaAdmin}
-        setAbrirMaisMenu={setAbrirMaisMenu}
-        notificacoesAdmin={notificacoesAdmin}
-      />
-    )}
+    {/* {abrirMaisMenu && (
+  <MaisMenu
+    setAbaAdmin={setAbaAdmin}
+    setAbrirMaisMenu={setAbrirMaisMenu}
+    notificacoesAdmin={notificacoesAdmin}
+  />
+)} */}
   </>
 )}
 
