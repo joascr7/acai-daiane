@@ -490,6 +490,7 @@ const [editandoVenda, setEditandoVenda] = useState(null);
 const [editandoGasto, setEditandoGasto] = useState(null);
 const [sidebarAberta, setSidebarAberta] = useState(false);
 const ultimoPedidoTimestamp = useRef(0);
+const ultimoSom = useRef(0);
 
   const [fidelidade, setFidelidade] = useState(false);
 
@@ -668,9 +669,9 @@ useEffect(() => {
 
   // só toca se chegou pedido mais novo
   if (maisRecente > ultimoPedidoTimestamp.current) {
-    tocarSom();
-    ultimoPedidoTimestamp.current = maisRecente;
-  }
+  tocarSom();
+  ultimoPedidoTimestamp.current = maisRecente;
+}
 
 }, [pedidos]);
 
@@ -680,13 +681,16 @@ useEffect(() => {
 
   // 🔔 SOM
 function tocarSom() {
+  const agora = Date.now();
+
+  // 🔥 bloqueia som repetido em menos de 5s
+  if (agora - ultimoSom.current < 5000) return;
+
+  ultimoSom.current = agora;
+
   const audio = new Audio("/notificacao.mp3");
   audio.currentTime = 0;
-  audio.volume = 1;
-
-  audio.play().catch(() => {
-    console.log("bloqueado pelo navegador");
-  });
+  audio.play().catch(() => {});
 }
 
 
