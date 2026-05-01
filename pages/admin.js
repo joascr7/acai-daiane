@@ -2638,28 +2638,41 @@ if (loadingAuth) {
 
 
 
- {/* {isMobile && (
+ {isMobile && (
   <>
+    {/* NAVBAR */}
     <BottomNav
-      abaAdmin={abaAdmin}
-      setAbaAdmin={setAbaAdmin}
-      pedidosEmAndamento={pedidosEmAndamento}
-      setAbrirMaisMenu={setAbrirMaisMenu}
+      abaAdmin={abaAdmin || "dashboard"}
+      setAbaAdmin={(v) => setAbaAdmin && setAbaAdmin(v)}
+      pedidosEmAndamento={Number(pedidosEmAndamento) || 0}
+      setAbrirMaisMenu={(v) => setAbrirMaisMenu && setAbrirMaisMenu(v)}
     />
 
-    {abrirMaisMenu && (
-      <Overlay onClick={() => setAbrirMaisMenu(false)} />
+    {/* OVERLAY */}
+    {abrirMaisMenu === true && (
+      <Overlay
+        onClick={() =>
+          setAbrirMaisMenu && setAbrirMaisMenu(false)
+        }
+      />
     )}
 
-     {abrirMaisMenu && (
-  <MaisMenu
-    setAbaAdmin={setAbaAdmin}
-    setAbrirMaisMenu={setAbrirMaisMenu}
-    notificacoesAdmin={notificacoesAdmin}
-  />
-)} 
+    {/* MENU */}
+    {abrirMaisMenu === true && (
+      <MaisMenu
+        setAbaAdmin={(v) => setAbaAdmin && setAbaAdmin(v)}
+        setAbrirMaisMenu={(v) =>
+          setAbrirMaisMenu && setAbrirMaisMenu(v)
+        }
+        notificacoesAdmin={
+          Array.isArray(notificacoesAdmin)
+            ? notificacoesAdmin
+            : []
+        }
+      />
+    )}
   </>
-)}*/}
+)}
 
       <style jsx>{`
   .container {
