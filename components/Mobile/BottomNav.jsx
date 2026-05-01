@@ -1,5 +1,5 @@
 import BottomNavItem from "./BottomNavItem";
-import { Home, ClipboardList, Package, DollarSign } from "lucide-react";
+import { Home, ClipboardList, Package, DollarSign, MoreHorizontal } from "lucide-react";
 
 export default function BottomNav({
   abaAdmin,
@@ -7,68 +7,46 @@ export default function BottomNav({
   pedidosEmAndamento,
   setAbrirMaisMenu
 }) {
+  const safePedidos = Number(pedidosEmAndamento) || 0;
+
   return (
     <div style={nav}>
       <BottomNavItem
         id="dashboard"
         icon={Home}
         ativo={abaAdmin}
-        onClick={setAbaAdmin}
+        onClick={(v) => setAbaAdmin && setAbaAdmin(v)}
       />
 
       <BottomNavItem
         id="pedidos"
         icon={ClipboardList}
         ativo={abaAdmin}
-        onClick={setAbaAdmin}
-        badge={pedidosEmAndamento}
+        onClick={(v) => setAbaAdmin && setAbaAdmin(v)}
+        badge={safePedidos}
       />
 
       <BottomNavItem
         id="produtos"
         icon={Package}
         ativo={abaAdmin}
-        onClick={setAbaAdmin}
+        onClick={(v) => setAbaAdmin && setAbaAdmin(v)}
       />
 
       <BottomNavItem
         id="gastos"
         icon={DollarSign}
         ativo={abaAdmin}
-        onClick={setAbaAdmin}
+        onClick={(v) => setAbaAdmin && setAbaAdmin(v)}
       />
 
-      <button onClick={() => setAbrirMaisMenu(true)} style={btn}>
-        ⋯
+      {/* BOTÃO MAIS */}
+      <button
+        onClick={() => setAbrirMaisMenu && setAbrirMaisMenu(true)}
+        style={btn}
+      >
+        <MoreHorizontal size={22} color="#6b7280" />
       </button>
     </div>
   );
 }
-
-const nav = {
-  position: "fixed",
-  bottom: 0,
-  left: 0,
-  right: 0,
-  background: "#020617",
-  borderTop: "1px solid #1f2937",
-  display: "flex",
-  zIndex: 9999,
-
-  height: "calc(56px + env(safe-area-inset-bottom))",
-  paddingBottom: "env(safe-area-inset-bottom)",
-
-  backdropFilter: "blur(10px)"
-};
-
-const btn = {
-  flex: 1,
-  height: 56,
-  background: "transparent",
-  border: "none",
-  color: "#6b7280",
-  fontSize: 20,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center"
-};
