@@ -1,4 +1,11 @@
-export default function Header({ lojaAberta, logout, isMobile }) {
+import { Menu } from "lucide-react";
+
+export default function Header({
+  lojaAberta,
+  logout,
+  isMobile,
+  setSidebarAberta
+}) {
   return (
     <div
       style={{
@@ -14,26 +21,49 @@ export default function Header({ lojaAberta, logout, isMobile }) {
       }}
     >
       {/* ESQUERDA */}
-      <div>
-        <div
-          style={{
-            fontSize: 11,
-            color: "#6b7280",
-            fontWeight: 700,
-            textTransform: "uppercase"
-          }}
-        >
-          Painel da loja
-        </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        
+        {/* BOTÃO MENU (SÓ MOBILE) */}
+        {isMobile && (
+          <button
+            onClick={() => setSidebarAberta(true)}
+            style={{
+              background: "#020617",
+              color: "#fff",
+              border: "none",
+              padding: 8,
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            <Menu size={18} />
+          </button>
+        )}
 
-        <div
-          style={{
-            fontSize: isMobile ? 20 : 24,
-            fontWeight: 900,
-            color: "#111"
-          }}
-        >
-          Loja Admin
+        {/* TEXTO */}
+        <div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "#6b7280",
+              fontWeight: 700,
+              textTransform: "uppercase"
+            }}
+          >
+            Painel da loja
+          </div>
+
+          <div
+            style={{
+              fontSize: isMobile ? 20 : 24,
+              fontWeight: 900,
+              color: "#111"
+            }}
+          >
+            Loja Admin
+          </div>
         </div>
       </div>
 
@@ -64,7 +94,7 @@ export default function Header({ lojaAberta, logout, isMobile }) {
           {lojaAberta ? "Aberto" : "Fechado"}
         </div>
 
-        {/* BOTÃO */}
+        {/* BOTÃO SAIR */}
         <button
           onClick={logout}
           style={{

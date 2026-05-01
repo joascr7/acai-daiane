@@ -37,14 +37,7 @@ export default function Sidebar({
   return (
     <>
       {/* BOTÃO MOBILE */}
-      {isMobile && (
-        <button
-          onClick={() => setAberto(true)}
-          style={btnMenu}
-        >
-          <Menu size={22} />
-        </button>
-      )}
+      
 
       {/* OVERLAY */}
       {isMobile && aberto && (
@@ -140,14 +133,3 @@ const overlay = {
   zIndex: 9998
 };
 
-const btnMenu = {
-  position: "fixed",
-  top: 12,
-  left: 12,
-  zIndex: 10000,
-  background: "#020617",
-  color: "#fff",
-  border: "none",
-  padding: 10,
-  borderRadius: 10
-};
