@@ -56,147 +56,162 @@ export default function LojaOverview(props) {
   }
 
   return (
-    <div style={container}>
-      {/* HEADER */}
-      <div style={header}>
-        <h2 style={{ margin: 0 }}>Loja</h2>
-        <span style={sub}>Configurações gerais</span>
+   <div style={container}>
+    {/* HEADER */}
+    <div style={header}>
+      <h2 style={{ margin: 0 }}>Loja</h2>
+      <span style={sub}>Configurações gerais</span>
+    </div>
+
+    {/* GRID PRINCIPAL */}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+        gap: 12,
+        width: "100%",
+        boxSizing: "border-box"
+      }}
+    >
+      {/* CATEGORIAS */}
+      <div style={card}>
+        <h3 style={title}>Categorias</h3>
+
+        {categorias.map((c) => (
+          <div key={c.id} style={itemRow}>
+            {editandoCategoriaId === c.id ? (
+              <input
+                value={editandoCategoria[c.id] || ""}
+                onChange={(e) =>
+                  setEditandoCategoria((prev) => ({
+                    ...prev,
+                    [c.id]: e.target.value
+                  }))
+                }
+                style={input}
+              />
+            ) : (
+              <span style={{ flex: 1 }}>{c.nome}</span>
+            )}
+
+            <button
+              onClick={() =>
+                editandoCategoriaId === c.id
+                  ? salvarEdicaoCategoria(c.id)
+                  : (
+                      setEditandoCategoriaId(c.id),
+                      setEditandoCategoria((prev) => ({
+                        ...prev,
+                        [c.id]: c.nome
+                      }))
+                    )
+              }
+              style={btnBlue}
+            >
+              {editandoCategoriaId === c.id ? "Salvar" : "Editar"}
+            </button>
+          </div>
+        ))}
+
+        <div style={{ display: "flex", gap: 6 }}>
+          <input
+            placeholder="Nova categoria"
+            value={novaCategoria}
+            onChange={(e) => setNovaCategoria(e.target.value)}
+            style={input}
+          />
+          <button onClick={criarCategoria} style={btnPrimary}>+</button>
+        </div>
       </div>
 
-      {/* GRID */}
-      <div style={grid}>
+      {/* STATUS */}
+      <div style={card}>
+        <h3 style={title}>Status da loja</h3>
 
-        {/* CATEGORIAS */}
-        <div style={card}>
-          <h3 style={title}>Categorias</h3>
-
-          {categorias.map((c) => (
-            <div key={c.id} style={itemRow}>
-              {editandoCategoriaId === c.id ? (
-                <input
-                  value={editandoCategoria[c.id] || ""}
-                  onChange={(e) =>
-                    setEditandoCategoria((prev) => ({
-                      ...prev,
-                      [c.id]: e.target.value
-                    }))
-                  }
-                  style={input}
-                />
-              ) : (
-                <span style={{ flex: 1 }}>{c.nome}</span>
-              )}
-
-              <button
-                onClick={() =>
-                  editandoCategoriaId === c.id
-                    ? salvarEdicaoCategoria(c.id)
-                    : (
-                        setEditandoCategoriaId(c.id),
-                        setEditandoCategoria((prev) => ({
-                          ...prev,
-                          [c.id]: c.nome
-                        }))
-                      )
-                }
-                style={btnBlue}
-              >
-                {editandoCategoriaId === c.id ? "Salvar" : "Editar"}
-              </button>
-            </div>
-          ))}
-
-          <div style={{ display: "flex", gap: 6 }}>
-            <input
-              placeholder="Nova categoria"
-              value={novaCategoria}
-              onChange={(e) => setNovaCategoria(e.target.value)}
-              style={input}
-            />
-            <button onClick={criarCategoria} style={btnPrimary}>+</button>
-          </div>
-        </div>
-
-        {/* STATUS */}
-        <div style={card}>
-          <h3 style={title}>Status da loja</h3>
-
-          <div style={{
+        <div
+          style={{
             padding: 10,
             borderRadius: 10,
             textAlign: "center",
             fontWeight: 700,
             background: lojaAberta ? "#065f46" : "#7f1d1d"
-          }}>
-            {lojaAberta ? "Loja aberta" : "Loja fechada"}
-          </div>
-
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => toggleLoja(true)} style={btnGreen}>Abrir</button>
-            <button onClick={() => toggleLoja(false)} style={btnRed}>Fechar</button>
-          </div>
+          }}
+        >
+          {lojaAberta ? "Loja aberta" : "Loja fechada"}
         </div>
 
-        {/* LOGO */}
-        <div style={card}>
-          <h3 style={title}>Logo</h3>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <button onClick={() => toggleLoja(true)} style={btnGreen}>
+            Abrir
+          </button>
+          <button onClick={() => toggleLoja(false)} style={btnRed}>
+            Fechar
+          </button>
+        </div>
+      </div>
 
+      {/* LOGO */}
+      <div style={card}>
+        <h3 style={title}>Logo</h3>
+
+        <input
+          placeholder="URL da logo"
+          value={logoInput}
+          onChange={(e) => setLogoInput(e.target.value)}
+          style={input}
+        />
+
+        {logoInput && <img src={logoInput} style={preview} />}
+
+        <button onClick={salvarLogo} style={btnPrimaryFull}>
+          Salvar
+        </button>
+      </div>
+
+      {/* 🔥 CALENDÁRIO (OCUPA LINHA TODA) */}
+      <div
+        style={{
+          ...card,
+          gridColumn: "1 / -1"
+        }}
+      >
+        <h3 style={title}>Feriados</h3>
+
+        <CalendarioFeriados horarios={horarios} />
+
+        {/* INPUT */}
+        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
           <input
-            placeholder="URL da logo"
-            value={logoInput}
-            onChange={(e) => setLogoInput(e.target.value)}
+            type="date"
+            value={novaDataFeriado}
+            onChange={(e) => setNovaDataFeriado(e.target.value)}
             style={input}
           />
-
-          {logoInput && (
-            <img src={logoInput} style={preview} />
-          )}
-
-          <button onClick={salvarLogo} style={btnPrimaryFull}>
-            Salvar
+          <button onClick={adicionarFeriado} style={btnPrimary}>
+            +
           </button>
         </div>
 
-        {/* 🔥 CALENDÁRIO + LISTA */}
-        <div style={card}>
-          <h3 style={title}>Feriados</h3>
+        {/* LISTA */}
+        <div style={{ marginTop: 10 }}>
+          {Object.keys(horarios?.feriados || {}).map((data) => (
+            <div key={data} style={itemRow}>
+              <span style={{ flex: 1 }}>{data}</span>
 
-          {/* CALENDÁRIO */}
-          <CalendarioFeriados horarios={horarios} />
-
-          {/* INPUT MANUAL */}
-          <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-            <input
-              type="date"
-              value={novaDataFeriado}
-              onChange={(e) => setNovaDataFeriado(e.target.value)}
-              style={input}
-            />
-            <button onClick={adicionarFeriado} style={btnPrimary}>
-              +
-            </button>
-          </div>
-
-          {/* LISTA */}
-          <div style={{ marginTop: 10 }}>
-            {Object.keys(horarios?.feriados || {}).map((data) => (
-              <div key={data} style={itemRow}>
-                <span style={{ flex: 1 }}>{data}</span>
-
-                <button
-                  onClick={() => removerFeriado(data)}
-                  style={btnRedSmall}
-                >
-                  Remover
-                </button>
-              </div>
-            ))}
-          </div>
+              <button
+                onClick={() => removerFeriado(data)}
+                style={btnRedSmall}
+              >
+                Remover
+              </button>
+            </div>
+          ))}
         </div>
-
       </div>
     </div>
-  );
+  </div>
+);
+  
 }
 
 const container = {
