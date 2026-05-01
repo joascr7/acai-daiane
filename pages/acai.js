@@ -498,6 +498,7 @@ const [podeInstalar, setPodeInstalar] = useState(false);
 
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
+  const [mostrarHorario, setMostrarHorario] = useState(false);
 
  const [pontosFidelidade, setPontosFidelidade] = useState(0); 
  const PONTOS_PARA_PREMIO = 10;
@@ -532,7 +533,14 @@ const [observacaoPedido, setObservacaoPedido] = useState("");
 
   
 
+const hojeNome = new Date().toLocaleDateString("pt-BR", {
+  weekday: "long"
+});
 
+// normaliza (sexta-feira → sexta)
+const hoje = hojeNome.replace("-feira", "").toLowerCase();
+
+const proximoDiaNormalizado = proximo?.dia?.toLowerCase();
  
 
 const [loadingGeo, setLoadingGeo] = useState(false);
@@ -5280,16 +5288,23 @@ return (
         </div>
 
         
-       {/* LOJA ABERTA/FECHADA */}
-<div
+      <div
+  onClick={() => {
+    setMostrarHorario(!mostrarHorario);
+
+    // 🔥 vibração leve mobile
+    if (navigator.vibrate) navigator.vibrate(10);
+  }}
   style={{
     margin: "12px 16px 0",
     padding: "12px 14px",
     borderRadius: 16,
     background: abertoFinal ? "#e6f4ea" : "#fde8e8",
     display: "flex",
-    alignItems: "center",
-    gap: 12
+    alignItems: "flex-start",
+    gap: 12,
+    cursor: "pointer",
+    transition: "all 0.25s ease"
   }}
 >
   {/* ÍCONE */}
@@ -5301,58 +5316,95 @@ return (
       background: abertoFinal ? "#dcfce7" : "#fecaca",
       display: "flex",
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      flexShrink: 0,
+      transition: "all 0.25s ease"
     }}
   >
     <Store size={18} color={abertoFinal ? "#16a34a" : "#dc2626"} />
   </div>
 
-  {/* TEXTOS */}
-  <div style={{ display: "flex", flexDirection: "column" }}>
-    
-    {/* STATUS */}
-    <div
-      style={{
-        fontSize: 15,
-        fontWeight: 800,
-        color: abertoFinal ? "#166534" : "#b91c1c"
-      }}
-    >
-      {abertoFinal ? "Aberto agora" : "Fechado agora"}
-    </div>
+  {/* CONTEÚDO */}
+  <div style={{ flex: 1 }}>
 
-    {/* ABERTURA */}
+    {/* HEADER */}
     <div
       style={{
         display: "flex",
-        alignItems: "center",
-        gap: 6,
-        fontSize: 14,
-        fontWeight: 600,
-        color: "#111"
+        justifyContent: "space-between",
+        alignItems: "center"
       }}
     >
-      <Clock size={14} color="#666" />
-   {abertoFinal ? (
-  horarioHoje ? (
-    <>Até {horarioHoje.fecha}</>
-  ) : (
-    <>Aberto até 23:00</>
-  )
-) : (
-  <>Abre {proximo?.dia} às {proximo?.hora}</>
-)}
+      <div>
+        {/* STATUS */}
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 800,
+            color: abertoFinal ? "#166534" : "#b91c1c"
+          }}
+        >
+          {abertoFinal ? "Aberto agora" : "Fechado agora"}
+        </div>
+
+        {/* HORÁRIO */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#111"
+          }}
+        >
+          <Clock size={14} color="#666" />
+
+          {abertoFinal ? (
+            horarioHoje ? (
+              <>Até {horarioHoje.fecha}</>
+            ) : (
+              <>Aberto até 23:00</>
+            )
+          ) : (
+            <>
+  Abre {proximoDiaNormalizado === hoje ? "hoje" : proximo?.dia} às {proximo?.hora}
+</>
+          )}
+        </div>
+      </div>
+
+      {/* SETA ANIMADA */}
+      <div
+        style={{
+          transform: mostrarHorario ? "rotate(180deg)" : "rotate(0deg)",
+          transition: "transform 0.25s ease",
+          color: "#666"
+        }}
+      >
+        ▼
+      </div>
     </div>
 
-    {/* HORÁRIOS */}
+    {/* 🔥 EXPANSÃO SUAVE */}
     <div
       style={{
-        fontSize: 12,
-        color: "#666",
-        marginTop: 2
+        maxHeight: mostrarHorario ? 80 : 0,
+        overflow: "hidden",
+        transition: "all 0.3s ease",
+        opacity: mostrarHorario ? 1 : 0
       }}
     >
-      Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+      <div
+        style={{
+          marginTop: 10,
+          fontSize: 12,
+          color: "#666",
+          lineHeight: 1.5
+        }}
+      >
+        Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+      </div>
     </div>
   </div>
 </div>
