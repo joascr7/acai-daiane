@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+
 import { doc, updateDoc, deleteField } from "firebase/firestore";
 import { dbAdmin as db } from "../services/firebaseDual";
 
+
+import React, { useEffect, useState } from "react";
 
 export default function CalendarioFeriados({ horarios }) {
   const hoje = new Date();
@@ -51,81 +53,106 @@ export default function CalendarioFeriados({ horarios }) {
 
   return (
     <div style={card}>
+      
       {/* HEADER */}
       <div style={header}>
-        <button onClick={() => setMes(mes - 1)} style={navBtn}>◀</button>
+        <button
+          onClick={() => {
+            if (mes === 0) {
+              setMes(11);
+              setAno(ano - 1);
+            } else {
+              setMes(mes - 1);
+            }
+          }}
+          style={navBtn}
+        >
+          ◀
+        </button>
 
         <span style={titulo}>
           {nomesMes[mes]} {ano}
         </span>
 
-        <button onClick={() => setMes(mes + 1)} style={navBtn}>▶</button>
+        <button
+          onClick={() => {
+            if (mes === 11) {
+              setMes(0);
+              setAno(ano + 1);
+            } else {
+              setMes(mes + 1);
+            }
+          }}
+          style={navBtn}
+        >
+          ▶
+        </button>
       </div>
 
-      {/* SCROLL HORIZONTAL (🔥 ESSA É A SOLUÇÃO) */}
-      <div style={scrollWrapper}>
-        <div style={calendarInner}>
+      {/* DIAS DA SEMANA */}
+      <div style={calendarGrid}>
+        {diasSemana.map((d, i) => (
+          <div key={i} style={weekDay}>{d}</div>
+        ))}
 
-          {/* DIAS SEMANA */}
-          {diasSemana.map((d, i) => (
-            <div key={i} style={weekDay}>{d}</div>
-          ))}
+        {/* DIAS */}
+        {dias.map((d, i) => {
+          if (!d) return <div key={i} style={empty} />;
 
-          {/* DIAS */}
-          {dias.map((d, i) => {
-            if (!d) return <div key={i} style={empty} />;
+          const feriadoInfo = feriadosApi.find(f => f.date === d.key);
+          const isHoje = d.key === hojeKey;
+          const isFeriado = !!feriadoInfo || horarios?.feriados?.[d.key];
 
-            const feriadoInfo = feriadosApi.find(f => f.date === d.key);
-            const isHoje = d.key === hojeKey;
-            const isFeriado = !!feriadoInfo || horarios?.feriados?.[d.key];
-
-            return (
-              <div
-                key={d.key}
-                style={{
-                  ...day,
-                  background: isFeriado
-                    ? "#ea1d2c"
-                    : isHoje
-                    ? "#1e293b"
-                    : "#020617"
-                }}
-              >
-                <div style={dayNumber}>{d.date.getDate()}</div>
-
-                {feriadoInfo && (
-                  <div style={feriadoNome}>
-                    {feriadoInfo.name.split(" ")[0]}
-                  </div>
-                )}
+          return (
+            <div
+              key={d.key}
+              style={{
+                ...day,
+                background: isFeriado
+                  ? "#ea1d2c"
+                  : isHoje
+                  ? "#1e293b"
+                  : "#020617"
+              }}
+            >
+              <div style={dayNumber}>
+                {d.date.getDate()}
               </div>
-            );
-          })}
 
-        </div>
+              {feriadoInfo && (
+                <div style={feriadoNome}>
+                  {feriadoInfo.name.split(" ")[0]}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
+/* ================= ESTILO ================= */
 
 const card = {
   background: "#020617",
-  padding: 12,
+  padding: 10,
   borderRadius: 16,
-  border: "1px solid #1e293b"
+  border: "1px solid #1e293b",
+  width: "100%"
 };
 
 const header = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  marginBottom: 12
+  marginBottom: 10
 };
 
 const titulo = {
   fontWeight: 700,
-  fontSize: 14
+  fontSize: 14,
+  color: "#fff"
 };
 
 const navBtn = {
@@ -133,50 +160,47 @@ const navBtn = {
   border: "1px solid #1e293b",
   color: "#fff",
   borderRadius: 8,
-  padding: "6px 10px"
+  padding: "6px 10px",
+  cursor: "pointer"
 };
 
-// 🔥 SCROLL (SOLUÇÃO REAL)
-const scrollWrapper = {
-  overflowX: "auto"
-};
-
-const calendarInner = {
+/* 🔥 GRID RESPONSIVO */
+const calendarGrid = {
   display: "grid",
-  gridTemplateColumns: "repeat(7, 60px)", // 🔥 tamanho fixo = não espreme
-  gap: 8,
-  minWidth: 420
+  gridTemplateColumns: "repeat(7, 1fr)",
+  gap: 6
 };
 
 const weekDay = {
   textAlign: "center",
-  fontSize: 11,
+  fontSize: 10,
   color: "#64748b"
 };
 
 const empty = {
-  width: 60,
-  height: 60
+  aspectRatio: "1 / 1"
 };
 
 const day = {
-  width: 60,
-  height: 60,
-  borderRadius: 12,
+  width: "100%",
+  aspectRatio: "1 / 1",
+  borderRadius: 10,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 13
+  fontSize: 12,
+  color: "#fff"
 };
 
 const dayNumber = {
-  fontWeight: 700
+  fontWeight: 700,
+  fontSize: 13
 };
 
 const feriadoNome = {
-  fontSize: 9,
+  fontSize: 8,
   marginTop: 2,
-  opacity: 0.9,
+  opacity: 0.85,
   textAlign: "center"
 };
