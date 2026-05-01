@@ -136,10 +136,13 @@ export default function CalendarioFeriados({ horarios }) {
 
 const card = {
   background: "#020617",
-  padding: 10,
+  padding: 8,
   borderRadius: 16,
   border: "1px solid #1e293b",
-  width: "100%"
+  width: "100%",
+  maxWidth: "100%", // 🔥 IMPORTANTE
+  boxSizing: "border-box",
+  overflow: "hidden" // 🔥 evita vazar
 };
 
 const header = {
@@ -168,15 +171,14 @@ const navBtn = {
 const calendarGrid = {
   display: "grid",
   gridTemplateColumns: "repeat(7, 1fr)",
-  gap: 6
+  gap: 3
 };
 
 const weekDay = {
   textAlign: "center",
-  fontSize: 10,
+  fontSize: 9,
   color: "#64748b"
 };
-
 const empty = {
   aspectRatio: "1 / 1"
 };
@@ -184,23 +186,25 @@ const empty = {
 const day = {
   width: "100%",
   aspectRatio: "1 / 1",
-  borderRadius: 10,
+  borderRadius: 8,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 12,
-  color: "#fff"
+  fontSize: 11, // 🔥 menor
+  color: "#fff",
+  padding: 2 // 🔥 ajuda a caber
 };
 
 const dayNumber = {
   fontWeight: 700,
-  fontSize: 13
+  fontSize: 12
 };
 
 const feriadoNome = {
-  fontSize: 8,
-  marginTop: 2,
+  fontSize: 7,
+  marginTop: 1,
   opacity: 0.85,
   textAlign: "center"
 };
+
