@@ -5161,11 +5161,13 @@ return (
     >
       {/* HEADER */}
       <div
-        style={{
-          padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
-          background: "#f5f5f5"
-        }}
-      >
+  style={{
+    padding: isMobile
+      ? "env(safe-area-inset-top) 16px 10px"
+      : "14px 16px 18px",
+    background: "#f5f5f5"
+  }}
+>
         {/* TOPO */}
         <div
           style={{
