@@ -489,6 +489,7 @@ const [novaVendaValor, setNovaVendaValor] = useState("");
 const [editandoVenda, setEditandoVenda] = useState(null);
 const [editandoGasto, setEditandoGasto] = useState(null);
 const [sidebarAberta, setSidebarAberta] = useState(false);
+const ultimoPedidoTimestamp = useRef(0);
 
   const [fidelidade, setFidelidade] = useState(false);
 
@@ -648,24 +649,28 @@ useEffect(() => {
 useEffect(() => {
   if (!Array.isArray(pedidos)) return;
 
-  if (primeiroLoad.current) {
-    pedidosRef.current = pedidos;
-    primeiroLoad.current = false;
-    return;
-  }
-
-  const idsAntigos = new Set(pedidosRef.current.map(p => p.id));
-
-  const novosPedidos = pedidos.filter(p =>
-    !idsAntigos.has(p.id) &&
+  const pedidosValidos = pedidos.filter(p =>
     ["aguardando_pagamento", "aguardando_pagamento_online"].includes(p.status)
   );
 
-  if (novosPedidos.length > 0) {
-    tocarSom();
+  if (pedidosValidos.length === 0) return;
+
+  // pega o mais recente
+  const maisRecente = Math.max(
+    ...pedidosValidos.map(p => Number(p.data || 0))
+  );
+
+  // primeira carga → só salva
+  if (ultimoPedidoTimestamp.current === 0) {
+    ultimoPedidoTimestamp.current = maisRecente;
+    return;
   }
 
-  pedidosRef.current = pedidos;
+  // só toca se chegou pedido mais novo
+  if (maisRecente > ultimoPedidoTimestamp.current) {
+    tocarSom();
+    ultimoPedidoTimestamp.current = maisRecente;
+  }
 
 }, [pedidos]);
 
