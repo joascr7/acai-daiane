@@ -3948,14 +3948,32 @@ const diasLabel = {
   sabado: "Sábado"
 };
 
+const feriadosFixos = [
+  "2026-01-01", // Ano novo
+  "2026-04-21", // Tiradentes
+  "2026-05-01", // Trabalhador
+  "2026-09-07", // Independência
+  "2026-10-12", // Nossa Senhora
+  "2026-11-02", // Finados
+  "2026-11-15", // Proclamação
+  "2026-12-25"  // Natal
+];
+
+
 const hojeIndex = agora.getDay();
 const hojeKey = ordemDias[hojeIndex];
 
 // 🔥 DATA HOJE
-const hojeData = agora.toISOString().slice(0, 10);
+const hojeData = new Date(
+  agora.getTime() - agora.getTimezoneOffset() * 60000
+)
+  .toISOString()
+  .slice(0, 10);
 
 // 🔥 FERIADO HOJE
-const feriadoHoje = horarios?.feriados?.[hojeData];
+const feriadoHoje =
+  horarios?.feriados?.[hojeData] || // 🔥 admin manda
+  feriadosFixos.includes(hojeData); // 🧠 automático
 
 // 🔥 REGRA BASE (GARANTE CORREÇÃO SEM DEPENDER DO FIRESTORE)
 function getHorario(dia, feriado) {

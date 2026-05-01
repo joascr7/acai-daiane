@@ -37,6 +37,7 @@ import { dbAdmin as db, authAdmin as auth } from "../services/firebaseDual";
 import {
   collection,
   doc,
+  deleteField,
   getDoc,
   getDocs,
   addDoc,
@@ -2009,6 +2010,28 @@ function copiarExtrasDeProduto(produtoId) {
   setExtras(extrasCopiados);
 }
 
+async function salvarFeriado(data) {
+  await updateDoc(doc(db, "config", "horarioFuncionamento"), {
+    [`feriados.${data}`]: {
+      abre: "16:00",
+      fecha: "23:00",
+      ativo: true
+    }
+  });
+}
+
+
+async function removerFeriado(data) {
+  try {
+    await updateDoc(doc(db, "config", "horarioFuncionamento"), {
+      [`feriados.${data}`]: deleteField()
+    });
+
+    console.log("Feriado removido:", data);
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 
 async function toggleProduto(p) {
