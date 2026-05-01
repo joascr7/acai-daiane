@@ -385,61 +385,6 @@ const backBtn = {
 };
 
 
-const agora = new Date();
-const dia = agora.getDay(); // 0 dom, 5 sex, 6 sab
-const hora = agora.getHours();
-const minuto = agora.getMinutes();
-
-// 🔥 DIAS
-const nomesDias = [
-  "Domingo",
-  "Segunda",
-  "Terça",
-  "Quarta",
-  "Quinta",
-  "Sexta",
-  "Sábado"
-];
-
-// 🔥 HORÁRIOS
-function getHorario(dia) {
-  if (dia === 5) return { abre: "18:30", fecha: "23:00" }; // sexta
-  if (dia === 6 || dia === 0) return { abre: "16:00", fecha: "23:00" }; // sab/dom
-  return null; // fechado nos outros dias
-}
-
-// 🔥 VERIFICA SE ESTÁ ABERTO
-function estaAberto() {
-  const h = getHorario(dia);
-  if (!h) return false; // 🔥 ESSENCIAL
-
-  const [hA, mA] = h.abre.split(":").map(Number);
-  const [hF, mF] = h.fecha.split(":").map(Number);
-
-  const agoraMin = hora * 60 + minuto;
-  const abreMin = hA * 60 + mA;
-  const fechaMin = hF * 60 + mF;
-
-  return agoraMin >= abreMin && agoraMin < fechaMin;
-}
-
-// 🔥 PRÓXIMO DIA QUE ABRE
-function proximoDiaAbertura() {
-  for (let i = 0; i < 7; i++) {
-    const d = (dia + i) % 7;
-    const h = getHorario(d);
-    if (h) {
-      return {
-        dia: nomesDias[d],
-        hora: h.abre
-      };
-    }
-  }
-}
-
-const aberto = estaAberto();
-const proximo = proximoDiaAbertura();
-
 
 
 const ORDEM_CATEGORIAS = [
@@ -537,11 +482,7 @@ const hojeNome = new Date().toLocaleDateString("pt-BR", {
   weekday: "long"
 });
 
-// normaliza (sexta-feira → sexta)
-const hoje = hojeNome.replace("-feira", "").toLowerCase();
 
-const proximoDiaNormalizado = proximo?.dia?.toLowerCase();
- 
 
 const [loadingGeo, setLoadingGeo] = useState(false);
 const [erroGeo, setErroGeo] = useState("");
@@ -700,8 +641,7 @@ const [categoriaSelecionada, setCategoriaSelecionada] = useState("");
 // 🔥 forma de pagamento
   const [formaPagamento, setFormaPagamento] = useState(null);
  
-  const abertoFinal = lojaAberta || estaAberto();
-  const horarioHoje = getHorario(dia);
+  
 
 
 const categoriaAtualObj = categorias.find(c => c.slug === categoriaSelecionada);
@@ -736,7 +676,7 @@ const bannerRef = useRef(null);
 
 
 const [feedbackSelecionados, setFeedbackSelecionados] = useState([]);
-
+const [horarios, setHorarios] = useState(null);
 const [toastLojaFechada, setToastLojaFechada] = useState(false);
 const [historicoBusca, setHistoricoBusca] = useState([]);
 const [filtroBusca, setFiltroBusca] = useState("todos");
@@ -915,6 +855,18 @@ useEffect(() => {
   return () => {
     window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   };
+}, []);
+
+useEffect(() => {
+  const ref = doc(db, "config", "horarioFuncionamento");
+
+  const unsub = onSnapshot(ref, (snap) => {
+    if (snap.exists()) {
+      setHorarios(snap.data());
+    }
+  });
+
+  return () => unsub();
 }, []);
 
 
@@ -2550,6 +2502,19 @@ function calcularTotalItem(produto, quantidade, extras) {
 }
 
 
+function getHorarioPadrao(dia, isFeriado) {
+  if (isFeriado) {
+    return { abre: "16:00", fecha: "23:00", ativo: true };
+  }
+
+  if (dia === "sabado" || dia === "domingo") {
+    return { abre: "16:00", fecha: "23:00", ativo: true };
+  }
+
+  return { abre: "18:30", fecha: "23:00", ativo: true };
+}
+
+
 // 🔥 mais vendido
 function calcularMaisVendido(pedidos) {
   const contador = {};
@@ -3088,7 +3053,7 @@ function mostrarLojaFechada() {
 
 function validarLojaAberta() {
   if (!lojaAberta) {
-    mostrarLojaFechada();("Loja fechada no momento", "erro");
+    setBloqueioMsg("Loja fechada no momento");
     return false;
   }
 
@@ -3953,6 +3918,117 @@ const sugestoes = [
   ...produtosPromocao,
   ...outrosProdutos
 ].slice(0, 6);
+
+
+
+// 🔥 HORARIO
+if (!horarios) return null;
+
+const agora = new Date();
+
+// 🔥 DIAS BASE (Firestore)
+const ordemDias = [
+  "domingo",
+  "segunda",
+  "terca",
+  "quarta",
+  "quinta",
+  "sexta",
+  "sabado"
+];
+
+// 🔥 DIAS BONITOS
+const diasLabel = {
+  domingo: "Domingo",
+  segunda: "Segunda",
+  terca: "Terça",
+  quarta: "Quarta",
+  quinta: "Quinta",
+  sexta: "Sexta",
+  sabado: "Sábado"
+};
+
+const hojeIndex = agora.getDay();
+const hojeKey = ordemDias[hojeIndex];
+
+// 🔥 DATA HOJE
+const hojeData = agora.toISOString().slice(0, 10);
+
+// 🔥 FERIADO HOJE
+const feriadoHoje = horarios?.feriados?.[hojeData];
+
+// 🔥 REGRA BASE (GARANTE CORREÇÃO SEM DEPENDER DO FIRESTORE)
+function getHorario(dia, feriado) {
+  if (feriado) {
+    return { abre: "16:00", fecha: "23:00", ativo: true };
+  }
+
+  if (dia === "sabado" || dia === "domingo") {
+    return { abre: "16:00", fecha: "23:00", ativo: true };
+  }
+
+  return { abre: "18:30", fecha: "23:00", ativo: true };
+}
+
+// 🔥 HORÁRIO DE HOJE
+const horarioHoje = getHorario(hojeKey, feriadoHoje);
+
+// 🔥 CONVERSÃO
+function horaParaMin(h) {
+  if (!h) return 0;
+  const [hh, mm] = h.split(":").map(Number);
+  return hh * 60 + mm;
+}
+
+const agoraMin = agora.getHours() * 60 + agora.getMinutes();
+
+// 🔥 STATUS
+let abertoPorHorario = false;
+
+if (horarioHoje?.ativo && horarioHoje?.abre && horarioHoje?.fecha) {
+  const abre = horaParaMin(horarioHoje.abre);
+  const fecha = horaParaMin(horarioHoje.fecha);
+
+  abertoPorHorario = agoraMin >= abre && agoraMin <= fecha;
+}
+
+// 🔥 PRIORIDADE DO ADMIN
+const abertoFinal = lojaAberta ?? abertoPorHorario;
+
+// 🔥 PRÓXIMO DIA (COM FERIADO CORRETO)
+let proximo = null;
+
+for (let i = 0; i < 7; i++) {
+  const index = (hojeIndex + i) % 7;
+  const dia = ordemDias[index];
+
+  const dataTeste = new Date(agora);
+  dataTeste.setDate(agora.getDate() + i);
+  const dataKey = dataTeste.toISOString().slice(0, 10);
+
+  const feriado = horarios?.feriados?.[dataKey];
+
+  const dados = getHorario(dia, feriado);
+
+  if (dados?.ativo) {
+    proximo = {
+      dia,
+      hora: dados.abre,
+      isHoje: i === 0,
+      feriado: !!feriado
+    };
+    break;
+  }
+}
+
+// 🔥 TEXTO FINAL
+const textoHorario = abertoFinal
+  ? `Até ${horarioHoje.fecha}`
+  : proximo
+  ? `Abre ${
+      proximo.isHoje ? "hoje" : diasLabel[proximo.dia]
+    } às ${proximo.hora}`
+  : "Fechado";
 
 return (
 
@@ -5288,122 +5364,155 @@ return (
         </div>
 
         
-      <div
+   <div
   onClick={() => {
     setMostrarHorario(!mostrarHorario);
-
-    // 🔥 vibração leve mobile
     if (navigator.vibrate) navigator.vibrate(10);
   }}
   style={{
-    margin: "12px 16px 0",
-    padding: "12px 14px",
+    margin: "10px 14px 0",
+    padding: "12px",
     borderRadius: 16,
     background: abertoFinal ? "#e6f4ea" : "#fde8e8",
+    border: abertoFinal ? "1px solid #bbf7d0" : "1px solid #fecaca",
     display: "flex",
-    alignItems: "flex-start",
-    gap: 12,
+    gap: 10,
     cursor: "pointer",
-    transition: "all 0.25s ease"
+    transition: "all 0.2s ease"
   }}
 >
   {/* ÍCONE */}
   <div
     style={{
-      width: 36,
-      height: 36,
+      width: 34,
+      height: 34,
       borderRadius: "50%",
-      background: abertoFinal ? "#dcfce7" : "#fecaca",
+      background: abertoFinal ? "#dcfce7" : "#fee2e2",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      flexShrink: 0,
-      transition: "all 0.25s ease"
+      flexShrink: 0
     }}
   >
-    <Store size={18} color={abertoFinal ? "#16a34a" : "#dc2626"} />
+    <Store size={16} color={abertoFinal ? "#16a34a" : "#dc2626"} />
   </div>
 
   {/* CONTEÚDO */}
   <div style={{ flex: 1 }}>
-
-    {/* HEADER */}
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}
-    >
+    
+    {/* TOPO */}
+    <div style={{ display: "flex", justifyContent: "space-between" }}>
+      
       <div>
         {/* STATUS */}
         <div
           style={{
-            fontSize: 15,
+            fontSize: 13,
             fontWeight: 800,
-            color: abertoFinal ? "#166534" : "#b91c1c"
+            color: abertoFinal ? "#166534" : "#b91c1c",
+            marginBottom: 2
           }}
         >
           {abertoFinal ? "Aberto agora" : "Fechado agora"}
         </div>
 
-        {/* HORÁRIO */}
+        {/* TEXTO */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 6,
-            fontSize: 14,
+            gap: 5,
+            fontSize: 12,
             fontWeight: 600,
-            color: "#111"
+            color: "#333"
           }}
         >
-          <Clock size={14} color="#666" />
+          <Clock size={13} color="#777" />
+          {textoHorario}
 
-          {abertoFinal ? (
-            horarioHoje ? (
-              <>Até {horarioHoje.fecha}</>
-            ) : (
-              <>Aberto até 23:00</>
-            )
-          ) : (
-            <>
-  Abre {proximoDiaNormalizado === hoje ? "hoje" : proximo?.dia} às {proximo?.hora}
-</>
+          {feriadoHoje && (
+            <span
+              style={{
+                fontSize: 9,
+                background: "#fde047",
+                color: "#111",
+                padding: "2px 6px",
+                borderRadius: 999,
+                fontWeight: 700
+              }}
+            >
+              Feriado 
+            </span>
           )}
         </div>
       </div>
 
-      {/* SETA ANIMADA */}
-      <div
-        style={{
-          transform: mostrarHorario ? "rotate(180deg)" : "rotate(0deg)",
-          transition: "transform 0.25s ease",
-          color: "#666"
-        }}
-      >
-        ▼
-      </div>
+      {/* SETA */}
+   <ChevronDown
+  size={16}
+  style={{
+    transform: mostrarHorario ? "rotate(180deg)" : "rotate(0deg)",
+    transition: "transform 0.25s ease",
+    color: "#777",
+    opacity: 0.8
+  }}
+/>
     </div>
 
-    {/* 🔥 EXPANSÃO SUAVE */}
+    {/* EXPANSÃO */}
     <div
       style={{
-        maxHeight: mostrarHorario ? 80 : 0,
+        maxHeight: mostrarHorario ? 150 : 0,
         overflow: "hidden",
-        transition: "all 0.3s ease",
+        transition: "all 0.25s ease",
         opacity: mostrarHorario ? 1 : 0
       }}
     >
       <div
         style={{
-          marginTop: 10,
-          fontSize: 12,
-          color: "#666",
-          lineHeight: 1.5
+          marginTop: 8,
+          display: "flex",
+          flexDirection: "column",
+          gap: 4
         }}
       >
-        Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+        {ordemDias.map((dia, i) => {
+          const dataTeste = new Date();
+          dataTeste.setDate(agora.getDate() + (i - hojeIndex));
+          const dataKey = dataTeste.toISOString().slice(0, 10);
+
+          const feriado = horarios?.feriados?.[dataKey];
+          const v = getHorario(dia, feriado);
+          const isHoje = dia === hojeKey;
+
+          return (
+            <div
+              key={dia}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 11
+              }}
+            >
+              <span
+                style={{
+                  fontWeight: isHoje ? 700 : 500,
+                  color: isHoje ? "#ea1d2c" : "#666"
+                }}
+              >
+                {isHoje
+                  ? feriado
+                    ? "Hoje (Feriado)"
+                    : "Hoje"
+                  : diasLabel[dia]}
+              </span>
+
+              <span style={{ color: "#333" }}>
+                {v.abre} — {v.fecha}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   </div>
@@ -8935,9 +9044,13 @@ return (
           e.stopPropagation();
 
           if (!lojaAberta) {
-            mostrarToast("Loja fechada no momento", "erro");
-            return;
-          }
+  return (
+    <div style={{ padding: 40, textAlign: "center" }}>
+      <h2>Loja fechada</h2>
+      <span>Voltamos em breve</span>
+    </div>
+  );
+}
 
           setProduto({
             ...p,
