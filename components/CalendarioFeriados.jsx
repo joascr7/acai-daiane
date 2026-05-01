@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { doc, updateDoc, deleteField } from "firebase/firestore";
 import { dbAdmin as db } from "../services/firebaseDual";
 
-export default function CalendarioFeriados({ horarios }) {
+export default function CalendarioFeriados({ horarios, isMobile }) {
   const hoje = new Date();
 
   const [mes, setMes] = useState(hoje.getMonth());
   const [ano, setAno] = useState(hoje.getFullYear());
   const [feriadosApi, setFeriadosApi] = useState([]);
 
-  // 🔥 BUSCAR FERIADOS API
+  // 🔥 BUSCAR FERIADOS
   useEffect(() => {
     async function carregarFeriados() {
       try {
@@ -17,7 +17,6 @@ export default function CalendarioFeriados({ horarios }) {
           `https://brasilapi.com.br/api/feriados/v1/${ano}`
         );
         const data = await res.json();
-
         setFeriadosApi(data || []);
       } catch (e) {
         console.log(e);
@@ -39,24 +38,20 @@ export default function CalendarioFeriados({ horarios }) {
 
   const dias = [];
 
-  // 🔥 espaços vazios no início
   for (let i = 0; i < primeiroDiaSemana; i++) {
     dias.push(null);
   }
 
-  // 🔥 dias do mês (CORRIGIDO)
   for (let i = 1; i <= totalDias; i++) {
     const d = new Date(ano, mes, i);
 
-    const key = d.toLocaleDateString("en-CA"); // 🔥 FIX
+    const key = d.toLocaleDateString("en-CA"); // 🔥 sem bug
 
     dias.push({ date: d, key });
   }
 
-  // 🔥 HOJE (CORRIGIDO)
   const hojeKey = hoje.toLocaleDateString("en-CA");
 
-  // 🔥 TOGGLE FIRESTORE
   async function toggleFeriado(key) {
     const existe = horarios?.feriados?.[key];
 
@@ -81,7 +76,7 @@ export default function CalendarioFeriados({ horarios }) {
 
   return (
     <div style={card}>
-
+      
       {/* HEADER */}
       <div style={header}>
         <button onClick={() => setMes(mes - 1)} style={navBtn}>◀</button>
@@ -124,25 +119,15 @@ export default function CalendarioFeriados({ horarios }) {
                   : isHoje
                   ? "#1e293b"
                   : "#020617",
-                border: isHoje ? "1px solid #475569" : "1px solid #1e293b",
-                flexDirection: "column",
-                paddingTop: 6
+                border: isHoje ? "1px solid #475569" : "1px solid #1e293b"
               }}
             >
               <div>{d.date.getDate()}</div>
 
-              {/* 🔥 NOME DO FERIADO */}
+              {/* 🔥 NOME CURTO */}
               {feriadoInfo && (
-                <div
-                  style={{
-                    fontSize: 8,
-                    marginTop: 2,
-                    opacity: 0.9,
-                    textAlign: "center",
-                    lineHeight: 1.1
-                  }}
-                >
-                  {feriadoInfo.name}
+                <div style={feriadoNome}>
+                  {feriadoInfo.name.replace("Dia do", "").split(" ")[0]}
                 </div>
               )}
 
@@ -206,14 +191,26 @@ const grid = {
 };
 
 const day = {
-  height: 42,
+  height: 52,
   borderRadius: 10,
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
   fontWeight: 600,
   position: "relative"
+};
+
+const feriadoNome = {
+  fontSize: 9,
+  marginTop: 2,
+  opacity: 0.9,
+  textAlign: "center",
+  maxWidth: "100%",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap"
 };
 
 const dot = {
