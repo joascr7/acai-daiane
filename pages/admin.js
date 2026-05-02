@@ -1822,25 +1822,56 @@ async function atualizarMediaProduto(produtoId) {
 
 
 async function aprovarAvaliacao(a) {
-  await updateDoc(doc(db, "avaliacoes", a.id), {
-    status: "aprovado"
-  });
+  const ref = doc(db, "avaliacoes", a.id);
 
-  if (a.produtoId) {
-    await atualizarMediaProduto(a.produtoId);
-  }
+  await updateDoc(ref, { status: "aprovado" });
+
+  if (!a.produtoId) return;
+
+  const produtoRef = doc(db, "produtos", a.produtoId);
+  const snap = await getDoc(produtoRef);
+
+  if (!snap.exists()) return; // 🔥 evita erro
+
+  const p = snap.data();
+
+  const totalAvaliacoes = (p.totalAvaliacoes || 0) + 1;
+  const somaNotas = (p.somaNotas || 0) + a.nota;
+
+  await updateDoc(produtoRef, {
+    totalAvaliacoes,
+    somaNotas,
+    mediaAvaliacao: Number((somaNotas / totalAvaliacoes).toFixed(1))
+  });
 }
+
 
 async function recusarAvaliacao(a) {
-  await updateDoc(doc(db, "avaliacoes", a.id), {
-    status: "recusado"
-  });
+  const ref = doc(db, "avaliacoes", a.id);
 
-  if (a.produtoId) {
-    await atualizarMediaProduto(a.produtoId);
-  }
+  await updateDoc(ref, { status: "recusado" });
+
+  // ❌ não mexe no produto
 }
 
+
+function atualizarItem(index, campo, valor) {
+  const copia = [...avaliacoesTemp];
+  copia[index][campo] = valor;
+  setAvaliacoesTemp(copia);
+}
+
+function adicionarItem() {
+  setAvaliacoesTemp([
+    ...avaliacoesTemp,
+    { produtoId: "", nota: 5, comentario: "" }
+  ]);
+}
+
+function removerItem(index) {
+  const copia = avaliacoesTemp.filter((_, i) => i !== index);
+  setAvaliacoesTemp(copia);
+}
 
 
 
@@ -2111,23 +2142,26 @@ async function criarAvaliacaoManual(dados) {
     criadoEm: Date.now()
   });
 
-  // 🔥 ATUALIZA PRODUTO (QUANTIDADE + MÉDIA)
+  // 🔥 PROTEÇÃO TOTAL
   const produtoRef = doc(db, "produtos", dados.produtoId);
 
-  const produtoSnap = await getDoc(produtoRef);
+  const snap = await getDoc(produtoRef);
 
-  if (produtoSnap.exists()) {
-    const p = produtoSnap.data();
-
-    const totalAvaliacoes = (p.totalAvaliacoes || 0) + 1;
-    const somaNotas = (p.somaNotas || 0) + dados.nota;
-
-    await updateDoc(produtoRef, {
-      totalAvaliacoes,
-      somaNotas,
-      mediaAvaliacao: Number((somaNotas / totalAvaliacoes).toFixed(1))
-    });
+  if (!snap.exists()) {
+    console.warn("Produto não encontrado:", dados.produtoId);
+    return; // ❌ não quebra mais
   }
+
+  const p = snap.data();
+
+  const totalAvaliacoes = (p.totalAvaliacoes || 0) + 1;
+  const somaNotas = (p.somaNotas || 0) + dados.nota;
+
+  await updateDoc(produtoRef, {
+    totalAvaliacoes,
+    somaNotas,
+    mediaAvaliacao: Number((somaNotas / totalAvaliacoes).toFixed(1))
+  });
 }
 
 

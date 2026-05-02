@@ -11,10 +11,38 @@ export default function AvaliacoesOverview({
   recusarAvaliacao,
   criarAvaliacaoManual
 }) {
-  const [modal, setModal] = useState(false);
+  
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [nota, setNota] = useState(5);
   const [comentario, setComentario] = useState("");
+  const [modal, setModal] = useState(false);
+
+const [avaliacoesTemp, setAvaliacoesTemp] = useState([
+  {
+    produtoId: "",
+    nota: 5,
+    comentario: ""
+  }
+]);
+
+
+function atualizarItem(index, campo, valor) {
+  const copia = [...avaliacoesTemp];
+  copia[index][campo] = valor;
+  setAvaliacoesTemp(copia);
+}
+
+function adicionarItem() {
+  setAvaliacoesTemp([
+    ...avaliacoesTemp,
+    { produtoId: "", nota: 5, comentario: "" }
+  ]);
+}
+
+function removerItem(index) {
+  const copia = avaliacoesTemp.filter((_, i) => i !== index);
+  setAvaliacoesTemp(copia);
+}
 
   return (
     <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 16, color: "#fff" }}>
@@ -99,72 +127,165 @@ export default function AvaliacoesOverview({
 
       {/* LISTA */}
       <div style={{ background: "#111827", borderRadius: 18, padding: 14, border: "1px solid #1f2937" }}>
-        {avaliacoes.map((a) => {
-          const produto = produtos.find((p) => p.id === a.produtoId);
+        {avaliacoes
+          .filter((a) => {
+            const produto = produtos.find((p) => p.id === a.produtoId);
 
-          return (
-            <div key={a.id} style={{ padding: 12, borderBottom: "1px solid #1f2937" }}>
+            const passaFiltro =
+              filtroAvaliacao === "todas" ||
+              a.status === filtroAvaliacao;
 
-              {/* PRODUTO */}
-              <div>
-                <strong>{produto?.nome || "Produto removido"}</strong>
+            const passaBusca =
+              !busca ||
+              produto?.nome?.toLowerCase().includes(busca.toLowerCase());
 
-                <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                  ⭐ {produto?.mediaAvaliacao || 0} • {produto?.totalAvaliacoes || 0} avaliações
+            return passaFiltro && passaBusca;
+          })
+          .sort((a, b) => Number(b.criadoEm) - Number(a.criadoEm))
+          .map((a) => {
+            const produto = produtos.find((p) => p.id === a.produtoId);
+
+            return (
+              <div
+                key={a.id}
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  padding: 12,
+                  borderBottom: "1px solid #1f2937",
+                  alignItems: "center"
+                }}
+              >
+                {/* IMAGEM */}
+                <img
+                  src={produto?.imagem || "/acai.png"}
+                  alt={produto?.nome}
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 12,
+                    objectFit: "cover",
+                    background: "#1f2937"
+                  }}
+                />
+
+                {/* CONTEÚDO */}
+                <div style={{ flex: 1 }}>
+                  <strong>
+                    {produto?.nome || "Produto removido"}
+                  </strong>
+
+                  {/* MÉDIA */}
+                  <div style={{ fontSize: 11, color: "#9ca3af" }}>
+                    ⭐ {produto?.mediaAvaliacao || 0} •{" "}
+                    {produto?.totalAvaliacoes || 0} avaliações
+                  </div>
+
+                  {/* NOTA */}
+                  <div style={{ fontSize: 12, marginTop: 4 }}>
+                    ⭐ {a.nota} •{" "}
+                    <span
+                      style={{
+                        color:
+                          a.status === "aprovado"
+                            ? "#22c55e"
+                            : a.status === "recusado"
+                            ? "#ef4444"
+                            : "#facc15",
+                        fontWeight: 700
+                      }}
+                    >
+                      {a.status}
+                    </span>
+                  </div>
+
+                  {/* COMENTÁRIO */}
+                  {!!a.comentario && (
+                    <div style={{ fontSize: 12, marginTop: 6 }}>
+                      {a.comentario}
+                    </div>
+                  )}
+
+                  {/* AÇÕES */}
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    <button
+                      onClick={() => aprovarAvaliacao(a)}
+                      style={{
+                        background: "#22c55e",
+                        border: "none",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        color: "#fff",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Aprovar
+                    </button>
+
+                    <button
+                      onClick={() => recusarAvaliacao(a)}
+                      style={{
+                        background: "#ef4444",
+                        border: "none",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        color: "#fff",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Recusar
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              {/* NOTA */}
-              <div style={{ fontSize: 12, marginTop: 4 }}>
-                ⭐ {a.nota} • {a.status}
-              </div>
-
-              {/* COMENTÁRIO */}
-              {!!a.comentario && (
-                <div style={{ fontSize: 12, marginTop: 6 }}>
-                  {a.comentario}
-                </div>
-              )}
-
-              {/* AÇÕES */}
-              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                <button onClick={() => aprovarAvaliacao(a)}>Aprovar</button>
-                <button onClick={() => recusarAvaliacao(a)}>Recusar</button>
-              </div>
-
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
-      {/* MODAL */}
       {modal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999
-          }}
-        >
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999
+    }}
+  >
+    <div
+      style={{
+        background: "#111827",
+        padding: 20,
+        borderRadius: 16,
+        width: 340,
+        maxHeight: "90vh",
+        overflowY: "auto"
+      }}
+    >
+      <h3>Nova Avaliação</h3>
+
+      {avaliacoesTemp.map((item, index) => {
+        const produto = produtos.find(p => p.id === item.produtoId);
+
+        return (
           <div
+            key={index}
             style={{
-              background: "#111827",
-              padding: 20,
-              borderRadius: 16,
-              width: 320
+              border: "1px solid #1f2937",
+              borderRadius: 12,
+              padding: 10,
+              marginBottom: 10
             }}
           >
-            <h3>Nova Avaliação</h3>
-
-            {/* SELECT PRODUTO */}
+            {/* SELECT */}
             <select
-              value={produtoSelecionado}
-              onChange={(e) => setProdutoSelecionado(e.target.value)}
-              style={{ width: "100%", marginBottom: 12 }}
+              value={item.produtoId}
+              onChange={(e) =>
+                atualizarItem(index, "produtoId", e.target.value)
+              }
+              style={{ width: "100%", marginBottom: 8 }}
             >
               <option value="">Selecionar produto</option>
               {produtos.map((p) => (
@@ -174,16 +295,31 @@ export default function AvaliacoesOverview({
               ))}
             </select>
 
+            {/* 🔥 IMAGEM DO PRODUTO */}
+            {produto && (
+              <img
+                src={produto.imagem || "/acai.png"}
+                alt={produto.nome}
+                style={{
+                  width: "100%",
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 10,
+                  marginBottom: 8
+                }}
+              />
+            )}
+
             {/* ESTRELAS */}
-            <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
               {[1,2,3,4,5].map(n => (
                 <span
                   key={n}
-                  onClick={() => setNota(n)}
+                  onClick={() => atualizarItem(index, "nota", n)}
                   style={{
                     cursor: "pointer",
                     fontSize: 22,
-                    color: n <= nota ? "#facc15" : "#374151"
+                    color: n <= item.nota ? "#facc15" : "#374151"
                   }}
                 >
                   ★
@@ -194,49 +330,91 @@ export default function AvaliacoesOverview({
             {/* COMENTÁRIO */}
             <textarea
               placeholder="Comentário"
-              value={comentario}
-              onChange={(e) => setComentario(e.target.value)}
-              style={{ width: "100%", marginBottom: 12 }}
+              value={item.comentario}
+              onChange={(e) =>
+                atualizarItem(index, "comentario", e.target.value)
+              }
+              style={{ width: "100%", marginBottom: 8 }}
             />
 
-            {/* BOTÕES */}
-            <button
-              onClick={() => {
-                const produto = produtos.find(p => p.id === produtoSelecionado);
-
-                if (!produto) {
-                  alert("Selecione um produto");
-                  return;
-                }
-
-                if (!comentario) {
-                  alert("Digite um comentário");
-                  return;
-                }
-
-                criarAvaliacaoManual({
-                  produtoId: produto.id,
-                  nomeProduto: produto.nome,
-                  comentario,
-                  nota
-                });
-
-                setModal(false);
-                setComentario("");
-                setNota(5);
-                setProdutoSelecionado("");
-              }}
-              style={{ marginRight: 10 }}
-            >
-              Salvar
-            </button>
-
-            <button onClick={() => setModal(false)}>
-              Cancelar
-            </button>
+            {/* REMOVER */}
+            {avaliacoesTemp.length > 1 && (
+              <button
+                onClick={() => removerItem(index)}
+                style={{
+                  background: "#ef4444",
+                  border: "none",
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  color: "#fff"
+                }}
+              >
+                Remover
+              </button>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })}
+
+      {/* ADICIONAR MAIS */}
+      <button
+        onClick={adicionarItem}
+        style={{
+          width: "100%",
+          marginBottom: 10,
+          background: "#374151",
+          color: "#fff",
+          border: "none",
+          padding: 8,
+          borderRadius: 8
+        }}
+      >
+        + Adicionar mais
+      </button>
+
+      {/* SALVAR TODOS */}
+      <button
+        onClick={() => {
+          for (const item of avaliacoesTemp) {
+            const produto = produtos.find(p => p.id === item.produtoId);
+
+            if (!produto || !item.comentario) continue;
+
+            criarAvaliacaoManual({
+              produtoId: produto.id,
+              nomeProduto: produto.nome,
+              comentario: item.comentario,
+              nota: item.nota
+            });
+          }
+
+          setModal(false);
+          setAvaliacoesTemp([
+            { produtoId: "", nota: 5, comentario: "" }
+          ]);
+        }}
+        style={{
+          width: "100%",
+          background: "#22c55e",
+          border: "none",
+          padding: 10,
+          borderRadius: 8,
+          color: "#fff",
+          fontWeight: 700
+        }}
+      >
+        Salvar tudo
+      </button>
+
+      <button
+        onClick={() => setModal(false)}
+        style={{ marginTop: 6, width: "100%" }}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }
