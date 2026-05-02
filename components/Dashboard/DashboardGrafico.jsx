@@ -10,14 +10,27 @@ import {
   CartesianGrid
 } from "recharts";
 
-export default function DashboardGrafico({ pedidos = [], formatarReal }) {
+export default function DashboardGrafico({
+  pedidos = [],
+  vendasManuais = [],
+  formatarReal
+}) {
   const map = {};
 
-  // 🔥 AGRUPAR POR DIA
-  pedidos.forEach((p) => {
-    if (p.status !== "entregue") return;
+  // 🔥 FUNÇÃO SEGURA PRA DATA (Firebase + normal)
+  const getData = (d) => {
+    if (!d) return new Date();
+    if (d?.toDate) return d.toDate(); // 🔥 firebase
+    return new Date(d);
+  };
 
-    const data = new Date(p.data);
+  // 🔥 PEDIDOS DO SITE
+  pedidos.forEach((p) => {
+    // ignora cancelado e pendente
+    if (p.status === "cancelado" || p.status === "pendente") return;
+
+    const data = getData(p.data || p.criadoEm);
+
     const dia = data.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit"
@@ -28,17 +41,35 @@ export default function DashboardGrafico({ pedidos = [], formatarReal }) {
     map[dia] += Number(p.total || 0);
   });
 
-  // 🔥 ARRAY
+  // 🔥 VENDAS MANUAIS
+  vendasManuais.forEach((v) => {
+    const data = getData(v.data);
+
+    const dia = data.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit"
+    });
+
+    if (!map[dia]) map[dia] = 0;
+
+    map[dia] += Number(v.valor || 0);
+  });
+
+  // 🔥 ARRAY FINAL
   const dados = Object.entries(map).map(([dia, valor]) => ({
     dia,
     valor
   }));
 
-  // 🔥 ORDENAR
+  // 🔥 ORDENAÇÃO CORRETA (ANO DINÂMICO)
   dados.sort((a, b) => {
     const [d1, m1] = a.dia.split("/");
     const [d2, m2] = b.dia.split("/");
-    return new Date(`2024-${m1}-${d1}`) - new Date(`2024-${m2}-${d2}`);
+
+    const data1 = new Date(`${new Date().getFullYear()}-${m1}-${d1}`);
+    const data2 = new Date(`${new Date().getFullYear()}-${m2}-${d2}`);
+
+    return data1 - data2;
   });
 
   // 🔥 TOTAL
@@ -113,7 +144,7 @@ export default function DashboardGrafico({ pedidos = [], formatarReal }) {
 
       <ResponsiveContainer width="100%" height={260}>
         <AreaChart data={dados}>
-          {/* 🔥 GRADIENTE */}
+          {/* GRADIENTE */}
           <defs>
             <linearGradient id="colorGreen" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#22c55e" stopOpacity={0.35} />
@@ -121,28 +152,24 @@ export default function DashboardGrafico({ pedidos = [], formatarReal }) {
             </linearGradient>
           </defs>
 
-          {/* GRID */}
           <CartesianGrid
             stroke="#1f2937"
             strokeDasharray="3 3"
             vertical={false}
           />
 
-          {/* X */}
           <XAxis
             dataKey="dia"
             stroke="#6b7280"
             tick={{ fontSize: 12 }}
           />
 
-          {/* Y */}
           <YAxis
             stroke="#6b7280"
             tickFormatter={(v) => `R$ ${v}`}
             tick={{ fontSize: 12 }}
           />
 
-          {/* TOOLTIP */}
           <Tooltip
             contentStyle={{
               background: "#020617",
@@ -154,7 +181,6 @@ export default function DashboardGrafico({ pedidos = [], formatarReal }) {
             formatter={(value) => formatarReal(value)}
           />
 
-          {/* 🔥 ÁREA PREMIUM */}
           <Area
             type="monotone"
             dataKey="valor"

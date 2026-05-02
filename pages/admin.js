@@ -495,7 +495,9 @@ const [editandoVenda, setEditandoVenda] = useState(null);
 const [editandoGasto, setEditandoGasto] = useState(null);
 const [sidebarAberta, setSidebarAberta] = useState(false);
 const ultimoPedidoTimestamp = useRef(0);
+const audioRef = useRef(null);
 const ultimoSom = useRef(0);
+
 const pedidosNotificados = useRef(new Set());
 const carregou = useRef(false);
 
@@ -641,9 +643,21 @@ function formatarReal(valor) {
 
 useEffect(() => {
   const liberarAudio = () => {
-    const audio = new Audio("/notificacao.mp3");
-    audio.volume = 0;
-    audio.play().catch(() => {});
+    if (!audioRef.current) return;
+
+    audioRef.current.volume = 0.01;
+
+    audioRef.current
+      .play()
+      .then(() => {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current.volume = 1;
+
+        console.log("🔓 áudio liberado");
+      })
+      .catch(() => {});
+
     window.removeEventListener("click", liberarAudio);
   };
 
@@ -652,6 +666,14 @@ useEffect(() => {
   return () => {
     window.removeEventListener("click", liberarAudio);
   };
+}, []);
+
+
+useEffect(() => {
+  audioRef.current = new Audio("/notificacao.mp3");
+  audioRef.current.loop = true;
+
+  console.log("🔊 áudio carregado");
 }, []);
 
 
@@ -695,15 +717,22 @@ useEffect(() => {
 function tocarSom() {
   const agora = Date.now();
 
-  // 🔥 trava anti-spam (10 segundos)
-  if (agora - ultimoSom.current < 10000) return;
+  // anti-spam
+  if (agora - ultimoSom.current < 3000) return;
 
   ultimoSom.current = agora;
 
-  const audio = new Audio("/notificacao.mp3");
-  audio.currentTime = 0;
+  if (!audioRef.current) return;
 
-  audio.play().catch(() => {});
+  audioRef.current.currentTime = 0;
+  audioRef.current.play().catch(() => {});
+}
+
+function pararSom() {
+  if (!audioRef.current) return;
+
+  audioRef.current.pause();
+  audioRef.current.currentTime = 0;
 }
 
 
@@ -2061,6 +2090,8 @@ async function cancelarPedido(id) {
       canceladoEm: Date.now()
     });
 
+    pararSom(); // 🔥 ESSENCIAL (para o áudio)
+
     alert("Pedido cancelado");
   } catch (e) {
     console.log(e);
@@ -2290,6 +2321,7 @@ if (loadingAuth) {
         padding: isMobile ? "12px" : "24px"
       }}
     >
+    
       <div
         className="wrapper"
         style={{
@@ -2319,20 +2351,21 @@ if (loadingAuth) {
         }}
       >
         <DashboardOverview
-          pedidos={pedidos}
-          isMobile={isMobile}
-          totalFaturado={totalFaturado}
-          totalGastos={totalGastos}
-          lucroTotal={lucroTotal}
-          margemLucro={margemLucro}
-          pedidosEmAndamento={pedidosEmAndamento}
-          produtosAtivos={produtosAtivos}
-          cupons={cupons}
-          lojaAberta={lojaAberta}
-          limparFormularioGasto={limparFormularioGasto}
-          setMostrarModalGasto={setMostrarModalGasto}
-          formatarReal={formatarReal}
-        />
+  pedidos={pedidos}
+  vendasManuais={vendasManuais} // 🔥 ESSENCIAL
+  isMobile={isMobile}
+  totalFaturado={totalFaturado}
+  totalGastos={totalGastos}
+  lucroTotal={lucroTotal}
+  margemLucro={margemLucro}
+  pedidosEmAndamento={pedidosEmAndamento}
+  produtosAtivos={produtosAtivos}
+  cupons={cupons}
+  lojaAberta={lojaAberta}
+  limparFormularioGasto={limparFormularioGasto}
+  setMostrarModalGasto={setMostrarModalGasto}
+  formatarReal={formatarReal}
+/>
       </div>
     )}
 

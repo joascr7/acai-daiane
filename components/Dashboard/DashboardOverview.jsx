@@ -16,12 +16,14 @@ export default function DashboardOverview({
   lojaAberta,
   limparFormularioGasto,
   setMostrarModalGasto,
+  vendasManuais,
   formatarReal
 }) {
   return (
     <>
       <DashboardResumo
         isMobile={isMobile}
+        
         limparFormularioGasto={limparFormularioGasto}
         setMostrarModalGasto={setMostrarModalGasto}
       />
@@ -45,6 +47,7 @@ export default function DashboardOverview({
 
       <DashboardGrafico
   pedidos={pedidos}
+  vendasManuais={vendasManuais} // 🔥 ESSENCIAL
   formatarReal={formatarReal}
 />
     </>
