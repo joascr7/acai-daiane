@@ -2099,6 +2099,37 @@ async function cancelarPedido(id) {
   }
 }
 
+async function criarAvaliacaoManual(dados) {
+  const ref = collection(db, "avaliacoes");
+
+  await addDoc(ref, {
+    produtoId: dados.produtoId,
+    nomeProduto: dados.nomeProduto,
+    comentario: dados.comentario,
+    nota: dados.nota,
+    status: "aprovado",
+    criadoEm: Date.now()
+  });
+
+  // 🔥 ATUALIZA PRODUTO (QUANTIDADE + MÉDIA)
+  const produtoRef = doc(db, "produtos", dados.produtoId);
+
+  const produtoSnap = await getDoc(produtoRef);
+
+  if (produtoSnap.exists()) {
+    const p = produtoSnap.data();
+
+    const totalAvaliacoes = (p.totalAvaliacoes || 0) + 1;
+    const somaNotas = (p.somaNotas || 0) + dados.nota;
+
+    await updateDoc(produtoRef, {
+      totalAvaliacoes,
+      somaNotas,
+      mediaAvaliacao: Number((somaNotas / totalAvaliacoes).toFixed(1))
+    });
+  }
+}
+
 
 // 🔥 STATUS LOJA
 async function toggleLoja(status) {
@@ -2619,6 +2650,7 @@ if (loadingAuth) {
     setBusca={setBusca}
     aprovarAvaliacao={aprovarAvaliacao}
     recusarAvaliacao={recusarAvaliacao}
+     criarAvaliacaoManual={criarAvaliacaoManual}
     isMobile={isMobile}
   />
 )}
