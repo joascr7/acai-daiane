@@ -857,15 +857,38 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  const ref = doc(db, "config", "horarioFuncionamento");
+  const refFuncionamento = doc(db, "config", "horarioFuncionamento");
+  const refFechados = doc(db, "config", "horarios");
 
-  const unsub = onSnapshot(ref, (snap) => {
+  const dadosFuncionamento = { current: {} };
+  const dadosFechados = { current: {} };
+
+  const atualizar = () => {
+    setHorarios({
+      ...dadosFuncionamento.current,
+      diasFechados: dadosFechados.current?.diasFechados || {},
+      feriados: dadosFuncionamento.current?.feriados || {}
+    });
+  };
+
+  const unsub1 = onSnapshot(refFuncionamento, (snap) => {
     if (snap.exists()) {
-      setHorarios(snap.data());
+      dadosFuncionamento.current = snap.data();
+      atualizar();
     }
   });
 
-  return () => unsub();
+  const unsub2 = onSnapshot(refFechados, (snap) => {
+    if (snap.exists()) {
+      dadosFechados.current = snap.data();
+      atualizar();
+    }
+  });
+
+  return () => {
+    unsub1();
+    unsub2();
+  };
 }, []);
 
 
@@ -2503,13 +2526,27 @@ function calcularTotalItem(produto, quantidade, extras) {
 }
 
 
-function getHorarioPadrao(dia, isFeriado) {
-  if (isFeriado) {
-    return { abre: "16:00", fecha: "23:00", ativo: true };
+function getHorario(dia, feriado, fechadoManual) {
+  if (fechadoManual) return { ativo: false };
+
+  const configDia = horarios?.[dia];
+
+  if (feriado && horarios?.feriados) {
+    const configFeriado = horarios.feriados;
+
+    return {
+      abre: configFeriado.abre || "16:00",
+      fecha: configFeriado.fecha || "23:00",
+      ativo: configFeriado.ativo ?? true
+    };
   }
 
-  if (dia === "sabado" || dia === "domingo") {
-    return { abre: "16:00", fecha: "23:00", ativo: true };
+  if (configDia) {
+    return {
+      abre: configDia.abre,
+      fecha: configDia.fecha,
+      ativo: configDia.ativo
+    };
   }
 
   return { abre: "18:30", fecha: "23:00", ativo: true };
@@ -3104,6 +3141,14 @@ async function validarCupomAntes() {
   }
 
   return true;
+}
+
+function getDataKey(date) {
+  return new Date(
+    date.getTime() - date.getTimezoneOffset() * 60000
+  )
+    .toISOString()
+    .slice(0, 10);
 }
 
 async function aplicarCupom() {
@@ -3878,6 +3923,8 @@ const enviarWhatsApp = async (pedido) => {
   });
 };
 
+
+
 {/*  CALCULO FRETE GRATIS */}
 const LIMITE_FRETE = 3000; // 30 reais
 const subtotalAtual = subtotalProdutos || 0;
@@ -3940,18 +3987,12 @@ if (!horarios) return null;
 
 const agora = new Date();
 
-// 🔥 DIAS BASE (Firestore)
+// 🔥 DIAS BASE
 const ordemDias = [
-  "domingo",
-  "segunda",
-  "terca",
-  "quarta",
-  "quinta",
-  "sexta",
-  "sabado"
+  "domingo","segunda","terca","quarta","quinta","sexta","sabado"
 ];
 
-// 🔥 DIAS BONITOS
+// 🔥 LABEL
 const diasLabel = {
   domingo: "Domingo",
   segunda: "Segunda",
@@ -3962,38 +4003,32 @@ const diasLabel = {
   sabado: "Sábado"
 };
 
+// 🔥 FERIADOS FIXOS
 const feriadosFixos = [
-  "2026-01-01", // Ano novo
-  "2026-04-21", // Tiradentes
-  "2026-05-01", // Trabalhador
-  "2026-09-07", // Independência
-  "2026-10-12", // Nossa Senhora
-  "2026-11-02", // Finados
-  "2026-11-15", // Proclamação
-  "2026-12-25"  // Natal
+  "2026-01-01","2026-04-21","2026-05-01",
+  "2026-09-07","2026-10-12","2026-11-02",
+  "2026-11-15","2026-12-25"
 ];
-
 
 const hojeIndex = agora.getDay();
 const hojeKey = ordemDias[hojeIndex];
 
-// 🔥 DATA HOJE
-const hojeData = new Date(
-  agora.getTime() - agora.getTimezoneOffset() * 60000
-)
-  .toISOString()
-  .slice(0, 10);
+// 🔥 DATA CORRETA (SEM BUG DE TIMEZONE)
+const hojeData = agora.toLocaleDateString("en-CA");
 
-// 🔥 FERIADO HOJE
+// 🔥 FLAGS
+const fechadoManualHoje = horarios?.diasFechados?.[hojeData];
+
+// 🔥 FERIADO SÓ SE NÃO ESTIVER FECHADO
 const feriadoHoje =
-  horarios?.feriados?.[hojeData] || // 🔥 admin manda
-  feriadosFixos.includes(hojeData); // 🧠 automático
+  !fechadoManualHoje &&
+  feriadosFixos.includes(hojeData);
 
-// 🔥 REGRA BASE (GARANTE CORREÇÃO SEM DEPENDER DO FIRESTORE)
-function getHorario(dia, feriado) {
-  if (feriado) {
-    return { abre: "16:00", fecha: "23:00", ativo: true };
-  }
+// 🔥 REGRA
+function getHorario(dia, feriado, fechadoManual) {
+  if (fechadoManual) return { ativo: false };
+
+  if (feriado) return { abre: "16:00", fecha: "23:00", ativo: true };
 
   if (dia === "sabado" || dia === "domingo") {
     return { abre: "16:00", fecha: "23:00", ativo: true };
@@ -4002,10 +4037,14 @@ function getHorario(dia, feriado) {
   return { abre: "18:30", fecha: "23:00", ativo: true };
 }
 
-// 🔥 HORÁRIO DE HOJE
-const horarioHoje = getHorario(hojeKey, feriadoHoje);
+// 🔥 HOJE
+const horarioHoje = getHorario(
+  hojeKey,
+  feriadoHoje,
+  fechadoManualHoje
+);
 
-// 🔥 CONVERSÃO
+// 🔥 HORA → MIN
 function horaParaMin(h) {
   if (!h) return 0;
   const [hh, mm] = h.split(":").map(Number);
@@ -4017,50 +4056,91 @@ const agoraMin = agora.getHours() * 60 + agora.getMinutes();
 // 🔥 STATUS
 let abertoPorHorario = false;
 
-if (horarioHoje?.ativo && horarioHoje?.abre && horarioHoje?.fecha) {
+if (fechadoManualHoje) {
+  abertoPorHorario = false;
+} else if (horarioHoje?.ativo) {
   const abre = horaParaMin(horarioHoje.abre);
   const fecha = horaParaMin(horarioHoje.fecha);
 
   abertoPorHorario = agoraMin >= abre && agoraMin <= fecha;
 }
 
-// 🔥 PRIORIDADE DO ADMIN
+// 🔥 PRIORIDADE ADMIN
 const abertoFinal = lojaAberta ?? abertoPorHorario;
 
-// 🔥 PRÓXIMO DIA (COM FERIADO CORRETO)
+// 🔥 PRÓXIMO DIA (100% CORRETO)
+// 🔥 PRÓXIMO DIA INTELIGENTE
+// 🔥 PRÓXIMO HORÁRIO INTELIGENTE
+// 🔥 PRÓXIMO DIA BASEADO NA DATA REAL (SEM ERRO)
 let proximo = null;
 
 for (let i = 0; i < 7; i++) {
-  const index = (hojeIndex + i) % 7;
-  const dia = ordemDias[index];
-
   const dataTeste = new Date(agora);
   dataTeste.setDate(agora.getDate() + i);
-  const dataKey = dataTeste.toISOString().slice(0, 10);
 
-  const feriado = horarios?.feriados?.[dataKey];
+  const dataKey = dataTeste.toLocaleDateString("en-CA");
+  const diaIndex = dataTeste.getDay(); // 🔥 dia real
+  const dia = ordemDias[diaIndex];
 
-  const dados = getHorario(dia, feriado);
+  const fechadoManual = horarios?.diasFechados?.[dataKey];
+  const feriado = feriadosFixos.includes(dataKey);
 
-  if (dados?.ativo) {
-    proximo = {
-      dia,
-      hora: dados.abre,
-      isHoje: i === 0,
-      feriado: !!feriado
-    };
-    break;
+  const dados = getHorario(dia, feriado, fechadoManual);
+
+  console.log("TESTE:", dataKey, dia, dados);
+
+  if (!dados?.ativo) continue;
+
+  const abreMin = horaParaMin(dados.abre);
+
+  // 🔥 HOJE
+  if (i === 0) {
+    // se hoje está fechado → ignora
+    if (fechadoManual) continue;
+
+    // se ainda vai abrir hoje
+    if (agoraMin < abreMin) {
+      proximo = {
+        dia,
+        hora: dados.abre,
+        isHoje: true,
+        isAmanha: false
+      };
+      break;
+    }
+
+    continue;
   }
+
+  // 🔥 PRIMEIRO DIA ABERTO (amanhã ou depois)
+  proximo = {
+    dia,
+    hora: dados.abre,
+    isHoje: false,
+    isAmanha: i === 1
+  };
+
+  break;
 }
 
 // 🔥 TEXTO FINAL
-const textoHorario = abertoFinal
-  ? `Até ${horarioHoje.fecha}`
-  : proximo
-  ? `Abre ${
-      proximo.isHoje ? "hoje" : diasLabel[proximo.dia]
-    } às ${proximo.hora}`
-  : "Fechado";
+const textoHorario = (() => {
+  if (abertoFinal) return `Até ${horarioHoje.fecha}`;
+
+  if (proximo) {
+    if (proximo.isHoje) {
+      return `Abre hoje às ${proximo.hora}`;
+    }
+
+    if (proximo.isAmanha) {
+      return `Abre amanhã às ${proximo.hora}`;
+    }
+
+    return `Abre ${diasLabel[proximo.dia]} às ${proximo.hora}`;
+  }
+
+  return "Fechado";
+})();
 
 return (
 
@@ -5396,7 +5476,7 @@ return (
         </div>
 
         
-   <div
+<div
   onClick={() => {
     setMostrarHorario(!mostrarHorario);
     if (navigator.vibrate) navigator.vibrate(10);
@@ -5429,14 +5509,10 @@ return (
     <Store size={16} color={abertoFinal ? "#16a34a" : "#dc2626"} />
   </div>
 
-  {/* CONTEÚDO */}
   <div style={{ flex: 1 }}>
-    
     {/* TOPO */}
     <div style={{ display: "flex", justifyContent: "space-between" }}>
-      
       <div>
-        {/* STATUS */}
         <div
           style={{
             fontSize: 13,
@@ -5448,7 +5524,6 @@ return (
           {abertoFinal ? "Aberto agora" : "Fechado agora"}
         </div>
 
-        {/* TEXTO */}
         <div
           style={{
             display: "flex",
@@ -5462,7 +5537,20 @@ return (
           <Clock size={13} color="#777" />
           {textoHorario}
 
-          {feriadoHoje && (
+          {fechadoManualHoje ? (
+            <span
+              style={{
+                fontSize: 9,
+                background: "#fecaca",
+                color: "#7f1d1d",
+                padding: "2px 6px",
+                borderRadius: 999,
+                fontWeight: 700
+              }}
+            >
+              Fechado
+            </span>
+          ) : feriadoHoje ? (
             <span
               style={{
                 fontSize: 9,
@@ -5473,28 +5561,27 @@ return (
                 fontWeight: 700
               }}
             >
-              Feriado 
+              Feriado
             </span>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {/* SETA */}
-   <ChevronDown
-  size={16}
-  style={{
-    transform: mostrarHorario ? "rotate(180deg)" : "rotate(0deg)",
-    transition: "transform 0.25s ease",
-    color: "#777",
-    opacity: 0.8
-  }}
-/>
+      <ChevronDown
+        size={16}
+        style={{
+          transform: mostrarHorario ? "rotate(180deg)" : "rotate(0deg)",
+          transition: "transform 0.25s ease",
+          color: "#777",
+          opacity: 0.8
+        }}
+      />
     </div>
 
     {/* EXPANSÃO */}
     <div
       style={{
-        maxHeight: mostrarHorario ? 150 : 0,
+        maxHeight: mostrarHorario ? 180 : 0,
         overflow: "hidden",
         transition: "all 0.25s ease",
         opacity: mostrarHorario ? 1 : 0
@@ -5505,42 +5592,93 @@ return (
           marginTop: 8,
           display: "flex",
           flexDirection: "column",
-          gap: 4
+          gap: 6
         }}
       >
-        {ordemDias.map((dia, i) => {
-          const dataTeste = new Date();
-          dataTeste.setDate(agora.getDate() + (i - hojeIndex));
-          const dataKey = dataTeste.toISOString().slice(0, 10);
+        {Array.from({ length: 7 }).map((_, i) => {
+          const dataTeste = new Date(agora);
+          dataTeste.setDate(agora.getDate() + i);
 
-          const feriado = horarios?.feriados?.[dataKey];
-          const v = getHorario(dia, feriado);
-          const isHoje = dia === hojeKey;
+          const dataKey = getDataKey(dataTeste);
+          const diaIndex = dataTeste.getDay();
+          const dia = ordemDias[diaIndex];
+
+          const fechadoManual = horarios?.diasFechados?.[dataKey];
+
+          const feriado =
+            !fechadoManual && feriadosFixos.includes(dataKey);
+
+          const v = getHorario(dia, feriado, fechadoManual);
+
+          const isHoje = dataKey === hojeData;
 
           return (
             <div
-              key={dia}
+              key={dataKey}
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                fontSize: 11
+                alignItems: "center",
+                fontSize: 12,
+                padding: "2px 0",
+                opacity: !v.ativo ? 0.6 : 1
               }}
             >
+              {/* DIA */}
               <span
                 style={{
                   fontWeight: isHoje ? 700 : 500,
                   color: isHoje ? "#ea1d2c" : "#666"
                 }}
               >
-                {isHoje
-                  ? feriado
-                    ? "Hoje (Feriado)"
-                    : "Hoje"
-                  : diasLabel[dia]}
+                <span
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    fontWeight: isHoje ? 700 : 500,
+    color: isHoje ? "#ea1d2c" : "#666"
+  }}
+>
+  {isHoje ? "Hoje" : diasLabel[dia]}
+
+  {fechadoManual && (
+    <span
+      style={{
+        fontSize: 9,
+        background: "#fecaca",
+        color: "#7f1d1d",
+        padding: "2px 6px",
+        borderRadius: 999,
+        fontWeight: 700
+      }}
+    >
+      Fechado
+    </span>
+  )}
+</span>
               </span>
 
-              <span style={{ color: "#333" }}>
-                {v.abre} — {v.fecha}
+              {/* HORÁRIO */}
+              <span
+                style={{
+                  color: !v.ativo ? "#dc2626" : "#333",
+                  fontWeight: !v.ativo ? 700 : 500
+                }}
+              >
+                {!v.ativo ? (
+  <span
+    style={{
+      color: "#dc2626",
+      fontWeight: 700,
+      fontSize: 11
+    }}
+  >
+    Fechado
+  </span>
+) : (
+  `${v.abre} — ${v.fecha}`
+)}
               </span>
             </div>
           );
@@ -5549,8 +5687,6 @@ return (
     </div>
   </div>
 </div>
-
-        
 
         {/* BANNER RESPONSIVO PROFISSIONAL */}
 {Array.isArray(banners) && banners.length > 0 && (

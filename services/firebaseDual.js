@@ -30,3 +30,4 @@ export const authAdmin = getAuth(app);
 
 export const dbCliente = getFirestore(app);
 export const dbAdmin = getFirestore(app);
+export const db = dbCliente;

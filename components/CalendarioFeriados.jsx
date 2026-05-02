@@ -1,8 +1,6 @@
 
-import { doc, updateDoc, deleteField } from "firebase/firestore";
-import { dbAdmin as db } from "../services/firebaseDual";
-
-
+import { doc, updateDoc, getDoc, deleteField } from "firebase/firestore";
+import { db } from "../services/firebaseDual";
 import React, { useEffect, useState } from "react";
 
 export default function CalendarioFeriados({ horarios }) {
@@ -26,6 +24,31 @@ export default function CalendarioFeriados({ horarios }) {
     }
     carregarFeriados();
   }, [ano]);
+
+  // 🔥 NOVO: função pra fechar/reabrir dia
+
+async function toggleDiaFechado(data) {
+  const ref = doc(db, "config", "horarios");
+
+  // 🔥 SEMPRE pega do Firestore (fonte real)
+  const snap = await getDoc(ref);
+  const atual = snap.data()?.diasFechados || {};
+
+  const jaExiste = atual[data];
+
+  console.log("FIRESTORE:", atual);
+  console.log("EXISTE REAL?", jaExiste);
+
+  if (jaExiste) {
+    await updateDoc(ref, {
+      [`diasFechados.${data}`]: deleteField()
+    });
+  } else {
+    await updateDoc(ref, {
+      [`diasFechados.${data}`]: true
+    });
+  }
+}
 
   const nomesMes = [
     "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -89,37 +112,51 @@ export default function CalendarioFeriados({ horarios }) {
         </button>
       </div>
 
-      {/* DIAS DA SEMANA */}
+      {/* DIAS */}
       <div style={calendarGrid}>
         {diasSemana.map((d, i) => (
           <div key={i} style={weekDay}>{d}</div>
         ))}
 
-        {/* DIAS */}
         {dias.map((d, i) => {
           if (!d) return <div key={i} style={empty} />;
 
           const feriadoInfo = feriadosApi.find(f => f.date === d.key);
+
           const isHoje = d.key === hojeKey;
-          const isFeriado = !!feriadoInfo || horarios?.feriados?.[d.key];
+
+          // 🔥 NOVO
+          const isFechado = horarios?.diasFechados?.[d.key];
+
+          const isFeriado = !!feriadoInfo; // 🔥 só API agora
 
           return (
             <div
               key={d.key}
+              onClick={() => toggleDiaFechado(d.key)} // 🔥 CLIQUE AQUI
               style={{
                 ...day,
-                background: isFeriado
-                  ? "#ea1d2c"
+                background: isFechado
+                  ? "#dc2626" // 🔴 fechado manual
+                  : isFeriado
+                  ? "#f59e0b" // 🟡 feriado
                   : isHoje
                   ? "#1e293b"
-                  : "#020617"
+                  : "#020617",
+                cursor: "pointer"
               }}
             >
               <div style={dayNumber}>
                 {d.date.getDate()}
               </div>
 
-              {feriadoInfo && (
+              {isFechado && (
+                <div style={feriadoNome}>
+                  Fechado
+                </div>
+              )}
+
+              {isFeriado && !isFechado && (
                 <div style={feriadoNome}>
                   {feriadoInfo.name.split(" ")[0]}
                 </div>
