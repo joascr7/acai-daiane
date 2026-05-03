@@ -19,6 +19,7 @@ export default function ProdutosOverview({
   setNovaImagem,
   setMaisVendido,
   setCategoria,
+  copiarExtrasDeProduto,
   categorias = []
 }) {
   return (
@@ -184,6 +185,7 @@ export default function ProdutosOverview({
                 <Pencil size={16} />
               </button>
 
+
               <button
                 onClick={() => toggleProduto(p)}
                 style={{
@@ -194,7 +196,7 @@ export default function ProdutosOverview({
               >
                 {p.ativo ? <PowerOff size={16} /> : <Power size={16} />}
               </button>
-
+              
               <button
                 onClick={() => moverProduto(p, -1)}
                 style={btnIcon}

@@ -1855,24 +1855,6 @@ async function recusarAvaliacao(a) {
 }
 
 
-function atualizarItem(index, campo, valor) {
-  const copia = [...avaliacoesTemp];
-  copia[index][campo] = valor;
-  setAvaliacoesTemp(copia);
-}
-
-function adicionarItem() {
-  setAvaliacoesTemp([
-    ...avaliacoesTemp,
-    { produtoId: "", nota: 5, comentario: "" }
-  ]);
-}
-
-function removerItem(index) {
-  const copia = avaliacoesTemp.filter((_, i) => i !== index);
-  setAvaliacoesTemp(copia);
-}
-
 
 
 // 🔓 LOGOUT
@@ -2639,6 +2621,10 @@ if (loadingAuth) {
     setExtras={setExtras}
     novaCategoria={novaCategoria}
     setNovaCategoria={setNovaCategoria}
+
+    produtos={produtos}
+    produtoEditandoId={produtoEditandoId}
+    copiarExtrasDeProduto={copiarExtrasDeProduto}
   />
 
   <ProdutoImagem
@@ -2669,6 +2655,7 @@ if (loadingAuth) {
     setNovaImagem={setNovaImagem}
     setMaisVendido={setMaisVendido}
     setCategoria={setCategoria}
+    copiarExtrasDeProduto={copiarExtrasDeProduto}
     categorias={categorias}
   />
 )}

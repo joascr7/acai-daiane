@@ -4,11 +4,38 @@ export default function ProdutoExtras({
   extras,
   setExtras,
   novaCategoria,
+  produtos = [],
+  produtoEditandoId,
+  copiarExtrasDeProduto,
   setNovaCategoria
 }) {
   return (
     <div style={container}>
       <h3 style={title}>Extras</h3>
+
+      {/* 🔥 COPIAR EXTRAS */}
+<select
+  onChange={(e) => copiarExtrasDeProduto(e.target.value)}
+  style={{
+    width: "100%",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+    background: "#020617",
+    color: "#fff",
+    border: "1px solid #1f2937"
+  }}
+>
+  <option value="">Copiar extras de outro produto</option>
+
+  {produtos
+    .filter(p => p.id !== produtoEditandoId) // 🔥 evita copiar dele mesmo
+    .map((p) => (
+      <option key={p.id} value={p.id}>
+        {p.nome}
+      </option>
+    ))}
+</select>
 
       {/* NOVA CATEGORIA */}
       <div style={row}>

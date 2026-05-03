@@ -389,6 +389,7 @@ const backBtn = {
 
 const ORDEM_CATEGORIAS = [
   "promocoes",
+  "acai na garrafa",
   "acai",
   "combos",
   "bebidas"
@@ -3386,7 +3387,7 @@ function getNomeCategoria(slug) {
 
 
 function categoriaTemExtras(categoria) {
-  return ["acai", "promocoes", "combos"].includes(categoria);
+  return ["acai na garrafa","acai", "promocoes", "combos"].includes(categoria);
 }
 
 function categoriaVaiDiretoCarrinho(categoria) {
@@ -11214,10 +11215,10 @@ const corStatus =
       }}>
         {categorias
           .filter(c =>
-            ["acai", "promocoes", "bebidas", "combos"].includes(c.slug)
+            ["acai na garrafa","acai", "promocoes", "bebidas", "combos"].includes(c.slug)
           )
           .sort((a, b) => {
-            const ordem = ["acai", "promocoes", "bebidas", "combos"];
+            const ordem = ["acai na garrafa","acai", "promocoes", "bebidas", "combos"];
             return ordem.indexOf(a.slug) - ordem.indexOf(b.slug);
           })
           .map(c => {
@@ -11700,6 +11701,7 @@ const corStatus =
             }}>
               {[
                 { id: "todos", nome: "Todos" },
+                { id: "acai na garrafa", nome: "Açaí na garrafa" },
                 { id: "acai", nome: "Açaí" },
                 { id: "promocoes", nome: "Promoções" },
                 { id: "bebidas", nome: "Bebidas" },
