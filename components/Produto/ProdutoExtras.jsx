@@ -4,10 +4,13 @@ export default function ProdutoExtras({
   extras,
   setExtras,
   novaCategoria,
-  produtos = [],
+  produtos,
   produtoEditandoId,
   copiarExtrasDeProduto,
-  setNovaCategoria
+  setNovaCategoria,
+  maisVendido,          // 🔥 ADD
+  setMaisVendido        // 🔥 ADD
+
 }) {
   return (
     <div style={container}>
@@ -68,6 +71,50 @@ export default function ProdutoExtras({
           <Plus size={18} />
         </button>
       </div>
+
+
+      <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    background: "#0f172a",
+    border: "1px solid #1f2937"
+  }}
+>
+  <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
+    🔥 Mais vendido
+  </div>
+
+  <div
+    onClick={() => setMaisVendido(!maisVendido)}
+    style={{
+      width: 46,
+      height: 26,
+      borderRadius: 999,
+      background: maisVendido ? "#ea1d2c" : "#374151",
+      position: "relative",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    }}
+  >
+    <div
+      style={{
+        width: 20,
+        height: 20,
+        borderRadius: "50%",
+        background: "#fff",
+        position: "absolute",
+        top: 3,
+        left: maisVendido ? 23 : 3,
+        transition: "all 0.2s ease"
+      }}
+    />
+  </div>
+</div>
 
       {/* LISTA DE GRUPOS */}
       {extras.map((grupo, i) => (

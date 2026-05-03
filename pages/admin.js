@@ -483,6 +483,7 @@ const [toast, setToast] = useState(null);
   const [imagem, setImagem] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
+  const [tocando, setTocando] = useState(false);
 
 const [tamanho, setTamanho] = useState("")
 const [descricaoTamanho, setDescricaoTamanho] = useState("")
@@ -733,6 +734,8 @@ function pararSom() {
 
   audioRef.current.pause();
   audioRef.current.currentTime = 0;
+
+  setTocando(false); // 🔥 importante
 }
 
 
@@ -2625,6 +2628,8 @@ if (loadingAuth) {
     produtos={produtos}
     produtoEditandoId={produtoEditandoId}
     copiarExtrasDeProduto={copiarExtrasDeProduto}
+    maisVendido={maisVendido}         // 🔥
+    setMaisVendido={setMaisVendido}
   />
 
   <ProdutoImagem

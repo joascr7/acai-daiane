@@ -3,7 +3,9 @@ export default function PedidoCard({
   produtos,
   formatarReal,
   atualizarStatus,
-  cancelarPedido
+  cancelarPedido,
+  pararSom,     // 🔥 vem do pai
+  tocando       // 🔥 vem do pai
 }) {
   const status = p.status || "novo";
 
@@ -52,11 +54,11 @@ export default function PedidoCard({
       {/* ITENS */}
       {Array.isArray(p.itens) &&
         p.itens.map((item, i) => {
-
-          const produtoBanco = produtos.find(prod =>
-            prod.id === item.produtoId ||
-            prod.nome === item.nome ||
-            prod.nome === item.produto?.nome
+          const produtoBanco = produtos.find(
+            (prod) =>
+              prod.id === item.produtoId ||
+              prod.nome === item.nome ||
+              prod.nome === item.produto?.nome
           );
 
           const tamanho =
@@ -69,25 +71,10 @@ export default function PedidoCard({
 
           return (
             <div key={i} style={{ marginBottom: 6 }}>
-              
-              <div>
-                <strong>
-                  {item.nome || item.produto?.nome} (x{item.quantidade})
-                </strong>
+              <strong>
+                {item.nome || item.produto?.nome} (x{item.quantidade})
+              </strong>
 
-                {item.gratis && (
-                  <span style={{
-                    marginLeft: 6,
-                    fontSize: 11,
-                    color: "#22c55e",
-                    fontWeight: 700
-                  }}>
-                    🎁 GRÁTIS
-                  </span>
-                )}
-              </div>
-
-              {/* TAMANHO */}
               {(tamanho || desc) && (
                 <div
                   style={{
@@ -104,16 +91,9 @@ export default function PedidoCard({
                 </div>
               )}
 
-              {/* EXTRAS */}
               {Array.isArray(item.extras) &&
                 item.extras.map((e, j) => (
-                  <div
-                    key={j}
-                    style={{
-                      fontSize: 12,
-                      color: "#9ca3af"
-                    }}
-                  >
+                  <div key={j} style={{ fontSize: 12, color: "#9ca3af" }}>
                     + {e.nome} {e.qtd > 1 ? `x${e.qtd}` : ""}
                   </div>
                 ))}
@@ -121,37 +101,9 @@ export default function PedidoCard({
           );
         })}
 
-      {/* PAGAMENTO */}
-      <div style={{ marginTop: 6 }}>
-        Pagamento:
-        <span
-          style={{
-            marginLeft: 6,
-            background:
-              p.formaPagamento === "pix"
-                ? "#7c3aed"
-                : p.formaPagamento === "dinheiro"
-                ? "#16a34a"
-                : "#2563eb",
-            padding: "2px 6px",
-            borderRadius: 6,
-            fontSize: 12
-          }}
-        >
-          {p.formaPagamento}
-        </span>
-      </div>
-
       {/* TOTAL */}
       <div style={{ marginTop: 6 }}>
         Total: <strong>{formatarReal(p.total)}</strong>
-      </div>
-
-      {/* DATA */}
-      <div style={{ fontSize: 11, color: "#9ca3af" }}>
-        {p.data
-          ? new Date(p.data).toLocaleString("pt-BR")
-          : ""}
       </div>
 
       {/* STATUS */}
@@ -162,45 +114,126 @@ export default function PedidoCard({
         </span>
       </div>
 
-      {/* AÇÕES */}
-      <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-        {status === "novo" && (
-          <button onClick={() => atualizarStatus(p.id, "preparando")}>
-            Preparar
-          </button>
-        )}
+      {/* 🔥 AÇÕES STATUS PREMIUM */}
+<div style={{ display: "flex", gap: 8, marginTop: 12 }}>
 
-        {status === "preparando" && (
-          <button onClick={() => atualizarStatus(p.id, "saiu")}>
-            Saiu
-          </button>
-        )}
+  {status === "novo" && (
+    <button
+      onClick={() => atualizarStatus(p.id, "preparando")}
+      style={{
+        flex: 1,
+        height: 40,
+        background: "#f59e0b",
+        color: "#111",
+        border: "none",
+        borderRadius: 10,
+        fontWeight: 700,
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "#d97706";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "#f59e0b";
+      }}
+    >
+      Preparar
+    </button>
+  )}
 
-        {status === "saiu" && (
-          <button onClick={() => atualizarStatus(p.id, "entregue")}>
-            Entregue
-          </button>
-        )}
-      </div>
+  {status === "preparando" && (
+    <button
+      onClick={() => atualizarStatus(p.id, "saiu")}
+      style={{
+        flex: 1,
+        height: 40,
+        background: "#38bdf8",
+        color: "#022c22",
+        border: "none",
+        borderRadius: 10,
+        fontWeight: 700,
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "#0ea5e9";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "#38bdf8";
+      }}
+    >
+      Saiu
+    </button>
+  )}
 
-      {/* CANCELAR */}
+  {status === "saiu" && (
+    <button
+      onClick={() => atualizarStatus(p.id, "entregue")}
+      style={{
+        flex: 1,
+        height: 40,
+        background: "#22c55e",
+        color: "#052e16",
+        border: "none",
+        borderRadius: 10,
+        fontWeight: 700,
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = "#16a34a";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "#22c55e";
+      }}
+    >
+      Entregue
+    </button>
+  )}
+
+</div>
+
+      {/* 🔥 AÇÕES FINAIS PREMIUM */}
       {status !== "entregue" && status !== "cancelado" && (
-  <button
-    onClick={() => cancelarPedido(p.id)}
-    style={{
-      marginTop: 8,
-      background: "#ef4444",
-      color: "#fff",
-      padding: "6px 10px",
-      borderRadius: 8,
-      border: "none",
-      cursor: "pointer",
-      fontWeight: 600
-    }}
-  >
-    Cancelar
-  </button>
-)}
+        <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+
+          {/* 🔇 BOTÃO SOM */}
+          {tocando && (
+            <button
+              onClick={pararSom}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "#1f2937",
+                border: "1px solid #374151",
+                color: "#9ca3af",
+                cursor: "pointer",
+                fontSize: 18
+              }}
+            >
+              🔇
+            </button>
+          )}
+
+          {/* CANCELAR */}
+          <button
+            onClick={() => cancelarPedido(p.id)}
+            style={{
+              flex: 1,
+              height: 44,
+              background: "#ef4444",
+              color: "#fff",
+              borderRadius: 12,
+              border: "none",
+              fontWeight: 700
+            }}
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
