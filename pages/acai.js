@@ -5804,7 +5804,7 @@ return (
           padding: "24px 12px 0",
           boxSizing: "border-box",
           minHeight: 300,
-          marginTop: 8
+          marginTop: 1
         }}
       >
         {/* TÍTULO */}
@@ -5821,11 +5821,11 @@ return (
     style={{
       fontSize: 20,
       fontWeight: 900,
-      color: "#111",
+      color: "#5f06d3",
       letterSpacing: "-0.02em"
     }}
   >
-    Personalize seu açaí
+    Customize seu copo e tenha uma experiência inigualável.
   </strong>
 </div>
 
