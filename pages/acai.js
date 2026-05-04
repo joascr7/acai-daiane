@@ -5325,369 +5325,215 @@ return (
         : 110
       }}
     >
-      {/* HEADER */}
-      <div
-        style={{
-          padding: "calc(env(safe-area-inset-top) + 14px) 16px 18px",
-          background: "#f5f5f5"
-        }}
-      >
-        {/* TOPO */}
+     {/* HERO + CARD SOBREPOSTO */}
+<div style={{ position: "relative", background: "#f5f5f5" }}>
+
+  {/* IMAGEM TOPO */}
+  <div style={{ height: 200, overflow: "hidden", position: "relative" }}>
+    <img
+      src="/banner-acai.jpg"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
+
+    {/* 🔔 NOTIFICAÇÃO */}
+    <div
+      onClick={() => {
+        setAba("notificacao");
+        setStep(7);
+      }}
+      style={{
+        position: "absolute",
+        top: "calc(env(safe-area-inset-top) + 10px)",
+        right: 16,
+        cursor: "pointer"
+      }}
+    >
+      <Bell size={24} color="#fff" />
+
+      {temNotificacaoAtiva && (
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 12
-          }}
-        >
-          {/* ESQUERDA */}
-          <div
-            style={{
-              flex: 1,
-              minWidth: 0
-            }}
-          >
-            <div
-              style={{
-                fontSize: 13,
-                color: "#7a7a7a",
-                fontWeight: 500,
-                marginBottom: 6
-              }}
-            >
-              Olá, {clienteNome ? clienteNome.split(" ")[0] : "cliente"}
-            </div>
-
-            <div
-              onClick={() => {
-                setAba("carrinho");
-                setStep(3);
-                setAbaPerfil("endereco");
-              }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                cursor: "pointer",
-                maxWidth: "100%"
-              }}
-            >
-              <MapPin size={16} color="#8b8b8b" />
-
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#111",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 220
-                }}
-              >
-                {clienteEndereco
-                  ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
-                  : "Adicionar endereço"}
-              </span>
-
-              <ChevronDown size={16} color="#666" />
-            </div>
-          </div>
-
-          
-
-          {/* DIREITA */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              flexShrink: 0
-            }}
-          >
-            {podeInstalar && (
-              <button
-                onClick={instalarApp}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "#efe5fb",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
-                }}
-              >
-                <Gem size={22} color="#a24be0" />
-              </button>
-            )}
-
-            <div
-  onClick={() => {
-    setAba("notificacao");
-    setStep(7);
-  }}
-  style={{
-    position: "relative",
-    width: 36,
-    height: 36,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer"
-  }}
->
-  {/* 🔔 ÍCONE */}
-  <Bell
-    size={22}
-    strokeWidth={2.2}
-    color={temNotificacaoAtiva ? "#ea1d2c" : "#333"}
-  />
-
-  {/* 🔥 BADGE */}
-  {temNotificacaoAtiva && (
-  <div
-    style={{
-      position: "absolute",
-      top: -2,
-      right: -2,
-      minWidth: 16,
-      height: 16,
-      borderRadius: 999,
-      background: "#ea1d2c",
-      color: "#fff",
-      fontSize: 9,
-      fontWeight: 700,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "0 4px"
-    }}
-  >
-    {notificacoes.filter(n => !n?.lida).length}
-  </div>
-)}
-</div>
-              
-          </div>
-        </div>
-
-        
-<div
-  onClick={() => {
-    setMostrarHorario(!mostrarHorario);
-    if (navigator.vibrate) navigator.vibrate(10);
-  }}
-  style={{
-    margin: "10px 14px 0",
-    padding: "12px",
-    borderRadius: 16,
-    background: abertoFinal ? "#e6f4ea" : "#fde8e8",
-    border: abertoFinal ? "1px solid #bbf7d0" : "1px solid #fecaca",
-    display: "flex",
-    gap: 10,
-    cursor: "pointer",
-    transition: "all 0.2s ease"
-  }}
->
-  {/* ÍCONE */}
-  <div
-    style={{
-      width: 34,
-      height: 34,
-      borderRadius: "50%",
-      background: abertoFinal ? "#dcfce7" : "#fee2e2",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0
-    }}
-  >
-    <Store size={16} color={abertoFinal ? "#16a34a" : "#dc2626"} />
-  </div>
-
-  <div style={{ flex: 1 }}>
-    {/* TOPO */}
-    <div style={{ display: "flex", justifyContent: "space-between" }}>
-      <div>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 800,
-            color: abertoFinal ? "#166534" : "#b91c1c",
-            marginBottom: 2
-          }}
-        >
-          {abertoFinal ? "Aberto agora" : "Fechado agora"}
-        </div>
-
-        <div
-          style={{
+            position: "absolute",
+            top: -2,
+            right: -2,
+            minWidth: 16,
+            height: 16,
+            borderRadius: 999,
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 9,
+            fontWeight: 700,
             display: "flex",
             alignItems: "center",
-            gap: 5,
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#333"
+            justifyContent: "center",
+            padding: "0 4px"
           }}
         >
-          <Clock size={13} color="#777" />
-          {textoHorario}
-
-          {fechadoManualHoje ? (
-            <span
-              style={{
-                fontSize: 9,
-                background: "#fecaca",
-                color: "#7f1d1d",
-                padding: "2px 6px",
-                borderRadius: 999,
-                fontWeight: 700
-              }}
-            >
-              Fechado
-            </span>
-          ) : feriadoHoje ? (
-            <span
-              style={{
-                fontSize: 9,
-                background: "#fde047",
-                color: "#111",
-                padding: "2px 6px",
-                borderRadius: 999,
-                fontWeight: 700
-              }}
-            >
-              Feriado
-            </span>
-          ) : null}
+          {notificacoes.filter(n => !n?.lida).length}
         </div>
-      </div>
-
-      <ChevronDown
-        size={16}
-        style={{
-          transform: mostrarHorario ? "rotate(180deg)" : "rotate(0deg)",
-          transition: "transform 0.25s ease",
-          color: "#777",
-          opacity: 0.8
-        }}
-      />
+      )}
     </div>
+  </div>
 
-    {/* EXPANSÃO */}
-    <div
-      style={{
-        maxHeight: mostrarHorario ? 180 : 0,
-        overflow: "hidden",
-        transition: "all 0.25s ease",
-        opacity: mostrarHorario ? 1 : 0
-      }}
-    >
-      <div
-        style={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          gap: 6
-        }}
-      >
-        {Array.from({ length: 7 }).map((_, i) => {
-          const dataTeste = new Date(agora);
-          dataTeste.setDate(agora.getDate() + i);
-
-          const dataKey = getDataKey(dataTeste);
-          const diaIndex = dataTeste.getDay();
-          const dia = ordemDias[diaIndex];
-
-          const fechadoManual = horarios?.diasFechados?.[dataKey];
-
-          const feriado =
-            !fechadoManual && feriadosFixos.includes(dataKey);
-
-          const v = getHorario(dia, feriado, fechadoManual);
-
-          const isHoje = dataKey === hojeData;
-
-          return (
-            <div
-              key={dataKey}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                fontSize: 12,
-                padding: "2px 0",
-                opacity: !v.ativo ? 0.6 : 1
-              }}
-            >
-              {/* DIA */}
-              <span
-                style={{
-                  fontWeight: isHoje ? 700 : 500,
-                  color: isHoje ? "#ea1d2c" : "#666"
-                }}
-              >
-                <span
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    fontWeight: isHoje ? 700 : 500,
-    color: isHoje ? "#ea1d2c" : "#666"
-  }}
->
-  {isHoje ? "Hoje" : diasLabel[dia]}
-
-  {fechadoManual && (
-    <span
-      style={{
-        fontSize: 9,
-        background: "#fecaca",
-        color: "#7f1d1d",
-        padding: "2px 6px",
-        borderRadius: 999,
-        fontWeight: 700
-      }}
-    >
-      Fechado
-    </span>
-  )}
-</span>
-              </span>
-
-              {/* HORÁRIO */}
-              <span
-                style={{
-                  color: !v.ativo ? "#dc2626" : "#333",
-                  fontWeight: !v.ativo ? 700 : 500
-                }}
-              >
-                {!v.ativo ? (
-  <span
+  {/* CARD SOBREPOSTO */}
+  <div
     style={{
-      color: "#dc2626",
-      fontWeight: 700,
-      fontSize: 11
+      marginTop: -45,
+      background: "#fff",
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 16,
+      boxShadow: "0 -10px 25px rgba(0,0,0,0.1)"
     }}
   >
-    Fechado
-  </span>
-) : (
-  `${v.abre} — ${v.fecha}`
-)}
-              </span>
-            </div>
-          );
-        })}
+    <div style={{ display: "flex", gap: 12 }}>
+      
+      {/* LOGO */}
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.1)"
+        }}
+      >
+        <img
+          src="/logo.png"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+
+      {/* INFO */}
+      <div style={{ flex: 1 }}>
+        
+        {/* NOME */}
+        <div style={{ fontSize: 18, fontWeight: 900 }}>
+          Açaí da Daiane
+        </div>
+
+        {/* STATUS */}
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 13,
+            fontWeight: 700,
+            color: abertoFinal ? "#16a34a" : "#dc2626"
+          }}
+        >
+          {abertoFinal ? "🟢 Aberto agora" : "🔴 Fechado"}
+          <span style={{ color: "#999", fontWeight: 500 }}>
+            {" "}• {textoHorario}
+          </span>
+        </div>
+
+        {/* 🔥 ENDEREÇO (NO LUGAR DO PREÇO) */}
+        <div
+          onClick={() => {
+            setAba("carrinho");
+            setStep(3);
+            setAbaPerfil("endereco");
+          }}
+          style={{
+            marginTop: 6,
+            fontSize: 13,
+            color: "#555",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            cursor: "pointer"
+          }}
+        >
+          <MapPin size={14} />
+          {clienteEndereco
+            ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
+            : "Adicionar endereço"}
+        </div>
+
+        {/* HORÁRIO FIXO (igual sua UI) */}
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 11,
+            color: "#888"
+          }}
+        >
+          Sex: 18:30 às 23:00 • Sáb/Dom: 16:00 às 23:00
+        </div>
+      </div>
+    </div>
+
+    {/* 🔽 HORÁRIO EXPANSÍVEL (SEU ORIGINAL, MANTIDO) */}
+    <div style={{ marginTop: 12 }}>
+      <div
+        onClick={() => {
+          setMostrarHorario(!mostrarHorario);
+          if (navigator.vibrate) navigator.vibrate(10);
+        }}
+        style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: "#555",
+          cursor: "pointer"
+        }}
+      >
+        Ver horários ↓
+      </div>
+
+      <div
+        style={{
+          maxHeight: mostrarHorario ? 180 : 0,
+          overflow: "hidden",
+          transition: "all 0.25s ease",
+          opacity: mostrarHorario ? 1 : 0
+        }}
+      >
+        <div style={{ marginTop: 10 }}>
+          {Array.from({ length: 7 }).map((_, i) => {
+            const dataTeste = new Date(agora);
+            dataTeste.setDate(agora.getDate() + i);
+
+            const dataKey = getDataKey(dataTeste);
+            const diaIndex = dataTeste.getDay();
+            const dia = ordemDias[diaIndex];
+
+            const fechadoManual = horarios?.diasFechados?.[dataKey];
+            const feriado =
+              !fechadoManual && feriadosFixos.includes(dataKey);
+
+            const v = getHorario(dia, feriado, fechadoManual);
+            const isHoje = dataKey === hojeData;
+
+            return (
+              <div
+                key={dataKey}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  marginBottom: 4,
+                  opacity: !v.ativo ? 0.6 : 1
+                }}
+              >
+                <span style={{ fontWeight: isHoje ? 700 : 500 }}>
+                  {isHoje ? "Hoje" : diasLabel[dia]}
+                </span>
+
+                <span>
+                  {!v.ativo ? "Fechado" : `${v.abre} — ${v.fecha}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   </div>
-</div>
+
 
         {/* BANNER RESPONSIVO PROFISSIONAL */}
 {Array.isArray(banners) && banners.length > 0 && (
