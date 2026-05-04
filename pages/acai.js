@@ -18,6 +18,7 @@ import usePedidosUsuario from "../components/acai/hooks/usePedidosUsuario";
 import useNotificacoes from "../components/acai/hooks/useNotificacoes";
 import Sidebar from "../components/Sidebar";
 
+
 import CardProduto from "../components/CardProduto";
 
 import { updatePassword } from "firebase/auth";
@@ -112,6 +113,7 @@ import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
 
+  
 
 const LOJA = {
   
@@ -1018,6 +1020,15 @@ useEffect(() => {
   processarFidelidade();
 
 }, [pedidos]);
+
+
+
+useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
 
 
@@ -5326,69 +5337,106 @@ return (
       }}
     >
 
-      {/* HERO FULL WIDTH CORRETO */}
-<div style={{ position: "relative", width: "100%" }}>
+     <div style={{ position: "relative", width: "100%" }}>
 
-  {/* BANNER */}
-  <div
-    style={{
-      height: 270,
-      width: "100%",
-      overflow: "hidden"
-    }}
-  >
-    <img
-      src="/site.png"
-      style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "cover"
-      }}
-    />
+      {/* 👉 DESKTOP (WEB) */}
+      {!isMobile && (
+        <>
+          <div
+            style={{
+              height: 270,
+              width: "100%",
+              overflow: "hidden"
+            }}
+          >
+            <img
+              src="/site.png"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
 
-    {/* overlay */}
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background:
-          "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
-      }}
-    />
-  </div>
+            {/* overlay */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
+              }}
+            />
+          </div>
 
-  {/* LOGO SOBREPOSTA */}
-  <div
-    style={{
-      position: "absolute",
-      left: "50%",
-      top: "100%",
-      transform: "translate(-50%, -50%)",
-      zIndex: 2
-    }}
-  >
-    <div
-      style={{
-        width: 80,
-        height: 80,
-        borderRadius: "50%",
-        overflow: "hidden",
-        border: "4px solid #fff",
-        background: "#fff",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
-      }}
-    >
-      <img
-        src="/icon-192.png"
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover"
-        }}
-      />
+          {/* LOGO SOBREPOSTA */}
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "100%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 2
+            }}
+          >
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "4px solid #fff",
+                background: "#fff",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+              }}
+            >
+              <img
+                src="/icon-192.png"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover"
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 👉 MOBILE (SEM BANNER) */}
+      {isMobile && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: 16,
+            marginBottom: 10
+          }}
+        >
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: "50%",
+              overflow: "hidden",
+              background: "#fff",
+              boxShadow: "0 6px 16px rgba(0,0,0,0.15)"
+            }}
+          >
+            <img
+              src="/icon-192.png"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover"
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-</div>
+  
+
       {/* HEADER */}
       <div
         style={{
@@ -5405,6 +5453,8 @@ return (
             gap: 12
           }}
         >
+
+          
           {/* ESQUERDA */}
           <div
             style={{
@@ -5412,7 +5462,7 @@ return (
               minWidth: 0
             }}
           >
-            <div
+          {/*  <div
               style={{
                 fontSize: 13,
                 color: "#7a7a7a",
@@ -5421,9 +5471,9 @@ return (
               }}
             >
               Olá, {clienteNome ? clienteNome.split(" ")[0] : "cliente"}
-            </div>
+            </div> */}
 
-            <div
+          {/*  <div
               onClick={() => {
                 setAba("carrinho");
                 setStep(3);
@@ -5456,7 +5506,7 @@ return (
               </span>
 
               <ChevronDown size={16} color="#666" />
-            </div>
+            </div>*/}
           </div>
 
           
