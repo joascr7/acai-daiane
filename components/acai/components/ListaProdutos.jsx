@@ -20,9 +20,9 @@ export default function ListaProdutos({
   return (
     <div
       style={{
-        display: "flex",
+        
         flexDirection: "column",
-        gap: 12,
+        gap: 1,
         padding: "4px 6px 14px"
       }}
     >
@@ -48,7 +48,7 @@ export default function ListaProdutos({
                 style={{
                   fontSize: 18,
                   fontWeight: 900,
-                  marginBottom: 12,
+                  marginBottom: 6,
                   color: "#111"
                 }}
               >
@@ -102,7 +102,7 @@ export default function ListaProdutos({
                       padding: 12,
                       border: "1px solid #f0f0f0",
                       boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-                      marginBottom: 10,
+                      marginBottom: 6,
                       cursor: "pointer"
                     }}
                   >

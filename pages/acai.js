@@ -5830,7 +5830,7 @@ return (
 </div>
 
 {/* SUBTÍTULO */}
-<div
+{/* <div
   style={{
     padding: "0 6px",
     fontSize: 13,
@@ -5843,7 +5843,7 @@ return (
 </div>
 
 {/* FRASE PREMIUM COM ÍCONE */}
-<div
+{/*<div
   style={{
     marginTop: 4,
     marginBottom: 16,
@@ -5858,10 +5858,10 @@ return (
     fontWeight: 700,
     color: "#7507dd"
   }}
->
-  <Sparkles size={14} strokeWidth={2.5} />
+>*/}
+  {/*<Sparkles size={14} strokeWidth={2.5} />
   Escolha, personalize e aproveite
-</div>
+</div>*/}
 
         {/* LISTA DE PRODUTOS HORIZONTAL */}
 <ListaProdutos
