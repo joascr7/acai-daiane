@@ -5825,21 +5825,21 @@ return (
       letterSpacing: "-0.02em"
     }}
   >
-    Customize seu copo e tenha uma experiência inigualável.
+     Monte do seu jeito.
   </strong>
 </div>
 
 {/* SUBTÍTULO */}
-{/* <div
+ <div
   style={{
     padding: "0 6px",
-    fontSize: 13,
+    fontSize: 10,
     color: "#666",
     lineHeight: 1.4,
     marginBottom: 8
   }}
 >
-  Feito pra quem entende de açaí.
+  Seu açaí, suas regras: escolha os seus toppings favoritos.
 </div>
 
 {/* FRASE PREMIUM COM ÍCONE */}
