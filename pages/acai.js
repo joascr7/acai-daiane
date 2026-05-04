@@ -2170,6 +2170,12 @@ const gerarPix = async () => {
       return;
     }
 
+    // 🔥 🔥 🔥 BLOQUEIO POR BAIRRO (ESSENCIAL)
+    if (!freteEncontrado) {
+      mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
+      return;
+    }
+
     const cupomValidoAgora = await validarCupomAntes();
     if (!cupomValidoAgora) return;
 
@@ -2209,24 +2215,10 @@ const gerarPix = async () => {
 
     localStorage.setItem("paymentId", String(data.payment_id));
 
-    // 🔥 CONGELA O CARRINHO
     const carrinhoAtual = JSON.parse(JSON.stringify(carrinho));
 
-    // 🔥 DEBUG GERAL
-    console.log("=== DEBUG PEDIDO ===");
-    console.log("pedidoId:", pedidoId);
-    console.log("carrinhoAtual:", carrinhoAtual);
-
-    carrinhoAtual.forEach((item, i) => {
-      console.log(`ITEM ${i}:`, item);
-
-      (item.extras || []).forEach((e, j) => {
-        console.log(`EXTRA ORIGINAL ${i}-${j}:`, e);
-      });
-    });
-
     await setDoc(doc(db, "pedidos", pedidoId), {
-      __origem: "PIX_DEBUG_FINAL",
+      __origem: "PIX_FINAL_BAIRRO",
 
       cliente: {
         nome: clienteNome || "Cliente",
@@ -2237,33 +2229,23 @@ const gerarPix = async () => {
         uid: user.uid
       },
 
-      itens: carrinhoAtual.map((item, i) => {
-        console.log(`PROCESSANDO ITEM ${i}`);
+      itens: carrinhoAtual.map((item) => {
+        const mapa = {};
 
-        const extrasProcessados = (() => {
-          const mapa = {};
+        (item?.extras || []).forEach((e) => {
+          const nome = e?.nome || "extra";
 
-          (item?.extras || []).forEach((e, j) => {
-            const nome = e?.nome || "extra";
+          if (!mapa[nome]) {
+            mapa[nome] = {
+              nome,
+              preco: Number(e?.preco || 0),
+              categoria: e?.categoria || "Extras",
+              qtd: 0
+            };
+          }
 
-            if (!mapa[nome]) {
-              mapa[nome] = {
-                nome,
-                preco: Number(e?.preco || 0),
-                categoria: e?.categoria || "Extras",
-                qtd: 0
-              };
-            }
-
-            mapa[nome].qtd += 1;
-
-            console.log(`CONTANDO EXTRA ${i}-${j}:`, mapa[nome]);
-          });
-
-          return Object.values(mapa);
-        })();
-
-        console.log(`EXTRAS FINAL ITEM ${i}:`, extrasProcessados);
+          mapa[nome].qtd += 1;
+        });
 
         return {
           produtoId: item?.produto?.id || "",
@@ -2277,7 +2259,7 @@ const gerarPix = async () => {
             item?.produto?.descricaoTamanho ||
             "",
 
-          extras: extrasProcessados
+          extras: Object.values(mapa)
         };
       }),
 
@@ -2317,8 +2299,6 @@ const gerarPix = async () => {
       data: Date.now()
     });
 
-    console.log("🔥 PEDIDO SALVO COM SUCESSO");
-
     localStorage.setItem("pedidoId", pedidoId);
 
     setPedidoAtual({
@@ -2348,7 +2328,9 @@ function formatarReal(valor) {
   });
 }
 
-// 🔥 TOTAL EXTRAS (produto atual)
+
+
+// 🔥 TOTAL EXTRAS
 const totalExtras = Object.values(extrasSelecionados)
   .flat()
   .reduce((acc, e) => acc + (Number(e.preco || 0) * (e.qtd || 1)), 0);
@@ -2363,7 +2345,7 @@ const precoBase = Math.round(Number(produto?.preco || 0));
 const totalFinalItem =
   (precoBase + totalExtras) * quantidade;
 
-// 🔥 TOTAL DO CARRINHO (CENTAVOS)
+// 🔥 TOTAL DO CARRINHO
 const total = carrinho.reduce((acc, item) => {
   return acc + Number(item.total || 0);
 }, 0);
@@ -2389,29 +2371,10 @@ if (cupomAplicado) {
 const totalFinal = Math.max(0, total - descontoCalculado);
 
 // =============================
-// 🚀 FRETE NÍVEL IFOOD
+// 🚀 FRETE
 // =============================
 
-
-function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-const LIMITE_FRETE_GRATIS = 3000; // R$30
-const LIMITE_KM = 7;
+const LIMITE_FRETE_GRATIS = 3000;
 
 // 🔥 SUBTOTAL
 const subtotalProdutos = Array.isArray(carrinho)
@@ -2423,37 +2386,18 @@ const bairroClienteNormalizado = (clienteBairro || "")
   .trim()
   .toLowerCase();
 
-// 🔥 FRETE ADMIN
+// 🔥 FRETE
 const freteEncontrado = Array.isArray(fretes)
   ? fretes.find(
       (f) =>
         String(f?.bairro || "").trim().toLowerCase() ===
-          bairroClienteNormalizado && f?.ativo !== false
+          bairroClienteNormalizado &&
+        f?.ativo !== false
     )
   : null;
 
-// 🔥 LOCALIZAÇÃO CLIENTE
-const lat = clienteLat ?? null;
-const lng = clienteLng ?? null;
-
-// 🔥 DISTÂNCIA
-let distanciaCliente = null;
-
-if (lat !== null && lng !== null) {
-  distanciaCliente = calcularDistanciaKm(
-    LOJA.lat,
-    LOJA.lng,
-    lat,
-    lng
-  );
-}
-
-console.log("LAT:", lat);
-console.log("LNG:", lng);
-console.log("DISTANCIA:", distanciaCliente);
-
 // 🔥 CONTROLE
-let taxaEntrega = Number(freteEncontrado?.valor || 0);
+let taxaEntrega = 0;
 let freteGratis = false;
 let foraDaArea = false;
 let precisaLocalizacao = false;
@@ -2465,42 +2409,62 @@ if (tipoEntrega === "retirada") {
 
 // 📍 ENTREGA
 else {
+  if (!freteEncontrado) {
+    foraDaArea = true;
+  } else {
+    taxaEntrega = Number(freteEncontrado?.valor || 0);
 
-  // ❗ SEM LOCALIZAÇÃO
-  if (lat === null || lng === null) {
-  console.log("Sem localização → permitindo pedido manual");
-
-  precisaLocalizacao = false; // 🔥 NÃO BLOQUEIA MAIS
-}
-
-  // 🚫 FORA DA ÁREA
-  else if (distanciaCliente && distanciaCliente > LIMITE_KM) {
-  foraDaArea = true;
-}
-
-  // 🎁 FRETE GRÁTIS (SÓ AQUI)
-  else if (subtotalProdutos >= LIMITE_FRETE_GRATIS) {
-    taxaEntrega = 0;
-    freteGratis = true;
+    if (subtotalProdutos >= LIMITE_FRETE_GRATIS) {
+      taxaEntrega = 0;
+      freteGratis = true;
+    }
   }
-
 }
 
-// 🔥 FALTA PARA FRETE GRÁTIS
+// 🔥 AGORA SIM (DEPOIS DO FRETE)
+const podeContinuarFinal =
+  clienteNome &&
+  clienteTelefone &&
+  (
+    tipoEntrega === "retirada" ||
+    (freteEncontrado !== null && foraDaArea === false)
+  );
+
+  // 🔍 DEBUG AQUI 👇
+console.log({
+  clienteNome,
+  clienteTelefone,
+  clienteEndereco,
+  clienteNumeroCasa,
+  clienteBairro,
+  tipoEntrega,
+  freteEncontrado,
+  foraDaArea,
+  podeContinuarFinal
+});
+
+// 🔥 TOTAL FINAL COM FRETE
+const totalFinalComFrete = totalFinal + taxaEntrega;
+
 const faltaFreteGratis = Math.max(
   0,
   LIMITE_FRETE_GRATIS - subtotalProdutos
 );
 
-// 🔥 TOTAL FINAL COM FRETE
-const totalFinalComFrete = totalFinal + taxaEntrega;
+// 🔥 FINALIZAR
+const podeFinalizar =
+  Array.isArray(carrinho) &&
+  carrinho.length > 0 &&
+  Boolean(tipoEntrega) &&
+  Boolean(formaPagamento) &&
+  (
+    tipoEntrega === "retirada" ||
+    (freteEncontrado !== null && foraDaArea === false)
+  );
 
-
-
-// 🔥 MELHOR CUPOM AUTOMÁTICO
+// 🔥 CUPOM
 const melhorCupom = Array.isArray(cupons)
   ? cupons.reduce((melhor, atual) => {
-
       const totalSeguro = total;
 
       if (!melhor) return atual;
@@ -2675,35 +2639,44 @@ async function salvarDadosCliente() {
   }
 
   try {
-    await setDoc(
-      doc(db, "usuarios", user.uid),
-      {
-        clienteNome,
-        clienteTelefone,
-        clienteEndereco,
-        clienteNumeroCasa,
-        clienteCep,
-        clienteBairro
-      },
-      { merge: true }
-    );
+  await setDoc(
+    doc(db, "usuarios", user.uid),
+    {
+      clienteNome,
+      clienteTelefone,
+      clienteEndereco,
+      clienteNumeroCasa,
+      clienteCep,
+      clienteBairro
+    },
+    { merge: true }
+  );
 
-    setToast({
-      tipo: "sucesso",
-      texto: "Alteração Feita"
-    });
+  // 🔥 ESSA PARTE FALTAVA
+  setClienteNome(clienteNome);
+  setClienteTelefone(clienteTelefone);
+  setClienteEndereco(clienteEndereco);
+  setClienteNumeroCasa(clienteNumeroCasa);
+  setClienteCep(clienteCep);
+  setClienteBairro(clienteBairro);
 
-    setTimeout(() => setToast(null), 2200);
-  } catch (e) {
-    console.log("ERRO REAL:", e);
+  setToast({
+    tipo: "sucesso",
+    texto: "Alteração Feita"
+  });
 
-    setToast({
-      tipo: "erro",
-      texto: "Erro ao salvar dados"
-    });
+  setTimeout(() => setToast(null), 2200);
 
-    setTimeout(() => setToast(null), 2200);
-  }
+} catch (e) {
+  console.log("ERRO REAL:", e);
+
+  setToast({
+    tipo: "erro",
+    texto: "Erro ao salvar dados"
+  });
+
+  setTimeout(() => setToast(null), 2200);
+}
 }
 
 
@@ -3583,8 +3556,9 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 VALIDAÇÃO CORRETA DE ENTREGA (SEM DUPLICAÇÃO)
+  // 🔥 VALIDAÇÃO DE ENTREGA CORRIGIDA
   if (tipoEntrega === "entrega") {
+
     const enderecoInvalido =
       !clienteEndereco ||
       !clienteNumeroCasa ||
@@ -3603,18 +3577,22 @@ async function finalizarPedido() {
       return;
     }
 
-    // 🔥 só bloqueia se tiver certeza
-    if (foraDaArea === true) {
+    // 🔥 NOVO BLOQUEIO POR BAIRRO (ESSENCIAL)
+    if (!freteEncontrado) {
       mostrarMensagemPagamento(
-        "Endereço fora da área de entrega (máx 7km).",
+        "Não entregamos no seu bairro.",
         "erro"
       );
       return;
     }
 
-    // 🔥 se não calculou distância → permite
-    if (foraDaArea === null || foraDaArea === undefined) {
-      console.log("Sem localização, permitindo pedido");
+    // 🔥 BLOQUEIO REAL (sem KM agora)
+    if (foraDaArea === true) {
+      mostrarMensagemPagamento(
+        "Endereço fora da área de entrega.",
+        "erro"
+      );
+      return;
     }
   }
 
@@ -3622,15 +3600,6 @@ async function finalizarPedido() {
     mostrarMensagemPagamento("Escolha o pagamento.", "erro");
     return;
   }
-
-  console.log({
-    tipoEntrega,
-    clienteEndereco,
-    clienteNumeroCasa,
-    clienteBairro,
-    foraDaArea,
-    formaPagamento
-  });
 
   try {
     setLoadingPedido(true);
@@ -3659,6 +3628,7 @@ async function finalizarPedido() {
       itens: itensValidos.map(item => ({
         produtoId: item.produto.id,
         nome: item.produto.nome,
+        imagem: item?.produto?.imagem || item?.imagem || "/acai.png",
         quantidade: Number(item.quantidade),
         total: item.gratis ? 0 : Number(item.total || 0),
         gratis: item.gratis === true,
@@ -3955,7 +3925,7 @@ const subtotalCalc = itensValidos.reduce(
   0
 );
 
-const podeFinalizar = itensValidos.length > 0 && subtotalCalc > 0;
+
 
 
 const podeFreteGratis =
@@ -5812,8 +5782,7 @@ return (
   </div>
 </div>
 
-        {/* BANNER RESPONSIVO PROFISSIONAL */}
-{Array.isArray(banners) && banners.length > 0 && (
+        {isMobile && Array.isArray(banners) && banners.length > 0 && (
   <div
     style={{
       marginTop: 16,
@@ -5822,7 +5791,7 @@ return (
       position: "relative",
       boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
       width: "100%",
-      height: isMobile ? 160 : 460,
+      height: 160, // 👈 mobile fixo
       background: "#111"
     }}
   >
@@ -5857,19 +5826,17 @@ return (
             cursor: "pointer"
           }}
         >
-          {/* IMAGEM ÚNICA (RESPONSIVA) */}
           <img
             src={b.imagem}
             style={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "left center", // 🔥 NÃO CORTA TEXTO
+              objectPosition: "left center",
               display: "block"
             }}
           />
 
-          {/* OVERLAY LEVE (DEIXA PREMIUM SEM ATRAPALHAR) */}
           <div
             style={{
               position: "absolute",
@@ -5882,7 +5849,6 @@ return (
       ))}
     </div>
 
-    {/* INDICADORES */}
     {banners.length > 1 && (
       <div
         style={{
@@ -8308,7 +8274,7 @@ return (
         }}
       >
         {foraDaArea
-          ? "Fora da área de entrega grátis"
+          ? "Fora da área de entrega"
           : freteGratis
           ? "Entrega grátis aplicada"
           : faltaFreteGratis > 0
@@ -8330,50 +8296,84 @@ return (
 </div>
 
     {/* BOTÃO */}
-    <button
-      onClick={() => {
-        if (!user) {
-          localStorage.setItem("redirectAfterLogin", "carrinho");
-          router.push("/login");
-          return;
-        }
+<button
+  disabled={!podeContinuarFinal}
 
-        if (!clienteNome || !clienteTelefone) {
-          mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
-          setAba("perfil");
-          setStep(4);
-          setAbaPerfil("dados");
-          return;
-        }
+  onClick={() => {
 
-        if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
-          mostrarMensagemPagamento("Preencha endereço, número e bairro para continuar.", "erro");
-          setAba("perfil");
-          setStep(4);
-          setAbaPerfil("endereco");
-          return;
-        }
+    if (!user) {
+      localStorage.setItem("redirectAfterLogin", "carrinho");
+      router.push("/login");
+      return;
+    }
 
-        setAba("pagamentos");
-        setStep(6);
-      }}
-      style={{
-        minWidth: isMobile ? 130 : 110,
-        height: isMobile ? 46 : 40,
-        borderRadius: 14,
-        background: "#ea1d2c",
-        color: "#fff",
-        border: "none",
-        fontWeight: 800,
-        fontSize: isMobile ? 14 : 13,
-        cursor: "pointer",
-        boxShadow: "0 6px 14px rgba(234,29,44,0.18)",
-        padding: "0 14px",
-        flexShrink: 0
-      }}
-    >
-      Continuar
-    </button>
+    if (!clienteNome || !clienteTelefone) {
+      mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
+      setAba("perfil");
+      setStep(4);
+      setAbaPerfil("dados");
+      return;
+    }
+
+    if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+      mostrarMensagemPagamento("Preencha endereço, número e bairro.", "erro");
+      setAba("perfil");
+      setStep(4);
+      setAbaPerfil("endereco");
+      return;
+    }
+
+    if (tipoEntrega === "entrega") {
+      if (!freteEncontrado) {
+        mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
+        return;
+      }
+
+      if (foraDaArea) {
+        mostrarMensagemPagamento("Fora da área de entrega.", "erro");
+        return;
+      }
+    }
+
+    setAba("pagamentos");
+    setStep(6);
+  }}
+
+  style={{
+    minWidth: isMobile ? 130 : 110,
+    height: isMobile ? 46 : 40,
+    borderRadius: 14,
+
+    background: podeContinuarFinal ? "#ea1d2c" : "#e5e5e5",
+    color: podeContinuarFinal ? "#fff" : "#999",
+
+    border: "none",
+    fontWeight: 800,
+    fontSize: isMobile ? 14 : 13,
+
+    cursor: podeContinuarFinal ? "pointer" : "not-allowed",
+    boxShadow: podeContinuarFinal
+      ? "0 6px 14px rgba(234,29,44,0.18)"
+      : "none",
+
+    padding: "0 14px",
+    flexShrink: 0,
+    transition: "all .2s ease",
+    opacity: podeContinuarFinal ? 1 : 0.7
+  }}
+>
+  {podeContinuarFinal
+    ? "Continuar"
+    : !clienteNome || !clienteTelefone
+    ? "Preencha seus dados"
+    : !tipoEntrega
+    ? "Escolha entrega ou retirada"
+    : !freteEncontrado
+    ? "Bairro não atendido"
+    : foraDaArea
+    ? "Fora da área"
+    : "Erro"}
+</button>
   </div>
 </div>
 
@@ -10286,45 +10286,82 @@ const corStatus =
     item?.produto?.descricaoTamanho ||
     "";
 
+    const imagemProduto =
+  item?.produto?.imagem ||
+  item?.imagem ||
+  "/acai.png";
+
   return (
-    <div
+     <div
       key={i}
       style={{
         display: "flex",
-        flexDirection: "column",
-        gap: 2,
+        alignItems: "flex-start",
+        gap: 10,
         fontSize: 14,
         color: "#444",
-        marginTop: i === 0 ? 0 : 8
+        marginTop: i === 0 ? 0 : 10
       }}
     >
+
+      {/* 🔥 IMAGEM */}
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12
+          width: 60,
+          height: 60,
+          borderRadius: 10,
+          overflow: "hidden",
+          flexShrink: 0
         }}
       >
-        <span>
-          {item.quantidade}x {item.produto?.nome}
-        </span>
-
-        <span>{formatarReal(item.total)}</span>
+        <img
+          src={imagemProduto}
+          onError={(e) => {
+            e.target.src = "/acai.png";
+          }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover"
+          }}
+        />
       </div>
 
-      {/* 🔥 TAMANHO */}
-      {(tamanho || descricaoTamanho) && (
+      {/* 🔥 CONTEÚDO */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+        
+        {/* LINHA PRINCIPAL */}
         <div
           style={{
-            fontSize: 12,
-            color: "#6b21a8",
-            fontWeight: 600
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12
           }}
         >
-          {tamanho}
-          {descricaoTamanho && ` • ${descricaoTamanho}`}
+          <span style={{ fontWeight: 700, color: "#111" }}>
+            {item.quantidade}x {item.produto?.nome}
+          </span>
+
+          <span style={{ fontWeight: 600 }}>
+            {formatarReal(item.total)}
+          </span>
         </div>
-      )}
+
+        {/* 🔥 TAMANHO */}
+        {(tamanho || descricaoTamanho) && (
+          <div
+            style={{
+              fontSize: 12,
+              color: "#6b21a8",
+              fontWeight: 600
+            }}
+          >
+            {tamanho}
+            {descricaoTamanho && ` • ${descricaoTamanho}`}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 })}
@@ -10748,37 +10785,32 @@ const corStatus =
         pointerEvents: "auto"
       }}
     >
+
+      {/* 🔥 AVISO */}
+      {!podeFinalizar && tipoEntrega === "entrega" && (
+        <div
+          style={{
+            marginBottom: 6,
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#ef4444",
+            textAlign: "center"
+          }}
+        >
+          {!freteEncontrado
+            ? "Não entregamos no seu bairro"
+            : foraDaArea
+            ? "Fora da área de entrega"
+            : ""}
+        </div>
+      )}
+
       <button
+        disabled={!podeFinalizar}
+
         onClick={async () => {
 
-          if (!podeFinalizar) {
-            mostrarToast("Adicione itens ao carrinho", "erro");
-            return;
-          }
-
-          if (!tipoEntrega) {
-            mostrarToast("Escolha entrega ou retirada", "erro");
-            return;
-          }
-
-          if (!formaPagamento) {
-            mostrarToast("Escolha uma forma de pagamento", "erro");
-            return;
-          }
-
-          // 🔥 BLOQUEIO REAL DE FRETE
-          if (tipoEntrega === "entrega") {
-
-            if (foraDaArea) {
-              mostrarToast("Fora da área de entrega ", "erro");
-              return;
-            }
-
-            if (precisaLocalizacao) {
-              mostrarToast("Informe seu endereço", "erro");
-              return;
-            }
-          }
+          if (!podeFinalizar) return;
 
           if (formaPagamento === "pix") {
             setQrBase64(null);
@@ -10795,8 +10827,6 @@ const corStatus =
 
           await finalizarPedido();
         }}
-
-        disabled={!podeFinalizar}
 
         style={{
           display: "flex",
@@ -10819,42 +10849,41 @@ const corStatus =
             ? "0 4px 12px rgba(234,29,44,0.16)"
             : "none",
 
-          boxSizing: "border-box",
           padding: "6px 10px",
           lineHeight: 1.2,
           transition: "all .2s ease",
           opacity: podeFinalizar ? 1 : 0.7
         }}
       >
+
         {/* TEXTO PRINCIPAL */}
         <span>
           {podeFinalizar
             ? `Finalizar pedido • ${formatarReal(totalFinalComFrete)}`
+            : tipoEntrega === "entrega" && !freteEncontrado
+            ? "Não entregamos no seu bairro"
+            : tipoEntrega === "entrega" && foraDaArea
+            ? "Fora da área de entrega"
             : "Adicione itens ao carrinho"}
         </span>
 
-        {/* STATUS FRETE CORRIGIDO */}
+        {/* STATUS FRETE */}
         {podeFinalizar && tipoEntrega === "entrega" && (
           <span
             style={{
               fontSize: 11,
               marginTop: 2,
-              color: foraDaArea
-                ? "#ffb3b3"
-                : freteGratis
-                ? "#bfffd0"
-                : "#fff"
+              color: freteGratis ? "#bfffd0" : "#fff"
             }}
           >
-            {foraDaArea
-              ? "Fora da área de entrega grátis"
-              : freteGratis
+            {freteGratis
               ? "Frete grátis liberado"
               : faltaFreteGratis > 0
               ? `Faltam ${formatarReal(faltaFreteGratis)} para frete grátis`
               : ""}
           </span>
         )}
+
       </button>
       </div>
   </div>
