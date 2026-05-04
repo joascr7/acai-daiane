@@ -5432,8 +5432,8 @@ return (
 {isMobile && (
   <div
   style={{
-    width: 66,
-    height: 66,
+    width: 86,
+    height: 86,
     borderRadius: "50%",
     overflow: "hidden",
     background: "#fff",
