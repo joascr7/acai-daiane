@@ -5469,6 +5469,19 @@ return (
       Olá, {clienteNome ? clienteNome.split(" ")[0] : "cliente"}
     </div>
 
+    {/* SUBTÍTULO */}
+ <div
+  style={{
+    padding: "0 6px",
+    fontSize: 10,
+    color: "#666",
+    lineHeight: 1.4,
+    marginBottom: 8
+  }}
+>
+  Salomão: 127
+</div>
+
     {/* ENDEREÇO */}
     <div
       onClick={() => {
@@ -5506,7 +5519,6 @@ return (
   </div>
 </div>
 
-          
 
           {/* DIREITA */}
           <div
