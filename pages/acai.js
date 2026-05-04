@@ -5325,6 +5325,70 @@ return (
         : 110
       }}
     >
+
+      {/* HERO FULL WIDTH CORRETO */}
+<div style={{ position: "relative", width: "100%" }}>
+
+  {/* BANNER */}
+  <div
+    style={{
+      height: 270,
+      width: "100%",
+      overflow: "hidden"
+    }}
+  >
+    <img
+      src="/site.png"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
+
+    {/* overlay */}
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        background:
+          "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
+      }}
+    />
+  </div>
+
+  {/* LOGO SOBREPOSTA */}
+  <div
+    style={{
+      position: "absolute",
+      left: "50%",
+      top: "100%",
+      transform: "translate(-50%, -50%)",
+      zIndex: 2
+    }}
+  >
+    <div
+      style={{
+        width: 80,
+        height: 80,
+        borderRadius: "50%",
+        overflow: "hidden",
+        border: "4px solid #fff",
+        background: "#fff",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+      }}
+    >
+      <img
+        src="/icon-192.png"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover"
+        }}
+      />
+    </div>
+  </div>
+</div>
       {/* HEADER */}
       <div
         style={{
