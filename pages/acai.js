@@ -5337,104 +5337,67 @@ return (
       }}
     >
 
-     <div style={{ position: "relative", width: "100%" }}>
+    <div style={{ position: "relative", width: "100%" }}>
 
-      {/* 👉 DESKTOP (WEB) */}
-      {!isMobile && (
-        <>
-          <div
-            style={{
-              height: 270,
-              width: "100%",
-              overflow: "hidden"
-            }}
-          >
-            <img
-              src="/site.png"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover"
-              }}
-            />
+  {/* 👉 DESKTOP (WEB) */}
+  {!isMobile && (
+    <>
+      <div
+        style={{
+          height: 270,
+          width: "100%",
+          overflow: "hidden"
+        }}
+      >
+        <img
+          src="/site.png"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover"
+          }}
+        />
 
-            {/* overlay */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
-              }}
-            />
-          </div>
-
-          {/* LOGO SOBREPOSTA */}
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: "100%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 2
-            }}
-          >
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: "4px solid #fff",
-                background: "#fff",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
-              }}
-            >
-              <img
-                src="/icon-192.png"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }}
-              />
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 👉 MOBILE (SEM BANNER) */}
-      {isMobile && (
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: 16,
-            marginBottom: 10
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
+          }}
+        />
+      </div>
+
+      {/* LOGO SOBREPOSTA */}
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "100%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 2
+        }}
+      >
+        <div
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: "50%",
+            overflow: "hidden",
+            border: "4px solid #fff",
+            background: "#fff",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
           }}
         >
-          <div
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              overflow: "hidden",
-              background: "#fff",
-              boxShadow: "0 6px 16px rgba(0,0,0,0.15)"
-            }}
-          >
-            <img
-              src="/icon-192.png"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover"
-              }}
-            />
-          </div>
+          <img src="/icon-192.png" style={{ width: "100%" }} />
         </div>
-      )}
-    </div>
+      </div>
+    </>
+  )}
+
+  {/* 👉 MOBILE → NÃO RENDERIZA HERO */}
+  {isMobile && null}
+</div>
   
 
       {/* HEADER */}
@@ -5456,58 +5419,92 @@ return (
 
           
           {/* ESQUERDA */}
-          <div
-            style={{
-              flex: 1,
-              minWidth: 0
-            }}
-          >
-          {/*  <div
-              style={{
-                fontSize: 13,
-                color: "#7a7a7a",
-                fontWeight: 500,
-                marginBottom: 6
-              }}
-            >
-              Olá, {clienteNome ? clienteNome.split(" ")[0] : "cliente"}
-            </div> */}
+<div
+  style={{
+    flex: 1,
+    minWidth: 0,
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10
+  }}
+>
+  {/* LOGO*/}
+{isMobile && (
+  <div
+  style={{
+    width: 66,
+    height: 66,
+    borderRadius: "50%",
+    overflow: "hidden",
+    background: "#fff",
+    border: "3px solid #fff",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
+    flexShrink: 0,
+    display: window.innerWidth <= 768 ? "block" : "none"
+  }}
+>
+    <img
+      src="/icon-192.png"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
+  </div>
+)}
 
-          {/*  <div
-              onClick={() => {
-                setAba("carrinho");
-                setStep(3);
-                setAbaPerfil("endereco");
-              }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                cursor: "pointer",
-                maxWidth: "100%"
-              }}
-            >
-              <MapPin size={16} color="#8b8b8b" />
+  {/* TEXTO */}
+  <div style={{ minWidth: 0 }}>
+    
+    {/* OLÁ */}
+    <div
+      style={{
+        fontSize: 13,
+        color: "#7a7a7a",
+        fontWeight: 500,
+        marginBottom: 4
+      }}
+    >
+      Olá, {clienteNome ? clienteNome.split(" ")[0] : "cliente"}
+    </div>
 
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#111",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 220
-                }}
-              >
-                {clienteEndereco
-                  ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
-                  : "Adicionar endereço"}
-              </span>
+    {/* ENDEREÇO */}
+    <div
+      onClick={() => {
+        setAba("carrinho");
+        setStep(3);
+        setAbaPerfil("endereco");
+      }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        cursor: "pointer"
+      }}
+    >
+      <MapPin size={14} color="#8b8b8b" />
 
-              <ChevronDown size={16} color="#666" />
-            </div>*/}
-          </div>
+      <span
+        style={{
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#111",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: 200
+        }}
+      >
+        {clienteEndereco
+          ? `${clienteEndereco.split(",")[0]}${clienteNumeroCasa ? ", " + clienteNumeroCasa : ""}`
+          : "Adicionar endereço"}
+      </span>
+
+      <ChevronDown size={14} color="#666" />
+    </div>
+  </div>
+</div>
 
           
 
