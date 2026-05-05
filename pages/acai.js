@@ -12345,11 +12345,7 @@ const corStatus =
   background: "#fff",
   borderTop: "1px solid #eee",
 
-  // ❌ remove height fixa
-  // height: 64,
-
-  paddingTop: 8,
-  paddingBottom: "calc(8px + env(safe-area-inset-bottom))", // 🔥 CORREÇÃO REAL
+  height: 64, // 🔥 volta altura fixa
 
   display: "flex",
   justifyContent: "space-around",
