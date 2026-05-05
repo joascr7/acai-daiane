@@ -12330,25 +12330,26 @@ const corStatus =
   style={{
     position: "fixed",
 
-    bottom: 0, // 🔥 deixa zero mesmo
-
+    bottom: 0,
     left: "50%",
-    transform: "translateX(-50%)", // 🔥 CENTRALIZA CERTO
+    transform: "translateX(-50%)",
 
     width: "100%",
     maxWidth: larguraNavbar,
 
+    height: 64,
+
+    paddingBottom: "env(safe-area-inset-bottom)", // 🔥 ESSENCIAL
+
     background: "#fff",
     borderTop: "1px solid #eee",
-
-    height: 64,
 
     display: "flex",
     justifyContent: "space-around",
     alignItems: "center",
 
     boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-    zIndex: 9999 // 🔥 aumenta pra garantir
+    zIndex: 9999
   }}
 >
 

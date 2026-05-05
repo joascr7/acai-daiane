@@ -26,11 +26,6 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-body {
-  position: fixed;
-  width: 100%;
-}
-
 /* ============================= */
 /* TEMA */
 /* ============================= */
