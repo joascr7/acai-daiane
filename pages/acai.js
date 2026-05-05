@@ -332,7 +332,7 @@ const layout = {
     margin: "0 auto",
     width: "100%",
 
-    minHeight: "100vh", // 🔥 CORRETO
+    height: "100vh", // 🔥 CORREÇÃO REAL
 
     background: "#f7f7f7",
     display: "flex",
@@ -341,6 +341,7 @@ const layout = {
 
   content: {
     padding: 16,
+    paddingBottom: 80, // 🔥 evita sobreposição
     flex: 1
   },
 
@@ -361,20 +362,20 @@ const layout = {
     border: "none"
   },
 
-footer: {
-  position: "fixed",
-  bottom: 0,
-  left: "50%",
-  transform: "translateX(-50%)",
+  footer: {
+    position: "fixed",
+    bottom: 0,
+    left: "50%",
+    transform: "translateX(-50%)",
 
-  width: "100%",
-  maxWidth: 420,
+    width: "100%",
+    maxWidth: 420,
 
-  background: "#fff",
-  padding: 12,
-  borderTop: "1px solid #eee",
-  zIndex: 20
-}
+    background: "#fff",
+    padding: 12,
+    borderTop: "1px solid #eee",
+    zIndex: 20
+  }
 
 };
 
