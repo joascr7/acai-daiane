@@ -418,7 +418,7 @@ useEffect(() => {
 }, []);
 
 
-
+const [imgLoaded, setImgLoaded] = useState(false);
 const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
@@ -1434,6 +1434,13 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  const img = new Image();
+  img.src = "/tt2.png";
+  img.onload = () => setImgLoaded(true);
+}, []);
+
+
 // 🔥 PWA INSTALL
 useEffect(() => {
 
@@ -1746,7 +1753,8 @@ if (loadingInicial && isMobile) {
         inset: 0,
         background: "#ea1d2c",
         zIndex: 99999,
-        overflow: "hidden"
+        overflow: "hidden",
+        paddingBottom: "env(safe-area-inset-bottom)"
       }}
     >
       <style>
@@ -1768,9 +1776,9 @@ if (loadingInicial && isMobile) {
         `}
       </style>
 
-      {/* IMAGEM FULL */}
       <img
         src="/tt2.png"
+        onLoad={() => setImgLoaded(true)}
         style={{
           width: "100%",
           height: "100%",
@@ -1781,7 +1789,6 @@ if (loadingInicial && isMobile) {
         }}
       />
 
-      {/* OVERLAY */}
       <div
         style={{
           position: "absolute",
@@ -1790,7 +1797,6 @@ if (loadingInicial && isMobile) {
         }}
       />
 
-      {/* TEXTO */}
       <div
         style={{
           position: "absolute",
@@ -1801,13 +1807,7 @@ if (loadingInicial && isMobile) {
           animation: "fadeIn 0.8s ease"
         }}
       >
-        <p
-          style={{
-            color: "#fff",
-            fontWeight: 500,
-            fontSize: 15
-          }}
-        >
+        <p style={{ color: "#fff", fontWeight: 500, fontSize: 15 }}>
           Preparando{" "}
           <span
             style={{
