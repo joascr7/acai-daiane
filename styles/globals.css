@@ -10,7 +10,9 @@ body,
   max-width: 100%;
   margin: 0;
   padding: 0;
-  background: var(--bg);
+
+  background: #f7f7f7; /* 🔥 CORRIGIDO (antes branco) */
+
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
 }
@@ -22,7 +24,8 @@ html {
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
-  overscroll-behavior-x: none;
+
+  overscroll-behavior: none; /* 🔥 remove efeito puxar */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -31,7 +34,7 @@ body {
 /* ============================= */
 
 :root {
-  --bg: #ffffff;
+  --bg: #f7f7f7; /* 🔥 alinhado com app */
   --card: #111;
   --text: #ffffff;
   --subtext: #aaaaaa;
@@ -353,15 +356,7 @@ input {
 /* SCROLL */
 /* ============================= */
 
-/* ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  display: none;
-} */
-
-html, body {
-  overflow-y: auto;
-}
+/* 🔥 REMOVIDO overflow-y global (causava bug) */
 
 ::-webkit-scrollbar-thumb {
   background: transparent;
@@ -388,28 +383,3 @@ html, body {
   font-weight: bold;
   z-index: 9999;
 }
-
-
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes logoZoom {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
