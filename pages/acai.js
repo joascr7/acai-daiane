@@ -332,18 +332,19 @@ const layout = {
     margin: "0 auto",
     width: "100%",
 
-    minHeight: "100dvh",
+    height: "100vh", // 🔥 usa height, não minHeight
 
     background: "#f7f7f7",
     display: "flex",
     flexDirection: "column",
 
-    overscrollBehavior: "none" // 🔥 ESSENCIAL
+    overflow: "hidden" // 🔥 trava o body
   },
 
   content: {
     padding: 16,
-    flex: 1
+    flex: 1,
+    overflowY: "auto" // 🔥 scroll só aqui
   },
 
   card: {
@@ -361,10 +362,9 @@ const layout = {
     color: "#fff",
     fontWeight: "bold",
     border: "none"
-  },
-
-
+  }
 };
+
 
 
 const backBtn = {
@@ -12309,18 +12309,6 @@ const corStatus =
   </div>
 )}
 
-{/* desce botao */}
-  <div
-  style={{
-    position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "env(safe-area-inset-bottom)",
-    background: "#fff",
-    zIndex: 998
-  }}
-/>
 
 {/* 🔥 NAVBAR FIXA */}
 {isMobile && (
@@ -12608,6 +12596,18 @@ const corStatus =
 </div>
 )}
 
+{/* desce botao */}
+  <div
+  style={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "env(safe-area-inset-bottom)",
+    background: "#fff",
+    zIndex: 998
+  }}
+/>
 
 
 

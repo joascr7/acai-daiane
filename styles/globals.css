@@ -359,8 +359,9 @@ input {
   display: none;
 } */
 
-html, body {
-  overflow-y: auto;
+html, body, #__next {
+  height: 100%;
+  overflow: hidden; /* 🔥 ESSENCIAL */
 }
 
 ::-webkit-scrollbar-thumb {
