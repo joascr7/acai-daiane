@@ -363,21 +363,7 @@ const layout = {
     border: "none"
   },
 
-  footer: {
-  position: "sticky",
-  bottom: 0, // 🔥 ESSENCIAL
 
-  left: "50%",
-  transform: "translateX(-50%)",
-
-  width: "100%",
-  maxWidth: 420,
-
-  background: "#fff",
-  padding: 12,
-  borderTop: "1px solid #eee",
-  zIndex: 20
-}
 };
 
 
