@@ -360,17 +360,16 @@ const layout = {
   },
 
   footer: {
-    position: "sticky",
-    bottom: 70,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100%",
-    maxWidth: 420,
-    background: "#fff",
-    padding: 12,
-    borderTop: "1px solid #eee",
-    zIndex: 20
-  }
+  position: "fixed",
+  bottom: 0,
+  left: 0,
+  width: "100%",
+  maxWidth: 420,
+  background: "#fff",
+  padding: 12,
+  borderTop: "1px solid #eee",
+  zIndex: 20
+}
 };
 
 
