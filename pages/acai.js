@@ -331,7 +331,11 @@ const layout = {
     maxWidth: 420,
     margin: "0 auto",
     width: "100%",
-    minHeight: "100vh",
+    
+    minHeight: "100dvh", // 🔥 CORREÇÃO REAL
+
+    paddingBottom: BOTTOM_SPACE, // 🔥 EMPURRA CONTEÚDO PRA CIMA
+
     background: "#f7f7f7",
     display: "flex",
     flexDirection: "column"
@@ -5397,7 +5401,8 @@ return (
         maxWidth: larguraApp,
         margin: "0 auto",
         background: "#f5f5f5",
-        minHeight: "100vh",
+        minHeight: "100dvh",
+        paddingBottom: BOTTOM_SPACE,
         boxSizing: "border-box",
         paddingBottom: carrinho.length > 0
         ? (isMobile ? 180 : 150)
@@ -12318,9 +12323,9 @@ const corStatus =
 
 {/* 🔥 NAVBAR FIXA */}
 {isMobile && (
-<div style={{
+ <div style={{
   position: "fixed",
-  bottom: 0,
+  bottom: "env(safe-area-inset-bottom)", // 🔥 ESSENCIAL
   left: 0,
   right: 0,
 
@@ -12331,7 +12336,7 @@ const corStatus =
   background: "#fff",
   borderTop: "1px solid #eee",
 
-  height: 64, // 🔥 altura fixa estilo iFood
+  height: NAVBAR,
 
   display: "flex",
   justifyContent: "space-around",
@@ -12339,7 +12344,6 @@ const corStatus =
 
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
   zIndex: 999,
-  boxSizing: "border-box"
 }}>
 
 
