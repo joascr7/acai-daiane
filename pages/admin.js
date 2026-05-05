@@ -697,16 +697,19 @@ useEffect(() => {
   }
 
   pedidos.forEach((p) => {
-    const chaveUnica = p.id + "_" + p.status;
+  const chaveUnica = p.id + "_" + p.status;
 
-    if (!statusValidos.includes(p.status)) return;
+  if (!statusValidos.includes(p.status)) return;
 
-    if (pedidosNotificados.current.has(chaveUnica)) return;
+  if (pedidosNotificados.current.has(chaveUnica)) return;
 
-    pedidosNotificados.current.add(chaveUnica);
+  // 🔥 SE JÁ ESTÁ TOCANDO, NÃO DISPARA DE NOVO
+  if (tocando) return;
 
-    tocarSom();
-  });
+  pedidosNotificados.current.add(chaveUnica);
+
+  tocarSom();
+});
 
 }, [pedidos]);
 
@@ -718,6 +721,9 @@ useEffect(() => {
 function tocarSom() {
   const agora = Date.now();
 
+  // 🔥 NÃO TOCA SE JÁ PAROU MANUALMENTE
+  if (tocando) return;
+
   // anti-spam
   if (agora - ultimoSom.current < 3000) return;
 
@@ -727,6 +733,8 @@ function tocarSom() {
 
   audioRef.current.currentTime = 0;
   audioRef.current.play().catch(() => {});
+
+  setTocando(true); // 🔥 marca que está tocando
 }
 
 function pararSom() {

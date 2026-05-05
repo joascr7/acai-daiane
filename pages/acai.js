@@ -113,7 +113,8 @@ import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
 
-  
+
+
 
 const LOJA = {
   
@@ -427,7 +428,7 @@ const [clienteLat, setClienteLat] = useState(null);
 const [clienteLng, setClienteLng] = useState(null);
 const notificacoesRef = useRef([]);
 
-
+const [loadingInicial, setLoadingInicial] = useState(true);
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
 
@@ -892,6 +893,15 @@ useEffect(() => {
     unsub1();
     unsub2();
   };
+}, []);
+
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setLoadingInicial(false);
+  }, 1800); // 🔥 tempo da animação (1.8s ideal)
+
+  return () => clearTimeout(timer);
 }, []);
 
 
@@ -1711,6 +1721,53 @@ useEffect(() => {
  
  if (!mounted) return null;
 
+
+ if (loadingInicial) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#0f0f0f",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        zIndex: 99999
+      }}
+    >
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+
+      <img
+        src="/icon-192.png"
+        style={{
+          width: 90,
+          height: 90,
+          borderRadius: "50%",
+          marginBottom: 20
+        }}
+      />
+
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          border: "3px solid rgba(255,255,255,0.2)",
+          borderTop: "3px solid #ea1d2c",
+          animation: "spin 1s linear infinite"
+        }}
+      />
+    </div>
+  );
+}
 
 
 
@@ -4125,9 +4182,6 @@ const textoHorario = (() => {
 })();
 
 return (
-
-
-
 
 
 
