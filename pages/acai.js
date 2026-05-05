@@ -122,8 +122,8 @@ const LOJA = {
   lng: -34.8895
 };
 
-const NAVBAR = 60;
-const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
+const NAVBAR = 0;
+
 
 
   const btnMais = {
