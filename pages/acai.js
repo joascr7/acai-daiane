@@ -124,7 +124,7 @@ const LOJA = {
 
 const NAVBAR = 60;
 const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
-const BOTTOM_SPACE = `calc(${NAVBAR}px + ${SAFE_BOTTOM})`;
+
 
   const btnMais = {
   width: 28,
