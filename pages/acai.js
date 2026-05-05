@@ -12319,28 +12319,31 @@ const corStatus =
 
 {/* 🔥 NAVBAR FIXA */}
 {isMobile && (
- <div style={{
-  position: "fixed",
-  bottom: "env(safe-area-inset-bottom)", // 🔥 ESSENCIAL
-  left: 0,
-  right: 0,
+ <div
+  style={{
+    position: "fixed",
 
-  width: "100%",
-  maxWidth: larguraNavbar,
-  margin: "0 auto",
+    bottom: 0, // 🔥 deixa zero mesmo
 
-  background: "#fff",
-  borderTop: "1px solid #eee",
+    left: "50%",
+    transform: "translateX(-50%)", // 🔥 CENTRALIZA CERTO
 
-  height: NAVBAR,
+    width: "100%",
+    maxWidth: larguraNavbar,
 
-  display: "flex",
-  justifyContent: "space-around",
-  alignItems: "center",
+    background: "#fff",
+    borderTop: "1px solid #eee",
 
-  boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-  zIndex: 999,
-}}>
+    height: 64,
+
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+
+    boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
+    zIndex: 9999 // 🔥 aumenta pra garantir
+  }}
+>
 
 
   {/* INICIO */}
