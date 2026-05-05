@@ -328,14 +328,14 @@ const card = {
 
 const layout = {
   container: {
-    maxWidth: 420,
-    margin: "0 auto",
-    width: "100%",
-    minHeight: "100vh",
-    background: "#f7f7f7",
-    display: "flex",
-    flexDirection: "column"
-  },
+  maxWidth: 420,
+  margin: "0 auto",
+  width: "100%",
+  minHeight: "100dvh", // ✅ CORRETO
+  background: "#f7f7f7",
+  display: "flex",
+  flexDirection: "column"
+},
 
   content: {
     padding: 16,
@@ -1753,8 +1753,8 @@ if (loadingInicial && isMobile) {
         inset: 0,
         background: "#ea1d2c",
         zIndex: 99999,
-        overflow: "hidden",
-        paddingBottom: "env(safe-area-inset-bottom)"
+        overflow: "hidden"
+        
       }}
     >
       <style>
@@ -10288,7 +10288,7 @@ const corStatus =
         display: "flex",
         flexDirection: "column",
         background: "#f5f5f5",
-        paddingBottom: BOTTOM_SPACE,
+        
         boxSizing: "border-box"
       }}
     >
