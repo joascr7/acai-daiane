@@ -123,8 +123,7 @@ const LOJA = {
 };
 
 const NAVBAR = 60;
-const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
-const BOTTOM_SPACE = `calc(${NAVBAR}px + ${SAFE_BOTTOM})`;
+
 
   const btnMais = {
   width: 28,
@@ -438,8 +437,8 @@ const [podeInstalar, setPodeInstalar] = useState(false);
   const [logo, setLogo] = useState(null);
   const [promptInstall, setPromptInstall] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
-  const larguraApp = isMobile ? 420 : 1200;
-  const larguraNavbar = isMobile ? 420 : 700;
+  const larguraApp = isMobile ? "100%" : 1200;
+  const larguraNavbar = isMobile ? "100%" : 700;
 
   const [clienteBairro, setClienteBairro] = useState("");
   const [fretes, setFretes] = useState([]);
@@ -1807,7 +1806,7 @@ if (loadingInicial) {
           animation: "fadeUp 0.6s ease"
         }}
       >
-        Preparando seu pedido...
+        Carregando o site...
       </div>
     </div>
   );
