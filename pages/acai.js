@@ -4240,7 +4240,7 @@ return (
   background: "#fff",
   color: themeAtual.text,
   boxSizing: "border-box",
-  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
+  paddingBottom: 0 // 🔥 CORRETO
 }}>
   <div style={{
     width: "100%",
@@ -8510,7 +8510,7 @@ return (
       margin: "0 auto",
       background: "#f7f7f7",
       minHeight: "100dvh",
-      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`
+      paddingBottom: NAVBAR // ✅ só o necessário
     }}
   >
     {/* HEADER */}
@@ -9138,7 +9138,7 @@ return (
   <div
     style={{
       position: "fixed",
-      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
+      bottom: NAVBAR + 16, // ✅ sem safe-area
       left: "50%",
       transform: "translateX(-50%)",
       width: "calc(100% - 32px)",
@@ -9191,9 +9191,8 @@ return (
       maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100dvh",
-      paddingBottom: 80,
       background: "#f7f7f7",
-      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 24px)`,
+      paddingBottom: NAVBAR, // 🔥 só isso
       boxSizing: "border-box"
     }}
   >
@@ -12463,7 +12462,7 @@ const corStatus =
 
  {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
 
- {!user &&
+{!user &&
   aba !== "perfil" &&
   router.pathname !== "/login" && (
     <div
@@ -12472,7 +12471,7 @@ const corStatus =
         position: "fixed",
         left: "50%",
         transform: "translateX(-50%)",
-        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 14px)`,
+        bottom: NAVBAR + 14, // ✅ sem safe-area
         width: "calc(100% - 32px)",
         maxWidth: 388,
         zIndex: 999,
@@ -12483,7 +12482,7 @@ const corStatus =
         padding: "14px 16px",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center", // 🔥 centraliza o bloco
+        justifyContent: "center",
         gap: 12,
         cursor: "pointer",
         WebkitTapHighlightColor: "transparent",
@@ -12543,11 +12542,11 @@ const corStatus =
 
       <ChevronRight size={18} color="#b3b3b3" />
 
-      {toast && (
+   {toast && (
   <div
     style={{
       position: "fixed",
-      bottom: "calc(env(safe-area-inset-bottom) + 10px)",
+      bottom: NAVBAR + 10, // ✅ corrigido
 
       left: 0,
       right: 0,
@@ -12605,18 +12604,7 @@ const corStatus =
 </div>
 )}
 
-{/* desce botao */}
-  <div
-  style={{
-    position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "env(safe-area-inset-bottom)",
-    background: "#fff",
-    zIndex: 998
-  }}
-/>
+
 
 
 
