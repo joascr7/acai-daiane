@@ -332,19 +332,16 @@ const layout = {
     margin: "0 auto",
     width: "100%",
 
-    height: "100vh", // 🔥 usa height, não minHeight
+    minHeight: "100vh", // 🔥 CORRETO
 
     background: "#f7f7f7",
     display: "flex",
-    flexDirection: "column",
-
-    overflow: "hidden" // 🔥 trava o body
+    flexDirection: "column"
   },
 
   content: {
     padding: 16,
-    flex: 1,
-    overflowY: "auto" // 🔥 scroll só aqui
+    flex: 1
   },
 
   card: {
@@ -362,9 +359,24 @@ const layout = {
     color: "#fff",
     fontWeight: "bold",
     border: "none"
-  }
-};
+  },
 
+footer: {
+  position: "fixed",
+  bottom: 0,
+  left: "50%",
+  transform: "translateX(-50%)",
+
+  width: "100%",
+  maxWidth: 420,
+
+  background: "#fff",
+  padding: 12,
+  borderTop: "1px solid #eee",
+  zIndex: 20
+}
+
+};
 
 
 const backBtn = {
