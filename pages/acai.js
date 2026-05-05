@@ -331,10 +331,14 @@ const layout = {
     maxWidth: 420,
     margin: "0 auto",
     width: "100%",
-    minHeight: "100vh",
+
+    minHeight: "100dvh",
+
     background: "#f7f7f7",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
+
+    overscrollBehavior: "none" // 🔥 ESSENCIAL
   },
 
   content: {
@@ -360,17 +364,20 @@ const layout = {
   },
 
   footer: {
-    position: "sticky",
-    bottom: 70,
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "100%",
-    maxWidth: 420,
-    background: "#fff",
-    padding: 12,
-    borderTop: "1px solid #eee",
-    zIndex: 20
-  }
+  position: "sticky",
+  bottom: 0, // 🔥 ESSENCIAL
+
+  left: "50%",
+  transform: "translateX(-50%)",
+
+  width: "100%",
+  maxWidth: 420,
+
+  background: "#fff",
+  padding: 12,
+  borderTop: "1px solid #eee",
+  zIndex: 20
+}
 };
 
 
