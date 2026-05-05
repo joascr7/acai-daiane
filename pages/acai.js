@@ -1744,43 +1744,90 @@ useEffect(() => {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#0f0f0f",
+        background: "#ea1d2c",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "column",
-        zIndex: 99999
+        zIndex: 99999,
+        overflow: "hidden"
       }}
     >
       <style>
         {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+          }
+
+          @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+
+          @keyframes shine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
           }
         `}
       </style>
 
+      {/* IMAGEM PRINCIPAL */}
       <img
-        src="/icon-192.png"
+        src="/tt2.png"
         style={{
-          width: 90,
-          height: 90,
-          borderRadius: "50%",
-          marginBottom: 20
+          width: "80%",
+          maxWidth: 380,
+          zIndex: 2,
+          animation: "float 3s ease-in-out infinite, fadeIn 0.6s ease"
         }}
       />
 
+      {/* CÍRCULO GIRANDO */}
       <div
         style={{
-          width: 40,
-          height: 40,
+          position: "absolute",
+          width: 300,
+          height: 300,
           borderRadius: "50%",
-          border: "3px solid rgba(255,255,255,0.2)",
-          borderTop: "3px solid #ea1d2c",
-          animation: "spin 1s linear infinite"
+          border: "2px solid rgba(255,255,255,0.15)",
+          borderTop: "2px solid #fff",
+          animation: "spinSlow 6s linear infinite"
         }}
       />
+
+      {/* TEXTO */}
+      <p
+        style={{
+          position: "absolute",
+          bottom: 80,
+          color: "#fff",
+          fontWeight: 500,
+          fontSize: 14,
+          opacity: 0.95,
+          textAlign: "center"
+        }}
+      >
+        Preparando{" "}
+        <span
+          style={{
+            fontWeight: 700,
+            background:
+              "linear-gradient(90deg, #fff, #fff, #ffffff55, #fff)",
+            backgroundSize: "200% auto",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            animation: "shine 2.5s linear infinite"
+          }}
+        >
+          o melhor açaí da região
+        </span>
+      </p>
     </div>
   );
 }
