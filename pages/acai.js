@@ -1744,7 +1744,7 @@ if (loadingInicial) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "#ea1d2c",
+        background: "#ffffff",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -1800,7 +1800,7 @@ if (loadingInicial) {
       {/* TEXTO */}
       <div
         style={{
-          color: "#fff",
+          color: "#f10101",
           fontSize: 14,
           fontWeight: 500,
           opacity: 0.9,
