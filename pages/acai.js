@@ -122,9 +122,9 @@ const LOJA = {
   lng: -34.8895
 };
 
-const NAVBAR = 0;
-
-
+const NAVBAR = 60;
+const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
+const BOTTOM_SPACE = `calc(${NAVBAR}px + ${SAFE_BOTTOM})`;
 
   const btnMais = {
   width: 28,
@@ -328,14 +328,14 @@ const card = {
 
 const layout = {
   container: {
-  maxWidth: 420,
-  margin: "0 auto",
-  width: "100%",
-  minHeight: "100dvh", // ✅ CORRETO
-  background: "#f7f7f7",
-  display: "flex",
-  flexDirection: "column"
-},
+    maxWidth: 420,
+    margin: "0 auto",
+    width: "100%",
+    minHeight: "100vh",
+    background: "#f7f7f7",
+    display: "flex",
+    flexDirection: "column"
+  },
 
   content: {
     padding: 16,
@@ -360,8 +360,17 @@ const layout = {
   },
 
   footer: {
-  display: "none"
-}
+    position: "sticky",
+    bottom: 70,
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "100%",
+    maxWidth: 420,
+    background: "#fff",
+    padding: 12,
+    borderTop: "1px solid #eee",
+    zIndex: 20
+  }
 };
 
 
@@ -409,7 +418,7 @@ useEffect(() => {
 }, []);
 
 
-const [imgLoaded, setImgLoaded] = useState(false);
+
 const [extrasSelecionados, setExtrasSelecionados] = useState({});
 const [pedidoAberto,  setPedidoAberto] = useState(null);
 
@@ -1425,13 +1434,6 @@ useEffect(() => {
 }, []);
 
 
-useEffect(() => {
-  const img = new Image();
-  img.src = "/tt2.png";
-  img.onload = () => setImgLoaded(true);
-}, []);
-
-
 // 🔥 PWA INSTALL
 useEffect(() => {
 
@@ -1736,88 +1738,81 @@ useEffect(() => {
 }
 
 
-if (loadingInicial && isMobile) {
+if (loadingInicial) {
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
         background: "#ea1d2c",
-        zIndex: 99999,
-        overflow: "hidden"
-        
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        zIndex: 99999
       }}
     >
       <style>
         {`
-          @keyframes zoom {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 1; }
           }
 
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
 
-          @keyframes shine {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
           }
         `}
       </style>
 
+      {/* LOGO */}
       <img
-        src="/tt2.png"
-        onLoad={() => setImgLoaded(true)}
+        src="/icon-192.png"
         style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          position: "absolute",
-          inset: 0,
-          animation: "zoom 5s ease-in-out forwards"
+          width: 90,
+          height: 90,
+          borderRadius: "50%",
+          marginBottom: 24,
+          animation: "pulse 2s ease-in-out infinite"
         }}
       />
 
+      {/* SPINNER PREMIUM */}
       <div
         style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.15)"
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          border: "3px solid rgba(255,255,255,0.2)",
+          borderTop: "3px solid #fff",
+          animation: "spin 0.9s linear infinite",
+          marginBottom: 20
         }}
       />
 
+      {/* TEXTO */}
       <div
         style={{
-          position: "absolute",
-          bottom: 80,
-          width: "100%",
-          textAlign: "center",
-          padding: "0 20px",
-          animation: "fadeIn 0.8s ease"
+          color: "#fff",
+          fontSize: 14,
+          fontWeight: 500,
+          opacity: 0.9,
+          animation: "fadeUp 0.6s ease"
         }}
       >
-        <p style={{ color: "#fff", fontWeight: 500, fontSize: 15 }}>
-          Preparando{" "}
-          <span
-            style={{
-              fontWeight: 700,
-              background:
-                "linear-gradient(90deg, #fff, #fff, #ffffff55, #fff)",
-              backgroundSize: "200% auto",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              animation: "shine 2.5s linear infinite"
-            }}
-          >
-            o melhor açaí da região
-          </span>
-        </p>
+        Preparando seu pedido...
       </div>
     </div>
   );
 }
+
 
 
  async function pagarCheckout(pedidoId) {
@@ -4240,7 +4235,7 @@ return (
   background: "#fff",
   color: themeAtual.text,
   boxSizing: "border-box",
-  paddingBottom: 0 // 🔥 CORRETO
+  paddingBottom: isMobile ? "env(safe-area-inset-bottom)" : 0
 }}>
   <div style={{
     width: "100%",
@@ -8510,7 +8505,7 @@ return (
       margin: "0 auto",
       background: "#f7f7f7",
       minHeight: "100dvh",
-      paddingBottom: NAVBAR // ✅ só o necessário
+      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`
     }}
   >
     {/* HEADER */}
@@ -9138,7 +9133,7 @@ return (
   <div
     style={{
       position: "fixed",
-      bottom: NAVBAR + 16, // ✅ sem safe-area
+      bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 16px)`,
       left: "50%",
       transform: "translateX(-50%)",
       width: "calc(100% - 32px)",
@@ -9191,8 +9186,9 @@ return (
       maxWidth: larguraApp,
       margin: "0 auto",
       minHeight: "100dvh",
+      paddingBottom: 80,
       background: "#f7f7f7",
-      paddingBottom: NAVBAR, // 🔥 só isso
+      paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 24px)`,
       boxSizing: "border-box"
     }}
   >
@@ -10278,7 +10274,7 @@ const corStatus =
         display: "flex",
         flexDirection: "column",
         background: "#f5f5f5",
-        
+        paddingBottom: BOTTOM_SPACE,
         boxSizing: "border-box"
       }}
     >
@@ -12335,15 +12331,15 @@ const corStatus =
   background: "#fff",
   borderTop: "1px solid #eee",
 
-  height: 64,
-  paddingBottom: "env(safe-area-inset-bottom)", // 🔥 ESSENCIAL
+  height: 64, // 🔥 altura fixa estilo iFood
 
   display: "flex",
   justifyContent: "space-around",
   alignItems: "center",
 
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-  zIndex: 999
+  zIndex: 999,
+  boxSizing: "border-box"
 }}>
 
 
@@ -12462,7 +12458,7 @@ const corStatus =
 
  {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
 
-{!user &&
+ {!user &&
   aba !== "perfil" &&
   router.pathname !== "/login" && (
     <div
@@ -12471,7 +12467,7 @@ const corStatus =
         position: "fixed",
         left: "50%",
         transform: "translateX(-50%)",
-        bottom: NAVBAR + 14, // ✅ sem safe-area
+        bottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom) + 14px)`,
         width: "calc(100% - 32px)",
         maxWidth: 388,
         zIndex: 999,
@@ -12482,7 +12478,7 @@ const corStatus =
         padding: "14px 16px",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "center", // 🔥 centraliza o bloco
         gap: 12,
         cursor: "pointer",
         WebkitTapHighlightColor: "transparent",
@@ -12542,11 +12538,11 @@ const corStatus =
 
       <ChevronRight size={18} color="#b3b3b3" />
 
-   {toast && (
+      {toast && (
   <div
     style={{
       position: "fixed",
-      bottom: NAVBAR + 10, // ✅ corrigido
+      bottom: "calc(env(safe-area-inset-bottom) + 10px)",
 
       left: 0,
       right: 0,
@@ -12604,7 +12600,18 @@ const corStatus =
 </div>
 )}
 
-
+{/* desce botao */}
+  <div
+  style={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "env(safe-area-inset-bottom)",
+    background: "#fff",
+    zIndex: 998
+  }}
+/>
 
 
 
