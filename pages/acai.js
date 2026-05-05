@@ -12323,6 +12323,18 @@ const corStatus =
   </div>
 )}
 
+{/* desce botao */}
+  <div
+  style={{
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "env(safe-area-inset-bottom)",
+    background: "#fff",
+    zIndex: 998
+  }}
+/>
 
 {/* 🔥 NAVBAR FIXA */}
 {isMobile && (
@@ -12609,6 +12621,7 @@ const corStatus =
 
 </div>
 )}
+
 
 
 
