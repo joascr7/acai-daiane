@@ -690,6 +690,7 @@ const [filtroBusca, setFiltroBusca] = useState("todos");
   const [loadingCupons, setLoadingCupons] = useState(false);
 
   const [bloqueioMsg, setBloqueioMsg] = useState(null);
+  
 
   const getProdutoFidelidade = () => {
   return produtos.find(p => p.resgate === true);
@@ -1716,101 +1717,6 @@ useEffect(() => {
   return () => unsubscribe();
 }, [pedidoAtual]);
  
- if (!mounted) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#0f0f0f",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 99999
-      }}
-    >
-      <span style={{ color: "#fff" }}>Carregando...</span>
-    </div>
-  );
-}
-
-
-if (loadingInicial) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#ffffff",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        zIndex: 99999
-      }}
-    >
-      <style>
-        {`
-          @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.9; }
-            100% { transform: scale(1); opacity: 1; }
-          }
-
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-
-          @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
-
-      {/* LOGO */}
-      <img
-        src="/icon-192.png"
-        style={{
-          width: 90,
-          height: 90,
-          borderRadius: "50%",
-          marginBottom: 24,
-          animation: "pulse 2s ease-in-out infinite"
-        }}
-      />
-
-      {/* SPINNER PREMIUM */}
-      <div
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: "50%",
-          border: "3px solid rgba(255,255,255,0.2)",
-          borderTop: "3px solid #fff",
-          animation: "spin 0.9s linear infinite",
-          marginBottom: 20
-        }}
-      />
-
-      {/* TEXTO */}
-      <div
-        style={{
-          color: "#f10101",
-          fontSize: 14,
-          fontWeight: 500,
-          opacity: 0.9,
-          animation: "fadeUp 0.6s ease"
-        }}
-      >
-        Carregando o site...
-      </div>
-    </div>
-  );
-}
-
-
 
  async function pagarCheckout(pedidoId) {
   try {
@@ -1849,7 +1755,7 @@ if (loadingInicial) {
 }
 
 
-
+if (!mounted) return null;
 
 function adicionarAcaiGratis() {
   const acaiBase = produtos.find(
@@ -4222,8 +4128,12 @@ const textoHorario = (() => {
   return "Fechado";
 })();
 
+
 return (
 
+
+
+ 
 
 
 // CONTAINER ///
@@ -4244,6 +4154,22 @@ return (
 
   }}>
 
+ {/* 🔥 BLOQUEIO DE MOUNT */}
+    {!mounted && (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "#0f0f0f",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 99999
+        }}
+      >
+        <span style={{ color: "#fff" }}>Carregando...</span>
+      </div>
+    )}
 
 {/* ========================= */}
     {/* 🔥 MODAL DE AVALIACAO */}
@@ -12455,6 +12381,92 @@ const corStatus =
 
 </div>
 )}
+
+{loadingInicial && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "linear-gradient(180deg, #ffffff, #f7f7f7)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "column",
+      zIndex: 99999,
+      backdropFilter: "blur(2px)"
+    }}
+  >
+    <style>
+      {`
+        @keyframes pulseLogo {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.85; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes spinSmooth {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}
+    </style>
+
+    {/* LOGO COM EFEITO */}
+    <div
+      style={{
+        width: 88,
+        height: 88,
+        borderRadius: "50%",
+        overflow: "hidden",
+        boxShadow: "0 8px 25px rgba(0,0,0,0.08)",
+        marginBottom: 28,
+        animation: "pulseLogo 2s ease-in-out infinite"
+      }}
+    >
+      <img
+        src="/icon-192.png"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover"
+        }}
+      />
+    </div>
+
+    {/* SPINNER SUAVE */}
+    <div
+      style={{
+        width: 38,
+        height: 38,
+        borderRadius: "50%",
+        border: "3px solid rgba(0,0,0,0.06)",
+        borderTop: "3px solid #ea1d2c",
+        animation: "spinSmooth 0.8s linear infinite",
+        marginBottom: 20
+      }}
+    />
+
+    {/* TEXTO CLEAN */}
+    <div
+      style={{
+        fontSize: 13,
+        fontWeight: 500,
+        color: "#666",
+        letterSpacing: 0.2,
+        animation: "fadeIn 0.4s ease"
+      }}
+    >
+      Preparando tudo pra você...
+    </div>
+  </div>
+)}
+
+
 
  {/* LOGIN / CADASTRE-SE NO MEIO DA TELA */}
 
