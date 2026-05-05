@@ -328,16 +328,17 @@ const card = {
 
 const layout = {
   container: {
-    maxWidth: 420,
-    margin: "0 auto",
-    width: "100%",
+  maxWidth: 420,
+  margin: "0 auto",
+  width: "100%",
 
-    height: "100vh", // 🔥 CORREÇÃO REAL
+  height: "100dvh", // 🔥 viewport real
+  minHeight: "-webkit-fill-available", // 🔥 iPhone fix
 
-    background: "#f7f7f7",
-    display: "flex",
-    flexDirection: "column"
-  },
+  background: "#f7f7f7",
+  display: "flex",
+  flexDirection: "column"
+},
 
   content: {
     padding: 16,
@@ -363,19 +364,21 @@ const layout = {
   },
 
   footer: {
-    position: "fixed",
-    bottom: 0,
-    left: "50%",
-    transform: "translateX(-50%)",
+  position: "fixed",
+  bottom: 0,
 
-    width: "100%",
-    maxWidth: 420,
+  paddingBottom: "env(safe-area-inset-bottom)", // 🔥 ESSENCIAL
 
-    background: "#fff",
-    padding: 12,
-    borderTop: "1px solid #eee",
-    zIndex: 20
-  }
+  left: "50%",
+  transform: "translateX(-50%)",
+
+  width: "100%",
+  maxWidth: 420,
+
+  background: "#fff",
+  borderTop: "1px solid #eee",
+  zIndex: 20
+}
 
 };
 
