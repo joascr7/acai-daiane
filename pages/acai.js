@@ -12345,7 +12345,11 @@ const corStatus =
   background: "#fff",
   borderTop: "1px solid #eee",
 
-  height: 64, // 🔥 altura fixa estilo iFood
+  // ❌ remove height fixa
+  // height: 64,
+
+  paddingTop: 8,
+  paddingBottom: "calc(8px + env(safe-area-inset-bottom))", // 🔥 CORREÇÃO REAL
 
   display: "flex",
   justifyContent: "space-around",
