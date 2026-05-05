@@ -331,11 +331,7 @@ const layout = {
     maxWidth: 420,
     margin: "0 auto",
     width: "100%",
-    
-    minHeight: "100dvh", // 🔥 CORREÇÃO REAL
-
-    paddingBottom: BOTTOM_SPACE, // 🔥 EMPURRA CONTEÚDO PRA CIMA
-
+    minHeight: "100vh",
     background: "#f7f7f7",
     display: "flex",
     flexDirection: "column"
@@ -5402,7 +5398,7 @@ return (
         margin: "0 auto",
         background: "#f5f5f5",
         minHeight: "100dvh",
-        paddingBottom: BOTTOM_SPACE,
+        overflow: "hidden",
         boxSizing: "border-box",
         paddingBottom: carrinho.length > 0
         ? (isMobile ? 180 : 150)
