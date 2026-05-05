@@ -6,15 +6,13 @@ html,
 body,
 #__next {
   height: 100%;
-  width: 100%;
-  max-width: 100%;
   margin: 0;
   padding: 0;
+  background: #f7f7f7;
+}
 
-  background: #f7f7f7; /* 🔥 CORRIGIDO (antes branco) */
-
-  -webkit-text-size-adjust: 100%;
-  overflow-x: hidden;
+body {
+  overflow-y: auto; /* 🔥 permite scroll normal */
 }
 
 html {
@@ -387,3 +385,4 @@ input {
 body {
   background: #f7f7f7;
 }
+

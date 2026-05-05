@@ -332,37 +332,18 @@ const layout = {
     margin: "0 auto",
     width: "100%",
 
-    height: "100vh", // 🔥 base
+    minHeight: "100vh", // 🔥 NÃO usa height aqui
+
     display: "flex",
     flexDirection: "column",
-
-    background: "#f7f7f7",
-    overflow: "hidden" // 🔥 ESSENCIAL
+    background: "#f7f7f7"
   },
 
   content: {
     flex: 1,
-    overflowY: "auto", // 🔥 SCROLL AQUI (não no body)
-
     padding: 16,
+
     paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom))`
-  },
-
-  card: {
-    background: "#fff",
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 12
-  },
-
-  button: {
-    width: "100%",
-    height: 48,
-    borderRadius: 14,
-    background: "#ea1d2c",
-    color: "#fff",
-    fontWeight: "bold",
-    border: "none"
   },
 
   footer: {
@@ -376,12 +357,12 @@ const layout = {
 
     height: NAVBAR,
 
+    background: "#fff",
+    borderTop: "1px solid #eee",
+
     display: "flex",
     alignItems: "center",
     justifyContent: "space-around",
-
-    background: "#fff",
-    borderTop: "1px solid #eee",
 
     paddingBottom: "env(safe-area-inset-bottom)",
 
