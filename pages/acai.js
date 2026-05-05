@@ -1719,7 +1719,23 @@ useEffect(() => {
   return () => unsubscribe();
 }, [pedidoAtual]);
  
- if (!mounted) return null;
+ if (!mounted) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#0f0f0f",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 99999
+      }}
+    >
+      <span style={{ color: "#fff" }}>Carregando...</span>
+    </div>
+  );
+}
 
 
  if (loadingInicial) {
