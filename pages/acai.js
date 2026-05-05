@@ -122,7 +122,7 @@ const LOJA = {
   lng: -34.8895
 };
 
-const NAVBAR = 60;
+const NAVBAR = 64;
 const SAFE_BOTTOM = "env(safe-area-inset-bottom)";
 const BOTTOM_SPACE = `calc(${NAVBAR}px + ${SAFE_BOTTOM})`;
 
@@ -332,17 +332,20 @@ const layout = {
     margin: "0 auto",
     width: "100%",
 
-    height: "100vh", // 🔥 CORRETO (remove dvh)
+    height: "100vh", // 🔥 base
+    display: "flex",
+    flexDirection: "column",
 
     background: "#f7f7f7",
-    display: "flex",
-    flexDirection: "column"
+    overflow: "hidden" // 🔥 ESSENCIAL
   },
 
   content: {
+    flex: 1,
+    overflowY: "auto", // 🔥 SCROLL AQUI (não no body)
+
     padding: 16,
-    paddingBottom: 100, // 🔥 evita ficar atrás da navbar
-    flex: 1
+    paddingBottom: `calc(${NAVBAR}px + env(safe-area-inset-bottom))`
   },
 
   card: {
@@ -365,18 +368,22 @@ const layout = {
   footer: {
     position: "fixed",
     bottom: 0,
+    left: 0,
+    right: 0,
 
-    left: "50%",
-    transform: "translateX(-50%)",
-
-    width: "100%",
+    margin: "0 auto",
     maxWidth: 420,
+
+    height: NAVBAR,
+
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-around",
 
     background: "#fff",
     borderTop: "1px solid #eee",
 
-    padding: "12px",
-    paddingBottom: "calc(12px + env(safe-area-inset-bottom))", // 🔥 SAFE AREA CORRETA
+    paddingBottom: "env(safe-area-inset-bottom)",
 
     zIndex: 9999
   }
