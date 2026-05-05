@@ -1738,31 +1738,22 @@ useEffect(() => {
 }
 
 
- if (loadingInicial) {
+if (loadingInicial && isMobile) {
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
         background: "#ea1d2c",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
         zIndex: 99999,
         overflow: "hidden"
       }}
     >
       <style>
         {`
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-10px) scale(1.02); }
-          }
-
-          @keyframes spinSlow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+          @keyframes zoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
           }
 
           @keyframes fadeIn {
@@ -1777,61 +1768,65 @@ useEffect(() => {
         `}
       </style>
 
-      {/* IMAGEM PRINCIPAL */}
+      {/* IMAGEM FULL */}
       <img
         src="/tt2.png"
         style={{
-          width: "80%",
-          maxWidth: 380,
-          zIndex: 2,
-          animation: "float 3s ease-in-out infinite, fadeIn 0.6s ease"
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          position: "absolute",
+          inset: 0,
+          animation: "zoom 5s ease-in-out forwards"
         }}
       />
 
-      {/* CÍRCULO GIRANDO */}
+      {/* OVERLAY */}
       <div
         style={{
           position: "absolute",
-          width: 300,
-          height: 300,
-          borderRadius: "50%",
-          border: "2px solid rgba(255,255,255,0.15)",
-          borderTop: "2px solid #fff",
-          animation: "spinSlow 6s linear infinite"
+          inset: 0,
+          background: "rgba(0,0,0,0.15)"
         }}
       />
 
       {/* TEXTO */}
-      <p
+      <div
         style={{
           position: "absolute",
           bottom: 80,
-          color: "#fff",
-          fontWeight: 500,
-          fontSize: 14,
-          opacity: 0.95,
-          textAlign: "center"
+          width: "100%",
+          textAlign: "center",
+          padding: "0 20px",
+          animation: "fadeIn 0.8s ease"
         }}
       >
-        Preparando{" "}
-        <span
+        <p
           style={{
-            fontWeight: 700,
-            background:
-              "linear-gradient(90deg, #fff, #fff, #ffffff55, #fff)",
-            backgroundSize: "200% auto",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            animation: "shine 2.5s linear infinite"
+            color: "#fff",
+            fontWeight: 500,
+            fontSize: 15
           }}
         >
-          o melhor açaí da região
-        </span>
-      </p>
+          Preparando{" "}
+          <span
+            style={{
+              fontWeight: 700,
+              background:
+                "linear-gradient(90deg, #fff, #fff, #ffffff55, #fff)",
+              backgroundSize: "200% auto",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              animation: "shine 2.5s linear infinite"
+            }}
+          >
+            o melhor açaí da região
+          </span>
+        </p>
+      </div>
     </div>
   );
 }
-
 
 
  async function pagarCheckout(pedidoId) {
