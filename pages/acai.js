@@ -12335,15 +12335,15 @@ const corStatus =
   background: "#fff",
   borderTop: "1px solid #eee",
 
-  height: 64, // 🔥 volta altura fixa
+  height: 64,
+  paddingBottom: "env(safe-area-inset-bottom)", // 🔥 ESSENCIAL
 
   display: "flex",
   justifyContent: "space-around",
   alignItems: "center",
 
   boxShadow: "0 -5px 20px rgba(0,0,0,0.08)",
-  zIndex: 999,
-  boxSizing: "border-box"
+  zIndex: 999
 }}>
 
 
