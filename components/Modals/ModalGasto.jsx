@@ -18,21 +18,70 @@ export default function ModalGasto({
   useEffect(() => {
     if (gastoEditando) {
       setNome(gastoEditando.nome || "");
-      setValor(gastoEditando.valor / 100 || "");
+      setValor(gastoEditando.valor ? String(gastoEditando.valor / 100) : "");
       setCategoria(gastoEditando.categoria || "insumos");
       setData(gastoEditando.data || "");
       setObs(gastoEditando.obs || "");
+    } else if (aberto) {
+      setNome("");
+      setValor("");
+      setCategoria("insumos");
+      setData("");
+      setObs("");
+      setErro("");
     }
-  }, [gastoEditando]);
+  }, [gastoEditando, aberto]);
 
   if (!aberto) return null;
+
+  async function handleSalvar() {
+    setErro("");
+
+    const valorNormalizado = String(valor)
+      .replace("R$", "")
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .trim();
+
+    const valorNumero = Number(valorNormalizado);
+
+    if (!nome.trim()) {
+      setErro("Informe o nome do gasto");
+      return;
+    }
+
+    if (!valorNormalizado || Number.isNaN(valorNumero) || valorNumero <= 0) {
+      setErro("Informe um valor válido");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await salvarGasto({
+        nome: nome.trim(),
+        valor: Math.round(valorNumero * 100),
+        categoria,
+        data: data || new Date().toISOString().slice(0, 10),
+        obs,
+        gastoEditando
+      });
+
+      onClose();
+    } catch (e) {
+      console.log("Erro ao salvar gasto:", e);
+      setErro("Erro ao salvar gasto. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.4)", // 🔥 antes pesado
+        background: "rgba(0,0,0,0.4)",
         backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
@@ -43,7 +92,7 @@ export default function ModalGasto({
     >
       <div
         style={{
-          background: "#ffffff", // 🔥 antes dark
+          background: "#ffffff",
           borderRadius: 20,
           width: "100%",
           maxWidth: 420,
@@ -53,19 +102,11 @@ export default function ModalGasto({
           color: "#111827"
         }}
       >
-        {/* HEADER */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: 16
-          }}
-        >
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
           <div>
             <h3 style={{ margin: 0 }}>
               {gastoEditando ? "Editar gasto" : "Novo gasto"}
             </h3>
-
             <span style={{ fontSize: 12, color: "#6b7280" }}>
               Controle financeiro da operação
             </span>
@@ -76,7 +117,6 @@ export default function ModalGasto({
           </button>
         </div>
 
-        {/* INPUTS */}
         <input
           placeholder="Nome do gasto"
           value={nome}
@@ -86,6 +126,7 @@ export default function ModalGasto({
 
         <input
           placeholder="Valor"
+          inputMode="decimal"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
           style={input}
@@ -121,38 +162,19 @@ export default function ModalGasto({
         />
 
         {erro && (
-          <div style={{ color: "#dc2626", fontSize: 12 }}>
+          <div style={{ color: "#dc2626", fontSize: 12, marginBottom: 10 }}>
             {erro}
           </div>
         )}
 
-        {/* BOTÕES */}
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
           <button onClick={onClose} style={btnSecondary}>
             Cancelar
           </button>
 
           <button
-            onClick={async () => {
-              if (!nome || !valor) {
-                setErro("Preencha os campos obrigatórios");
-                return;
-              }
-
-              setLoading(true);
-
-              await salvarGasto({
-                nome,
-                valor: Math.round(Number(valor) * 100),
-                categoria,
-                data,
-                obs,
-                gastoEditando
-              });
-
-              setLoading(false);
-              onClose();
-            }}
+            onClick={handleSalvar}
+            disabled={loading}
             style={{
               ...btnPrimary,
               opacity: loading ? 0.7 : 1
@@ -179,7 +201,8 @@ const input = {
   background: "#ffffff",
   color: "#111827",
   fontSize: 14,
-  outline: "none"
+  outline: "none",
+  boxSizing: "border-box"
 };
 
 const btnPrimary = {
