@@ -5926,7 +5926,7 @@ return (
       position: "relative",
       boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
       width: "100%",
-      height: 160, // 👈 mobile fixo
+      height: 180, // 👈 mobile fixo
       background: "#111"
     }}
   >
