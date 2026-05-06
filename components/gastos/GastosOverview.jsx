@@ -66,17 +66,17 @@ export default function GastosOverview({
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        color: "#fff"
+        color: "#111827"
       }}
     >
       {/* HEADER */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 18,
-          border: "1px solid #1f2937",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -86,7 +86,7 @@ export default function GastosOverview({
       >
         <div>
           <h2 style={{ margin: 0 }}>Financeiro</h2>
-          <span style={{ fontSize: 13, color: "#9ca3af" }}>
+          <span style={{ fontSize: 13, color: "#6b7280" }}>
             Controle total da operação
           </span>
         </div>
@@ -103,7 +103,7 @@ export default function GastosOverview({
             padding: "0 14px",
             borderRadius: 10,
             background: "#22c55e",
-            color: "#022c22",
+            color: "#ffffff",
             border: "none",
             fontWeight: 700,
             cursor: "pointer"
@@ -122,21 +122,21 @@ export default function GastosOverview({
         }}
       >
         {[
-          { nome: "Hoje", valor: totalHoje, cor: "#22c55e" },
-          { nome: "Vendas", valor: totalVendas, cor: "#22c55e" },
-          { nome: "Gastos", valor: totalGastosCalc, cor: "#ef4444" },
-          { nome: "Lucro", valor: lucro, cor: lucro >= 0 ? "#22c55e" : "#ef4444" }
+          { nome: "Hoje", valor: totalHoje, cor: "#16a34a" },
+          { nome: "Vendas", valor: totalVendas, cor: "#16a34a" },
+          { nome: "Gastos", valor: totalGastosCalc, cor: "#dc2626" },
+          { nome: "Lucro", valor: lucro, cor: lucro >= 0 ? "#16a34a" : "#dc2626" }
         ].map((item, i) => (
           <div
             key={i}
             style={{
-              background: "#111827",
+              background: "#ffffff",
               borderRadius: 14,
               padding: 14,
-              border: "1px solid #1f2937"
+              border: "1px solid #e5e7eb"
             }}
           >
-            <span style={{ fontSize: 12, color: "#9ca3af" }}>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>
               {item.nome}
             </span>
 
@@ -156,16 +156,16 @@ export default function GastosOverview({
       {/* GASTOS */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         <h3 style={{ marginBottom: 10 }}>Gastos</h3>
 
         {gastos.length === 0 ? (
-          <div style={{ color: "#9ca3af" }}>
+          <div style={{ color: "#6b7280" }}>
             Nenhum gasto cadastrado
           </div>
         ) : (
@@ -177,21 +177,21 @@ export default function GastosOverview({
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "10px 0",
-                borderBottom: "1px solid #1f2937"
+                borderBottom: "1px solid #e5e7eb"
               }}
             >
               <span>{g.nome}</span>
 
               <div style={{ display: "flex", gap: 10 }}>
-                <strong style={{ color: "#ef4444" }}>
+                <strong style={{ color: "#dc2626" }}>
                   {formatarReal(g.valor)}
                 </strong>
 
                 <button
                   onClick={() => excluirGasto(g.id)}
                   style={{
-                    background: "#7f1d1d",
-                    color: "#fecaca",
+                    background: "#fee2e2",
+                    color: "#991b1b",
                     border: "none",
                     borderRadius: 8,
                     padding: "4px 8px",
@@ -209,16 +209,16 @@ export default function GastosOverview({
       {/* VENDAS */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         <h3 style={{ marginBottom: 10 }}>Vendas manuais</h3>
 
         {vendasManuais.length === 0 ? (
-          <div style={{ color: "#9ca3af" }}>
+          <div style={{ color: "#6b7280" }}>
             Nenhuma venda manual
           </div>
         ) : (
@@ -230,24 +230,25 @@ export default function GastosOverview({
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "10px 0",
-                borderBottom: "1px solid #1f2937"
+                borderBottom: "1px solid #e5e7eb"
               }}
             >
               <span>{v.descricao}</span>
 
               <div style={{ display: "flex", gap: 8 }}>
-                <strong style={{ color: "#22c55e" }}>
+                <strong style={{ color: "#16a34a" }}>
                   {formatarReal(v.valor)}
                 </strong>
 
                 <button
                   onClick={() => abrirEditarVenda(v)}
                   style={{
-                    background: "#1e3a8a",
-                    color: "#bfdbfe",
+                    background: "#e0f2fe",
+                    color: "#075985",
                     border: "none",
                     borderRadius: 8,
-                    padding: "4px 8px"
+                    padding: "4px 8px",
+                    cursor: "pointer"
                   }}
                 >
                   Editar
@@ -256,11 +257,12 @@ export default function GastosOverview({
                 <button
                   onClick={() => excluirVenda(v.id)}
                   style={{
-                    background: "#7f1d1d",
-                    color: "#fecaca",
+                    background: "#fee2e2",
+                    color: "#991b1b",
                     border: "none",
                     borderRadius: 8,
-                    padding: "4px 8px"
+                    padding: "4px 8px",
+                    cursor: "pointer"
                   }}
                 >
                   Excluir

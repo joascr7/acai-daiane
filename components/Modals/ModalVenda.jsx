@@ -22,7 +22,7 @@ export default function ModalVenda({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.65)",
+        background: "rgba(0,0,0,0.4)", // 🔥 mais leve
         backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
@@ -33,14 +33,14 @@ export default function ModalVenda({
     >
       <div
         style={{
-          background: "#020617",
+          background: "#ffffff", // 🔥 antes dark
           borderRadius: 20,
           width: "100%",
           maxWidth: 380,
           padding: 20,
-          border: "1px solid #1f2937",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
-          color: "#fff",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
+          color: "#111827", // 🔥 antes branco
           animation: "fadeIn 0.2s ease"
         }}
       >
@@ -62,7 +62,7 @@ export default function ModalVenda({
             style={{
               background: "transparent",
               border: "none",
-              color: "#9ca3af",
+              color: "#6b7280",
               cursor: "pointer"
             }}
           >
@@ -91,7 +91,7 @@ export default function ModalVenda({
         {erro && (
           <div
             style={{
-              color: "#ef4444",
+              color: "#dc2626", // 🔥 antes #ef4444
               fontSize: 12,
               marginBottom: 10
             }}
@@ -122,10 +122,7 @@ export default function ModalVenda({
             Salvar
           </button>
 
-          <button
-            onClick={onClose}
-            style={btnSecondary}
-          >
+          <button onClick={onClose} style={btnSecondary}>
             Cancelar
           </button>
         </div>
@@ -134,15 +131,15 @@ export default function ModalVenda({
   );
 }
 
-/* 🔥 ESTILO PADRÃO */
+/* 🔥 INPUT LIGHT */
 const input = {
   width: "100%",
   padding: "12px 14px",
   marginBottom: 10,
   borderRadius: 12,
-  border: "1px solid #1f2937",
-  background: "#0f172a",
-  color: "#fff",
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#111827",
   fontSize: 14,
   outline: "none"
 };
@@ -156,13 +153,13 @@ const btnPrimary = {
   borderRadius: 12,
   fontWeight: 700,
   cursor: "pointer",
-  boxShadow: "0 10px 25px rgba(234,29,44,0.35)"
+  boxShadow: "0 6px 16px rgba(234,29,44,0.25)"
 };
 
 const btnSecondary = {
   flex: 1,
-  background: "#1f2937",
-  color: "#fff",
+  background: "#f3f4f6", // 🔥 antes dark
+  color: "#111827",
   padding: 12,
   border: "none",
   borderRadius: 12,

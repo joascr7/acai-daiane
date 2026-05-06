@@ -32,28 +32,28 @@ export default function NotificacoesOverview({
       display: "flex",
       flexDirection: "column",
       gap: 16,
-      color: "#fff"
+      color: "#111827"
     }}>
 
       {/* HEADER */}
       <div style={{
-        background: "#111827",
+        background: "#ffffff",
         borderRadius: 18,
         padding: 18,
-        border: "1px solid #1f2937"
+        border: "1px solid #e5e7eb"
       }}>
         <h2 style={{ margin: 0 }}>Notificações</h2>
-        <span style={{ fontSize: 13, color: "#9ca3af" }}>
+        <span style={{ fontSize: 13, color: "#6b7280" }}>
           Envie avisos para seus clientes
         </span>
       </div>
 
       {/* FORM */}
       <div style={{
-        background: "#111827",
+        background: "#ffffff",
         borderRadius: 18,
         padding: 16,
-        border: "1px solid #1f2937",
+        border: "1px solid #e5e7eb",
         display: "flex",
         flexDirection: "column",
         gap: 10
@@ -99,7 +99,8 @@ export default function NotificacoesOverview({
             style={{
               width: "100%",
               maxWidth: 280,
-              borderRadius: 12
+              borderRadius: 12,
+              border: "1px solid #e5e7eb"
             }}
           />
         )}
@@ -125,15 +126,15 @@ export default function NotificacoesOverview({
 
       {/* HISTÓRICO */}
       <div style={{
-        background: "#111827",
+        background: "#ffffff",
         borderRadius: 18,
         padding: 16,
-        border: "1px solid #1f2937"
+        border: "1px solid #e5e7eb"
       }}>
         <h3>Histórico</h3>
 
         {notificacoesAdmin.length === 0 && (
-          <div style={{ color: "#9ca3af" }}>
+          <div style={{ color: "#6b7280" }}>
             Nenhuma notificação
           </div>
         )}
@@ -142,11 +143,11 @@ export default function NotificacoesOverview({
           <div
             key={n.id}
             style={{
-              background: "#0f172a",
+              background: "#f9fafb",
               padding: 12,
               borderRadius: 12,
               marginBottom: 10,
-              border: "1px solid #1f2937"
+              border: "1px solid #e5e7eb"
             }}
           >
             <div style={{ fontWeight: 700 }}>
@@ -167,7 +168,7 @@ export default function NotificacoesOverview({
 
             <div style={{
               fontSize: 12,
-              color: "#9ca3af",
+              color: "#6b7280",
               marginTop: 6
             }}>
               {n.para === "todos"
@@ -179,11 +180,12 @@ export default function NotificacoesOverview({
               onClick={() => removerNotificacao(n.id)}
               style={{
                 marginTop: 8,
-                background: "#7f1d1d",
-                color: "#fecaca",
+                background: "#fee2e2",
+                color: "#991b1b",
                 border: "none",
                 borderRadius: 8,
-                padding: "4px 8px"
+                padding: "4px 8px",
+                cursor: "pointer"
               }}
             >
               Excluir

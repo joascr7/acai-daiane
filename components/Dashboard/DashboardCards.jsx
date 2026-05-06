@@ -12,20 +12,20 @@ export default function DashboardCards({
     {
       titulo: "Faturamento",
       valor: formatarReal(totalFaturado),
-      cor: "#22c55e",
+      cor: "#16a34a", // 🔥 verde mais profissional
       icon: <DollarSign size={18} />
     },
     {
       titulo: "Gastos",
       valor: formatarReal(totalGastos),
-      cor: "#ef4444",
+      cor: "#dc2626",
       icon: <TrendingDown size={18} />
     },
     {
       titulo: "Lucro",
       valor: formatarReal(lucroTotal),
       extra: `${margemLucro}%`,
-      cor: lucroTotal < 0 ? "#ef4444" : "#22c55e",
+      cor: lucroTotal < 0 ? "#dc2626" : "#16a34a",
       icon: <TrendingUp size={18} />
     }
   ];
@@ -43,14 +43,14 @@ export default function DashboardCards({
         <div
           key={i}
           style={{
-            background: "#111827",
-            border: "1px solid #1f2937",
+            background: "#ffffff", // 🔥 antes #111827
+            border: "1px solid #e5e7eb", // 🔥 antes #1f2937
             borderRadius: 18,
             padding: 16,
             display: "flex",
             flexDirection: "column",
             gap: 10,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)", // 🔥 sombra leve
             transition: "0.2s"
           }}
           onMouseEnter={(e) => {
@@ -73,7 +73,7 @@ export default function DashboardCards({
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                background: `${c.cor}20`,
+                background: `${c.cor}15`, // 🔥 mais suave
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -86,7 +86,7 @@ export default function DashboardCards({
             <span
               style={{
                 fontSize: 12,
-                color: "#9ca3af",
+                color: "#6b7280", // 🔥 antes claro demais
                 fontWeight: 600
               }}
             >
@@ -98,7 +98,7 @@ export default function DashboardCards({
           <strong
             style={{
               fontSize: 24,
-              color: "#fff",
+              color: "#111827", // 🔥 antes branco
               lineHeight: 1.1
             }}
           >

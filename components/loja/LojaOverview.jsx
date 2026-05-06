@@ -25,7 +25,6 @@ export default function LojaOverview(props) {
 
   const [novaDataFeriado, setNovaDataFeriado] = useState("");
 
-  // 🔥 ADICIONAR FERIADO
   async function adicionarFeriado() {
     if (!novaDataFeriado) return;
 
@@ -44,7 +43,6 @@ export default function LojaOverview(props) {
     }
   }
 
-  // 🔥 REMOVER FERIADO
   async function removerFeriado(data) {
     try {
       await updateDoc(doc(db, "config", "horarioFuncionamento"), {
@@ -56,195 +54,184 @@ export default function LojaOverview(props) {
   }
 
   return (
-   <div style={container}>
-    {/* HEADER */}
-    <div style={header}>
-      <h2 style={{ margin: 0 }}>Loja</h2>
-      <span style={sub}>Configurações gerais</span>
-    </div>
-
-    {/* GRID PRINCIPAL */}
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-        gap: 12,
-        width: "100%",
-        boxSizing: "border-box"
-      }}
-    >
-      {/* CATEGORIAS */}
-      <div style={card}>
-        <h3 style={title}>Categorias</h3>
-
-        {categorias.map((c) => (
-          <div key={c.id} style={itemRow}>
-            {editandoCategoriaId === c.id ? (
-              <input
-                value={editandoCategoria[c.id] || ""}
-                onChange={(e) =>
-                  setEditandoCategoria((prev) => ({
-                    ...prev,
-                    [c.id]: e.target.value
-                  }))
-                }
-                style={input}
-              />
-            ) : (
-              <span style={{ flex: 1 }}>{c.nome}</span>
-            )}
-
-            <button
-              onClick={() =>
-                editandoCategoriaId === c.id
-                  ? salvarEdicaoCategoria(c.id)
-                  : (
-                      setEditandoCategoriaId(c.id),
-                      setEditandoCategoria((prev) => ({
-                        ...prev,
-                        [c.id]: c.nome
-                      }))
-                    )
-              }
-              style={btnBlue}
-            >
-              {editandoCategoriaId === c.id ? "Salvar" : "Editar"}
-            </button>
-          </div>
-        ))}
-
-        <div style={{ display: "flex", gap: 6 }}>
-          <input
-            placeholder="Nova categoria"
-            value={novaCategoria}
-            onChange={(e) => setNovaCategoria(e.target.value)}
-            style={input}
-          />
-          <button onClick={criarCategoria} style={btnPrimary}>+</button>
-        </div>
+    <div style={container}>
+      {/* HEADER */}
+      <div style={header}>
+        <h2 style={{ margin: 0 }}>Loja</h2>
+        <span style={sub}>Configurações gerais</span>
       </div>
 
-      {/* STATUS */}
-      <div style={card}>
-        <h3 style={title}>Status da loja</h3>
-
-        <div
-          style={{
-            padding: 10,
-            borderRadius: 10,
-            textAlign: "center",
-            fontWeight: 700,
-            background: lojaAberta ? "#065f46" : "#7f1d1d"
-          }}
-        >
-          {lojaAberta ? "Loja aberta" : "Loja fechada"}
-        </div>
-
-        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          <button onClick={() => toggleLoja(true)} style={btnGreen}>
-            Abrir
-          </button>
-          <button onClick={() => toggleLoja(false)} style={btnRed}>
-            Fechar
-          </button>
-        </div>
-      </div>
-
-      {/* LOGO */}
-      <div style={card}>
-        <h3 style={title}>Logo</h3>
-
-        <input
-          placeholder="URL da logo"
-          value={logoInput}
-          onChange={(e) => setLogoInput(e.target.value)}
-          style={input}
-        />
-
-        {logoInput && <img src={logoInput} style={preview} />}
-
-        <button onClick={salvarLogo} style={btnPrimaryFull}>
-          Salvar
-        </button>
-      </div>
-
-      {/* 🔥 CALENDÁRIO (OCUPA LINHA TODA) */}
+      {/* GRID */}
       <div
         style={{
-          ...card,
-          gridColumn: "1 / -1"
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: 12,
+          width: "100%",
+          boxSizing: "border-box"
         }}
       >
-        <h3 style={title}>Feriados</h3>
+        {/* CATEGORIAS */}
+        <div style={card}>
+          <h3 style={title}>Categorias</h3>
 
-        <CalendarioFeriados horarios={horarios} />
-
-        {/* INPUT */}
-        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-          <input
-            type="date"
-            value={novaDataFeriado}
-            onChange={(e) => setNovaDataFeriado(e.target.value)}
-            style={input}
-          />
-          <button onClick={adicionarFeriado} style={btnPrimary}>
-            +
-          </button>
-        </div>
-
-        {/* LISTA */}
-        <div style={{ marginTop: 10 }}>
-          {Object.keys(horarios?.feriados || {}).map((data) => (
-            <div key={data} style={itemRow}>
-              <span style={{ flex: 1 }}>{data}</span>
+          {categorias.map((c) => (
+            <div key={c.id} style={itemRow}>
+              {editandoCategoriaId === c.id ? (
+                <input
+                  value={editandoCategoria[c.id] || ""}
+                  onChange={(e) =>
+                    setEditandoCategoria((prev) => ({
+                      ...prev,
+                      [c.id]: e.target.value
+                    }))
+                  }
+                  style={input}
+                />
+              ) : (
+                <span style={{ flex: 1 }}>{c.nome}</span>
+              )}
 
               <button
-                onClick={() => removerFeriado(data)}
-                style={btnRedSmall}
+                onClick={() =>
+                  editandoCategoriaId === c.id
+                    ? salvarEdicaoCategoria(c.id)
+                    : (
+                        setEditandoCategoriaId(c.id),
+                        setEditandoCategoria((prev) => ({
+                          ...prev,
+                          [c.id]: c.nome
+                        }))
+                      )
+                }
+                style={btnBlue}
               >
-                Remover
+                {editandoCategoriaId === c.id ? "Salvar" : "Editar"}
               </button>
             </div>
           ))}
+
+          <div style={{ display: "flex", gap: 6 }}>
+            <input
+              placeholder="Nova categoria"
+              value={novaCategoria}
+              onChange={(e) => setNovaCategoria(e.target.value)}
+              style={input}
+            />
+            <button onClick={criarCategoria} style={btnPrimary}>+</button>
+          </div>
+        </div>
+
+        {/* STATUS */}
+        <div style={card}>
+          <h3 style={title}>Status da loja</h3>
+
+          <div
+            style={{
+              padding: 10,
+              borderRadius: 10,
+              textAlign: "center",
+              fontWeight: 700,
+              background: lojaAberta ? "#dcfce7" : "#fee2e2",
+              color: lojaAberta ? "#166534" : "#991b1b"
+            }}
+          >
+            {lojaAberta ? "Loja aberta" : "Loja fechada"}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <button onClick={() => toggleLoja(true)} style={btnGreen}>
+              Abrir
+            </button>
+            <button onClick={() => toggleLoja(false)} style={btnRed}>
+              Fechar
+            </button>
+          </div>
+        </div>
+
+        {/* LOGO */}
+        <div style={card}>
+          <h3 style={title}>Logo</h3>
+
+          <input
+            placeholder="URL da logo"
+            value={logoInput}
+            onChange={(e) => setLogoInput(e.target.value)}
+            style={input}
+          />
+
+          {logoInput && <img src={logoInput} style={preview} />}
+
+          <button onClick={salvarLogo} style={btnPrimaryFull}>
+            Salvar
+          </button>
+        </div>
+
+        {/* FERIADOS */}
+        <div style={{ ...card, gridColumn: "1 / -1" }}>
+          <h3 style={title}>Feriados</h3>
+
+          <CalendarioFeriados horarios={horarios} />
+
+          <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+            <input
+              type="date"
+              value={novaDataFeriado}
+              onChange={(e) => setNovaDataFeriado(e.target.value)}
+              style={input}
+            />
+            <button onClick={adicionarFeriado} style={btnPrimary}>
+              +
+            </button>
+          </div>
+
+          <div style={{ marginTop: 10 }}>
+            {Object.keys(horarios?.feriados || {}).map((data) => (
+              <div key={data} style={itemRow}>
+                <span style={{ flex: 1 }}>{data}</span>
+
+                <button
+                  onClick={() => removerFeriado(data)}
+                  style={btnRedSmall}
+                >
+                  Remover
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
-  
+  );
 }
+
+/* 🔥 ESTILOS LIGHT */
 
 const container = {
   marginTop: 10,
   display: "flex",
   flexDirection: "column",
   gap: 14,
-  color: "#fff"
+  color: "#111827"
 };
 
 const header = {
-  background: "#0f172a",
+  background: "#ffffff",
   borderRadius: 16,
   padding: 16,
-  border: "1px solid #1e293b"
+  border: "1px solid #e5e7eb"
 };
 
 const sub = {
   fontSize: 12,
-  color: "#94a3b8"
-};
-
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "1fr 1fr",
-  gap: 12
+  color: "#6b7280"
 };
 
 const card = {
-  background: "#0f172a",
+  background: "#ffffff",
   padding: 14,
   borderRadius: 14,
-  border: "1px solid #1e293b"
+  border: "1px solid #e5e7eb"
 };
 
 const title = {
@@ -258,24 +245,26 @@ const itemRow = {
   alignItems: "center",
   padding: "6px 8px",
   borderRadius: 8,
-  background: "#020617",
-  marginBottom: 4
+  background: "#f9fafb",
+  marginBottom: 4,
+  border: "1px solid #e5e7eb"
 };
 
 const input = {
   flex: 1,
   padding: 8,
   borderRadius: 8,
-  border: "1px solid #1e293b",
-  background: "#020617",
-  color: "#fff"
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#111827"
 };
 
 const preview = {
   width: 80,
   height: 80,
   borderRadius: 12,
-  marginTop: 8
+  marginTop: 8,
+  border: "1px solid #e5e7eb"
 };
 
 const btnPrimary = {
@@ -298,8 +287,8 @@ const btnPrimaryFull = {
 };
 
 const btnBlue = {
-  background: "#2563eb",
-  color: "#fff",
+  background: "#e0f2fe",
+  color: "#075985",
   borderRadius: 8,
   padding: "6px 10px",
   border: "none"
@@ -309,8 +298,8 @@ const btnGreen = {
   flex: 1,
   padding: 10,
   borderRadius: 10,
-  background: "#16a34a",
-  color: "#fff",
+  background: "#dcfce7",
+  color: "#166534",
   border: "none"
 };
 
@@ -318,14 +307,14 @@ const btnRed = {
   flex: 1,
   padding: 10,
   borderRadius: 10,
-  background: "#dc2626",
-  color: "#fff",
+  background: "#fee2e2",
+  color: "#991b1b",
   border: "none"
 };
 
 const btnRedSmall = {
-  background: "#dc2626",
-  color: "#fff",
+  background: "#fee2e2",
+  color: "#991b1b",
   border: "none",
   borderRadius: 6,
   padding: "4px 8px"

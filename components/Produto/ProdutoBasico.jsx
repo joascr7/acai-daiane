@@ -7,7 +7,6 @@ export default function ProdutoBasico({
   novoPreco,
   setNovoPreco,
 
-  // 🔥 NOMES CORRETOS (IGUAL salvarProduto)
   novoTamanho,
   setNovoTamanho,
   novaDescricaoTamanho,
@@ -46,7 +45,7 @@ export default function ProdutoBasico({
         style={input}
       />
 
-      {/* 🔥 TAMANHO */}
+      {/* TAMANHO */}
       <input
         placeholder="Tamanho (ex: 300ml)"
         value={novoTamanho || ""}
@@ -54,7 +53,7 @@ export default function ProdutoBasico({
         style={input}
       />
 
-      {/* 🔥 DESCRIÇÃO DO TAMANHO */}
+      {/* DESCRIÇÃO TAMANHO */}
       <input
         placeholder="Descrição do tamanho (ex: serve 1 pessoa)"
         value={novaDescricaoTamanho || ""}
@@ -62,12 +61,13 @@ export default function ProdutoBasico({
         style={input}
       />
 
+      {/* DESCRIÇÃO PRODUTO */}
       <input
-  placeholder="Descrição do produto"
-  value={novaDescricao || ""}
-  onChange={e => setNovaDescricao(e.target.value)}
-  style={input}
-/>
+        placeholder="Descrição do produto"
+        value={novaDescricao || ""}
+        onChange={e => setNovaDescricao(e.target.value)}
+        style={input}
+      />
     </>
   );
 }
@@ -75,8 +75,9 @@ export default function ProdutoBasico({
 const input = {
   padding: 12,
   borderRadius: 10,
-  border: "1px solid #1f2937",
-  background: "#0f172a",
-  color: "#fff",
-  outline: "none"
+  border: "1px solid #e5e7eb",   // 🔥 antes dark
+  background: "#ffffff",         // 🔥 antes #0f172a
+  color: "#111827",              // 🔥 antes branco
+  outline: "none",
+  fontSize: 13
 };

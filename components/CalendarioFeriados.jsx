@@ -137,12 +137,13 @@ async function toggleDiaFechado(data) {
               style={{
                 ...day,
                 background: isFechado
-                  ? "#dc2626" // 🔴 fechado manual
-                  : isFeriado
-                  ? "#f59e0b" // 🟡 feriado
-                  : isHoje
-                  ? "#1e293b"
-                  : "#020617",
+              ? "#fee2e2" // vermelho leve
+              : isFeriado
+              ? "#fef3c7" // amarelo leve
+              : isHoje
+              ? "#111827" // destaque hoje
+              : "#ffffff",
+            color: isHoje ? "#ffffff" : "#111827",
                 cursor: "pointer"
               }}
             >
@@ -172,50 +173,51 @@ async function toggleDiaFechado(data) {
 /* ================= ESTILO ================= */
 
 const card = {
-  background: "#020617",
-  padding: 8,
+  background: "#ffffff", // 🔥 antes dark
+  padding: 10,
   borderRadius: 16,
-  border: "1px solid #1e293b",
+  border: "1px solid #e5e7eb",
   width: "100%",
-  maxWidth: "100%", // 🔥 IMPORTANTE
+  maxWidth: "100%",
   boxSizing: "border-box",
-  overflow: "hidden" // 🔥 evita vazar
+  overflow: "hidden",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
 };
 
 const header = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  marginBottom: 10
+  marginBottom: 12
 };
 
 const titulo = {
   fontWeight: 700,
   fontSize: 14,
-  color: "#fff"
+  color: "#111827" // 🔥 antes branco
 };
 
 const navBtn = {
-  background: "#0f172a",
-  border: "1px solid #1e293b",
-  color: "#fff",
+  background: "#f3f4f6", // 🔥 antes dark
+  border: "1px solid #e5e7eb",
+  color: "#111827",
   borderRadius: 8,
   padding: "6px 10px",
   cursor: "pointer"
 };
 
-/* 🔥 GRID RESPONSIVO */
 const calendarGrid = {
   display: "grid",
   gridTemplateColumns: "repeat(7, 1fr)",
-  gap: 3
+  gap: 4 // 🔥 leve aumento
 };
 
 const weekDay = {
   textAlign: "center",
-  fontSize: 9,
-  color: "#64748b"
+  fontSize: 10,
+  color: "#6b7280"
 };
+
 const empty = {
   aspectRatio: "1 / 1"
 };
@@ -223,14 +225,16 @@ const empty = {
 const day = {
   width: "100%",
   aspectRatio: "1 / 1",
-  borderRadius: 8,
+  borderRadius: 10,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 11, // 🔥 menor
-  color: "#fff",
-  padding: 2 // 🔥 ajuda a caber
+  fontSize: 11,
+  color: "#111827",
+  padding: 2,
+  border: "1px solid #e5e7eb",
+  transition: "0.15s"
 };
 
 const dayNumber = {
@@ -239,9 +243,10 @@ const dayNumber = {
 };
 
 const feriadoNome = {
-  fontSize: 7,
-  marginTop: 1,
+  fontSize: 8,
+  marginTop: 2,
   opacity: 0.85,
-  textAlign: "center"
+  textAlign: "center",
+  color: "#374151"
 };
 

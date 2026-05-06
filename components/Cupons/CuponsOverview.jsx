@@ -20,20 +20,20 @@ export default function CuponsOverview({
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        color: "#fff"
+        color: "#111827"
       }}
     >
       {/* HEADER */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 18,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         <h2 style={{ margin: 0 }}>Cupons</h2>
-        <span style={{ fontSize: 13, color: "#9ca3af" }}>
+        <span style={{ fontSize: 13, color: "#6b7280" }}>
           Crie e gerencie descontos
         </span>
       </div>
@@ -41,10 +41,10 @@ export default function CuponsOverview({
       {/* FORM */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937",
+          border: "1px solid #e5e7eb",
           display: "grid",
           gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
           gap: 10
@@ -107,16 +107,16 @@ export default function CuponsOverview({
       {/* LISTA */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         <h3 style={{ marginBottom: 12 }}>Cupons criados</h3>
 
         {cupons.length === 0 && (
-          <div style={{ color: "#9ca3af" }}>
+          <div style={{ color: "#6b7280" }}>
             Nenhum cupom criado
           </div>
         )}
@@ -128,14 +128,14 @@ export default function CuponsOverview({
             <div
               key={c.id}
               style={{
-                background: "#0f172a",
+                background: "#f9fafb",
                 borderRadius: 14,
                 padding: 14,
                 marginBottom: 10,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                border: "1px solid #1f2937",
+                border: "1px solid #e5e7eb",
                 transition: "0.2s"
               }}
               onMouseEnter={(e) => {
@@ -146,9 +146,11 @@ export default function CuponsOverview({
               }}
             >
               <div>
-                <strong style={{ fontSize: 16 }}>{c.codigo}</strong>
+                <strong style={{ fontSize: 16 }}>
+                  {c.codigo}
+                </strong>
 
-                <div style={{ fontSize: 13, color: "#9ca3af" }}>
+                <div style={{ fontSize: 13, color: "#6b7280" }}>
                   {c.desconto}% OFF
                 </div>
 
@@ -167,8 +169,8 @@ export default function CuponsOverview({
                   height: 36,
                   padding: "0 12px",
                   borderRadius: 10,
-                  background: "#7f1d1d",
-                  color: "#fecaca",
+                  background: "#fee2e2",
+                  color: "#991b1b",
                   border: "none",
                   fontWeight: 600,
                   cursor: "pointer"

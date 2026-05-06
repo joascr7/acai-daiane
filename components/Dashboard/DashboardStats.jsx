@@ -11,25 +11,25 @@ export default function DashboardStats({
     {
       titulo: "Pedidos",
       valor: pedidosEmAndamento,
-      cor: "#3b82f6",
+      cor: "#2563eb", // 🔥 azul mais profissional
       icon: <ShoppingBag size={18} />
     },
     {
       titulo: "Produtos",
       valor: produtosAtivos,
-      cor: "#a855f7",
+      cor: "#9333ea",
       icon: <Package size={18} />
     },
     {
       titulo: "Cupons",
       valor: cupons.length,
-      cor: "#f97316",
+      cor: "#ea580c",
       icon: <Ticket size={18} />
     },
     {
       titulo: "Status",
       valor: lojaAberta ? "Aberta" : "Fechada",
-      cor: lojaAberta ? "#22c55e" : "#ef4444",
+      cor: lojaAberta ? "#16a34a" : "#dc2626",
       icon: <Store size={18} />
     }
   ];
@@ -47,14 +47,14 @@ export default function DashboardStats({
         <div
           key={i}
           style={{
-            background: "#111827",
-            border: "1px solid #1f2937",
+            background: "#ffffff", // 🔥 antes #111827
+            border: "1px solid #e5e7eb", // 🔥 antes #1f2937
             borderRadius: 16,
             padding: 14,
             display: "flex",
             flexDirection: "column",
             gap: 10,
-            boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)", // 🔥 leve
             transition: "0.2s"
           }}
           onMouseEnter={(e) => {
@@ -77,7 +77,7 @@ export default function DashboardStats({
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                background: `${s.cor}20`,
+                background: `${s.cor}15`, // 🔥 mais suave
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -90,7 +90,7 @@ export default function DashboardStats({
             <span
               style={{
                 fontSize: 12,
-                color: "#9ca3af",
+                color: "#6b7280", // 🔥 antes claro demais
                 fontWeight: 600
               }}
             >
@@ -102,7 +102,7 @@ export default function DashboardStats({
           <strong
             style={{
               fontSize: 20,
-              color: "#fff"
+              color: "#111827" // 🔥 antes branco
             }}
           >
             {s.valor}
@@ -117,7 +117,9 @@ export default function DashboardStats({
                 fontWeight: 700
               }}
             >
-              {lojaAberta ? "Funcionando normalmente" : "Loja pausada"}
+              {lojaAberta
+                ? "Funcionando normalmente"
+                : "Loja pausada"}
             </div>
           )}
         </div>

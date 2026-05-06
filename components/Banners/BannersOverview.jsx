@@ -28,20 +28,20 @@ export default function BannersOverview({
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        color: "#fff"
+        color: "#111827" // 🔥 corrigido
       }}
     >
       {/* HEADER */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 18,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         <h2 style={{ margin: 0 }}>Banners</h2>
-        <span style={{ fontSize: 13, color: "#9ca3af" }}>
+        <span style={{ fontSize: 13, color: "#6b7280" }}>
           Gerencie banners promocionais
         </span>
       </div>
@@ -49,10 +49,10 @@ export default function BannersOverview({
       {/* FORM */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937",
+          border: "1px solid #e5e7eb",
           display: "flex",
           flexDirection: "column",
           gap: 10
@@ -104,7 +104,8 @@ export default function BannersOverview({
               height: 160,
               objectFit: "cover",
               borderRadius: 14,
-              marginTop: 10
+              marginTop: 10,
+              border: "1px solid #e5e7eb"
             }}
           />
         )}
@@ -132,8 +133,8 @@ export default function BannersOverview({
                 height: 46,
                 padding: "0 16px",
                 borderRadius: 12,
-                background: "#1f2937",
-                color: "#fff",
+                background: "#f3f4f6",
+                color: "#111827",
                 border: "none"
               }}
             >
@@ -146,16 +147,16 @@ export default function BannersOverview({
       {/* LISTA */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         <h3>Banners cadastrados</h3>
 
         {banners.length === 0 && (
-          <div style={{ color: "#9ca3af" }}>
+          <div style={{ color: "#6b7280" }}>
             Nenhum banner cadastrado
           </div>
         )}
@@ -170,8 +171,8 @@ export default function BannersOverview({
               alignItems: "center",
               padding: 12,
               borderRadius: 14,
-              border: "1px solid #1f2937",
-              background: "#0f172a",
+              border: "1px solid #e5e7eb",
+              background: "#f9fafb",
               marginBottom: 10,
               flexWrap: isMobile ? "wrap" : "nowrap"
             }}
@@ -193,14 +194,14 @@ export default function BannersOverview({
                   {item.titulo}
                 </div>
 
-                <div style={{ fontSize: 12, color: "#9ca3af" }}>
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
                   {item.subtitulo}
                 </div>
 
                 <div
                   style={{
                     fontSize: 12,
-                    color: item.ativo ? "#22c55e" : "#ef4444",
+                    color: item.ativo ? "#16a34a" : "#dc2626",
                     fontWeight: 700
                   }}
                 >
@@ -211,27 +212,27 @@ export default function BannersOverview({
 
             {/* AÇÕES */}
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              <button onClick={() => abrirEdicaoBanner(item)}>
+              <button style={btnIcon} onClick={() => abrirEdicaoBanner(item)}>
                 <ImagePlus size={16} />
               </button>
 
-              <button onClick={() => alternarStatusBanner(item)}>
+              <button style={btnIcon} onClick={() => alternarStatusBanner(item)}>
                 {item.ativo ? <PowerOff size={16} /> : <Power size={16} />}
               </button>
 
-              <button onClick={() => moverBanner(item, -1)}>
+              <button style={btnIcon} onClick={() => moverBanner(item, -1)}>
                 <ChevronUp size={16} />
               </button>
 
-              <button onClick={() => moverBanner(item, 1)}>
+              <button style={btnIcon} onClick={() => moverBanner(item, 1)}>
                 <ChevronDown size={16} />
               </button>
 
               <button
                 onClick={() => excluirBanner(item)}
                 style={{
-                  background: "#7f1d1d",
-                  color: "#fecaca",
+                  background: "#fee2e2",
+                  color: "#991b1b",
                   borderRadius: 8,
                   padding: "4px 8px",
                   border: "none"
@@ -246,3 +247,17 @@ export default function BannersOverview({
     </div>
   );
 }
+
+/* 🔥 BOTÃO PADRÃO */
+const btnIcon = {
+  width: 36,
+  height: 36,
+  borderRadius: 8,
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#374151",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer"
+};

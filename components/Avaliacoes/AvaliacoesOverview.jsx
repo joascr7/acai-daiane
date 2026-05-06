@@ -11,49 +11,44 @@ export default function AvaliacoesOverview({
   recusarAvaliacao,
   criarAvaliacaoManual
 }) {
-  
-  const [produtoSelecionado, setProdutoSelecionado] = useState("");
-  const [nota, setNota] = useState(5);
-  const [comentario, setComentario] = useState("");
   const [modal, setModal] = useState(false);
 
-const [avaliacoesTemp, setAvaliacoesTemp] = useState([
-  {
-    produtoId: "",
-    nota: 5,
-    comentario: ""
-  }
-]);
-
-
-function atualizarItem(index, campo, valor) {
-  const copia = [...avaliacoesTemp];
-  copia[index][campo] = valor;
-  setAvaliacoesTemp(copia);
-}
-
-function adicionarItem() {
-  setAvaliacoesTemp([
-    ...avaliacoesTemp,
-    { produtoId: "", nota: 5, comentario: "" }
+  const [avaliacoesTemp, setAvaliacoesTemp] = useState([
+    {
+      produtoId: "",
+      nota: 5,
+      comentario: ""
+    }
   ]);
-}
 
-function removerItem(index) {
-  const copia = avaliacoesTemp.filter((_, i) => i !== index);
-  setAvaliacoesTemp(copia);
-}
+  function atualizarItem(index, campo, valor) {
+    const copia = [...avaliacoesTemp];
+    copia[index][campo] = valor;
+    setAvaliacoesTemp(copia);
+  }
+
+  function adicionarItem() {
+    setAvaliacoesTemp([
+      ...avaliacoesTemp,
+      { produtoId: "", nota: 5, comentario: "" }
+    ]);
+  }
+
+  function removerItem(index) {
+    const copia = avaliacoesTemp.filter((_, i) => i !== index);
+    setAvaliacoesTemp(copia);
+  }
 
   return (
-    <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 16, color: "#fff" }}>
+    <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 16, color: "#111827" }}>
 
       {/* HEADER */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff",
           borderRadius: 18,
           padding: 18,
-          border: "1px solid #1f2937",
+          border: "1px solid #e5e7eb",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center"
@@ -61,7 +56,7 @@ function removerItem(index) {
       >
         <div>
           <h2 style={{ margin: 0 }}>Avaliações</h2>
-          <span style={{ fontSize: 13, color: "#9ca3af" }}>
+          <span style={{ fontSize: 13, color: "#6b7280" }}>
             Controle de feedbacks dos clientes
           </span>
         </div>
@@ -97,11 +92,12 @@ function removerItem(index) {
               style={{
                 padding: "6px 12px",
                 borderRadius: 999,
-                background: filtroAvaliacao === f ? "#ea1d2c" : "#111827",
+                background: filtroAvaliacao === f ? "#ea1d2c" : "#f3f4f6",
+                color: filtroAvaliacao === f ? "#fff" : "#374151",
                 fontSize: 12,
                 fontWeight: 700,
                 cursor: "pointer",
-                border: "1px solid #1f2937"
+                border: "1px solid #e5e7eb"
               }}
             >
               {f} ({count})
@@ -119,14 +115,14 @@ function removerItem(index) {
           width: "100%",
           padding: 12,
           borderRadius: 12,
-          border: "1px solid #1f2937",
-          background: "#111827",
-          color: "#fff"
+          border: "1px solid #e5e7eb",
+          background: "#ffffff",
+          color: "#111827"
         }}
       />
 
       {/* LISTA */}
-      <div style={{ background: "#111827", borderRadius: 18, padding: 14, border: "1px solid #1f2937" }}>
+      <div style={{ background: "#ffffff", borderRadius: 18, padding: 14, border: "1px solid #e5e7eb" }}>
         {avaliacoes
           .filter((a) => {
             const produto = produtos.find((p) => p.id === a.produtoId);
@@ -152,11 +148,10 @@ function removerItem(index) {
                   display: "flex",
                   gap: 12,
                   padding: 12,
-                  borderBottom: "1px solid #1f2937",
+                  borderBottom: "1px solid #e5e7eb",
                   alignItems: "center"
                 }}
               >
-                {/* IMAGEM */}
                 <img
                   src={produto?.imagem || "/acai.png"}
                   alt={produto?.nome}
@@ -165,33 +160,27 @@ function removerItem(index) {
                     height: 60,
                     borderRadius: 12,
                     objectFit: "cover",
-                    background: "#1f2937"
+                    background: "#f3f4f6"
                   }}
                 />
 
-                {/* CONTEÚDO */}
                 <div style={{ flex: 1 }}>
-                  <strong>
-                    {produto?.nome || "Produto removido"}
-                  </strong>
+                  <strong>{produto?.nome || "Produto removido"}</strong>
 
-                  {/* MÉDIA */}
-                  <div style={{ fontSize: 11, color: "#9ca3af" }}>
-                    ⭐ {produto?.mediaAvaliacao || 0} •{" "}
-                    {produto?.totalAvaliacoes || 0} avaliações
+                  <div style={{ fontSize: 11, color: "#6b7280" }}>
+                    ⭐ {produto?.mediaAvaliacao || 0} • {produto?.totalAvaliacoes || 0}
                   </div>
 
-                  {/* NOTA */}
                   <div style={{ fontSize: 12, marginTop: 4 }}>
                     ⭐ {a.nota} •{" "}
                     <span
                       style={{
                         color:
                           a.status === "aprovado"
-                            ? "#22c55e"
+                            ? "#16a34a"
                             : a.status === "recusado"
-                            ? "#ef4444"
-                            : "#facc15",
+                            ? "#dc2626"
+                            : "#f59e0b",
                         fontWeight: 700
                       }}
                     >
@@ -199,19 +188,17 @@ function removerItem(index) {
                     </span>
                   </div>
 
-                  {/* COMENTÁRIO */}
                   {!!a.comentario && (
                     <div style={{ fontSize: 12, marginTop: 6 }}>
                       {a.comentario}
                     </div>
                   )}
 
-                  {/* AÇÕES */}
                   <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
                     <button
                       onClick={() => aprovarAvaliacao(a)}
                       style={{
-                        background: "#22c55e",
+                        background: "#16a34a",
                         border: "none",
                         padding: "4px 8px",
                         borderRadius: 6,
@@ -225,7 +212,7 @@ function removerItem(index) {
                     <button
                       onClick={() => recusarAvaliacao(a)}
                       style={{
-                        background: "#ef4444",
+                        background: "#dc2626",
                         border: "none",
                         padding: "4px 8px",
                         borderRadius: 6,
@@ -242,179 +229,193 @@ function removerItem(index) {
           })}
       </div>
 
+      {/* MODAL */}
       {modal && (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 9999
-    }}
-  >
-    <div
-      style={{
-        background: "#111827",
-        padding: 20,
-        borderRadius: 16,
-        width: 340,
-        maxHeight: "90vh",
-        overflowY: "auto"
-      }}
-    >
-      <h3>Nova Avaliação</h3>
-
-      {avaliacoesTemp.map((item, index) => {
-        const produto = produtos.find(p => p.id === item.produtoId);
-
-        return (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999
+          }}
+        >
           <div
-            key={index}
             style={{
-              border: "1px solid #1f2937",
-              borderRadius: 12,
-              padding: 10,
-              marginBottom: 10
+              background: "#ffffff",
+              padding: 20,
+              borderRadius: 16,
+              width: 340,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              border: "1px solid #e5e7eb",
+              color: "#111827"
             }}
           >
-            {/* SELECT */}
-            <select
-              value={item.produtoId}
-              onChange={(e) =>
-                atualizarItem(index, "produtoId", e.target.value)
-              }
-              style={{ width: "100%", marginBottom: 8 }}
-            >
-              <option value="">Selecionar produto</option>
-              {produtos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nome}
-                </option>
-              ))}
-            </select>
+            <h3>Nova Avaliação</h3>
 
-            {/* 🔥 IMAGEM DO PRODUTO */}
-            {produto && (
-              <img
-                src={produto.imagem || "/acai.png"}
-                alt={produto.nome}
-                style={{
-                  width: "100%",
-                  height: 120,
-                  objectFit: "cover",
-                  borderRadius: 10,
-                  marginBottom: 8
-                }}
-              />
-            )}
+            {avaliacoesTemp.map((item, index) => {
+              const produto = produtos.find(p => p.id === item.produtoId);
 
-            {/* ESTRELAS */}
-            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-              {[1,2,3,4,5].map(n => (
-                <span
-                  key={n}
-                  onClick={() => atualizarItem(index, "nota", n)}
+              return (
+                <div
+                  key={index}
                   style={{
-                    cursor: "pointer",
-                    fontSize: 22,
-                    color: n <= item.nota ? "#facc15" : "#374151"
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 12,
+                    padding: 10,
+                    marginBottom: 10
                   }}
                 >
-                  ★
-                </span>
-              ))}
-            </div>
+                  <select
+                    value={item.produtoId}
+                    onChange={(e) =>
+                      atualizarItem(index, "produtoId", e.target.value)
+                    }
+                    style={{
+                      width: "100%",
+                      marginBottom: 8,
+                      padding: 8,
+                      borderRadius: 8,
+                      border: "1px solid #e5e7eb"
+                    }}
+                  >
+                    <option value="">Selecionar produto</option>
+                    {produtos.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nome}
+                      </option>
+                    ))}
+                  </select>
 
-            {/* COMENTÁRIO */}
-            <textarea
-              placeholder="Comentário"
-              value={item.comentario}
-              onChange={(e) =>
-                atualizarItem(index, "comentario", e.target.value)
-              }
-              style={{ width: "100%", marginBottom: 8 }}
-            />
+                  {produto && (
+                    <img
+                      src={produto.imagem || "/acai.png"}
+                      style={{
+                        width: "100%",
+                        height: 120,
+                        objectFit: "cover",
+                        borderRadius: 10,
+                        marginBottom: 8
+                      }}
+                    />
+                  )}
 
-            {/* REMOVER */}
-            {avaliacoesTemp.length > 1 && (
-              <button
-                onClick={() => removerItem(index)}
-                style={{
-                  background: "#ef4444",
-                  border: "none",
-                  padding: "4px 8px",
-                  borderRadius: 6,
-                  color: "#fff"
-                }}
-              >
-                Remover
-              </button>
-            )}
+                  <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                    {[1,2,3,4,5].map(n => (
+                      <span
+                        key={n}
+                        onClick={() => atualizarItem(index, "nota", n)}
+                        style={{
+                          cursor: "pointer",
+                          fontSize: 22,
+                          color: n <= item.nota ? "#f59e0b" : "#d1d5db"
+                        }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+
+                  <textarea
+                    placeholder="Comentário"
+                    value={item.comentario}
+                    onChange={(e) =>
+                      atualizarItem(index, "comentario", e.target.value)
+                    }
+                    style={{
+                      width: "100%",
+                      marginBottom: 8,
+                      padding: 8,
+                      borderRadius: 8,
+                      border: "1px solid #e5e7eb"
+                    }}
+                  />
+
+                  {avaliacoesTemp.length > 1 && (
+                    <button
+                      onClick={() => removerItem(index)}
+                      style={{
+                        background: "#dc2626",
+                        border: "none",
+                        padding: "4px 8px",
+                        borderRadius: 6,
+                        color: "#fff"
+                      }}
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
+            <button
+              onClick={adicionarItem}
+              style={{
+                width: "100%",
+                marginBottom: 10,
+                background: "#f3f4f6",
+                color: "#111827",
+                border: "none",
+                padding: 8,
+                borderRadius: 8
+              }}
+            >
+              + Adicionar mais
+            </button>
+
+            <button
+              onClick={() => {
+                for (const item of avaliacoesTemp) {
+                  const produto = produtos.find(p => p.id === item.produtoId);
+                  if (!produto || !item.comentario) continue;
+
+                  criarAvaliacaoManual({
+                    produtoId: produto.id,
+                    nomeProduto: produto.nome,
+                    comentario: item.comentario,
+                    nota: item.nota
+                  });
+                }
+
+                setModal(false);
+                setAvaliacoesTemp([
+                  { produtoId: "", nota: 5, comentario: "" }
+                ]);
+              }}
+              style={{
+                width: "100%",
+                background: "#16a34a",
+                border: "none",
+                padding: 10,
+                borderRadius: 8,
+                color: "#fff",
+                fontWeight: 700
+              }}
+            >
+              Salvar tudo
+            </button>
+
+            <button
+              onClick={() => setModal(false)}
+              style={{
+                marginTop: 6,
+                width: "100%",
+                background: "#f3f4f6",
+                color: "#111827",
+                border: "none",
+                padding: 10,
+                borderRadius: 8
+              }}
+            >
+              Cancelar
+            </button>
           </div>
-        );
-      })}
-
-      {/* ADICIONAR MAIS */}
-      <button
-        onClick={adicionarItem}
-        style={{
-          width: "100%",
-          marginBottom: 10,
-          background: "#374151",
-          color: "#fff",
-          border: "none",
-          padding: 8,
-          borderRadius: 8
-        }}
-      >
-        + Adicionar mais
-      </button>
-
-      {/* SALVAR TODOS */}
-      <button
-        onClick={() => {
-          for (const item of avaliacoesTemp) {
-            const produto = produtos.find(p => p.id === item.produtoId);
-
-            if (!produto || !item.comentario) continue;
-
-            criarAvaliacaoManual({
-              produtoId: produto.id,
-              nomeProduto: produto.nome,
-              comentario: item.comentario,
-              nota: item.nota
-            });
-          }
-
-          setModal(false);
-          setAvaliacoesTemp([
-            { produtoId: "", nota: 5, comentario: "" }
-          ]);
-        }}
-        style={{
-          width: "100%",
-          background: "#22c55e",
-          border: "none",
-          padding: 10,
-          borderRadius: 8,
-          color: "#fff",
-          fontWeight: 700
-        }}
-      >
-        Salvar tudo
-      </button>
-
-      <button
-        onClick={() => setModal(false)}
-        style={{ marginTop: 6, width: "100%" }}
-      >
-        Cancelar
-      </button>
-    </div>
-  </div>
-)}
+        </div>
+      )}
     </div>
   );
 }

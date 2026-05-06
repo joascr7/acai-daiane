@@ -4,236 +4,311 @@ export default function PedidoCard({
   formatarReal,
   atualizarStatus,
   cancelarPedido,
-  pararSom,     // 🔥 vem do pai
-  tocando       // 🔥 vem do pai
+  pararSom,
+  tocando
 }) {
   const status = p.status || "novo";
 
-  const cores = {
-    novo: "#9ca3af",
+  const coresStatus = {
+    novo: "#6b7280",
     preparando: "#f59e0b",
-    saiu: "#38bdf8",
-    entregue: "#22c55e",
-    cancelado: "#ef4444"
+    saiu: "#0ea5e9",
+    entregue: "#16a34a",
+    cancelado: "#dc2626"
   };
 
-  const temFidelidade =
-    Array.isArray(p.itens) &&
-    p.itens.some(item => item.gratis);
+  return (
+    <div style={card}>
+
+      {/* HEADER */}
+      <div style={header}>
+        <div>
+          <div style={nome}>
+            {p.cliente?.nome || "Cliente"}
+          </div>
+
+          <div style={subInfo}>
+            {p.cliente?.telefone}
+          </div>
+
+          {p.tipo === "entrega" && (
+            <div style={subInfo}>
+              {p.cliente?.endereco}, {p.cliente?.numero}
+            </div>
+          )}
+        </div>
+
+        <div style={codigo}>
+          #{p.codigo}
+        </div>
+      </div>
+
+      {/* BADGES */}
+      <div style={badgesContainer}>
+        <Badge
+          label={p.tipo === "retirada" ? "Retirada" : "Entrega"}
+          tipo={p.tipo}
+        />
+
+        {p.cupom && (
+          <Badge
+            label={`Cupom ${p.cupom}`}
+            tipo="cupom"
+          />
+        )}
+      </div>
+
+      {/* ITENS */}
+      <div style={{ marginTop: 10 }}>
+        {Array.isArray(p.itens) &&
+          p.itens.map((item, i) => {
+            const produtoBanco = produtos.find(
+              (prod) =>
+                prod.id === item.produtoId ||
+                prod.nome === item.nome ||
+                prod.nome === item.produto?.nome
+            );
+
+            const tamanho =
+              item.tamanho || produtoBanco?.tamanho || "";
+
+            return (
+              <div key={i} style={itemBox}>
+                <div style={itemNome}>
+                  {item.nome || item.produto?.nome} ×{item.quantidade}
+                </div>
+
+                {tamanho && (
+                  <div style={itemDetalhe}>{tamanho}</div>
+                )}
+
+                {Array.isArray(item.extras) &&
+                  item.extras.map((e, j) => (
+                    <div key={j} style={itemExtra}>
+                      + {e.nome} {e.qtd > 1 ? `x${e.qtd}` : ""}
+                    </div>
+                  ))}
+              </div>
+            );
+          })}
+      </div>
+
+      {/* TOTAL + STATUS */}
+      <div style={footer}>
+        <div>
+          <div style={total}>
+            {formatarReal(p.total)}
+          </div>
+
+          {p.desconto > 0 && (
+            <div style={desconto}>
+              Desconto: -{formatarReal(p.desconto)}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            ...statusBadge,
+            color: coresStatus[status]
+          }}
+        >
+          {status}
+        </div>
+      </div>
+
+      {/* AÇÕES */}
+      <div style={acoes}>
+
+        {status === "novo" && (
+          <button
+            onClick={() => atualizarStatus(p.id, "preparando")}
+            style={btn("#f59e0b")}
+          >
+            Preparar
+          </button>
+        )}
+
+        {status === "preparando" && (
+          <button
+            onClick={() => atualizarStatus(p.id, "saiu")}
+            style={btn("#0ea5e9")}
+          >
+            Saiu
+          </button>
+        )}
+
+        {status === "saiu" && (
+          <button
+            onClick={() => atualizarStatus(p.id, "entregue")}
+            style={btn("#16a34a")}
+          >
+            Entregue
+          </button>
+        )}
+
+        {status !== "entregue" && status !== "cancelado" && (
+          <button
+            onClick={() => cancelarPedido(p.id)}
+            style={btn("#dc2626")}
+          >
+            Cancelar
+          </button>
+        )}
+
+        {tocando && (
+          <button
+            onClick={pararSom}
+            style={btnGhost}
+          >
+            Silenciar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Badge({ label, tipo }) {
+  const estilos = {
+    entrega: {
+      background: "#dcfce7",
+      color: "#166534"
+    },
+    retirada: {
+      background: "#f3f4f6",
+      color: "#374151"
+    },
+    cupom: {
+      background: "#fffbeb",
+      color: "#92400e"
+    }
+  };
+
+  const style = estilos[tipo] || estilos.entrega;
 
   return (
     <div
       style={{
-        background: "#111827",
-        borderRadius: 16,
-        padding: 14,
-        border: "1px solid #1f2937",
-        marginBottom: 12,
-        borderLeft: `4px solid ${
-          temFidelidade ? "#22c55e" : cores[status]
-        }`,
-        color: "#fff"
+        padding: "4px 10px",
+        borderRadius: 999,
+        fontSize: 11,
+        fontWeight: 600,
+        background: style.background,
+        color: style.color
       }}
     >
-      {/* CLIENTE */}
-      <div style={{ marginBottom: 8 }}>
-        <strong>{p.cliente?.nome || "Cliente"}</strong><br />
-        <span style={{ fontSize: 12, color: "#9ca3af" }}>
-          {p.cliente?.telefone}
-        </span><br />
-        <span style={{ fontSize: 12, color: "#9ca3af" }}>
-          {p.cliente?.endereco}, {p.cliente?.numero}
-        </span>
-      </div>
-
-      {/* CÓDIGO */}
-      <div style={{ marginBottom: 6 }}>
-        Código: <strong>{p.codigo}</strong>
-      </div>
-
-      {/* ITENS */}
-      {Array.isArray(p.itens) &&
-        p.itens.map((item, i) => {
-          const produtoBanco = produtos.find(
-            (prod) =>
-              prod.id === item.produtoId ||
-              prod.nome === item.nome ||
-              prod.nome === item.produto?.nome
-          );
-
-          const tamanho =
-            item.tamanho || produtoBanco?.tamanho || "";
-
-          const desc =
-            item.descricaoTamanho ||
-            produtoBanco?.descricaoTamanho ||
-            "";
-
-          return (
-            <div key={i} style={{ marginBottom: 6 }}>
-              <strong>
-                {item.nome || item.produto?.nome} (x{item.quantidade})
-              </strong>
-
-              {(tamanho || desc) && (
-                <div
-                  style={{
-                    background: "#1f2937",
-                    display: "inline-block",
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                    fontSize: 11,
-                    marginTop: 2
-                  }}
-                >
-                  {tamanho}
-                  {desc && ` • ${desc}`}
-                </div>
-              )}
-
-              {Array.isArray(item.extras) &&
-                item.extras.map((e, j) => (
-                  <div key={j} style={{ fontSize: 12, color: "#9ca3af" }}>
-                    + {e.nome} {e.qtd > 1 ? `x${e.qtd}` : ""}
-                  </div>
-                ))}
-            </div>
-          );
-        })}
-
-      {/* TOTAL */}
-      <div style={{ marginTop: 6 }}>
-        Total: <strong>{formatarReal(p.total)}</strong>
-      </div>
-
-      {/* STATUS */}
-      <div style={{ marginTop: 6 }}>
-        Status:
-        <span style={{ color: cores[status], marginLeft: 6 }}>
-          {status}
-        </span>
-      </div>
-
-      {/* 🔥 AÇÕES STATUS PREMIUM */}
-<div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-
-  {status === "novo" && (
-    <button
-      onClick={() => atualizarStatus(p.id, "preparando")}
-      style={{
-        flex: 1,
-        height: 40,
-        background: "#f59e0b",
-        color: "#111",
-        border: "none",
-        borderRadius: 10,
-        fontWeight: 700,
-        cursor: "pointer",
-        transition: "all 0.2s ease"
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#d97706";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#f59e0b";
-      }}
-    >
-      Preparar
-    </button>
-  )}
-
-  {status === "preparando" && (
-    <button
-      onClick={() => atualizarStatus(p.id, "saiu")}
-      style={{
-        flex: 1,
-        height: 40,
-        background: "#38bdf8",
-        color: "#022c22",
-        border: "none",
-        borderRadius: 10,
-        fontWeight: 700,
-        cursor: "pointer",
-        transition: "all 0.2s ease"
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#0ea5e9";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#38bdf8";
-      }}
-    >
-      Saiu
-    </button>
-  )}
-
-  {status === "saiu" && (
-    <button
-      onClick={() => atualizarStatus(p.id, "entregue")}
-      style={{
-        flex: 1,
-        height: 40,
-        background: "#22c55e",
-        color: "#052e16",
-        border: "none",
-        borderRadius: 10,
-        fontWeight: 700,
-        cursor: "pointer",
-        transition: "all 0.2s ease"
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#16a34a";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "#22c55e";
-      }}
-    >
-      Entregue
-    </button>
-  )}
-
-</div>
-
-      {/* 🔥 AÇÕES FINAIS PREMIUM */}
-      {status !== "entregue" && status !== "cancelado" && (
-        <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-
-          {/* 🔇 BOTÃO SOM */}
-          {tocando && (
-            <button
-              onClick={pararSom}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: "#1f2937",
-                border: "1px solid #374151",
-                color: "#9ca3af",
-                cursor: "pointer",
-                fontSize: 18
-              }}
-            >
-              🔇
-            </button>
-          )}
-
-          {/* CANCELAR */}
-          <button
-            onClick={() => cancelarPedido(p.id)}
-            style={{
-              flex: 1,
-              height: 44,
-              background: "#ef4444",
-              color: "#fff",
-              borderRadius: 12,
-              border: "none",
-              fontWeight: 700
-            }}
-          >
-            Cancelar
-          </button>
-        </div>
-      )}
+      {label}
     </div>
   );
 }
+
+function btn(color) {
+  return {
+    flex: 1,
+    height: 38,
+    background: color,
+    color: "#fff",
+    border: "none",
+    borderRadius: 10,
+    fontWeight: 600,
+    cursor: "pointer"
+  };
+}
+
+const btnGhost = {
+  height: 38,
+  background: "transparent",
+  color: "#6b7280",
+  border: "1px solid #e5e7eb",
+  borderRadius: 10,
+  fontWeight: 600,
+  cursor: "pointer"
+};
+
+
+const card = {
+  background: "#ffffff",
+  borderRadius: 16,
+  padding: 16,
+  marginBottom: 12,
+  border: "1px solid #e5e7eb",
+  boxShadow: "0 2px 6px rgba(0,0,0,0.04)"
+};
+
+const header = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: 6
+};
+
+const nome = {
+  fontWeight: 700,
+  fontSize: 15,
+  color: "#111827"
+};
+
+const subInfo = {
+  fontSize: 12,
+  color: "#4b5563"
+};
+
+const codigo = {
+  fontSize: 12,
+  color: "#6b7280"
+};
+
+const badgesContainer = {
+  display: "flex",
+  gap: 6,
+  marginTop: 6
+};
+
+const itemBox = {
+  marginBottom: 8
+};
+
+const itemNome = {
+  fontWeight: 600,
+  fontSize: 13,
+  color: "#111827"
+};
+
+const itemDetalhe = {
+  fontSize: 11,
+  color: "#6b7280"
+};
+
+const itemExtra = {
+  fontSize: 11,
+  color: "#6b7280"
+};
+
+const footer = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginTop: 10
+};
+
+const total = {
+  fontWeight: 700,
+  fontSize: 15,
+  color: "#111827"
+};
+
+const desconto = {
+  fontSize: 11,
+  color: "#16a34a"
+};
+
+const statusBadge = {
+  fontSize: 12,
+  fontWeight: 600,
+  textTransform: "capitalize"
+};
+
+const acoes = {
+  display: "flex",
+  gap: 8,
+  marginTop: 12
+};

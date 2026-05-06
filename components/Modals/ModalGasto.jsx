@@ -32,7 +32,7 @@ export default function ModalGasto({
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.65)",
+        background: "rgba(0,0,0,0.4)", // 🔥 antes pesado
         backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
@@ -43,28 +43,30 @@ export default function ModalGasto({
     >
       <div
         style={{
-          background: "#020617",
+          background: "#ffffff", // 🔥 antes dark
           borderRadius: 20,
           width: "100%",
           maxWidth: 420,
           padding: 20,
-          border: "1px solid #1f2937",
-          boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
-          color: "#fff"
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
+          color: "#111827"
         }}
       >
         {/* HEADER */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 16
+          }}
+        >
           <div>
             <h3 style={{ margin: 0 }}>
               {gastoEditando ? "Editar gasto" : "Novo gasto"}
             </h3>
 
-            <span style={{ fontSize: 12, color: "#9ca3af" }}>
+            <span style={{ fontSize: 12, color: "#6b7280" }}>
               Controle financeiro da operação
             </span>
           </div>
@@ -119,7 +121,7 @@ export default function ModalGasto({
         />
 
         {erro && (
-          <div style={{ color: "#ef4444", fontSize: 12 }}>
+          <div style={{ color: "#dc2626", fontSize: 12 }}>
             {erro}
           </div>
         )}
@@ -168,15 +170,14 @@ export default function ModalGasto({
   );
 }
 
-/* 🔥 ESTILOS */
 const input = {
   width: "100%",
   padding: "12px 14px",
   marginBottom: 10,
   borderRadius: 12,
-  border: "1px solid #1f2937",
-  background: "#0f172a",
-  color: "#fff",
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#111827",
   fontSize: 14,
   outline: "none"
 };
@@ -190,13 +191,13 @@ const btnPrimary = {
   borderRadius: 12,
   fontWeight: 700,
   cursor: "pointer",
-  boxShadow: "0 10px 25px rgba(234,29,44,0.35)"
+  boxShadow: "0 6px 16px rgba(234,29,44,0.25)"
 };
 
 const btnSecondary = {
   flex: 1,
-  background: "#1f2937",
-  color: "#fff",
+  background: "#f3f4f6",
+  color: "#111827",
   padding: 12,
   border: "none",
   borderRadius: 12,
@@ -207,6 +208,6 @@ const btnSecondary = {
 const btnIcon = {
   background: "transparent",
   border: "none",
-  color: "#9ca3af",
+  color: "#6b7280",
   cursor: "pointer"
 };

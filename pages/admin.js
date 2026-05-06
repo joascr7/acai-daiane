@@ -32,7 +32,10 @@ import Sidebar from "../components/Sidebar";
 
 
 import { getApp } from "firebase/app";
+import { authAdmin } from "../services/firebaseDual";
 import { dbAdmin as db, authAdmin as auth } from "../services/firebaseDual";
+import { setPersistence, browserSessionPersistence } from "firebase/auth";
+
 
 import {
   collection,
@@ -641,6 +644,11 @@ function formatarReal(valor) {
     currency: "BRL"
   });
 }
+
+
+useEffect(() => {
+  setPersistence(authAdmin, browserSessionPersistence);
+}, []);
 
 useEffect(() => {
   const liberarAudio = () => {

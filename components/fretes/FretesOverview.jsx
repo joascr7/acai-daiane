@@ -17,11 +17,11 @@ export default function FretesOverview({
   return (
     <div
       style={{
-        background: "#0f172a",
+        background: "#ffffff",
         borderRadius: 20,
         padding: 18,
-        border: "1px solid #1f2937",
-        color: "#fff"
+        border: "1px solid #e5e7eb",
+        color: "#111827"
       }}
     >
       <h2 style={{ marginBottom: 16 }}>Frete por bairro</h2>
@@ -39,41 +39,20 @@ export default function FretesOverview({
           value={bairroFrete}
           onChange={(e) => setBairroFrete(e.target.value)}
           placeholder="Nome do bairro"
-          style={{
-            height: 44,
-            borderRadius: 10,
-            border: "1px solid #1f2937",
-            background: "#111827",
-            color: "#fff",
-            padding: "0 12px"
-          }}
+          style={input}
         />
 
         <input
           value={valorFrete}
           onChange={(e) => setValorFrete(e.target.value)}
           placeholder="Valor"
-          style={{
-            height: 44,
-            borderRadius: 10,
-            border: "1px solid #1f2937",
-            background: "#111827",
-            color: "#fff",
-            padding: "0 12px"
-          }}
+          style={input}
         />
 
         <button
           onClick={salvarFrete}
           disabled={loadingFrete}
-          style={{
-            height: 44,
-            borderRadius: 10,
-            background: "#ea1d2c",
-            color: "#fff",
-            border: "none",
-            fontWeight: 700
-          }}
+          style={btnPrimary}
         >
           {loadingFrete
             ? "Salvando..."
@@ -85,13 +64,7 @@ export default function FretesOverview({
         {freteEditandoId && (
           <button
             onClick={limparFormularioFrete}
-            style={{
-              height: 44,
-              borderRadius: 10,
-              background: "#1f2937",
-              color: "#fff",
-              border: "none"
-            }}
+            style={btnSecondary}
           >
             Cancelar
           </button>
@@ -100,7 +73,7 @@ export default function FretesOverview({
 
       {/* LISTA */}
       {fretes.length === 0 && (
-        <div style={{ color: "#9ca3af" }}>
+        <div style={{ color: "#6b7280" }}>
           Nenhum bairro cadastrado
         </div>
       )}
@@ -109,8 +82,8 @@ export default function FretesOverview({
         <div
           key={item.id}
           style={{
-            background: "#111827",
-            border: "1px solid #1f2937",
+            background: "#f9fafb",
+            border: "1px solid #e5e7eb",
             borderRadius: 14,
             padding: 12,
             marginBottom: 10,
@@ -121,13 +94,18 @@ export default function FretesOverview({
         >
           <div>
             <strong>{item?.bairro}</strong>
-            <div style={{ fontSize: 13, color: "#9ca3af" }}>
+
+            <div style={{ fontSize: 13, color: "#6b7280" }}>
               {formatarReal(item.valor)}
             </div>
-            <div style={{
-              fontSize: 12,
-              color: item?.ativo ? "#22c55e" : "#ef4444"
-            }}>
+
+            <div
+              style={{
+                fontSize: 12,
+                color: item?.ativo ? "#16a34a" : "#dc2626",
+                fontWeight: 700
+              }}
+            >
               {item?.ativo ? "Ativo" : "Desativado"}
             </div>
           </div>
@@ -136,11 +114,13 @@ export default function FretesOverview({
             <button
               onClick={() => abrirEdicaoFrete(item)}
               style={{
-                background: "#1e3a8a",
-                color: "#bfdbfe",
+                background: "#e0f2fe",
+                color: "#075985",
                 border: "none",
                 borderRadius: 8,
-                padding: "4px 8px"
+                padding: "4px 8px",
+                fontWeight: 600,
+                cursor: "pointer"
               }}
             >
               Editar
@@ -149,11 +129,13 @@ export default function FretesOverview({
             <button
               onClick={() => alternarStatusFrete(item)}
               style={{
-                background: item?.ativo ? "#7c2d12" : "#064e3b",
-                color: "#fff",
+                background: item?.ativo ? "#fee2e2" : "#dcfce7",
+                color: item?.ativo ? "#991b1b" : "#166534",
                 border: "none",
                 borderRadius: 8,
-                padding: "4px 8px"
+                padding: "4px 8px",
+                fontWeight: 600,
+                cursor: "pointer"
               }}
             >
               {item?.ativo ? "Desativar" : "Ativar"}
@@ -162,11 +144,13 @@ export default function FretesOverview({
             <button
               onClick={() => excluirFrete(item.id)}
               style={{
-                background: "#7f1d1d",
-                color: "#fecaca",
+                background: "#fee2e2",
+                color: "#991b1b",
                 border: "none",
                 borderRadius: 8,
-                padding: "4px 8px"
+                padding: "4px 8px",
+                fontWeight: 600,
+                cursor: "pointer"
               }}
             >
               Excluir
@@ -177,3 +161,34 @@ export default function FretesOverview({
     </div>
   );
 }
+
+/* 🔥 INPUT PADRÃO */
+const input = {
+  height: 44,
+  borderRadius: 10,
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#111827",
+  padding: "0 12px",
+  fontSize: 13
+};
+
+const btnPrimary = {
+  height: 44,
+  borderRadius: 10,
+  background: "#ea1d2c",
+  color: "#fff",
+  border: "none",
+  fontWeight: 700,
+  cursor: "pointer"
+};
+
+const btnSecondary = {
+  height: 44,
+  borderRadius: 10,
+  background: "#f3f4f6",
+  color: "#111827",
+  border: "none",
+  fontWeight: 600,
+  cursor: "pointer"
+};

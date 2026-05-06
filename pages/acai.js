@@ -29,6 +29,10 @@ import { updatePassword } from "firebase/auth";
 
 
 
+
+
+
+
 // 🔥 FIRESTORE
 import {
   collection,
@@ -413,6 +417,7 @@ const normalizar = (str) =>
 useEffect(() => {
   setMounted(true);
 }, []);
+
 
 
 
@@ -841,6 +846,9 @@ const blurInput = (e) => {
 };
 
 
+useEffect(() => {
+  setPersistence(auth, browserLocalPersistence);
+}, []);
 
 
 useEffect(() => {
@@ -1805,6 +1813,24 @@ if (loadingInicial) {
 }
 
 
+if (!authReady) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#f7f7f7",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 99999
+      }}
+    >
+      Carregando usuário...
+    </div>
+  );
+}
+
 
  async function pagarCheckout(pedidoId) {
   try {
@@ -2182,7 +2208,7 @@ async function alterarSenha() {
       return;
     }
 
-    const userAtual = auth.currentUser;
+    const userAtual = user;
 
     if (!userAtual) {
       mostrarToast("Usuário não autenticado", "erro");

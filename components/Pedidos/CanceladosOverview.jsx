@@ -12,10 +12,10 @@ export default function CanceladosOverview({
         display: "flex",
         flexDirection: "column",
         gap: 12,
-        background: "#0f172a",
+        background: "#f7f7f7", // 🔥 antes #0f172a
         padding: 12,
         borderRadius: 16,
-        color: "#fff"
+        color: "#111827" // 🔥 antes #fff
       }}
     >
       {Object.entries(agrupados).map(([cliente, lista]) => {
@@ -26,8 +26,8 @@ export default function CanceladosOverview({
             key={cliente}
             style={{
               borderRadius: 14,
-              background: "#111827",
-              border: "1px solid #1f2937",
+              background: "#ffffff", // 🔥 antes #111827
+              border: "1px solid #e5e7eb", // 🔥 antes #1f2937
               overflow: "hidden"
             }}
           >
@@ -42,18 +42,18 @@ export default function CanceladosOverview({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "#0f172a"
+                background: "#ffffff" // 🔥 antes #0f172a
               }}
             >
               <div>
-                <div style={{ fontWeight: 700 }}>
+                <div style={{ fontWeight: 700, color: "#111827" }}>
                   {cliente}
                 </div>
 
                 <div
                   style={{
                     fontSize: 12,
-                    color: "#9ca3af"
+                    color: "#6b7280" // 🔥 antes #9ca3af
                   }}
                 >
                   {lista.length} cancelado(s)
@@ -62,8 +62,8 @@ export default function CanceladosOverview({
 
               <div
                 style={{
-                  background: "#7f1d1d",
-                  color: "#fecaca",
+                  background: "#fee2e2", // 🔥 antes #7f1d1d
+                  color: "#991b1b", // 🔥 antes #fecaca
                   padding: "4px 10px",
                   borderRadius: 999,
                   fontSize: 11,
@@ -78,8 +78,8 @@ export default function CanceladosOverview({
             {abertoCliente && (
               <div
                 style={{
-                  borderTop: "1px solid #1f2937",
-                  background: "#020617"
+                  borderTop: "1px solid #e5e7eb", // 🔥 antes #1f2937
+                  background: "#fafafa" // 🔥 antes #020617
                 }}
               >
                 {lista.map((p) => (
@@ -87,14 +87,15 @@ export default function CanceladosOverview({
                     key={p.id}
                     style={{
                       padding: "10px 14px",
-                      borderBottom: "1px solid #1f2937"
+                      borderBottom: "1px solid #e5e7eb" // 🔥 antes #1f2937
                     }}
                   >
                     {/* TOPO */}
                     <div
                       style={{
                         fontSize: 13,
-                        fontWeight: 600
+                        fontWeight: 600,
+                        color: "#111827"
                       }}
                     >
                       #{p.codigo} — {formatarReal(p.total)}
@@ -107,7 +108,7 @@ export default function CanceladosOverview({
                           <div
                             style={{
                               fontSize: 12,
-                              color: "#d1d5db"
+                              color: "#374151" // 🔥 antes #d1d5db
                             }}
                           >
                             {item.nome} (x{item.quantidade})
@@ -123,7 +124,7 @@ export default function CanceladosOverview({
                                   key={j}
                                   style={{
                                     fontSize: 11,
-                                    color: "#9ca3af",
+                                    color: "#6b7280", // 🔥 antes #9ca3af
                                     marginLeft: 6
                                   }}
                                 >
@@ -139,7 +140,7 @@ export default function CanceladosOverview({
                     <div
                       style={{
                         fontSize: 11,
-                        color: "#6b7280",
+                        color: "#9ca3af", // 🔥 antes #6b7280
                         marginTop: 4
                       }}
                     >
@@ -159,12 +160,12 @@ export default function CanceladosOverview({
       {pedidosCancelados.length === 0 && (
         <div
           style={{
-            background: "#111827",
+            background: "#ffffff", // 🔥 antes #111827
             borderRadius: 14,
             padding: 18,
             textAlign: "center",
-            color: "#9ca3af",
-            border: "1px solid #1f2937"
+            color: "#6b7280", // 🔥 antes #9ca3af
+            border: "1px solid #e5e7eb" // 🔥 antes #1f2937
           }}
         >
           Nenhum pedido cancelado

@@ -17,16 +17,13 @@ export default function DashboardGrafico({
 }) {
   const map = {};
 
-  // 🔥 FUNÇÃO SEGURA PRA DATA (Firebase + normal)
   const getData = (d) => {
     if (!d) return new Date();
-    if (d?.toDate) return d.toDate(); // 🔥 firebase
+    if (d?.toDate) return d.toDate();
     return new Date(d);
   };
 
-  // 🔥 PEDIDOS DO SITE
   pedidos.forEach((p) => {
-    // ignora cancelado e pendente
     if (p.status === "cancelado" || p.status === "pendente") return;
 
     const data = getData(p.data || p.criadoEm);
@@ -41,7 +38,6 @@ export default function DashboardGrafico({
     map[dia] += Number(p.total || 0);
   });
 
-  // 🔥 VENDAS MANUAIS
   vendasManuais.forEach((v) => {
     const data = getData(v.data);
 
@@ -55,13 +51,11 @@ export default function DashboardGrafico({
     map[dia] += Number(v.valor || 0);
   });
 
-  // 🔥 ARRAY FINAL
   const dados = Object.entries(map).map(([dia, valor]) => ({
     dia,
     valor
   }));
 
-  // 🔥 ORDENAÇÃO CORRETA (ANO DINÂMICO)
   dados.sort((a, b) => {
     const [d1, m1] = a.dia.split("/");
     const [d2, m2] = b.dia.split("/");
@@ -72,10 +66,8 @@ export default function DashboardGrafico({
     return data1 - data2;
   });
 
-  // 🔥 TOTAL
   const total = dados.reduce((acc, d) => acc + d.valor, 0);
 
-  // 🔥 COMPARAÇÃO
   const ultimo = dados[dados.length - 1]?.valor || 0;
   const penultimo = dados[dados.length - 2]?.valor || 0;
 
@@ -89,12 +81,12 @@ export default function DashboardGrafico({
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #020617, #0f172a)",
-        borderRadius: 22,
+        background: "#ffffff", // 🔥 antes dark
+        borderRadius: 20,
         padding: 18,
-        border: "1px solid #1f2937",
+        border: "1px solid #e5e7eb",
         margin: "8px 0 20px",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.45)"
+        boxShadow: "0 6px 18px rgba(0,0,0,0.05)"
       }}
     >
       {/* HEADER */}
@@ -109,11 +101,11 @@ export default function DashboardGrafico({
         }}
       >
         <div>
-          <h3 style={{ color: "#fff", margin: 0 }}>
+          <h3 style={{ color: "#111827", margin: 0 }}>
             Faturamento
           </h3>
 
-          <div style={{ fontSize: 13, color: "#9ca3af" }}>
+          <div style={{ fontSize: 13, color: "#6b7280" }}>
             Últimos dias
           </div>
         </div>
@@ -121,7 +113,7 @@ export default function DashboardGrafico({
         <div style={{ textAlign: "right" }}>
           <div
             style={{
-              color: "#22c55e",
+              color: "#16a34a",
               fontWeight: 800,
               fontSize: 22
             }}
@@ -133,7 +125,7 @@ export default function DashboardGrafico({
             style={{
               fontSize: 13,
               letterSpacing: 0.3,
-              color: positivo ? "#22c55e" : "#ef4444",
+              color: positivo ? "#16a34a" : "#dc2626",
               fontWeight: 700
             }}
           >
@@ -147,13 +139,13 @@ export default function DashboardGrafico({
           {/* GRADIENTE */}
           <defs>
             <linearGradient id="colorGreen" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+              <stop offset="0%" stopColor="#16a34a" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
             </linearGradient>
           </defs>
 
           <CartesianGrid
-            stroke="#1f2937"
+            stroke="#e5e7eb" // 🔥 antes dark
             strokeDasharray="3 3"
             vertical={false}
           />
@@ -172,10 +164,10 @@ export default function DashboardGrafico({
 
           <Tooltip
             contentStyle={{
-              background: "#020617",
-              border: "1px solid #1f2937",
-              borderRadius: 12,
-              color: "#fff",
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              borderRadius: 10,
+              color: "#111827",
               fontSize: 12
             }}
             formatter={(value) => formatarReal(value)}
@@ -184,13 +176,10 @@ export default function DashboardGrafico({
           <Area
             type="monotone"
             dataKey="valor"
-            stroke="#22c55e"
-            strokeWidth={4}
+            stroke="#16a34a"
+            strokeWidth={3}
             fill="url(#colorGreen)"
             dot={false}
-            style={{
-              filter: "drop-shadow(0 0 6px #22c55e88)"
-            }}
           />
         </AreaChart>
       </ResponsiveContainer>

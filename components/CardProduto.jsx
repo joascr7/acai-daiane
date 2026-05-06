@@ -11,11 +11,11 @@ export default function CardProduto({
   return (
     <div
       style={{
-        background: "#fff",
-        borderRadius: 24,
+        background: "#ffffff",
+        borderRadius: 20, // 🔥 levemente menor (mais moderno)
         padding: 12,
-        border: "1px solid #f0f0f0",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.04)"
+        border: "1px solid #e5e7eb", // 🔥 melhor que #f0f0f0
+        boxShadow: "0 2px 8px rgba(0,0,0,0.04)" // 🔥 mais leve
       }}
     >
       <div
@@ -31,9 +31,9 @@ export default function CardProduto({
           style={{
             width: 104,
             height: 104,
-            borderRadius: 18,
+            borderRadius: 16,
             overflow: "hidden",
-            background: "#f6f6f6",
+            background: "#f3f4f6", // 🔥 melhor contraste
             flexShrink: 0,
             cursor: "pointer",
             position: "relative"
@@ -68,12 +68,11 @@ export default function CardProduto({
                   style={{
                     background: "#ea1d2c",
                     color: "#fff",
-                    fontSize: 9,
+                    fontSize: 10,
                     padding: "4px 8px",
                     borderRadius: 999,
                     fontWeight: 800,
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 6px 14px rgba(234,29,44,0.18)"
+                    whiteSpace: "nowrap"
                   }}
                 >
                   Oferta
@@ -83,14 +82,13 @@ export default function CardProduto({
               {mostrarMaisVendido && (
                 <div
                   style={{
-                    background: "#ff7a00",
+                    background: "#f97316", // 🔥 melhor que laranja antigo
                     color: "#fff",
-                    fontSize: 9,
+                    fontSize: 10,
                     padding: "4px 8px",
                     borderRadius: 999,
                     fontWeight: 800,
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 6px 14px rgba(255,122,0,0.18)"
+                    whiteSpace: "nowrap"
                   }}
                 >
                   Mais vendido
@@ -111,7 +109,7 @@ export default function CardProduto({
             style={{
               fontSize: 15,
               fontWeight: 800,
-              color: "#111",
+              color: "#111827",
               lineHeight: 1.2
             }}
           >
@@ -123,7 +121,7 @@ export default function CardProduto({
               style={{
                 marginTop: 6,
                 fontSize: 12,
-                color: "#666",
+                color: "#4b5563", // 🔥 antes #666
                 lineHeight: 1.35,
                 overflow: "hidden",
                 display: "-webkit-box",
@@ -139,7 +137,7 @@ export default function CardProduto({
             style={{
               marginTop: 6,
               fontSize: 12,
-              color: "#8b8b8b"
+              color: "#6b7280" // 🔥 melhor contraste
             }}
           >
             {p?.tamanho ? `• ${p.tamanho}` : ""}
@@ -151,9 +149,8 @@ export default function CardProduto({
                 <div
                   style={{
                     fontSize: 11,
-                    color: "#a3a3a3",
+                    color: "#9ca3af",
                     textDecoration: "line-through",
-                    lineHeight: 1.1,
                     marginBottom: 4
                   }}
                 >
@@ -164,9 +161,7 @@ export default function CardProduto({
                   style={{
                     fontSize: 18,
                     color: "#ea1d2c",
-                    lineHeight: 1.05,
-                    fontWeight: 900,
-                    letterSpacing: "-0.03em"
+                    fontWeight: 900
                   }}
                 >
                   {formatarReal(precoFinalProduto(p))}
@@ -176,10 +171,8 @@ export default function CardProduto({
               <strong
                 style={{
                   fontSize: 18,
-                  color: "#111",
-                  lineHeight: 1.05,
-                  fontWeight: 900,
-                  letterSpacing: "-0.03em"
+                  color: "#111827",
+                  fontWeight: 900
                 }}
               >
                 {formatarReal(precoFinalProduto(p))}

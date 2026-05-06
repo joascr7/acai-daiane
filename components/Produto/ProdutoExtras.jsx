@@ -8,37 +8,36 @@ export default function ProdutoExtras({
   produtoEditandoId,
   copiarExtrasDeProduto,
   setNovaCategoria,
-  maisVendido,          // 🔥 ADD
-  setMaisVendido        // 🔥 ADD
-
+  maisVendido,
+  setMaisVendido
 }) {
   return (
     <div style={container}>
       <h3 style={title}>Extras</h3>
 
-      {/* 🔥 COPIAR EXTRAS */}
-<select
-  onChange={(e) => copiarExtrasDeProduto(e.target.value)}
-  style={{
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
-    background: "#020617",
-    color: "#fff",
-    border: "1px solid #1f2937"
-  }}
->
-  <option value="">Copiar extras de outro produto</option>
+      {/* COPIAR EXTRAS */}
+      <select
+        onChange={(e) => copiarExtrasDeProduto(e.target.value)}
+        style={{
+          width: "100%",
+          padding: 10,
+          borderRadius: 10,
+          marginBottom: 10,
+          background: "#ffffff",
+          color: "#111827",
+          border: "1px solid #e5e7eb"
+        }}
+      >
+        <option value="">Copiar extras de outro produto</option>
 
-  {produtos
-    .filter(p => p.id !== produtoEditandoId) // 🔥 evita copiar dele mesmo
-    .map((p) => (
-      <option key={p.id} value={p.id}>
-        {p.nome}
-      </option>
-    ))}
-</select>
+        {produtos
+          .filter(p => p.id !== produtoEditandoId)
+          .map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nome}
+            </option>
+          ))}
+      </select>
 
       {/* NOVA CATEGORIA */}
       <div style={row}>
@@ -72,54 +71,53 @@ export default function ProdutoExtras({
         </button>
       </div>
 
-
+      {/* MAIS VENDIDO */}
       <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 10,
-    padding: 12,
-    borderRadius: 12,
-    background: "#0f172a",
-    border: "1px solid #1f2937"
-  }}
->
-  <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>
-    🔥 Mais vendido
-  </div>
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: 10,
+          padding: 12,
+          borderRadius: 12,
+          background: "#ffffff",
+          border: "1px solid #e5e7eb"
+        }}
+      >
+        <div style={{ color: "#111827", fontSize: 13, fontWeight: 600 }}>
+          Mais vendido
+        </div>
 
-  <div
-    onClick={() => setMaisVendido(!maisVendido)}
-    style={{
-      width: 46,
-      height: 26,
-      borderRadius: 999,
-      background: maisVendido ? "#ea1d2c" : "#374151",
-      position: "relative",
-      cursor: "pointer",
-      transition: "all 0.2s ease"
-    }}
-  >
-    <div
-      style={{
-        width: 20,
-        height: 20,
-        borderRadius: "50%",
-        background: "#fff",
-        position: "absolute",
-        top: 3,
-        left: maisVendido ? 23 : 3,
-        transition: "all 0.2s ease"
-      }}
-    />
-  </div>
-</div>
+        <div
+          onClick={() => setMaisVendido(!maisVendido)}
+          style={{
+            width: 46,
+            height: 26,
+            borderRadius: 999,
+            background: maisVendido ? "#ea1d2c" : "#d1d5db",
+            position: "relative",
+            cursor: "pointer",
+            transition: "all 0.2s ease"
+          }}
+        >
+          <div
+            style={{
+              width: 20,
+              height: 20,
+              borderRadius: "50%",
+              background: "#fff",
+              position: "absolute",
+              top: 3,
+              left: maisVendido ? 23 : 3,
+              transition: "all 0.2s ease"
+            }}
+          />
+        </div>
+      </div>
 
-      {/* LISTA DE GRUPOS */}
+      {/* LISTA */}
       {extras.map((grupo, i) => (
         <div key={i} style={card}>
-          {/* HEADER */}
           <div style={header}>
             <strong>{grupo.categoria}</strong>
 
@@ -135,7 +133,6 @@ export default function ProdutoExtras({
             </button>
           </div>
 
-          {/* MIN MAX */}
           <div style={row}>
             <input
               type="number"
@@ -162,7 +159,6 @@ export default function ProdutoExtras({
             />
           </div>
 
-          {/* PERMITIR REPETIR */}
           <label style={checkboxRow}>
             <input
               type="checkbox"
@@ -176,7 +172,6 @@ export default function ProdutoExtras({
             Permitir repetir item
           </label>
 
-          {/* ITENS */}
           {(grupo.itens || []).map((item, j) => (
             <div key={j} style={row}>
               <input
@@ -216,7 +211,6 @@ export default function ProdutoExtras({
             </div>
           ))}
 
-          {/* ADD ITEM */}
           <button
             onClick={() => {
               const novo = [...extras];
@@ -233,33 +227,33 @@ export default function ProdutoExtras({
   );
 }
 
-/* 🔥 ESTILOS */
+/* 🎨 ESTILOS CORRIGIDOS */
 
 const container = {
-  background: "#020617",
+  background: "#ffffff",
   borderRadius: 16,
   padding: 14,
-  border: "1px solid #1f2937"
+  border: "1px solid #e5e7eb"
 };
 
 const title = {
-  color: "#fff",
+  color: "#111827",
   marginBottom: 10
 };
 
 const card = {
-  background: "#0f172a",
+  background: "#f9fafb",
   borderRadius: 14,
   padding: 12,
   marginTop: 10,
-  border: "1px solid #1f2937"
+  border: "1px solid #e5e7eb"
 };
 
 const header = {
   display: "flex",
   justifyContent: "space-between",
   marginBottom: 10,
-  color: "#fff"
+  color: "#111827"
 };
 
 const row = {
@@ -272,9 +266,9 @@ const row = {
 const input = {
   padding: "10px 12px",
   borderRadius: 10,
-  border: "1px solid #1f2937",
-  background: "#020617",
-  color: "#fff",
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#111827",
   fontSize: 13
 };
 
@@ -283,7 +277,7 @@ const checkboxRow = {
   alignItems: "center",
   gap: 8,
   marginTop: 8,
-  color: "#fff",
+  color: "#374151",
   fontSize: 13
 };
 
@@ -302,8 +296,8 @@ const btnAdd = {
 
 const btnRemove = {
   border: "none",
-  background: "#7f1d1d",
-  color: "#fff",
+  background: "#fee2e2",
+  color: "#991b1b",
   borderRadius: 8,
   padding: 6,
   cursor: "pointer"
@@ -316,8 +310,8 @@ const btnAddItem = {
   gap: 6,
   padding: "8px 10px",
   borderRadius: 10,
-  border: "1px solid #1f2937",
-  background: "#020617",
-  color: "#fff",
+  border: "1px solid #e5e7eb",
+  background: "#ffffff",
+  color: "#111827",
   cursor: "pointer"
 };

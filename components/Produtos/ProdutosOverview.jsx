@@ -29,25 +29,28 @@ export default function ProdutosOverview({
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        color: "#fff"
+        color: "#111827" // 🔥 antes branco
       }}
     >
       {/* HEADER */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff", // 🔥 antes #111827
           borderRadius: 18,
           padding: 18,
-          border: "1px solid #1f2937",
+          border: "1px solid #e5e7eb", // 🔥 antes #1f2937
           display: "flex",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 10
+          gap: 10,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
         }}
       >
         <div>
-          <h2 style={{ margin: 0 }}>Produtos</h2>
-          <span style={{ fontSize: 13, color: "#9ca3af" }}>
+          <h2 style={{ margin: 0, color: "#111827" }}>
+            Produtos
+          </h2>
+          <span style={{ fontSize: 13, color: "#6b7280" }}>
             Gerencie seus produtos
           </span>
         </div>
@@ -74,7 +77,8 @@ export default function ProdutosOverview({
             color: "#fff",
             border: "none",
             fontWeight: 700,
-            cursor: "pointer"
+            cursor: "pointer",
+            boxShadow: "0 6px 16px rgba(234,29,44,0.25)"
           }}
         >
           Novo produto
@@ -84,14 +88,14 @@ export default function ProdutosOverview({
       {/* LISTA */}
       <div
         style={{
-          background: "#111827",
+          background: "#ffffff", // 🔥 antes #111827
           borderRadius: 18,
           padding: 16,
-          border: "1px solid #1f2937"
+          border: "1px solid #e5e7eb"
         }}
       >
         {produtos.length === 0 && (
-          <div style={{ color: "#9ca3af" }}>
+          <div style={{ color: "#6b7280" }}>
             Nenhum produto cadastrado
           </div>
         )}
@@ -105,9 +109,9 @@ export default function ProdutosOverview({
               gap: 12,
               padding: 12,
               borderRadius: 14,
-              background: "#0f172a",
+              background: "#f9fafb", // 🔥 antes #0f172a
               marginBottom: 10,
-              border: "1px solid #1f2937",
+              border: "1px solid #e5e7eb",
               flexWrap: isMobile ? "wrap" : "nowrap",
               transition: "0.2s"
             }}
@@ -131,7 +135,9 @@ export default function ProdutosOverview({
               />
 
               <div>
-                <strong>{p.nome}</strong>
+                <strong style={{ color: "#111827" }}>
+                  {p.nome}
+                </strong>
 
                 {/* PREÇO */}
                 <div style={{ fontSize: 13 }}>
@@ -143,25 +149,25 @@ export default function ProdutosOverview({
                       }}>
                         {formatarReal(p.preco)}
                       </span>{" "}
-                      <span style={{ color: "#22c55e", fontWeight: 700 }}>
+                      <span style={{ color: "#16a34a", fontWeight: 700 }}>
                         {formatarReal(p.precoPromocional)}
                       </span>
                     </>
                   ) : (
-                    <span style={{ color: "#22c55e" }}>
+                    <span style={{ color: "#16a34a" }}>
                       {formatarReal(p.preco)}
                     </span>
                   )}
                 </div>
 
-                <div style={{ fontSize: 12, color: "#9ca3af" }}>
+                <div style={{ fontSize: 12, color: "#6b7280" }}>
                   {p.tamanho}
                 </div>
 
                 <div
                   style={{
                     fontSize: 11,
-                    color: p.ativo ? "#22c55e" : "#ef4444",
+                    color: p.ativo ? "#16a34a" : "#dc2626",
                     fontWeight: 700
                   }}
                 >
@@ -178,36 +184,26 @@ export default function ProdutosOverview({
                 flexWrap: "wrap"
               }}
             >
-              <button
-                onClick={() => abrirEdicao(p)}
-                style={btnIcon}
-              >
+              <button onClick={() => abrirEdicao(p)} style={btnIcon}>
                 <Pencil size={16} />
               </button>
-
 
               <button
                 onClick={() => toggleProduto(p)}
                 style={{
                   ...btnIcon,
-                  background: p.ativo ? "#7f1d1d" : "#064e3b",
-                  color: "#fff"
+                  background: p.ativo ? "#fee2e2" : "#dcfce7",
+                  color: p.ativo ? "#991b1b" : "#166534"
                 }}
               >
                 {p.ativo ? <PowerOff size={16} /> : <Power size={16} />}
               </button>
-              
-              <button
-                onClick={() => moverProduto(p, -1)}
-                style={btnIcon}
-              >
+
+              <button onClick={() => moverProduto(p, -1)} style={btnIcon}>
                 <ChevronUp size={16} />
               </button>
 
-              <button
-                onClick={() => moverProduto(p, 1)}
-                style={btnIcon}
-              >
+              <button onClick={() => moverProduto(p, 1)} style={btnIcon}>
                 <ChevronDown size={16} />
               </button>
 
@@ -215,8 +211,8 @@ export default function ProdutosOverview({
                 onClick={() => excluirProduto(p)}
                 style={{
                   ...btnIcon,
-                  background: "#7f1d1d",
-                  color: "#fecaca"
+                  background: "#fee2e2",
+                  color: "#991b1b"
                 }}
               >
                 <Trash2 size={16} />
@@ -234,9 +230,9 @@ const btnIcon = {
   width: 38,
   height: 38,
   borderRadius: 10,
-  border: "1px solid #1f2937",
-  background: "#111827",
-  color: "#fff",
+  border: "1px solid #e5e7eb", // 🔥 antes dark
+  background: "#ffffff", // 🔥 antes #111827
+  color: "#374151",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
