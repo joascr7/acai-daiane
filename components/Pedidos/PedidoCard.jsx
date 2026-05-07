@@ -17,9 +17,36 @@ export default function PedidoCard({
     cancelado: "#dc2626"
   };
 
+  const tipoPedido =
+    p.tipoEntrega ||
+    p.tipo ||
+    p.entrega?.tipo ||
+    p.cliente?.tipoEntrega ||
+    "entrega";
+
+  const isRetirada = tipoPedido === "retirada";
+
+  const formaPagamento =
+    p.formaPagamento ||
+    p.pagamento?.forma ||
+    p.pagamento ||
+    "";
+
+  const formaPagamentoLabel = {
+    pix: "Pix",
+    dinheiro: "Dinheiro",
+    cartao: "Cartão",
+    cartao_online: "Cartão online",
+    cartao_entrega: "Cartão na entrega"
+  };
+
+  const cupomCodigo =
+    typeof p.cupom === "string"
+      ? p.cupom
+      : p.cupom?.codigo || p.cupom?.id || "";
+
   return (
     <div style={card}>
-
       {/* HEADER */}
       <div style={header}>
         <div>
@@ -31,7 +58,7 @@ export default function PedidoCard({
             {p.cliente?.telefone}
           </div>
 
-          {p.tipo === "entrega" && (
+          {!isRetirada && (
             <div style={subInfo}>
               {p.cliente?.endereco}, {p.cliente?.numero}
             </div>
@@ -46,13 +73,20 @@ export default function PedidoCard({
       {/* BADGES */}
       <div style={badgesContainer}>
         <Badge
-          label={p.tipo === "retirada" ? "Retirada" : "Entrega"}
-          tipo={p.tipo}
+          label={isRetirada ? "Retirada" : "Entrega"}
+          tipo={isRetirada ? "retirada" : "entrega"}
         />
 
-        {p.cupom && (
+        {formaPagamento && (
           <Badge
-            label={`Cupom ${p.cupom}`}
+            label={formaPagamentoLabel[formaPagamento] || formaPagamento}
+            tipo="pagamento"
+          />
+        )}
+
+        {cupomCodigo && (
+          <Badge
+            label={`Cupom ${cupomCodigo}`}
             tipo="cupom"
           />
         )}
@@ -119,7 +153,6 @@ export default function PedidoCard({
 
       {/* AÇÕES */}
       <div style={acoes}>
-
         {status === "novo" && (
           <button
             onClick={() => atualizarStatus(p.id, "preparando")}
@@ -179,6 +212,10 @@ function Badge({ label, tipo }) {
       background: "#f3f4f6",
       color: "#374151"
     },
+    pagamento: {
+      background: "#e0f2fe",
+      color: "#075985"
+    },
     cupom: {
       background: "#fffbeb",
       color: "#92400e"
@@ -226,7 +263,6 @@ const btnGhost = {
   cursor: "pointer"
 };
 
-
 const card = {
   background: "#ffffff",
   borderRadius: 16,
@@ -261,7 +297,8 @@ const codigo = {
 const badgesContainer = {
   display: "flex",
   gap: 6,
-  marginTop: 6
+  marginTop: 6,
+  flexWrap: "wrap"
 };
 
 const itemBox = {

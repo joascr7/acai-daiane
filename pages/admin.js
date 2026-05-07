@@ -729,29 +729,48 @@ useEffect(() => {
 function tocarSom() {
   const agora = Date.now();
 
-  // 🔥 NÃO TOCA SE JÁ PAROU MANUALMENTE
   if (tocando) return;
-
-  // anti-spam
   if (agora - ultimoSom.current < 3000) return;
 
   ultimoSom.current = agora;
 
-  if (!audioRef.current) return;
+  if (!audioRef.current) {
+    audioRef.current = new Audio("/notificacao.mp3");
+  }
 
+  audioRef.current.loop = true;
   audioRef.current.currentTime = 0;
-  audioRef.current.play().catch(() => {});
 
-  setTocando(true); // 🔥 marca que está tocando
+  audioRef.current
+    .play()
+    .then(() => {
+      setTocando(true);
+    })
+    .catch((e) => {
+      console.log("Erro ao tocar som:", e);
+    });
 }
 
 function pararSom() {
-  if (!audioRef.current) return;
+  try {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.loop = false;
+    }
 
-  audioRef.current.pause();
-  audioRef.current.currentTime = 0;
+    // 🔥 PARA QUALQUER OUTRO AUDIO DA TELA
+    document.querySelectorAll("audio").forEach((audio) => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
+    });
 
-  setTocando(false); // 🔥 importante
+    setTocando(false);
+  } catch (e) {
+    console.log("Erro ao parar som:", e);
+    setTocando(false);
+  }
 }
 
 
@@ -2710,6 +2729,8 @@ if (loadingAuth) {
     atualizarStatus={atualizarStatus}
     cancelarPedido={cancelarPedido}
     isMobile={isMobile}
+    pararSom={pararSom}   
+  tocando={tocando}     
   />
 )}
 

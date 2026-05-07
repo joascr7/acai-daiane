@@ -1,5 +1,4 @@
 import PedidoCard from "./PedidoCard";
-import { useRef, useState, useEffect } from "react";
 
 export default function PedidosOverview({
   pedidos = [],
@@ -9,21 +8,10 @@ export default function PedidosOverview({
   formatarReal,
   atualizarStatus,
   cancelarPedido,
-  isMobile
+  isMobile,
+  pararSom,     // 🔥 vem do Admin
+  tocando       // 🔥 vem do Admin
 }) {
-  const audioRef = useRef(null);
-  const [tocando, setTocando] = useState(false);
-  const prevQtdRef = useRef(0);
-
-  function pararSom() {
-    if (!audioRef.current) return;
-
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-
-    setTocando(false);
-  }
-
   const filtrar = (p) => {
     if (!buscaCodigo) return true;
     return (p.codigo || "")
@@ -42,24 +30,8 @@ export default function PedidosOverview({
     (p) => filtrar(p) && p.status === "entregue"
   );
 
-  // 🔊 SOM NOVO PEDIDO
-  useEffect(() => {
-    if (emAndamento.length > prevQtdRef.current) {
-      if (audioRef.current) {
-        audioRef.current.loop = true;
-        audioRef.current.play().catch(() => {});
-        setTocando(true);
-      }
-    }
-
-    prevQtdRef.current = emAndamento.length;
-  }, [emAndamento.length]);
-
   return (
     <div style={container}>
-
-      <audio ref={audioRef} src="/notificacao.mp3" />
-
       {/* HEADER */}
       <div style={header}>
         <h2 style={titulo}>Pedidos</h2>
@@ -73,12 +45,13 @@ export default function PedidosOverview({
       </div>
 
       {/* GRID */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-        gap: 16
-      }}>
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: 16
+        }}
+      >
         {/* EM ANDAMENTO */}
         <div>
           <h3 style={secaoTitulo}>
@@ -93,8 +66,8 @@ export default function PedidosOverview({
               formatarReal={formatarReal}
               atualizarStatus={atualizarStatus}
               cancelarPedido={cancelarPedido}
-              pararSom={pararSom}
-              tocando={tocando}
+              pararSom={pararSom}   // 🔥 controle central
+              tocando={tocando}     // 🔥 estado global
             />
           ))}
         </div>
