@@ -689,37 +689,33 @@ useEffect(() => {
 useEffect(() => {
   if (!Array.isArray(pedidos)) return;
 
-  console.log("PEDIDOS:", pedidos); // 👈 COLOCA AQUI
-
   const statusValidos = [
+    "novo",
+    "pendente",
     "aguardando_pagamento",
     "aguardando_pagamento_online"
   ];
 
   if (!carregou.current) {
-    pedidos.forEach(p => {
-      pedidosNotificados.current.add(p.id + "_" + p.status);
+    pedidos.forEach((p) => {
+      pedidosNotificados.current.add(p.id);
     });
+
     carregou.current = true;
     return;
   }
 
   pedidos.forEach((p) => {
-  const chaveUnica = p.id + "_" + p.status;
+    if (!statusValidos.includes(p.status)) return;
 
-  if (!statusValidos.includes(p.status)) return;
+    if (pedidosNotificados.current.has(p.id)) return;
 
-  if (pedidosNotificados.current.has(chaveUnica)) return;
+    pedidosNotificados.current.add(p.id);
 
-  // 🔥 SE JÁ ESTÁ TOCANDO, NÃO DISPARA DE NOVO
-  if (tocando) return;
-
-  pedidosNotificados.current.add(chaveUnica);
-
-  tocarSom();
-});
-
+    tocarSom();
+  });
 }, [pedidos]);
+
 
 
   // 🔍 BUSCA
@@ -727,29 +723,30 @@ useEffect(() => {
 
   // 🔔 SOM
 function tocarSom() {
-  const agora = Date.now();
+  try {
+    if (!audioRef.current) {
+      audioRef.current = new Audio("/notificacao.mp3");
+    }
 
-  if (tocando) return;
-  if (agora - ultimoSom.current < 3000) return;
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    audioRef.current.loop = true;
 
-  ultimoSom.current = agora;
-
-  if (!audioRef.current) {
-    audioRef.current = new Audio("/notificacao.mp3");
+    audioRef.current
+      .play()
+      .then(() => {
+        setTocando(true);
+      })
+      .catch((e) => {
+        console.log("Erro ao tocar som:", e);
+        setTocando(false);
+      });
+  } catch (e) {
+    console.log("Erro geral no som:", e);
+    setTocando(false);
   }
-
-  audioRef.current.loop = true;
-  audioRef.current.currentTime = 0;
-
-  audioRef.current
-    .play()
-    .then(() => {
-      setTocando(true);
-    })
-    .catch((e) => {
-      console.log("Erro ao tocar som:", e);
-    });
 }
+
 
 function pararSom() {
   try {
@@ -759,7 +756,6 @@ function pararSom() {
       audioRef.current.loop = false;
     }
 
-    // 🔥 PARA QUALQUER OUTRO AUDIO DA TELA
     document.querySelectorAll("audio").forEach((audio) => {
       audio.pause();
       audio.currentTime = 0;
@@ -1748,25 +1744,41 @@ useEffect(() => {
 
 
 // 🔥 PEDIDOS + CUPONS (ÚNICO — CORRIGIDO)
+// 🔥 PEDIDOS + SOM
 useEffect(() => {
-
   if (loadingAuth) return;
 
   const unsub = onSnapshot(collection(db, "pedidos"), (snapshot) => {
-
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+    const lista = snapshot.docs.map((docItem) => ({
+      id: docItem.id,
+      ...docItem.data()
     }));
 
-    setPedidos(lista); // 🔥 LIMPO (SEM SOM AQUI)
+    setPedidos(lista);
 
+    snapshot.docChanges().forEach((change) => {
+      if (change.type !== "added") return;
+
+      const pedido = {
+        id: change.doc.id,
+        ...change.doc.data()
+      };
+
+      // primeira carga não toca
+      if (!carregou.current) return;
+
+      // entregue/cancelado não toca
+      if (pedido.status === "entregue" || pedido.status === "cancelado") return;
+
+      tocarSom();
+    });
+
+    carregou.current = true;
   });
 
   carregarCupons();
 
   return () => unsub();
-
 }, [loadingAuth]);
 
 
