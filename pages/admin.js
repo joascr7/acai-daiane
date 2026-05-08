@@ -932,6 +932,17 @@ async function apagarTodosCancelados() {
   }
 }
 
+async function excluirTodasAvaliacoes() {
+  const confirmar = confirm("Excluir todas as avaliações?");
+  if (!confirmar) return;
+
+  const snap = await getDocs(collection(db, "avaliacoes"));
+
+  await Promise.all(
+    snap.docs.map((d) => deleteDoc(doc(db, "avaliacoes", d.id)))
+  );
+}
+
 
 function GraficoVendas({ data }) {
   return (
@@ -2782,6 +2793,7 @@ if (loadingAuth) {
     aprovarAvaliacao={aprovarAvaliacao}
     recusarAvaliacao={recusarAvaliacao}
      criarAvaliacaoManual={criarAvaliacaoManual}
+     excluirTodasAvaliacoes={excluirTodasAvaliacoes}
     isMobile={isMobile}
   />
 )}
