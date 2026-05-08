@@ -2338,6 +2338,10 @@ const gerarPix = async () => {
     await setDoc(doc(db, "pedidos", pedidoId), {
       __origem: "PIX_FINAL_BAIRRO",
 
+      tipoEntrega,
+      tipo: tipoEntrega,
+      retirada: tipoEntrega === "retirada",
+
       cliente: {
         nome: clienteNome || "Cliente",
         telefone: clienteTelefone || "",
@@ -2392,7 +2396,15 @@ const gerarPix = async () => {
       statusPagamento: "aguardando_pagamento",
       status: "aguardando_pagamento",
 
-      entrega: {
+      entrega:
+      tipoEntrega === "retirada"
+       ? {
+        tipo: "retirada",
+        status: "retirada",
+        aceito: false
+      }
+    : {
+        tipo: "entrega",
         aceito: false,
         status: "aguardando",
         entregadorId: null,
@@ -5466,7 +5478,7 @@ return (
         <div
           style={{
             position: "absolute",
-            inset: 0,
+            
             background:
               "linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.4))"
           }}
@@ -5917,17 +5929,17 @@ return (
   </div>
 </div>
 
-        {isMobile && Array.isArray(banners) && banners.length > 0 && (
+      {isMobile && Array.isArray(banners) && banners.length > 0 && (
   <div
     style={{
       marginTop: 16,
-      borderRadius: 20,
+      borderRadius: 22,
       overflow: "hidden",
       position: "relative",
-      boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
       width: "100%",
-      height: 220, // 👈 mobile fixo
-      background: "#111"
+      height: 220,
+      background: "transparent",
+      boxShadow: "none"
     }}
   >
     <div
@@ -5958,7 +5970,9 @@ return (
             flex: "0 0 100%",
             scrollSnapAlign: "start",
             position: "relative",
-            cursor: "pointer"
+            cursor: "pointer",
+            overflow: "hidden",
+            background: "transparent"
           }}
         >
           <img
@@ -5967,17 +5981,10 @@ return (
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "left center",
-              display: "block"
-            }}
-          />
-
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(90deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.05) 60%)"
+              objectPosition: "center",
+              display: "block",
+              opacity: 1,
+              filter: "none"
             }}
           />
         </div>
@@ -5988,13 +5995,13 @@ return (
       <div
         style={{
           position: "absolute",
-          bottom: 10,
+          bottom: 12,
           left: 0,
           right: 0,
           display: "flex",
           justifyContent: "center",
           gap: 6,
-          zIndex: 2
+          zIndex: 3
         }}
       >
         {banners.map((_, i) => (
@@ -6006,8 +6013,8 @@ return (
               borderRadius: 999,
               background:
                 i === bannerIndex
-                  ? "#fff"
-                  : "rgba(255,255,255,0.5)",
+                  ? "#ffffff"
+                  : "rgba(255,255,255,0.65)",
               transition: "all .25s ease"
             }}
           />

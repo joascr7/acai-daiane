@@ -875,6 +875,64 @@ async function salvarBanner() {
 }
 
 
+
+async function apagarPedidoCancelado(id) {
+  const confirmar = confirm("Apagar este pedido cancelado?");
+  if (!confirmar) return;
+
+  try {
+    await deleteDoc(doc(db, "pedidos", id));
+
+    setToast({
+      tipo: "sucesso",
+      texto: "Pedido apagado com sucesso."
+    });
+
+    setTimeout(() => setToast(null), 2200);
+  } catch (e) {
+    console.log("Erro ao apagar pedido:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao apagar pedido."
+    });
+
+    setTimeout(() => setToast(null), 2200);
+  }
+}
+
+async function apagarTodosCancelados() {
+  const confirmar = confirm("Apagar TODOS os pedidos cancelados?");
+  if (!confirmar) return;
+
+  try {
+    const cancelados = pedidos.filter((p) => p.status === "cancelado");
+
+    await Promise.all(
+      cancelados.map((p) => deleteDoc(doc(db, "pedidos", p.id)))
+    );
+
+    setAberto(null);
+
+    setToast({
+      tipo: "sucesso",
+      texto: "Pedidos cancelados apagados."
+    });
+
+    setTimeout(() => setToast(null), 2200);
+  } catch (e) {
+    console.log("Erro ao apagar cancelados:", e);
+
+    setToast({
+      tipo: "erro",
+      texto: "Erro ao apagar cancelados."
+    });
+
+    setTimeout(() => setToast(null), 2200);
+  }
+}
+
+
 function GraficoVendas({ data }) {
   return (
     <div style={styles.card}>
@@ -2749,12 +2807,14 @@ if (loadingAuth) {
 
 {abaAdmin === "cancelados" && (
   <CanceladosOverview
-    agrupados={agrupados}
-    aberto={aberto}
-    setAberto={setAberto}
-    formatarReal={formatarReal}
-    pedidosCancelados={pedidosCancelados}
-  />
+  agrupados={agrupados}
+  aberto={aberto}
+  setAberto={setAberto}
+  formatarReal={formatarReal}
+  pedidosCancelados={pedidosCancelados}
+  apagarPedidoCancelado={apagarPedidoCancelado}
+  apagarTodosCancelados={apagarTodosCancelados}
+/>
 )}
 
 
