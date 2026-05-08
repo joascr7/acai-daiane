@@ -10920,8 +10920,7 @@ const corStatus =
         pointerEvents: "auto"
       }}
     >
-
-      {/* 🔥 AVISO */}
+      {/* AVISO */}
       {!podeFinalizar && tipoEntrega === "entrega" && (
         <div
           style={{
@@ -10929,7 +10928,8 @@ const corStatus =
             fontSize: 12,
             fontWeight: 600,
             color: "#ef4444",
-            textAlign: "center"
+            textAlign: "center",
+            lineHeight: 1.25
           }}
         >
           {!freteEncontrado
@@ -10942,9 +10942,7 @@ const corStatus =
 
       <button
         disabled={!podeFinalizar}
-
         onClick={async () => {
-
           if (!podeFinalizar) return;
 
           if (formaPagamento === "pix") {
@@ -10962,20 +10960,20 @@ const corStatus =
 
           await finalizarPedido();
         }}
-
         style={{
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          width: "100%",
-          height: isMobile ? 54 : 48,
-          borderRadius: 14,
 
+          width: "100%",
+          minHeight: isMobile ? 60 : 50,
+
+          borderRadius: 14,
           background: podeFinalizar ? "#ea1d2c" : "#e5e5e5",
           color: podeFinalizar ? "#fff" : "#999",
-
           border: "none",
+
           fontWeight: 700,
           fontSize: isMobile ? 14 : 13,
 
@@ -10984,15 +10982,26 @@ const corStatus =
             ? "0 4px 12px rgba(234,29,44,0.16)"
             : "none",
 
-          padding: "6px 10px",
+          padding: "8px 12px",
+          gap: 2,
           lineHeight: 1.2,
+          textAlign: "center",
+
           transition: "all .2s ease",
-          opacity: podeFinalizar ? 1 : 0.7
+          opacity: podeFinalizar ? 1 : 0.7,
+          boxSizing: "border-box"
         }}
       >
-
         {/* TEXTO PRINCIPAL */}
-        <span>
+        <span
+          style={{
+            display: "block",
+            width: "100%",
+            lineHeight: 1.2,
+            textAlign: "center",
+            whiteSpace: "normal"
+          }}
+        >
           {podeFinalizar
             ? `Finalizar pedido • ${formatarReal(totalFinalComFrete)}`
             : tipoEntrega === "entrega" && !freteEncontrado
@@ -11006,9 +11015,13 @@ const corStatus =
         {podeFinalizar && tipoEntrega === "entrega" && (
           <span
             style={{
+              display: "block",
+              width: "100%",
               fontSize: 11,
-              marginTop: 2,
-              color: freteGratis ? "#bfffd0" : "#fff"
+              color: freteGratis ? "#bfffd0" : "#fff",
+              textAlign: "center",
+              lineHeight: 1.2,
+              whiteSpace: "normal"
             }}
           >
             {freteGratis
@@ -11018,9 +11031,8 @@ const corStatus =
               : ""}
           </span>
         )}
-
       </button>
-      </div>
+    </div>
   </div>
 </div>
   
