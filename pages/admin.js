@@ -533,7 +533,7 @@ const [bannerPreview, setBannerPreview] = useState("");
 const [bannerLoading, setBannerLoading] = useState(false);
 const [bannerEditandoId, setBannerEditandoId] = useState(null);
 
-const [filtroAvaliacao, setFiltroAvaliacao] = useState("todas");
+const [filtroAvaliacao, setFiltroAvaliacao] = useState("pendente");
 const [busca, setBusca] = useState("");
 
 
@@ -2526,7 +2526,7 @@ if (loadingAuth) {
   margemLucro={margemLucro}
   pedidosEmAndamento={pedidosEmAndamento}
   produtosAtivos={produtosAtivos}
-  usuarios={usuarios}
+  usuarios={usuarios} 
   cupons={cupons}
   lojaAberta={lojaAberta}
   limparFormularioGasto={limparFormularioGasto}
