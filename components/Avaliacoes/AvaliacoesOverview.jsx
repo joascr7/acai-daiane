@@ -13,6 +13,7 @@ export default function AvaliacoesOverview({
   excluirTodasAvaliacoes
 }) {
   const [modal, setModal] = useState(false);
+  const filtroAtivo = filtroAvaliacao || "pendente";
   
 
   const [avaliacoesTemp, setAvaliacoesTemp] = useState([
@@ -46,8 +47,8 @@ export default function AvaliacoesOverview({
       const produto = produtos.find((p) => p.id === a.produtoId);
 
       const passaFiltro =
-        filtroAvaliacao === "todas" ||
-        a.status === filtroAvaliacao;
+     filtroAtivo === "todas" ||
+     (a.status || "pendente") === filtroAtivo;
 
       const passaBusca =
         !busca ||
