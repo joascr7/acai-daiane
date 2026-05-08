@@ -3,8 +3,10 @@ import DashboardCards from "./DashboardCards";
 import DashboardStats from "./DashboardStats";
 import DashboardGrafico from "./DashboardGrafico";
 
+
 export default function DashboardOverview({
   pedidos,
+  usuarios,
   isMobile,
   totalFaturado,
   totalGastos,
@@ -38,12 +40,16 @@ export default function DashboardOverview({
       />
 
       <DashboardStats
-        isMobile={isMobile}
-        pedidosEmAndamento={pedidosEmAndamento}
-        produtosAtivos={produtosAtivos}
-        cupons={cupons}
-        lojaAberta={lojaAberta}
-      />
+  pedidosEmAndamento={pedidosEmAndamento}
+  produtosAtivos={produtosAtivos}
+  cupons={cupons}
+  lojaAberta={lojaAberta}
+  usuarios={usuarios}
+  pedidos={pedidos}
+  vendasManuais={vendasManuais}
+  formatarReal={formatarReal}
+  isMobile={isMobile}
+/>
 
       <DashboardGrafico
   pedidos={pedidos}

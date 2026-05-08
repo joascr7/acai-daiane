@@ -2526,6 +2526,7 @@ if (loadingAuth) {
   margemLucro={margemLucro}
   pedidosEmAndamento={pedidosEmAndamento}
   produtosAtivos={produtosAtivos}
+  usuarios={usuarios}
   cupons={cupons}
   lojaAberta={lojaAberta}
   limparFormularioGasto={limparFormularioGasto}

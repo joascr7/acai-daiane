@@ -16,7 +16,7 @@ export default function DashboardCards({
       icon: <DollarSign size={18} />
     },
     {
-      titulo: "Gastos",
+      titulo: "Gastos/Investimentos",
       valor: formatarReal(totalGastos),
       cor: "#dc2626",
       icon: <TrendingDown size={18} />

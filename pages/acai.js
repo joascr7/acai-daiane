@@ -6330,7 +6330,7 @@ return (
                 color: "#111"
               }}
             >
-              25-35 min
+              35-45 min
             </div>
             <div
               style={{

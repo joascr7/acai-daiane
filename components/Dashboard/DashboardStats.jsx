@@ -1,35 +1,113 @@
-import { ShoppingBag, Package, Ticket, Store } from "lucide-react";
+import {
+  ShoppingBag,
+  Package,
+  Ticket,
+  Store,
+  Users,
+  DollarSign,
+  CheckCircle2
+} from "lucide-react";
 
 export default function DashboardStats({
   pedidosEmAndamento,
+  
   produtosAtivos,
-  cupons,
+  cupons = [],
   lojaAberta,
+  usuarios = [],
+  pedidos = [],
+  vendasManuais = [],
+  formatarReal,
   isMobile
 }) {
+  const clientesValidos = usuarios.filter((u) => {
+    return (
+      u?.uid ||
+      u?.clienteEmail ||
+      u?.email ||
+      u?.clienteTelefone ||
+      u?.clienteNome
+    );
+  });
+
+  const totalPedidos = pedidos
+  .filter((p) => {
+    const status = String(p.status || "").toLowerCase();
+
+    return (
+      status !== "cancelado" &&
+      status !== "pendente" &&
+      status !== "aguardando_pagamento" &&
+      status !== "aguardando_pagamento_online"
+    );
+  })
+  .reduce((acc, p) => acc + Number(p.total || 0), 0);
+
+const totalManual = vendasManuais.reduce((acc, v) => {
+  return acc + Number(v.valor || 0);
+}, 0);
+
+const totalVendas = totalPedidos + totalManual;
+
+const pedidosFinalizadosSite = pedidos.filter((p) => {
+  const status = String(p.status || "").toLowerCase();
+
+  return (
+    status === "entregue" ||
+    status === "finalizado"
+  );
+}).length;
+
+const vendasManuaisFinalizadas = vendasManuais.length;
+
+const pedidosFinalizados =
+  pedidosFinalizadosSite + vendasManuaisFinalizadas;
+
   const stats = [
     {
-      titulo: "Pedidos",
+      titulo: "Pedidos Abertos",
       valor: pedidosEmAndamento,
-      cor: "#2563eb", // 🔥 azul mais profissional
+      cor: "#3b82f6",
       icon: <ShoppingBag size={18} />
     },
+
+    {
+  titulo: "Finalizados",
+  valor: pedidosFinalizados,
+  cor: "#16a34a",
+  icon: <CheckCircle2 size={18} />
+},
+
+    {
+  titulo: "Vendas",
+  valor: formatarReal(totalVendas),
+  cor: "#16a34a",
+  icon: <DollarSign size={18} />
+},
+    {
+      titulo: "Clientes",
+      valor: clientesValidos.length,
+      cor: "#06b6d4",
+      icon: <Users size={18} />
+    },
+
+    
     {
       titulo: "Produtos",
       valor: produtosAtivos,
-      cor: "#9333ea",
+      cor: "#a855f7",
       icon: <Package size={18} />
     },
     {
       titulo: "Cupons",
       valor: cupons.length,
-      cor: "#ea580c",
+      cor: "#f97316",
       icon: <Ticket size={18} />
     },
     {
       titulo: "Status",
       valor: lojaAberta ? "Aberta" : "Fechada",
-      cor: lojaAberta ? "#16a34a" : "#dc2626",
+      cor: lojaAberta ? "#22c55e" : "#ef4444",
       icon: <Store size={18} />
     }
   ];
@@ -38,7 +116,7 @@ export default function DashboardStats({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)",
+        gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(7, 1fr)",
         gap: 14,
         marginTop: 10
       }}
@@ -47,14 +125,14 @@ export default function DashboardStats({
         <div
           key={i}
           style={{
-            background: "#ffffff", // 🔥 antes #111827
-            border: "1px solid #e5e7eb", // 🔥 antes #1f2937
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
             borderRadius: 16,
             padding: 14,
             display: "flex",
             flexDirection: "column",
             gap: 10,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)", // 🔥 leve
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
             transition: "0.2s"
           }}
           onMouseEnter={(e) => {
@@ -64,7 +142,6 @@ export default function DashboardStats({
             e.currentTarget.style.transform = "translateY(0)";
           }}
         >
-          {/* TOPO */}
           <div
             style={{
               display: "flex",
@@ -77,7 +154,7 @@ export default function DashboardStats({
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                background: `${s.cor}15`, // 🔥 mais suave
+                background: `${s.cor}15`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -90,7 +167,7 @@ export default function DashboardStats({
             <span
               style={{
                 fontSize: 12,
-                color: "#6b7280", // 🔥 antes claro demais
+                color: "#6b7280",
                 fontWeight: 600
               }}
             >
@@ -98,17 +175,15 @@ export default function DashboardStats({
             </span>
           </div>
 
-          {/* VALOR */}
           <strong
             style={{
               fontSize: 20,
-              color: "#111827" // 🔥 antes branco
+              color: "#111827"
             }}
           >
             {s.valor}
           </strong>
 
-          {/* STATUS EXTRA */}
           {s.titulo === "Status" && (
             <div
               style={{
