@@ -5467,7 +5467,7 @@ return (
         }}
       >
         <img
-          src="/site.png"
+          src="/site5.png"
           style={{
             width: "100%",
             height: "100%",
@@ -5486,29 +5486,58 @@ return (
       </div>
 
       {/* LOGO SOBREPOSTA */}
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "100%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 2
-        }}
-      >
-        <div
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: "50%",
-            overflow: "hidden",
-            border: "4px solid #fff",
-            background: "#fff",
-            boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
-          }}
-        >
-          <img src="/icon-192.png" style={{ width: "100%" }} />
-        </div>
-      </div>
+<div
+  style={{
+    position: "absolute",
+    left: "50%",
+    top: "100%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 2
+  }}
+>
+  <div
+    onClick={() => {
+      setAnimacao("slide-left");
+
+      setTimeout(() => {
+        setAba("info");
+        setStep(99);
+      }, 120);
+    }}
+    style={{
+      width: 80,
+      height: 80,
+      borderRadius: "50%",
+      overflow: "hidden",
+      border: "4px solid #fff",
+      background: "#fff",
+      boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+      cursor: "pointer",
+      transition: "transform .18s ease"
+    }}
+    onMouseDown={(e) => {
+      e.currentTarget.style.transform = "scale(0.96)";
+    }}
+    onMouseUp={(e) => {
+      e.currentTarget.style.transform = "scale(1)";
+    }}
+    onTouchStart={(e) => {
+      e.currentTarget.style.transform = "scale(0.96)";
+    }}
+    onTouchEnd={(e) => {
+      e.currentTarget.style.transform = "scale(1)";
+    }}
+  >
+    <img
+      src="/icon-192.png"
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover"
+      }}
+    />
+  </div>
+</div>
     </>
   )}
 
@@ -5545,21 +5574,37 @@ return (
     gap: 10
   }}
 >
-  {/* LOGO*/}
+  {/* LOGO */}
 {isMobile && (
   <div
-  style={{
-    width: 86,
-    height: 86,
-    borderRadius: "50%",
-    overflow: "hidden",
-    background: "#fff",
-    border: "3px solid #fff",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
-    flexShrink: 0,
-    display: window.innerWidth <= 768 ? "block" : "none"
-  }}
->
+    onClick={() => {
+      setAnimacao("slide-left");
+
+      setTimeout(() => {
+        setAba("info");
+        setStep(99);
+      }, 120);
+    }}
+    style={{
+      width: 86,
+      height: 86,
+      borderRadius: "50%",
+      overflow: "hidden",
+      background: "#fff",
+      border: "3px solid #fff",
+      boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
+      flexShrink: 0,
+      display: window.innerWidth <= 768 ? "block" : "none",
+      cursor: "pointer",
+      transition: "transform .18s ease"
+    }}
+    onTouchStart={(e) => {
+      e.currentTarget.style.transform = "scale(0.96)";
+    }}
+    onTouchEnd={(e) => {
+      e.currentTarget.style.transform = "scale(1)";
+    }}
+  >
     <img
       src="/icon-192.png"
       style={{
@@ -11327,26 +11372,112 @@ const corStatus =
         </span>
       </div>
 
-      {/* ⏰ HORÁRIO */}
-      <div style={{
-        background: "#fff",
-        padding: 14,
-        borderRadius: 16,
-        marginBottom: 12,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
-      }}>
-        <strong>Horário de funcionamento</strong>
+      {/* HORÁRIO */}
+<div
+  style={{
+    background: "#fff",
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 12,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
+  }}
+>
+  <strong>Horário de funcionamento</strong>
 
-        <div style={{
-          marginTop: 8,
-          fontSize: 13,
-          color: "#555",
-          lineHeight: 1.6
-        }}>
-          <div>Sexta-feira: 18:30h às 23:00h</div>
-          <div>Sábado e Domingo: 16:00h às 23:00h</div>
+  <div
+    style={{
+      marginTop: 10,
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }}
+  >
+    {Array.from({ length: 7 }).map((_, i) => {
+      const dataTeste = new Date();
+      dataTeste.setDate(new Date().getDate() + i);
+
+      const dataKey = getDataKey(dataTeste);
+      const diaIndex = dataTeste.getDay();
+      const dia = ordemDias[diaIndex];
+
+      const fechadoManual = horarios?.diasFechados?.[dataKey];
+
+      const feriado =
+        !fechadoManual && feriadosFixos.includes(dataKey);
+
+      const v = getHorario(dia, feriado, fechadoManual);
+
+      const hojeData = getDataKey(new Date());
+      const isHoje = dataKey === hojeData;
+
+      return (
+        <div
+          key={dataKey}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 13,
+            padding: "6px 0",
+            borderBottom: "1px solid #f1f1f1",
+            opacity: !v.ativo ? 0.65 : 1
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontWeight: isHoje ? 800 : 600,
+              color: isHoje ? "#ea1d2c" : "#333"
+            }}
+          >
+            {isHoje ? "Hoje" : diasLabel[dia]}
+
+            {fechadoManual && (
+              <span
+                style={{
+                  fontSize: 9,
+                  background: "#fecaca",
+                  color: "#7f1d1d",
+                  padding: "2px 6px",
+                  borderRadius: 999,
+                  fontWeight: 700
+                }}
+              >
+                Fechado
+              </span>
+            )}
+
+            {feriado && (
+              <span
+                style={{
+                  fontSize: 9,
+                  background: "#fde047",
+                  color: "#111",
+                  padding: "2px 6px",
+                  borderRadius: 999,
+                  fontWeight: 700
+                }}
+              >
+                Feriado
+              </span>
+            )}
+          </div>
+
+          <div
+            style={{
+              color: !v.ativo ? "#dc2626" : "#555",
+              fontWeight: !v.ativo ? 800 : 600
+            }}
+          >
+            {!v.ativo ? "Fechado" : `${v.abre} às ${v.fecha}`}
+          </div>
         </div>
-      </div>
+      );
+    })}
+  </div>
+</div>
 
       {/* 💳 PAGAMENTO */}
       <div style={{
