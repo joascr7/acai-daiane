@@ -381,7 +381,7 @@ return (
   marginBottom: 18
 }}>
   <img
-    src="/logo.jpg"
+    src="/icon-192.png"
     style={{
       width: 78,
       height: 78,
