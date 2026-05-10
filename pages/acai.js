@@ -7326,7 +7326,7 @@ return (
           }}
         />
 
-        {item?.produto?.categoria === "acai" && (
+        {item?.produto?.categoria === "acai, acai na garrafa, combos, promocoes" && (
           <button
             onClick={() => editarItem(i)}
             style={{
