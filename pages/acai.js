@@ -7295,61 +7295,83 @@ return (
     : 0;
 
   return (
-    <div
-      key={i}
+   <div
+  key={i}
+  style={{
+    display: "flex",
+    gap: 14,
+    alignItems: "flex-start",
+    marginBottom: 22
+  }}
+>
+  {/* IMAGEM */}
+  <div
+    style={{
+      width: 96,
+      height: 96,
+      borderRadius: 20,
+      overflow: "hidden",
+      background: "#f5f5f5",
+      position: "relative",
+      flexShrink: 0
+    }}
+  >
+    <img
+      src={imagemProduto}
       style={{
-        display: "flex",
-        gap: 14,
-        alignItems: "flex-start",
-        marginBottom: 22
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block"
       }}
-    >
-      {/* IMAGEM */}
-      <div
+    />
+
+    {[
+      "acai",
+      "acai na garrafa",
+      "combos",
+      "promocoes"
+    ].includes(
+      String(item?.produto?.categoria || "").toLowerCase()
+    ) && (
+      <button
+        onClick={() => editarItem(i)}
         style={{
-          width: 96,
-          height: 96,
-          borderRadius: 20,
-          overflow: "hidden",
-          background: "#f5f5f5",
-          position: "relative",
-          flexShrink: 0
+          position: "absolute",
+          top: 10,
+          right: 10,
+
+          width: 30,
+          height: 30,
+
+          borderRadius: "50%",
+          border: "none",
+
+          background: "#ffffff",
+
+          boxShadow: "0 4px 10px rgba(0,0,0,0.10)",
+
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+
+          color: "#ea1d2c",
+
+          cursor: "pointer",
+
+          transition: "0.2s"
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.06)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
         }}
       >
-        <img
-          src={imagemProduto}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block"
-          }}
-        />
-
-        {item?.produto?.categoria === "acai, acai na garrafa, combos, promocoes" && (
-          <button
-            onClick={() => editarItem(i)}
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              width: 30,
-              height: 30,
-              borderRadius: "50%",
-              border: "none",
-              background: "#fff",
-              boxShadow: "0 4px 10px rgba(0,0,0,0.10)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#ea1d2c",
-              cursor: "pointer"
-            }}
-          >
-            <Pencil size={14} />
-          </button>
-        )}
-      </div>
+        <Pencil size={14} />
+      </button>
+    )}
+  </div>
 
       {/* DADOS */}
       <div style={{ flex: 1, minWidth: 0 }}>
