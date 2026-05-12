@@ -12161,6 +12161,7 @@ const corStatus =
               {[
                 { id: "todos", nome: "Todos" },
                 { id: "acai na garrafa", nome: "Açaí na garrafa" },
+                { id: "acai", nome: "Açaí e Cremes" },
                 { id: "acai", nome: "Açaí" },
                 { id: "promocoes", nome: "Promoções" },
                 { id: "bebidas", nome: "Bebidas" },
