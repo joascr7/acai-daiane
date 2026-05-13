@@ -433,6 +433,7 @@ const notificacoesRef = useRef([]);
 const [loadingInicial, setLoadingInicial] = useState(true);
 const [installPrompt, setInstallPrompt] = useState(null);
 const [podeInstalar, setPodeInstalar] = useState(false);
+const [avisoTela, setAvisoTela] = useState("");
 
   // 🔥 USER
   const [user, setUser] = useState(null);
@@ -5479,7 +5480,7 @@ return (
         }}
       >
         <img
-          src="/site5.png"
+          src="/site.png"
           style={{
             width: "100%",
             height: "100%",
@@ -7935,6 +7936,7 @@ return (
 
          {/* 🔥 ENDEREÇO */}
 <div
+  id="secao-endereco"
   style={{
     marginTop: 16,
     background: "#fff",
@@ -8536,13 +8538,27 @@ return (
       return;
     }
 
-    if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
-      mostrarMensagemPagamento("Preencha endereço, número e bairro.", "erro");
-      setAba("perfil");
-      setStep(4);
-      setAbaPerfil("endereco");
-      return;
-    }
+   if (
+  !clienteEndereco?.trim() ||
+  !clienteNumeroCasa?.trim() ||
+  !clienteBairro?.trim()
+) {
+
+  setAvisoTela("Confirme seu endereço, número e bairro.");
+
+
+  setAba("carrinho");
+  setStep(3);
+
+  document
+    .getElementById("secao-endereco")
+    ?.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+  return;
+}
 
     if (tipoEntrega === "entrega") {
       if (!freteEncontrado) {
@@ -10680,78 +10696,287 @@ const corStatus =
           </div>
         </div>
 
-        {/* FORMA DE entrega */}
-<div style={{ marginBottom: 20 }}>
-  <h3 style={{ marginBottom: 10 }}>Como deseja receber?</h3>
+      {/* FORMA DE ENTREGA */}
+<div style={{ marginBottom: 24 }}>
 
+  {/* TÍTULO */}
   <div
     style={{
-      display: "flex",
-      gap: 8,
-      background: "#f5f5f5",
-      padding: 6,
-      borderRadius: 14
+      marginBottom: 14
     }}
   >
-    {/* ENTREGA */}
-    <button
-      onClick={() => setTipoEntrega("entrega")}
+    <h3
       style={{
-        flex: 1,
-        height: 44,
-        borderRadius: 10,
-        border: "none",
-        background:
-          tipoEntrega === "entrega" ? "#fff" : "transparent",
-        color:
-          tipoEntrega === "entrega" ? "#ea1d2c" : "#666",
-        fontWeight: 700,
-        fontSize: 14,
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        boxShadow:
-          tipoEntrega === "entrega"
-            ? "0 2px 6px rgba(0,0,0,0.08)"
-            : "none",
-        transition: "all 0.15s ease"
+        margin: 0,
+        fontSize: 18,
+        fontWeight: 900,
+        color: "#111",
+        letterSpacing: "-0.03em"
       }}
     >
-      <MapPin size={16} />
-      Entrega
+      Como deseja receber?
+    </h3>
+  </div>
+
+  {/* CARDS */}
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12
+    }}
+  >
+
+    {/* ENTREGA */}
+    <button
+      type="button"
+      onClick={() => setTipoEntrega("entrega")}
+      style={{
+        position: "relative",
+
+        minHeight: 110,
+
+        borderRadius: 22,
+
+        border:
+          tipoEntrega === "entrega"
+            ? "2px solid #ea1d2c"
+            : "1px solid #ececec",
+
+        background:
+          tipoEntrega === "entrega"
+            ? "linear-gradient(180deg,#fff5f5 0%,#ffffff 100%)"
+            : "#fff",
+
+        cursor: "pointer",
+
+        padding: 16,
+
+        transition: "all .2s ease",
+
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+
+        boxShadow:
+          tipoEntrega === "entrega"
+            ? "0 10px 25px rgba(234,29,44,0.14)"
+            : "0 4px 14px rgba(0,0,0,0.04)"
+      }}
+    >
+
+      {/* CHECK */}
+      {tipoEntrega === "entrega" && (
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+
+            width: 24,
+            height: 24,
+
+            borderRadius: "50%",
+
+            background: "#ea1d2c",
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 900
+          }}
+        >
+          ✓
+        </div>
+      )}
+
+      {/* ÍCONE */}
+      <div
+        style={{
+          width: 54,
+          height: 54,
+
+          marginBottom: 12,
+
+          borderRadius: 18,
+
+          background:
+            tipoEntrega === "entrega"
+              ? "linear-gradient(135deg,#ea1d2c,#ff4d5e)"
+              : "#f5f5f5",
+
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+
+          color:
+            tipoEntrega === "entrega"
+              ? "#fff"
+              : "#666",
+
+          transition: ".2s ease"
+        }}
+      >
+        <MapPin size={22} />
+      </div>
+
+      {/* TÍTULO */}
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 800,
+          color:
+            tipoEntrega === "entrega"
+              ? "#111"
+              : "#444"
+        }}
+      >
+        Entrega
+      </div>
+
+      {/* SUBTÍTULO */}
+      <div
+        style={{
+          marginTop: 4,
+          fontSize: 12,
+          color: "#777",
+          fontWeight: 500,
+          textAlign: "center"
+        }}
+      >
+        Receba no seu endereço
+      </div>
     </button>
 
     {/* RETIRADA */}
     <button
+      type="button"
       onClick={() => setTipoEntrega("retirada")}
       style={{
-        flex: 1,
-        height: 44,
-        borderRadius: 10,
-        border: "none",
+        position: "relative",
+
+        minHeight: 110,
+
+        borderRadius: 22,
+
+        border:
+          tipoEntrega === "retirada"
+            ? "2px solid #ea1d2c"
+            : "1px solid #ececec",
+
         background:
-          tipoEntrega === "retirada" ? "#fff" : "transparent",
-        color:
-          tipoEntrega === "retirada" ? "#ea1d2c" : "#666",
-        fontWeight: 700,
-        fontSize: 14,
+          tipoEntrega === "retirada"
+            ? "linear-gradient(180deg,#fff5f5 0%,#ffffff 100%)"
+            : "#fff",
+
         cursor: "pointer",
+
+        padding: 16,
+
+        transition: "all .2s ease",
+
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 6,
+
         boxShadow:
           tipoEntrega === "retirada"
-            ? "0 2px 6px rgba(0,0,0,0.08)"
-            : "none",
-        transition: "all 0.15s ease"
+            ? "0 10px 25px rgba(234,29,44,0.14)"
+            : "0 4px 14px rgba(0,0,0,0.04)"
       }}
     >
-      <Store size={16} />
-      Retirada
+
+      {/* CHECK */}
+      {tipoEntrega === "retirada" && (
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+
+            width: 24,
+            height: 24,
+
+            borderRadius: "50%",
+
+            background: "#ea1d2c",
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 900
+          }}
+        >
+          ✓
+        </div>
+      )}
+
+      {/* ÍCONE */}
+      <div
+        style={{
+          width: 54,
+          height: 54,
+
+          marginBottom: 12,
+
+          borderRadius: 18,
+
+          background:
+            tipoEntrega === "retirada"
+              ? "linear-gradient(135deg,#ea1d2c,#ff4d5e)"
+              : "#f5f5f5",
+
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+
+          color:
+            tipoEntrega === "retirada"
+              ? "#fff"
+              : "#666",
+
+          transition: ".2s ease"
+        }}
+      >
+        <Store size={22} />
+      </div>
+
+      {/* TÍTULO */}
+      <div
+        style={{
+          fontSize: 16,
+          fontWeight: 800,
+          color:
+            tipoEntrega === "retirada"
+              ? "#111"
+              : "#444"
+        }}
+      >
+        Retirada
+      </div>
+
+      {/* SUBTÍTULO */}
+      <div
+        style={{
+          marginTop: 4,
+          fontSize: 12,
+          color: "#777",
+          fontWeight: 500,
+          textAlign: "center"
+        }}
+      >
+        Retire na loja
+      </div>
     </button>
+
   </div>
 </div>
         {/* FORMA DE PAGAMENTO */}
@@ -12929,41 +13154,338 @@ const corStatus =
   <div
     style={{
       position: "fixed",
-      top: "calc(env(safe-area-inset-top) + 12px)",
-      left: "50%",
-      transform: "translateX(-50%)",
-      zIndex: 9999,
-      width: "90%",
-      maxWidth: 420
+      inset: 0,
+
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+
+      padding: 18,
+
+      background: "rgba(0,0,0,0.22)",
+      backdropFilter: "blur(6px)",
+
+      zIndex: 999999
     }}
   >
     <div
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "14px 16px",
-        borderRadius: 14,
-        background: "#fff1f2",
-        border: "1px solid #fecdd3",
-        color: "#b91c1c",
-        fontWeight: 600,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.15)"
+        width: "100%",
+        maxWidth: 360,
+
+        borderRadius: 24,
+
+        background: "#fff",
+
+        border: "1px solid #f3f3f3",
+
+        boxShadow:
+          "0 25px 60px rgba(0,0,0,0.18)",
+
+        overflow: "visible",
+
+        animation: "modalPremium .22s ease"
       }}
     >
+      {/* CONTEÚDO */}
       <div
         style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          background: "#ea1d2c"
+          padding: "24px 22px 18px",
+          textAlign: "center"
         }}
-      />
+      >
+        {/* ÍCONE */}
+        <div
+          style={{
+            width: 58,
+            height: 58,
 
-      <span style={{ fontSize: 14 }}>
-        Loja fechada no momento
-      </span>
+            margin: "0 auto 16px",
+
+            borderRadius: 18,
+
+            background:
+              "linear-gradient(135deg, #ea1d2c, #ff5263)",
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            boxShadow:
+              "0 12px 24px rgba(234,29,44,0.24)"
+          }}
+        >
+          <span
+            style={{
+              color: "#fff",
+              fontSize: 28,
+              fontWeight: 900,
+              lineHeight: 1
+            }}
+          >
+            !
+          </span>
+        </div>
+
+        {/* TÍTULO */}
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 900,
+            color: "#111",
+            letterSpacing: "-0.03em",
+            marginBottom: 10
+          }}
+        >
+          Loja Fechada
+        </div>
+
+        {/* TEXTO */}
+        <div
+          style={{
+            fontSize: 14,
+            color: "#666",
+            lineHeight: 1.6,
+            fontWeight: 500
+          }}
+        >
+          No momento não estamos aceitando pedidos.
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div
+        style={{
+          padding: "16px 20px 20px",
+          borderTop: "1px solid #f3f3f3",
+
+          display: "flex",
+          justifyContent: "center"
+        }}
+      >
+        <button
+          onClick={() => setToastLojaFechada(false)}
+          style={{
+            width: "100%",
+            maxWidth: 220,
+            height: 48,
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            boxSizing: "border-box",
+
+            border: "none",
+            borderRadius: 14,
+
+            background:
+              "linear-gradient(135deg, #ea1d2c, #ff4d5e)",
+
+            color: "#fff",
+
+            fontSize: 14,
+            fontWeight: 800,
+
+            cursor: "pointer",
+
+            boxShadow:
+              "0 10px 20px rgba(234,29,44,0.22)",
+
+            transition: "0.2s ease"
+          }}
+        >
+          Fechar
+        </button>
+      </div>
     </div>
+
+    <style>
+      {`
+        @keyframes modalPremium {
+          from {
+            opacity: 0;
+            transform: scale(.95) translateY(8px);
+          }
+
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}
+    </style>
+  </div>
+)}
+
+
+{avisoTela && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+
+      padding: 18,
+
+      background: "rgba(0,0,0,0.22)",
+      backdropFilter: "blur(6px)",
+
+      zIndex: 999999
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 360,
+
+        borderRadius: 24,
+
+        background: "#fff",
+
+        border: "1px solid #f3f3f3",
+
+        boxShadow:
+          "0 25px 60px rgba(0,0,0,0.18)",
+
+        overflow: "visible",
+
+        animation: "modalPremium .22s ease"
+      }}
+    >
+      {/* CONTEÚDO */}
+      <div
+        style={{
+          padding: "24px 22px 18px",
+          textAlign: "center"
+        }}
+      >
+        {/* ÍCONE */}
+        <div
+          style={{
+            width: 58,
+            height: 58,
+
+            margin: "0 auto 16px",
+
+            borderRadius: 18,
+
+            background:
+              "linear-gradient(135deg, #ea1d2c, #ff5263)",
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            boxShadow:
+              "0 12px 24px rgba(234,29,44,0.24)"
+          }}
+        >
+          <span
+            style={{
+              color: "#fff",
+              fontSize: 28,
+              fontWeight: 900,
+              lineHeight: 1
+            }}
+          >
+            !
+          </span>
+        </div>
+
+        {/* TÍTULO */}
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 900,
+            color: "#111",
+            letterSpacing: "-0.03em",
+            marginBottom: 10
+          }}
+        >
+          Atenção
+        </div>
+
+        {/* TEXTO */}
+        <div
+          style={{
+            fontSize: 14,
+            color: "#666",
+            lineHeight: 1.6,
+            fontWeight: 500,
+
+            wordBreak: "break-word"
+          }}
+        >
+          {avisoTela}
+        </div>
+      </div>
+
+      {/* FOOTER */}
+<div
+  style={{
+    padding: "16px 20px 20px",
+    borderTop: "1px solid #f3f3f3",
+
+    display: "flex",
+    justifyContent: "center"
+  }}
+>
+  <button
+    onClick={() => setAvisoTela("")}
+    style={{
+      width: "100%",
+      maxWidth: 220,
+      height: 48,
+
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+
+      boxSizing: "border-box",
+
+      border: "none",
+      borderRadius: 14,
+
+      background:
+        "linear-gradient(135deg, #ea1d2c, #ff4d5e)",
+
+      color: "#fff",
+
+      fontSize: 14,
+      fontWeight: 800,
+
+      cursor: "pointer",
+
+      boxShadow:
+        "0 10px 20px rgba(234,29,44,0.22)",
+
+      transition: "0.2s ease"
+    }}
+  >
+    Fechar
+  </button>
+</div>
+    </div>
+
+    <style>
+      {`
+        @keyframes modalPremium {
+          from {
+            opacity: 0;
+            transform: scale(.95) translateY(8px);
+          }
+
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}
+    </style>
   </div>
 )}
 
@@ -13167,78 +13689,169 @@ const corStatus =
     style={{
       position: "fixed",
       inset: 0,
-      background: "rgba(0,0,0,0.5)",
+
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      zIndex: 9999,
-      padding: 16
+
+      padding: 18,
+
+      background: "rgba(0,0,0,0.22)",
+      backdropFilter: "blur(6px)",
+
+      zIndex: 999999
     }}
-    onClick={() => setBloqueioMsg(null)}
   >
     <div
       onClick={(e) => e.stopPropagation()}
       style={{
         width: "100%",
-        maxWidth: 320,
+        maxWidth: 360,
+
+        borderRadius: 24,
+
         background: "#fff",
-        borderRadius: 20,
-        padding: "24px 18px 18px",
-        textAlign: "center",
-        boxShadow: "0 25px 60px rgba(0,0,0,0.25)"
+
+        border: "1px solid #f3f3f3",
+
+        boxShadow:
+          "0 25px 60px rgba(0,0,0,0.18)",
+
+        overflow: "visible",
+
+        animation: "modalPremium .22s ease"
       }}
     >
-      {/* ÍCONE CENTRAL */}
+      {/* CONTEÚDO */}
       <div
         style={{
-          width: 60,
-          height: 60,
-          borderRadius: "50%",
-          background: "#fee2e2",
+          padding: "24px 22px 18px",
+          textAlign: "center"
+        }}
+      >
+        {/* ÍCONE */}
+        <div
+          style={{
+            width: 58,
+            height: 58,
+
+            margin: "0 auto 16px",
+
+            borderRadius: 18,
+
+            background:
+              "linear-gradient(135deg, #ea1d2c, #ff5263)",
+
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+
+            boxShadow:
+              "0 12px 24px rgba(234,29,44,0.24)"
+          }}
+        >
+          <span
+            style={{
+              color: "#fff",
+              fontSize: 28,
+              fontWeight: 900,
+              lineHeight: 1
+            }}
+          >
+            !
+          </span>
+        </div>
+
+        {/* TÍTULO */}
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 900,
+            color: "#111",
+            letterSpacing: "-0.03em",
+            marginBottom: 10
+          }}
+        >
+          Atenção
+        </div>
+
+        {/* TEXTO */}
+        <div
+          style={{
+            fontSize: 14,
+            color: "#666",
+            lineHeight: 1.6,
+            fontWeight: 500,
+
+            wordBreak: "break-word"
+          }}
+        >
+          {bloqueioMsg}
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div
+        style={{
+          padding: "16px 20px 20px",
+          borderTop: "1px solid #f3f3f3",
+
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          margin: "0 auto 16px"
+          justifyContent: "center"
         }}
       >
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" stroke="#dc2626" strokeWidth="2"/>
-          <path d="M12 7v5" stroke="#dc2626" strokeWidth="2" strokeLinecap="round"/>
-          <circle cx="12" cy="16" r="1.2" fill="#dc2626"/>
-        </svg>
-      </div>
+        <button
+          onClick={() => setBloqueioMsg(null)}
+          style={{
+            width: "100%",
+            maxWidth: 220,
+            height: 48,
 
-      {/* TEXTO */}
-      <div
-        style={{
-          fontSize: 15,
-          fontWeight: 600,
-          color: "#111",
-          lineHeight: 1.4,
-          marginBottom: 18
-        }}
-      >
-        {bloqueioMsg}
-      </div>
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
 
-      {/* BOTÃO */}
-      <button
-        onClick={() => setBloqueioMsg(null)}
-        style={{
-          width: "100%",
-          background: "#111",
-          color: "#fff",
-          border: "none",
-          padding: "12px 0",
-          borderRadius: 12,
-          fontWeight: 600,
-          fontSize: 14,
-          cursor: "pointer"
-        }}
-      >
-        Entendi
-      </button>
+            boxSizing: "border-box",
+
+            border: "none",
+            borderRadius: 14,
+
+            background:
+              "linear-gradient(135deg, #ea1d2c, #ff4d5e)",
+
+            color: "#fff",
+
+            fontSize: 14,
+            fontWeight: 800,
+
+            cursor: "pointer",
+
+            boxShadow:
+              "0 10px 20px rgba(234,29,44,0.22)",
+
+            transition: "0.2s ease"
+          }}
+        >
+          Entendi
+        </button>
+      </div>
     </div>
+
+    <style>
+      {`
+        @keyframes modalPremium {
+          from {
+            opacity: 0;
+            transform: scale(.95) translateY(8px);
+          }
+
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}
+    </style>
   </div>
 )}
 

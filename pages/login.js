@@ -281,7 +281,7 @@ return (
     }}>
       {/* IMAGEM DE FUNDO */}
       <img
-        src="lg.jpg"
+        src="bg.png"
         style={{
           position: "absolute",
           inset: 0,
