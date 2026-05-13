@@ -1002,23 +1002,35 @@ useEffect(() => {
   const processarFidelidade = async () => {
     for (const p of pedidos) {
 
-      // 🔥 VERIFICA SE FOI PAGO
+      // 🔥 VERIFICA PAGAMENTO
       const pago =
         p.formaPagamento === "dinheiro"
           ? true
           : p.formaPagamento === "pix"
-          ? p.status !== "aguardando_pagamento"
+          ? p.statusPagamento === "pago"
           : p.formaPagamento === "cartao_online"
           ? p.paymentStatus === "approved"
           : false;
 
+      // 🔥 STATUSS VÁLIDOS
+      const entregue = [
+        "entregue",
+        "finalizado",
+        "concluido"
+      ].includes(
+        String(p.status || "").toLowerCase()
+      );
+
       if (
-        p.status === "entregue" &&
+        entregue &&
         pago &&
         !p.fidelidadeContabilizada &&
         p.cliente?.uid
       ) {
         try {
+
+          console.log("🔥 ADICIONANDO FIDELIDADE:", p.id);
+
           await adicionarPontoFidelidade(p);
 
           await updateDoc(doc(db, "pedidos", p.id), {
