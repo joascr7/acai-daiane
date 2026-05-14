@@ -1788,7 +1788,7 @@ if (loadingInicial) {
         }}
       >
         <img
-          src="/icon-192.jpg"
+          src={logo || "/icon-192.jpg"}
           style={{
             width: "100%",
             height: "100%",
@@ -2124,7 +2124,7 @@ function NotificacaoItem({ n }) {
     >
       {/* IMAGEM */}
       <img
-        src={n?.imagem || "/icon-192.jpg"}
+        src={logo || "/bg.png"}
         alt={n?.produtoNome || "Notificação"}
         style={{
           width: 56,
@@ -5543,7 +5543,7 @@ return (
     }}
   >
     <img
-      src="/icon-192.jpg"
+      src={logo || "/bg.png"}
       style={{
         width: "100%",
         height: "100%",
@@ -5620,7 +5620,7 @@ return (
     }}
   >
     <img
-      src="/icon-192.jpg"
+      src={logo || "/bg.png"}
       style={{
         width: "100%",
         height: "100%",
@@ -12953,7 +12953,7 @@ const corStatus =
           }}
         >
           <img
-            src="/icon-192.jpg"
+            src={logo || "/bg.png"}
             style={{
               width: "100%",
               height: "100%",
