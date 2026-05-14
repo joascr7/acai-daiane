@@ -103,6 +103,7 @@ import {
   Plus,
   Eye,
   Sparkles,
+  Truck,
   CheckCircle
   
 } from "lucide-react";
@@ -1787,7 +1788,7 @@ if (loadingInicial) {
         }}
       >
         <img
-          src="/icon-192.png"
+          src="/icon-192.jpg"
           style={{
             width: "100%",
             height: "100%",
@@ -2123,7 +2124,7 @@ function NotificacaoItem({ n }) {
     >
       {/* IMAGEM */}
       <img
-        src={n?.imagem || "/icon-192.png"}
+        src={n?.imagem || "/icon-192.jpg"}
         alt={n?.produtoNome || "Notificação"}
         style={{
           width: 56,
@@ -5480,7 +5481,7 @@ return (
         }}
       >
         <img
-          src="/site.png"
+          src="/site.jpg"
           style={{
             width: "100%",
             height: "100%",
@@ -5542,7 +5543,7 @@ return (
     }}
   >
     <img
-      src="/icon-192.png"
+      src="/icon-192.jpg"
       style={{
         width: "100%",
         height: "100%",
@@ -5619,7 +5620,7 @@ return (
     }}
   >
     <img
-      src="/icon-192.png"
+      src="/icon-192.jpg"
       style={{
         width: "100%",
         height: "100%",
@@ -12952,7 +12953,7 @@ const corStatus =
           }}
         >
           <img
-            src="/icon-192.png"
+            src="/icon-192.jpg"
             style={{
               width: "100%",
               height: "100%",
@@ -13567,21 +13568,27 @@ const corStatus =
     />
 
     {/* CAMINHÃO */}
-    {!foraDaArea && progresso > 0 && progresso < 100 && (
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: `calc(${progresso}% - 10px)`,
-          transform: "translateY(-50%)",
-          fontSize: 12,
-          transition: "left 0.4s ease"
-        }}
-      >
-        🚚
-      </div>
-    )}
-  </div>
+   {!foraDaArea && progresso > 0 && progresso < 100 && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: `calc(${progresso}% - 18px)`,
+
+            transform: "translateY(-50%)",
+
+            transition:
+              "left .45s cubic-bezier(.22,1,.36,1)",
+
+            zIndex: 5
+          }}
+        >
+          
+        </div>
+      )}
+    </div>
+  
+  
 </div>
 
 <div

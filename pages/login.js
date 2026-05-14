@@ -281,7 +281,7 @@ return (
     }}>
       {/* IMAGEM DE FUNDO */}
       <img
-        src="bg.png"
+        src="icon-192.jpg"
         style={{
           position: "absolute",
           inset: 0,
@@ -381,7 +381,7 @@ return (
   marginBottom: 18
 }}>
   <img
-    src="/icon-192.png"
+    src="/icon-192.jpg"
     style={{
       width: 78,
       height: 78,
