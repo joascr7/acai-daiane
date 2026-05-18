@@ -86,37 +86,40 @@ export default function ListaProdutos({
               }
             }}
             style={{
-              minWidth: 210,
-              background: "#fff",
-              borderRadius: 20,
-              padding: 12,
-              border: "1px solid #f0f0f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              cursor: "pointer",
-              flexShrink: 0
-            }}
-          >
-             <div
-  style={{
-    width: 220,
-    height: 220,
-    minWidth: 120,
-    borderRadius: 14,
-    overflow: "hidden",
-    background: "#f5f5f5",
-    position: "relative"
+    width: 224,            // 👈 Mudado para 224 (200 da imagem + 24 dos paddings)
+    background: "#fff",
+    borderRadius: 20,
+    padding: 12,           // Espaçamento de 12px nas bordas
+    border: "1px solid #f0f0f0",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    cursor: "pointer",
+    flexShrink: 0,
+    boxSizing: "border-box" // 👈 Força o navegador a manter o tamanho cravado em 224px
   }}
 >
-               <img
-    src={p.imagem || "/acai.png"}
-    alt={p.nome}
+  {/* CONTAINER DA IMAGEM */}
+  <div
     style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "cover",
-      display: "block"
+      width: "100%",        // 👈 Mude de 200 para 100% para ela ocupar todo o espaço interno disponível
+      height: 200,          // Mantém a altura quadrada que você definiu
+      borderRadius: 14,
+      overflow: "hidden",
+      background: "#f5f5f5",
+      position: "relative",
+      marginBottom: 10      // Margemzinha para não colar no texto abaixo
     }}
-  />
+  >
+    <img
+      src={p.imagem || "/acai.png"}
+      alt={p.nome}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block"
+      }}
+    />
+  
 
               <div
                 style={{
@@ -151,17 +154,19 @@ export default function ListaProdutos({
 {!!p.descricao && (
   <div
     style={{
-      fontSize: 12, // 👈 Diminuído de 13 para 12
+      fontSize: 13,
       color: "#666",
-      lineHeight: 1.3,
-      marginBottom: 6, // 👈 Aumentado levemente para desgrudar do preço
+      lineHeight: 1.4,
+      marginBottom: 10,
       
-      // 🔥 Limitador de 2 linhas com "..." automático:
+      // 🛠️ ADICIONE ESTAS LINHAS PARA CORRIGIR A QUEBRA:
       display: "-webkit-box",
-      WebkitLineClamp: 2,
+      WebkitLineClamp: 3,          // Limita estritamente em no máximo 2 linhas
       WebkitBoxOrient: "vertical",
-      overflow: "hidden",
-      height: "31px" // 👈 Mantém uma altura fixa para todos os cards ficarem do mesmo tamanho
+      overflow: "hidden",          // Esconde o que passar do limite
+      textOverflow: "ellipsis",    // Adiciona os "..." se o texto for muito grande
+      wordBreak: "break-word",     // Força a quebra de palavras longas se necessário
+      width: "60%"                // Garante que o texto respeite os limites do card
     }}
   >
     {p.descricao}
@@ -215,39 +220,43 @@ export default function ListaProdutos({
                 setStep(3);
               }
             }}
-            style={{
-              minWidth: 210,
-              background: "#fff",
-              borderRadius: 20,
-              padding: 12,
-              border: "1px solid #f0f0f0",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              cursor: "pointer",
-              flexShrink: 0
-            }}
-          >
-            <div
+         
+
   style={{
-    width: 220,
-    height: 220,
-    minWidth: 120,
-    borderRadius: 14,
-    overflow: "hidden",
-    background: "#f5f5f5",
-    position: "relative"
+    width: 224,            // 👈 Mudado para 224 (200 da imagem + 24 dos paddings)
+    background: "#fff",
+    borderRadius: 20,
+    padding: 12,           // Espaçamento de 12px nas bordas
+    border: "1px solid #f0f0f0",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    cursor: "pointer",
+    flexShrink: 0,
+    boxSizing: "border-box" // 👈 Força o navegador a manter o tamanho cravado em 224px
   }}
 >
-     <img
-    src={p.imagem || "/acai.png"}
-    alt={p.nome}
+  {/* CONTAINER DA IMAGEM */}
+  <div
     style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "cover",
-      display: "block"
+      width: "100%",        // 👈 Mude de 200 para 100% para ela ocupar todo o espaço interno disponível
+      height: 200,          // Mantém a altura quadrada que você definiu
+      borderRadius: 14,
+      overflow: "hidden",
+      background: "#f5f5f5",
+      position: "relative",
+      marginBottom: 10      // Margemzinha para não colar no texto abaixo
     }}
-  />
-
+  >
+    <img
+      src={p.imagem || "/acai.png"}
+      alt={p.nome}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block"
+      }}
+    />
+  
               <div
                 style={{
                   position: "absolute",
@@ -282,24 +291,26 @@ export default function ListaProdutos({
 {!!p.descricao && (
   <div
     style={{
-      fontSize: 12, // 👈 Diminuído de 13 para 12
+      fontSize: 13,
       color: "#666",
-      lineHeight: 1.3,
-      marginBottom: 6, // 👈 Aumentado levemente para desgrudar do preço
+      lineHeight: 1.4,
+      marginBottom: 10,
       
-      // 🔥 Limitador de 2 linhas com "..." automático:
+      // 🛠️ ADICIONE ESTAS LINHAS PARA CORRIGIR A QUEBRA:
       display: "-webkit-box",
-      WebkitLineClamp: 2,
+      WebkitLineClamp: 3,          // Limita estritamente em no máximo 2 linhas
       WebkitBoxOrient: "vertical",
-      overflow: "hidden",
-      height: "31px" // 👈 Mantém uma altura fixa para todos os cards ficarem do mesmo tamanho
+      overflow: "hidden",          // Esconde o que passar do limite
+      textOverflow: "ellipsis",    // Adiciona os "..." se o texto for muito grande
+      wordBreak: "break-word",     // Força a quebra de palavras longas se necessário
+      width: "60%"                // Garante que o texto respeite os limites do card
     }}
   >
     {p.descricao}
   </div>
 )}
 
-            <div
+ <div
               style={{
                 fontSize: 20,
                 fontWeight: 700,
@@ -308,6 +319,165 @@ export default function ListaProdutos({
             >
               {formatarReal(precoFinalProduto(p))}
             </div>
+          </div>
+        ))}
+
+        {produtos
+        .filter((p) => p.ativo && produtoEmPromocao(p))
+        .map((p, i) => (
+          <div
+            key={i}
+            onClick={() => {
+              if (!validarLojaAberta()) return;
+
+              if (categoriaTemExtras(p.categoria)) {
+                setProduto({
+                  ...p,
+                  preco: precoFinalProduto(p)
+                });
+
+                setAba("home");
+                setStep(2);
+                return;
+              }
+
+              if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                setCarrinho((prev) => [
+                  ...prev,
+                  {
+                    produto: p,
+                    quantidade: 1,
+                    extras: [],
+                    total: Number(precoFinalProduto(p) || 0)
+                  }
+                ]);
+
+                setAba("carrinho");
+                setStep(3);
+              }
+            }}
+         
+
+  style={{
+    width: 224,            // 👈 Mudado para 224 (200 da imagem + 24 dos paddings)
+    background: "#fff",
+    borderRadius: 20,
+    padding: 12,           // Espaçamento de 12px nas bordas
+    border: "1px solid #f0f0f0",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    cursor: "pointer",
+    flexShrink: 0,
+    boxSizing: "border-box" // 👈 Força o navegador a manter o tamanho cravado em 224px
+  }}
+>
+  {/* CONTAINER DA IMAGEM */}
+  <div
+    style={{
+      width: "100%",        // 👈 Mude de 200 para 100% para ela ocupar todo o espaço interno disponível
+      height: 200,          // Mantém a altura quadrada que você definiu
+      borderRadius: 14,
+      overflow: "hidden",
+      background: "#f5f5f5",
+      position: "relative",
+      marginBottom: 10      // Margemzinha para não colar no texto abaixo
+    }}
+  >
+    <img
+      src={p.imagem || "/acai.png"}
+      alt={p.nome}
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block"
+      }}
+    />
+  
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 5,
+                 
+      
+          background: "#ea1d2c",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 700,
+          padding: "4px 10px",
+          borderRadius: 999
+        }}
+      >
+                OFERTA
+              </div>
+            </div>
+
+             <div
+  style={{
+    fontWeight: 700,
+    fontSize: 15, // 👈 Diminuído de 18 para 16 para encaixar melhor no card menor
+    marginBottom: 4,
+    whiteSpace: "nowrap", // 👈 Garante que o nome do produto fique em apenas uma linha
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  }}
+>
+  {p.nome}
+</div>
+
+{!!p.descricao && (
+  <div
+    style={{
+      fontSize: 13,
+      color: "#666",
+      lineHeight: 1.4,
+      marginBottom: 10,
+      display: "-webkit-box",
+      WebkitLineClamp: 3,          
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",          
+      textOverflow: "ellipsis",    
+      wordBreak: "break-word",     
+      width: "60%"                
+    }}
+  >
+    {p.descricao}
+  </div>
+)}
+
+{/* 💰 NOVO BLOCO DE PREÇO ADICIONADO AQUI */}
+<div style={{ marginTop: 8 }}>
+  {produtoEmPromocao(p) && (
+    <div
+      style={{
+        textDecoration: "line-through",
+        fontSize: 12,
+        color: "#888",
+        lineHeight: 1
+      }}
+    >
+      {formatarReal(p.preco || 0)}
+    </div>
+  )}
+
+  <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+    <div style={{ fontSize: 11, color: "#888", fontWeight: 500 }}>
+      A partir de
+    </div>
+
+    <div
+      style={{
+        fontSize: 18,
+        fontWeight: 700,
+        color: produtoEmPromocao(p) ? "#ea1d2c" : "#111",
+        lineHeight: 1.1
+      }}
+    >
+      {formatarReal(precoFinalProduto(p))}
+    </div>
+  </div>
+</div>
+
           </div>
         ))}
     </div>
