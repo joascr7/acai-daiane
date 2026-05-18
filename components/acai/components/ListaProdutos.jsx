@@ -134,7 +134,7 @@ export default function ListaProdutos({
                   fontWeight: 700,
                 }}
               >
-                RECOMENDADO
+                NOVIDADE
               </div>
             </div>
 
@@ -408,7 +408,7 @@ export default function ListaProdutos({
           borderRadius: 999
         }}
       >
-                OFERTA
+                RECOMENDADO
               </div>
             </div>
 
@@ -622,7 +622,7 @@ export default function ListaProdutos({
           borderRadius: 999
         }}
       >
-        OFERTA
+        RECOMENDADO
       </div>
     )}
 
@@ -652,7 +652,7 @@ export default function ListaProdutos({
           borderRadius: 999
         }}
       >
-        RECOMENDADO
+        NOVIDADE
       </div>
     )}
   </div>

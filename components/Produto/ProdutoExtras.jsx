@@ -138,7 +138,7 @@ setRecomendado,
   }}
 >
   <div style={{ color: "#111827", fontSize: 13, fontWeight: 600 }}>
-    Recomendado
+    Novidade
   </div>
 
   <div
