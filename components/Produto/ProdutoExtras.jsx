@@ -11,6 +11,9 @@ export default function ProdutoExtras({
   maisVendido,
   setMaisVendido,
 
+  recomendado,
+setRecomendado,
+
   fidelidade,
   setFidelidade,
 
@@ -120,6 +123,50 @@ export default function ProdutoExtras({
           />
         </div>
       </div>
+
+      {/* RECOMENDADO */}
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    background: "#ffffff",
+    border: "1px solid #e5e7eb"
+  }}
+>
+  <div style={{ color: "#111827", fontSize: 13, fontWeight: 600 }}>
+    Recomendado
+  </div>
+
+  <div
+    onClick={() => setRecomendado(!recomendado)}
+    style={{
+      width: 46,
+      height: 26,
+      borderRadius: 999,
+      background: recomendado ? "#2563eb" : "#d1d5db",
+      position: "relative",
+      cursor: "pointer",
+      transition: "all 0.2s ease"
+    }}
+  >
+    <div
+      style={{
+        width: 20,
+        height: 20,
+        borderRadius: "50%",
+        background: "#fff",
+        position: "absolute",
+        top: 3,
+        left: recomendado ? 23 : 3,
+        transition: "all 0.2s ease"
+      }}
+    />
+  </div>
+</div>
 
       <div
   style={{

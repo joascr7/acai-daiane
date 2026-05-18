@@ -4620,7 +4620,7 @@ return (
         Início
       </div>
 
-      <div
+     {/* <div
         onClick={() => { setAba("busca"); setStep(10); }}
         style={{
           display: "flex",
@@ -4633,7 +4633,7 @@ return (
       >
         <Search size={18} />
         Buscar
-      </div>
+      </div>*/}
 
       <div
         onClick={() => { setAba("pedidos"); setStep(5); }}
@@ -6088,7 +6088,7 @@ return (
       {/* CONTEÚDO BRANCO */}
       <div
         style={{
-          background: "#fff",
+          
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
           padding: "24px 12px 0",
@@ -12237,7 +12237,7 @@ const corStatus =
 )}
 
 
-{aba === "busca" && step === 10 && (
+{/*{aba === "busca" && step === 10 && (
   <div style={{
     maxWidth: larguraApp,
     margin: "0 auto",
@@ -12286,7 +12286,7 @@ const corStatus =
 
       return (
         <>
-          {/* HEADER */}
+           
           <div style={{
             padding: "calc(env(safe-area-inset-top) + 14px) 16px 14px",
             background: "#fff",
@@ -12387,7 +12387,7 @@ const corStatus =
               </div>
             </div>
 
-            {/* FILTROS */}
+            
             <div style={{
               display: "flex",
               gap: 8,
@@ -12425,10 +12425,10 @@ const corStatus =
             </div>
           </div>
 
-          {/* CONTEÚDO */}
+          
           <div style={{ padding: "12px 16px 100px" }}>
 
-            {/* HISTÓRICO */}
+            
             {!busca && historicoBusca.length > 0 && (
               <div style={{
                 background: "#fff",
@@ -12488,9 +12488,9 @@ const corStatus =
               </div>
             )}
 
-            {/* TINHA SEGUNDA CATEGORIA AQUI */}
+          
 
-            {/* SUGESTÕES */}
+            
             {busca && sugestoes.length > 0 && (
               <div style={{
                 background: "#fff",
@@ -12520,7 +12520,7 @@ const corStatus =
               </div>
             )}
 
-            {/* RESULTADOS */}
+           
             {produtosBusca.map(p => (
   <div
     key={p.id}
@@ -12580,7 +12580,7 @@ const corStatus =
       position: "relative"
     }}
   >
-    {/* IMAGEM */}
+    
 <div
   style={{
     width: 120,
@@ -12603,7 +12603,7 @@ const corStatus =
     }}
   />
 
-  {/* 🔥 BADGE FIXA REAL */}
+ 
   {(produtoEmPromocao(p) || p.maisVendido) && (
   <div
     style={{
@@ -12617,7 +12617,7 @@ const corStatus =
       zIndex: 2
     }}
   >
-    {/* 🔥 OFERTA */}
+    
     {produtoEmPromocao(p) && (
       <div
         style={{
@@ -12635,7 +12635,7 @@ const corStatus =
       </div>
     )}
 
-    {/* ⭐ MAIS PEDIDO */}
+    
     {p.maisVendido && (
       <div
         style={{
@@ -12660,7 +12660,7 @@ const corStatus =
     
     </div>
 
-    {/* INFO */}
+  
     <div style={{ flex: 1, minWidth: 0 }}>
       <strong
         style={{
@@ -12740,7 +12740,7 @@ const corStatus =
     </div>
   </div>
 ))}
-            {/* VAZIO */}
+            
             {produtosBusca.length === 0 && (
               <div style={{
                 marginTop: 40,
@@ -12760,7 +12760,7 @@ const corStatus =
       );
     })()}
   </div>
-)}
+)}*/}
 
 
 {/* 🔥 NAVBAR FIXA */}
@@ -12811,7 +12811,7 @@ const corStatus =
   </div>
 
   {/* BUSCA */}
-  <div
+ {/* <div
     onClick={() => {
       setAba("busca");
       setStep(10);
@@ -12826,7 +12826,7 @@ const corStatus =
     }}>
       Buscar
     </div>
-  </div>
+  </div>*/}
 
   {/* PEDIDOS */}
   <div

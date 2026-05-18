@@ -26,6 +26,268 @@ export default function ListaProdutos({
         padding: "4px 6px 14px"
       }}
     >
+
+      {/* 🔥 RECOMENDADOS HORIZONTAL */}
+{produtos.some((p) => p.recomendado) && (
+  <div style={{ marginBottom: 24 }}>
+
+    <div
+      style={{
+        fontSize: 22,
+        fontWeight: 900,
+        marginBottom: 14,
+        color: "#111"
+      }}
+    >
+      DESTAQUES
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        gap: 14,
+        overflowX: "auto",
+        paddingBottom: 6,
+        scrollbarWidth: "none"
+      }}
+    >
+      {produtos
+        .filter((p) => p.ativo && p.recomendado)
+        .map((p, i) => (
+          <div
+            key={i}
+            onClick={() => {
+              if (!validarLojaAberta()) return;
+
+              if (categoriaTemExtras(p.categoria)) {
+                setProduto({
+                  ...p,
+                  preco: precoFinalProduto(p)
+                });
+
+                setAba("home");
+                setStep(2);
+                return;
+              }
+
+              if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                setCarrinho((prev) => [
+                  ...prev,
+                  {
+                    produto: p,
+                    quantidade: 1,
+                    extras: [],
+                    total: Number(precoFinalProduto(p) || 0)
+                  }
+                ]);
+
+                setAba("carrinho");
+                setStep(3);
+              }
+            }}
+            style={{
+              minWidth: 260,
+              background: "#fff",
+              borderRadius: 20,
+              padding: 12,
+              border: "1px solid #f0f0f0",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              cursor: "pointer",
+              flexShrink: 0
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: 160,
+                borderRadius: 16,
+                overflow: "hidden",
+                marginBottom: 10
+              }}
+            >
+              <img
+                src={p.imagem || "/acai.png"}
+                alt={p.nome}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover"
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  background: "#5f06d3",
+                  color: "#fff",
+                  padding: "6px 12px",
+                  borderRadius: 999,
+                  fontSize: 11,
+                  fontWeight: 700
+                }}
+              >
+                RECOMENDADO
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 18,
+                marginBottom: 4
+              }}
+            >
+              {p.nome}
+            </div>
+
+            {!!p.descricao && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "#666",
+                  lineHeight: 1.4,
+                  marginBottom: 10
+                }}
+              >
+                {p.descricao}
+              </div>
+            )}
+
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 900,
+                color: "#111"
+              }}
+            >
+              {formatarReal(precoFinalProduto(p))}
+            </div>
+          </div>
+        ))}
+
+        {produtos
+        .filter((p) => p.ativo && p.maisVendido)
+        .map((p, i) => (
+          <div
+            key={i}
+            onClick={() => {
+              if (!validarLojaAberta()) return;
+
+              if (categoriaTemExtras(p.categoria)) {
+                setProduto({
+                  ...p,
+                  preco: precoFinalProduto(p)
+                });
+
+                setAba("home");
+                setStep(2);
+                return;
+              }
+
+              if (categoriaVaiDiretoCarrinho(p.categoria)) {
+                setCarrinho((prev) => [
+                  ...prev,
+                  {
+                    produto: p,
+                    quantidade: 1,
+                    extras: [],
+                    total: Number(precoFinalProduto(p) || 0)
+                  }
+                ]);
+
+                setAba("carrinho");
+                setStep(3);
+              }
+            }}
+            style={{
+              minWidth: 260,
+              background: "#fff",
+              borderRadius: 20,
+              padding: 12,
+              border: "1px solid #f0f0f0",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              cursor: "pointer",
+              flexShrink: 0
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: 160,
+                borderRadius: 16,
+                overflow: "hidden",
+                marginBottom: 10
+              }}
+            >
+              <img
+                src={p.imagem || "/acai.png"}
+                alt={p.nome}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover"
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  background: "rgba(0,0,0,0.7)",
+                  color: "#fff",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: "4px 10px",
+                  borderRadius: 999
+                  
+                }}
+              >
+                MAIS PEDIDO
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 18,
+                marginBottom: 4
+              }}
+            >
+              {p.nome}
+            </div>
+
+            {!!p.descricao && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "#666",
+                  lineHeight: 1.4,
+                  marginBottom: 10
+                }}
+              >
+                {p.descricao}
+              </div>
+            )}
+
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 900,
+                color: "#111"
+              }}
+            >
+              {formatarReal(precoFinalProduto(p))}
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+)}
       {[...categorias]
         .sort((a, b) => {
           const ia = ORDEM_CATEGORIAS.indexOf(normalizar(a.nome));
@@ -141,53 +403,69 @@ export default function ListaProdutos({
 
 
 
-                        {/* 🔥 BADGES */}
-  {(produtoEmPromocao(p) || p.maisVendido) && (
-    <div
-      style={{
-        position: "absolute",
-        top: 8,
-        left: 8,
-        display: "flex",
-        flexDirection: "column",
-        gap: 4,
-        zIndex: 2
-      }}
-    >
-      {produtoEmPromocao(p) && (
-        <div
-          style={{
-            background: "#ea1d2c",
-            color: "#fff",
-            fontSize: 11,
-            fontWeight: 800,
-            padding: "4px 10px",
-            borderRadius: 999
-          }}
-        >
-          Imperdível
-        </div>
-      )}
+  {/* 🔥 BADGES */}
+{(produtoEmPromocao(p) || p.maisVendido || p.recomendado) && (
+  <div
+    style={{
+      position: "absolute",
+      top: 8,
+      left: 8,
+      display: "flex",
+      flexDirection: "column",
+      gap: 4,
+      zIndex: 2
+    }}
+  >
+    {produtoEmPromocao(p) && (
+      <div
+        style={{
+          background: "#ea1d2c",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 800,
+          padding: "4px 10px",
+          borderRadius: 999
+        }}
+      >
+        OFERTA
+      </div>
+    )}
 
-      {p.maisVendido && (
-        <div
-          style={{
-            background: "rgba(0,0,0,0.6)",
-            color: "#fff",
-            fontSize: 11,
-            fontWeight: 700,
-            padding: "4px 10px",
-            borderRadius: 999
-          }}
-        >
-          Mais pedido
-        </div>
-      )}
-    </div>
-  )}
-</div>
+    {p.maisVendido && (
+      <div
+        style={{
+          background: "rgba(0,0,0,0.7)",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 700,
+          padding: "4px 10px",
+          borderRadius: 999
+        }}
+      >
+        MAIS PEDIDO
+      </div>
+    )}
 
-                      {/* 📦 CONTEÚDO */}
+    {p.recomendado && (
+      <div
+        style={{
+          background: "#5f06d3",
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 700,
+          padding: "4px 10px",
+          borderRadius: 999
+        }}
+      >
+        RECOMENDADO
+      </div>
+    )}
+  </div>
+)}
+  </div>
+
+
+   {/* 📦 CONTEÚDO */}
 <div
   style={{
     flex: 1,

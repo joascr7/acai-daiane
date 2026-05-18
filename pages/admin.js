@@ -590,6 +590,7 @@ useEffect(() => {
   const [novoTamanho, setNovoTamanho] = useState("");
   const [novaImagem, setNovaImagem] = useState(""); // 🔥 corrigido
   const [maisVendido, setMaisVendido] = useState(false);
+  const [recomendado, setRecomendado] = useState(false);
   const [notificacoes, setNotificacoes] = useState([]);
   const [textoNotificacao, setTextoNotificacao] = useState("");
   const [clientes, setClientes] = useState([]);
@@ -2010,6 +2011,7 @@ function abrirEdicao(p) {
   setNovaDescricao(p.descricao || "");
   setNovaImagem(p.imagem || "");
   setMaisVendido(p.maisVendido || false);
+  setRecomendado(p.recomendado || false);
   setCategoria(p.categoria || "");
 
   // 🔥 FIDELIDADE
@@ -2085,6 +2087,7 @@ async function salvarProduto() {
   imagem: novaImagem,
   ativo: true,
   maisVendido,
+  recomendado,
   categoria,
   extras: extrasFormatados,
 
@@ -2135,6 +2138,7 @@ async function salvarProduto() {
     setNovaDescricao("");
     setNovaImagem("");
     setMaisVendido(false);
+    setRecomendado(false);
     setCategoria("");
     setExtras([]);
     setNovaCategoria("");
@@ -2747,6 +2751,9 @@ if (loadingAuth) {
     copiarExtrasDeProduto={copiarExtrasDeProduto}
     maisVendido={maisVendido}         // 🔥
     setMaisVendido={setMaisVendido}
+
+    recomendado={recomendado}
+setRecomendado={setRecomendado}
 
      // 🔥 FIDELIDADE
   fidelidade={fidelidade}
