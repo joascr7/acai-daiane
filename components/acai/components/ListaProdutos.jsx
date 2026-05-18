@@ -98,14 +98,15 @@ export default function ListaProdutos({
           >
             <div
               style={{
-                position: "relative",
-                width: "100%",
-                height: 160,
-                borderRadius: 16,
-                overflow: "hidden",
-                marginBottom: 10
-              }}
-            >
+    width: 120,
+    height: 120,
+    minWidth: 120,
+    borderRadius: 14,
+    overflow: "hidden",
+    background: "#f5f5f5",
+    position: "relative"
+  }}
+>
               <img
                 src={p.imagem || "/acai.png"}
                 alt={p.nome}
@@ -126,7 +127,7 @@ export default function ListaProdutos({
                   padding: "6px 12px",
                   borderRadius: 999,
                   fontSize: 11,
-                  fontWeight: 700
+                  fontWeight: 700,
                 }}
               >
                 RECOMENDADO
@@ -214,24 +215,26 @@ export default function ListaProdutos({
             }}
           >
             <div
-              style={{
-                position: "relative",
-                width: "100%",
-                height: 160,
-                borderRadius: 16,
-                overflow: "hidden",
-                marginBottom: 10
-              }}
-            >
+  style={{
+    width: 120,
+    height: 120,
+    minWidth: 120,
+    borderRadius: 14,
+    overflow: "hidden",
+    background: "#f5f5f5",
+    position: "relative"
+  }}
+>
               <img
-                src={p.imagem || "/acai.png"}
-                alt={p.nome}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }}
-              />
+    src={p.imagem || "/acai.png"}
+    alt={p.nome}
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      display: "block"
+    }}
+  />
 
               <div
                 style={{
