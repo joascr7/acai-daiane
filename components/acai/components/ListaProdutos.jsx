@@ -98,36 +98,46 @@ export default function ListaProdutos({
                     style={{
                       position: "relative",
                       background: "#fff",
-                      borderRadius: 24,
-                      padding: 12,
+                      padding: 14,
+                      borderRadius: 18,
                       border: "1px solid #f0f0f0",
                       boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
                       marginBottom: 6,
                       cursor: "pointer"
                     }}
                   >
-                    <div style={{ display: "flex", gap: 12 }}>
+                    <div
+  style={{
+    display: "flex",
+    flexDirection: "row-reverse",
+    alignItems: "flex-start",
+    gap: 14
+  }}
+>
                       
-                      {/* 🖼️ IMAGEM */}
-                      <div
-                        style={{
-                          width: 160,
-                          height: 160,
-                          borderRadius: 18,
-                          overflow: "hidden",
-                          background: "#f6f6f6",
-                          flexShrink: 0,
-                          position: "relative"
-                        }}
-                      >
-                        <img
-                          src={p.imagem || "/acai.png"}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover"
-                          }}
-                        />
+                      {/* IMAGEM */}
+<div
+  style={{
+    width: 120,
+    height: 120,
+    minWidth: 120,
+    borderRadius: 14,
+    overflow: "hidden",
+    background: "#f5f5f5"
+  }}
+>
+  <img
+    src={p.imagem || "/acai.png"}
+    alt={p.nome}
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      display: "block"
+    }}
+  />
+
+
 
                         {/* 🔥 BADGES */}
                         {(produtoEmPromocao(p) || p.maisVendido) && (
@@ -176,7 +186,15 @@ export default function ListaProdutos({
                       </div>
 
                       {/* 📦 CONTEÚDO */}
-                      <div style={{ flex: 1 }}>
+<div
+  style={{
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    minWidth: 0
+  }}
+>
                         
                         {/* ⭐ AVALIAÇÃO */}
                         {p.mostrarAvaliacao && Number(p.avaliacao || 0) > 0 && (
@@ -187,13 +205,30 @@ export default function ListaProdutos({
                         )}
 
                         {/* 🏷️ NOME */}
-                        <div style={{ fontWeight: 900 }}>
+                        <div
+  style={{
+    fontWeight: 800,
+    fontSize: 18,
+    lineHeight: 1.1,
+    marginBottom: 4
+  }}
+>
                           {p.nome}
                         </div>
 
                         {/* 📄 DESCRIÇÃO */}
                         {!!p.descricao && (
-                          <div style={{ fontSize: 12, color: "#666" }}>
+                          <div
+  style={{
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 1.3,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden"
+  }}
+>
                             {p.descricao}
                           </div>
                         )}
@@ -206,13 +241,13 @@ export default function ListaProdutos({
       display: "inline-flex",
       alignItems: "center",
       gap: 6,
-      background: "#f3f0ff",
+      
       color: "#5b21b6",
       padding: "6px 10px",
       borderRadius: 999,
       fontSize: 12,
-      fontWeight: 700,
-      border: "1px solid #e0d7ff"
+      fontWeight: 700
+      
     }}
   >
     <span>{p.tamanho}</span>
@@ -250,7 +285,7 @@ export default function ListaProdutos({
 
                           <div
                             style={{
-                              fontSize: 22,
+                              fontSize: 18,
                               fontWeight: 900,
                               color: produtoEmPromocao(p)
                                 ? "#ea1d2c"
