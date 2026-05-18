@@ -9,8 +9,14 @@ export default function ProdutoExtras({
   copiarExtrasDeProduto,
   setNovaCategoria,
   maisVendido,
-  setMaisVendido
-}) {
+  setMaisVendido,
+
+  fidelidade,
+  setFidelidade,
+
+  resgate,
+  setResgate
+}){
   return (
     <div style={container}>
       <h3 style={title}>Extras</h3>
@@ -114,6 +120,101 @@ export default function ProdutoExtras({
           />
         </div>
       </div>
+
+      <div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    marginTop: 10
+  }}
+>
+  {/* FIDELIDADE */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 12,
+      borderRadius: 12,
+      background: "#ffffff",
+      border: "1px solid #e5e7eb"
+    }}
+  >
+    <div style={{ color: "#111827", fontSize: 13, fontWeight: 600 }}>
+      Participa do fidelidade
+    </div>
+
+    <div
+      onClick={() => setFidelidade(!fidelidade)}
+      style={{
+        width: 46,
+        height: 26,
+        borderRadius: 999,
+        background: fidelidade ? "#7c3aed" : "#d1d5db",
+        position: "relative",
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      }}
+    >
+      <div
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          background: "#fff",
+          position: "absolute",
+          top: 3,
+          left: fidelidade ? 23 : 3,
+          transition: "all 0.2s ease"
+        }}
+      />
+    </div>
+  </div>
+
+  {/* RESGATE */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: 12,
+      borderRadius: 12,
+      background: "#ffffff",
+      border: "1px solid #e5e7eb"
+    }}
+  >
+    <div style={{ color: "#111827", fontSize: 13, fontWeight: 600 }}>
+      Produto de resgate
+    </div>
+
+    <div
+      onClick={() => setResgate(!resgate)}
+      style={{
+        width: 46,
+        height: 26,
+        borderRadius: 999,
+        background: resgate ? "#16a34a" : "#d1d5db",
+        position: "relative",
+        cursor: "pointer",
+        transition: "all 0.2s ease"
+      }}
+    >
+      <div
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          background: "#fff",
+          position: "absolute",
+          top: 3,
+          left: resgate ? 23 : 3,
+          transition: "all 0.2s ease"
+        }}
+      />
+    </div>
+  </div>
+</div>
 
       {/* LISTA */}
       {extras.map((grupo, i) => (

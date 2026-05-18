@@ -2747,6 +2747,14 @@ if (loadingAuth) {
     copiarExtrasDeProduto={copiarExtrasDeProduto}
     maisVendido={maisVendido}         // 🔥
     setMaisVendido={setMaisVendido}
+
+     // 🔥 FIDELIDADE
+  fidelidade={fidelidade}
+  setFidelidade={setFidelidade}
+
+  // 🔥 RESGATE
+  resgate={resgate}
+  setResgate={setResgate}
   />
 
   <ProdutoImagem
