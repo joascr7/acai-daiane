@@ -116,6 +116,7 @@ export default function ListaProdutos({
 >
                       
                       {/* IMAGEM */}
+{/* IMAGEM */}
 <div
   style={{
     width: 120,
@@ -123,7 +124,8 @@ export default function ListaProdutos({
     minWidth: 120,
     borderRadius: 14,
     overflow: "hidden",
-    background: "#f5f5f5"
+    background: "#f5f5f5",
+    position: "relative"
   }}
 >
   <img
@@ -140,50 +142,50 @@ export default function ListaProdutos({
 
 
                         {/* 🔥 BADGES */}
-                        {(produtoEmPromocao(p) || p.maisVendido) && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: 8,
-                              left: 8,
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 4,
-                              zIndex: 2
-                            }}
-                          >
-                            {produtoEmPromocao(p) && (
-                              <div
-                                style={{
-                                  background: "#ea1d2c",
-                                  color: "#fff",
-                                  fontSize: 11,
-                                  fontWeight: 800,
-                                  padding: "4px 10px",
-                                  borderRadius: 999
-                                }}
-                              >
-                                Imperdível
-                              </div>
-                            )}
+  {(produtoEmPromocao(p) || p.maisVendido) && (
+    <div
+      style={{
+        position: "absolute",
+        top: 8,
+        left: 8,
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+        zIndex: 2
+      }}
+    >
+      {produtoEmPromocao(p) && (
+        <div
+          style={{
+            background: "#ea1d2c",
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 800,
+            padding: "4px 10px",
+            borderRadius: 999
+          }}
+        >
+          Imperdível
+        </div>
+      )}
 
-                            {p.maisVendido && (
-                              <div
-                                style={{
-                                  background: "rgba(0,0,0,0.6)",
-                                  color: "#fff",
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  padding: "4px 10px",
-                                  borderRadius: 999
-                                }}
-                              >
-                                Mais pedido
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
+      {p.maisVendido && (
+        <div
+          style={{
+            background: "rgba(0,0,0,0.6)",
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 700,
+            padding: "4px 10px",
+            borderRadius: 999
+          }}
+        >
+          Mais pedido
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
                       {/* 📦 CONTEÚDO */}
 <div
