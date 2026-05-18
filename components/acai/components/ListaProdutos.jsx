@@ -29,13 +29,13 @@ export default function ListaProdutos({
 
       {/* 🔥 RECOMENDADOS HORIZONTAL */}
 {produtos.some((p) => p.recomendado) && (
-  <div style={{ marginBottom: 24 }}>
+  <div style={{ marginBottom: 10 }}>
 
     <div
       style={{
         fontSize: 22,
-        fontWeight: 900,
-        marginBottom: 14,
+        fontWeight: 700,
+        marginBottom: 10,
         color: "#111"
       }}
     >
@@ -86,7 +86,7 @@ export default function ListaProdutos({
               }
             }}
             style={{
-              minWidth: 260,
+              minWidth: 210,
               background: "#fff",
               borderRadius: 20,
               padding: 12,
@@ -96,10 +96,10 @@ export default function ListaProdutos({
               flexShrink: 0
             }}
           >
-            <div
-              style={{
-    width: 120,
-    height: 120,
+             <div
+  style={{
+    width: 220,
+    height: 220,
     minWidth: 120,
     borderRadius: 14,
     overflow: "hidden",
@@ -107,21 +107,22 @@ export default function ListaProdutos({
     position: "relative"
   }}
 >
-              <img
-                src={p.imagem || "/acai.png"}
-                alt={p.nome}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover"
-                }}
-              />
+               <img
+    src={p.imagem || "/acai.png"}
+    alt={p.nome}
+    style={{
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      display: "block"
+    }}
+  />
 
               <div
                 style={{
                   position: "absolute",
                   top: 10,
-                  left: 10,
+                  left: 5,
                   background: "#5f06d3",
                   color: "#fff",
                   padding: "6px 12px",
@@ -135,32 +136,43 @@ export default function ListaProdutos({
             </div>
 
             <div
-              style={{
-                fontWeight: 800,
-                fontSize: 18,
-                marginBottom: 4
-              }}
-            >
-              {p.nome}
-            </div>
+  style={{
+    fontWeight: 700,
+    fontSize: 15, // 👈 Diminuído de 18 para 16 para encaixar melhor no card menor
+    marginBottom: 4,
+    whiteSpace: "nowrap", // 👈 Garante que o nome do produto fique em apenas uma linha
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  }}
+>
+  {p.nome}
+</div>
 
-            {!!p.descricao && (
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#666",
-                  lineHeight: 1.4,
-                  marginBottom: 10
-                }}
-              >
-                {p.descricao}
-              </div>
-            )}
+{!!p.descricao && (
+  <div
+    style={{
+      fontSize: 12, // 👈 Diminuído de 13 para 12
+      color: "#666",
+      lineHeight: 1.3,
+      marginBottom: 6, // 👈 Aumentado levemente para desgrudar do preço
+      
+      // 🔥 Limitador de 2 linhas com "..." automático:
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      height: "31px" // 👈 Mantém uma altura fixa para todos os cards ficarem do mesmo tamanho
+    }}
+  >
+    {p.descricao}
+  </div>
+)}
+            
 
             <div
               style={{
                 fontSize: 20,
-                fontWeight: 900,
+                fontWeight: 700,
                 color: "#111"
               }}
             >
@@ -204,7 +216,7 @@ export default function ListaProdutos({
               }
             }}
             style={{
-              minWidth: 260,
+              minWidth: 210,
               background: "#fff",
               borderRadius: 20,
               padding: 12,
@@ -216,8 +228,8 @@ export default function ListaProdutos({
           >
             <div
   style={{
-    width: 120,
-    height: 120,
+    width: 220,
+    height: 220,
     minWidth: 120,
     borderRadius: 14,
     overflow: "hidden",
@@ -225,7 +237,7 @@ export default function ListaProdutos({
     position: "relative"
   }}
 >
-              <img
+     <img
     src={p.imagem || "/acai.png"}
     alt={p.nome}
     style={{
@@ -240,7 +252,7 @@ export default function ListaProdutos({
                 style={{
                   position: "absolute",
                   top: 10,
-                  left: 10,
+                  left: 5,
                   background: "rgba(0,0,0,0.7)",
                   color: "#fff",
                   fontSize: 11,
@@ -254,33 +266,43 @@ export default function ListaProdutos({
               </div>
             </div>
 
-            <div
-              style={{
-                fontWeight: 800,
-                fontSize: 18,
-                marginBottom: 4
-              }}
-            >
-              {p.nome}
-            </div>
+             <div
+  style={{
+    fontWeight: 700,
+    fontSize: 15, // 👈 Diminuído de 18 para 16 para encaixar melhor no card menor
+    marginBottom: 4,
+    whiteSpace: "nowrap", // 👈 Garante que o nome do produto fique em apenas uma linha
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  }}
+>
+  {p.nome}
+</div>
 
-            {!!p.descricao && (
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#666",
-                  lineHeight: 1.4,
-                  marginBottom: 10
-                }}
-              >
-                {p.descricao}
-              </div>
-            )}
+{!!p.descricao && (
+  <div
+    style={{
+      fontSize: 12, // 👈 Diminuído de 13 para 12
+      color: "#666",
+      lineHeight: 1.3,
+      marginBottom: 6, // 👈 Aumentado levemente para desgrudar do preço
+      
+      // 🔥 Limitador de 2 linhas com "..." automático:
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      height: "31px" // 👈 Mantém uma altura fixa para todos os cards ficarem do mesmo tamanho
+    }}
+  >
+    {p.descricao}
+  </div>
+)}
 
             <div
               style={{
                 fontSize: 20,
-                fontWeight: 900,
+                fontWeight: 700,
                 color: "#111"
               }}
             >
@@ -312,7 +334,7 @@ export default function ListaProdutos({
               <div
                 style={{
                   fontSize: 18,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   marginBottom: 6,
                   color: "#111"
                 }}
@@ -425,7 +447,7 @@ export default function ListaProdutos({
           background: "#ea1d2c",
           color: "#fff",
           fontSize: 11,
-          fontWeight: 800,
+          fontWeight: 700,
           padding: "4px 10px",
           borderRadius: 999
         }}
@@ -490,7 +512,7 @@ export default function ListaProdutos({
                         {/* 🏷️ NOME */}
                         <div
   style={{
-    fontWeight: 800,
+    fontWeight: 700,
     fontSize: 18,
     lineHeight: 1.1,
     marginBottom: 4
@@ -569,7 +591,7 @@ export default function ListaProdutos({
                           <div
                             style={{
                               fontSize: 18,
-                              fontWeight: 900,
+                              fontWeight: 700,
                               color: produtoEmPromocao(p)
                                 ? "#ea1d2c"
                                 : "#111"
