@@ -63,7 +63,7 @@ export default async function handler(req, res) {
         ) {
           await ref.update({
             status: "preparando",
-            statusPagamento: "pago",
+            statuspagamento: "pago",
             paymentStatus: "approved",
             paymentId: String(data.id),
             pagoEm: Date.now()
