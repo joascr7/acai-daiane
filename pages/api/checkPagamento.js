@@ -30,8 +30,6 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log("CONSULTANDO MP:", paymentId);
-
     const response = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
       {
@@ -43,8 +41,6 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    console.log("MP RESPONSE:", data);
-
     if (!response.ok || !data?.id) {
       return res.status(200).json({
         status: "pending",
@@ -53,63 +49,48 @@ export default async function handler(req, res) {
     }
 
     const aprovado = data.status === "approved";
-    const externalReference = String(data.external_reference || "").trim();
 
-    let pedidoRef = null;
-    let pedidoId = externalReference || null;
+    // 🔥 REGRA ÚNICA: external_reference = ID do pedido no Firestore
+    const pedidoId = String(data.external_reference || "").trim();
 
-    // 🔥 1. PRIORIDADE: external_reference (PIX correto)
-    if (externalReference) {
-      const ref = db.collection("pedidos").doc(externalReference);
-      const snap = await ref.get();
-
-      if (snap.exists) {
-        pedidoRef = ref;
-      }
+    if (!pedidoId) {
+      return res.status(200).json({
+        status: "pending",
+        atualizado: false,
+        erro: "sem_external_reference",
+      });
     }
 
-    // 🔥 2. FALLBACK: paymentId salvo no pedido
-    if (!pedidoRef) {
-      const busca = await db
-        .collection("pedidos")
-        .where("paymentId", "==", String(paymentId))
-        .limit(1)
-        .get();
+    const pedidoRef = db.collection("pedidos").doc(pedidoId);
+    const snap = await pedidoRef.get();
 
-      if (!busca.empty) {
-        pedidoRef = busca.docs[0].ref;
-        pedidoId = busca.docs[0].id;
-      }
+    if (!snap.exists) {
+      return res.status(200).json({
+        status: "pending",
+        atualizado: false,
+        erro: "pedido_nao_existe",
+      });
     }
 
     let atualizado = false;
 
-    // 🔥 3. UPDATE SE PAGAMENTO APROVADO
-    if (aprovado && pedidoRef) {
-      const pedidoSnap = await pedidoRef.get();
+    if (aprovado) {
+      const pedido = snap.data();
 
-      if (pedidoSnap.exists) {
-        const pedido = pedidoSnap.data();
-        const statusAtual = pedido?.status;
+      const jaFinalizado =
+        pedido?.status === "preparando" ||
+        pedido?.status === "entregue";
 
-        const jaFinalizado =
-          statusAtual === "preparando" ||
-          statusAtual === "entregue";
+      if (!jaFinalizado) {
+        await pedidoRef.update({
+          status: "preparando",
+          statusPagamento: "pago",
+          paymentStatus: "approved",
+          paymentId: String(data.id),
+          pagoEm: Date.now(),
+        });
 
-        if (!jaFinalizado) {
-          await pedidoRef.update({
-            status: "preparando",
-            statusPagamento: "pago",
-            paymentStatus: "approved",
-            paymentId: String(data.id),
-            external_reference: externalReference,
-            pagoEm: Date.now(),
-          });
-
-          atualizado = true;
-
-          console.log("PEDIDO ATUALIZADO:", pedidoRef.id);
-        }
+        atualizado = true;
       }
     }
 
@@ -119,12 +100,10 @@ export default async function handler(req, res) {
       detail: data.status_detail,
       approved: aprovado,
       atualizado,
-      externalReference,
       pedidoId,
     });
-  } catch (e) {
-    console.log("ERRO CHECK:", e);
 
+  } catch (e) {
     return res.status(500).json({
       erro: true,
       mensagem: e.message,
