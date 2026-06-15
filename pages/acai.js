@@ -3652,42 +3652,14 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 VALIDAÇÃO DE ENTREGA CORRIGIDA
   if (tipoEntrega === "entrega") {
-
-    const enderecoInvalido =
-      !clienteEndereco ||
-      !clienteNumeroCasa ||
-      !clienteBairro;
-
-    if (enderecoInvalido) {
-      mostrarMensagemPagamento(
-        "Preencha seu endereço completo.",
-        "erro"
-      );
-
-      setAba("perfil");
-      setStep(4);
-      setAbaPerfil("endereco");
-
+    if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+      mostrarMensagemPagamento("Preencha seu endereço completo.", "erro");
       return;
     }
 
-    // 🔥 NOVO BLOQUEIO POR BAIRRO (ESSENCIAL)
-    if (!freteEncontrado) {
-      mostrarMensagemPagamento(
-        "Não entregamos no seu bairro.",
-        "erro"
-      );
-      return;
-    }
-
-    // 🔥 BLOQUEIO REAL (sem KM agora)
-    if (foraDaArea === true) {
-      mostrarMensagemPagamento(
-        "Endereço fora da área de entrega.",
-        "erro"
-      );
+    if (!freteEncontrado || foraDaArea === true) {
+      mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
       return;
     }
   }
@@ -3700,7 +3672,9 @@ async function finalizarPedido() {
   try {
     setLoadingPedido(true);
 
-    const pedidoId = Date.now().toString();
+    // 🔥 IMPORTANTE: usar ID único estável (não só Date.now)
+    const pedidoId = `${Date.now()}-${user.uid?.slice(0, 6) || "user"}`;
+
     const codigo = Math.floor(100000 + Math.random() * 900000);
 
     const taxaEntregaFinal =
@@ -3709,22 +3683,24 @@ async function finalizarPedido() {
     const totalFinalCalc = Number(totalFinal || 0) + taxaEntregaFinal;
 
     const pedidoBase = {
+      pedidoId,
       codigo,
+
       tipoEntrega: tipoEntrega || "entrega",
 
       cliente: {
-        nome: clienteNome || "Cliente",
-        telefone: clienteTelefone || "",
+        nome: clienteNome,
+        telefone: clienteTelefone,
         endereco: clienteEndereco || "",
         numero: clienteNumeroCasa || "",
         bairro: clienteBairro || "",
-        uid: user?.uid || null
+        uid: user.uid
       },
 
       itens: itensValidos.map(item => ({
         produtoId: item.produto.id,
         nome: item.produto.nome,
-        imagem: item?.produto?.imagem || item?.imagem || "/acai.png",
+        imagem: item?.produto?.imagem || "/acai.png",
         quantidade: Number(item.quantidade),
         total: item.gratis ? 0 : Number(item.total || 0),
         gratis: item.gratis === true,
@@ -3740,15 +3716,17 @@ async function finalizarPedido() {
       subtotal: subtotalCalc,
       taxaEntrega: taxaEntregaFinal,
       total: totalFinalCalc,
+
       formaPagamento: formaPagamento.toLowerCase(),
       data: Date.now(),
+
       observacao: String(observacaoPedido || "").trim(),
 
       cupom: cupomAplicado
         ? {
             id: cupomAplicado.id,
-            codigo: cupomAplicado.codigo || "",
-            tipo: cupomAplicado.tipo || "",
+            codigo: cupomAplicado.codigo,
+            tipo: cupomAplicado.tipo,
             desconto: Number(descontoCalculado || 0)
           }
         : null
@@ -3769,7 +3747,7 @@ async function finalizarPedido() {
 
       const data = await res.json();
 
-      if (!data.url) {
+      if (!data?.url) {
         mostrarMensagemPagamento("Erro no pagamento.", "erro");
         setLoadingPedido(false);
         return;
@@ -3786,17 +3764,24 @@ async function finalizarPedido() {
       return;
     }
 
-    // 🟢 PIX
+    // 🟢 PIX (CORREÇÃO IMPORTANTE)
     if (formaPagamento.toLowerCase() === "pix") {
       await setDoc(doc(db, "pedidos", pedidoId), {
         ...pedidoBase,
-        status: "aguardando_pagamento_pix"
-      });
 
-      mostrarMensagemPagamento("Pedido criado. Gere o Pix.", "sucesso");
+        status: "aguardando_pagamento_pix",
+
+        // 🔥 ESSENCIAL pro MercadoPago achar depois
+        paymentId: null
+      });
 
       setPedidoPixAberto({ ...pedidoBase, id: pedidoId });
       setMostrarPagamento(true);
+
+      mostrarMensagemPagamento(
+        "Pedido criado. Gere o Pix para concluir o pagamento.",
+        "sucesso"
+      );
 
       return;
     }
@@ -3806,8 +3791,6 @@ async function finalizarPedido() {
       ...pedidoBase,
       status: "preparando"
     });
-
-    mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
 
     await enviarWhatsApp({
       ...pedidoBase,
@@ -3819,6 +3802,8 @@ async function finalizarPedido() {
     setFormaPagamento(null);
     setMostrarPagamento(false);
     setPedidoPixAberto(null);
+
+    mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
 
   } catch (e) {
     console.log(e);
