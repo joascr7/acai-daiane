@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-
 import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 import { sendPasswordResetEmail } from "firebase/auth";
-
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
