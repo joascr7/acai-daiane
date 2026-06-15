@@ -2254,7 +2254,6 @@ const gerarPix = async () => {
       return;
     }
 
-    // 🔥 🔥 🔥 BLOQUEIO POR BAIRRO (ESSENCIAL)
     if (!freteEncontrado) {
       mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
       return;
@@ -2264,7 +2263,12 @@ const gerarPix = async () => {
     if (!cupomValidoAgora) return;
 
     const valorPix = Number(totalFinalComFrete) / 100;
+
+    // 🔥 ID INTERNO (NÃO MOSTRAR PRA USUÁRIO)
     const pedidoId = String(Date.now());
+
+    // 🔥 CÓDIGO VISÍVEL DO PEDIDO (USUÁRIO VÊ ISSO)
+    const codigoPedido = String(Date.now()).slice(-6);
 
     setQrBase64(null);
     setQrCode(null);
@@ -2298,11 +2302,15 @@ const gerarPix = async () => {
     setMostrarPagamento(true);
 
     localStorage.setItem("paymentId", String(data.payment_id));
+    localStorage.setItem("pedidoId", pedidoId);
 
     const carrinhoAtual = JSON.parse(JSON.stringify(carrinho));
 
     await setDoc(doc(db, "pedidos", pedidoId), {
       __origem: "PIX_FINAL_BAIRRO",
+
+      // 🔥 CÓDIGO VISÍVEL (AGORA NÃO VAI MAIS "#---")
+      codigo: codigoPedido,
 
       tipoEntrega,
       tipo: tipoEntrega,
@@ -2363,22 +2371,22 @@ const gerarPix = async () => {
       status: "aguardando_pagamento",
 
       entrega:
-      tipoEntrega === "retirada"
-       ? {
-        tipo: "retirada",
-        status: "retirada",
-        aceito: false
-      }
-    : {
-        tipo: "entrega",
-        aceito: false,
-        status: "aguardando",
-        entregadorId: null,
-        localizacao: null,
-        horaSaiu: null,
-        horaChegou: null,
-        horaEntregue: null
-      },
+        tipoEntrega === "retirada"
+          ? {
+              tipo: "retirada",
+              status: "retirada",
+              aceito: false
+            }
+          : {
+              tipo: "entrega",
+              aceito: false,
+              status: "aguardando",
+              entregadorId: null,
+              localizacao: null,
+              horaSaiu: null,
+              horaChegou: null,
+              horaEntregue: null
+            },
 
       cupom: cupomAplicado
         ? {
@@ -2389,16 +2397,15 @@ const gerarPix = async () => {
           }
         : null,
 
-      paymentId: String(data.id),
+      paymentId: String(data.payment_id),
       qrCode: data.qr_code || "",
       qrBase64: data.qr_code_base64 || "",
       data: Date.now()
     });
 
-    localStorage.setItem("pedidoId", pedidoId);
-
     setPedidoAtual({
       id: pedidoId,
+      codigo: codigoPedido,
       ativo: true
     });
 
@@ -2412,7 +2419,6 @@ const gerarPix = async () => {
     mostrarMensagemPagamento("Ocorreu um erro ao gerar o Pix. Tente novamente.", "erro");
   }
 };
-
 
 
 
