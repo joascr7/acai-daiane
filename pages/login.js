@@ -112,7 +112,7 @@ useEffect(() => {
   return () => clearTimeout(timer);
 }, [erro]);
 
-// 🔥 FORMATAR TELEFONE (SUBSTITUI CPF)
+// 🔥 FORMATAR TELEFONE (----SUBSTITUI CPF)
 function formatarTelefone(valor) {
   let v = valor.replace(/\D/g, "").slice(0, 11);
 
