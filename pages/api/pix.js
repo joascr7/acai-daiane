@@ -13,15 +13,11 @@ export default async function handler(req, res) {
     const { total, pedidoId, nome, email } = req.body;
 
     if (!total || Number(total) <= 0) {
-      return res.status(400).json({
-        erro: "Valor inválido"
-      });
+      return res.status(400).json({ erro: "Valor inválido" });
     }
 
     if (!pedidoId) {
-      return res.status(400).json({
-        erro: "PedidoId obrigatório"
-      });
+      return res.status(400).json({ erro: "PedidoId obrigatório" });
     }
 
     const payment = new Payment(client);
@@ -39,7 +35,9 @@ export default async function handler(req, res) {
       }
     });
 
-    const qrData = result?.point_of_interaction?.transaction_data;
+    const qrData =
+      result?.point_of_interaction?.transaction_data ||
+      result?.transaction_details;
 
     if (!qrData) {
       return res.status(500).json({
@@ -51,8 +49,12 @@ export default async function handler(req, res) {
       payment_id: result.id,
       status: result.status,
       qr_code: qrData.qr_code,
-      qr_code_base64: qrData.qr_code_base64
+      qr_code_base64: qrData.qr_code_base64,
+
+      // 🔥 ESSENCIAL
+      external_reference: String(pedidoId)
     });
+
   } catch (e) {
     console.log("ERRO PIX COMPLETO:", e);
 
