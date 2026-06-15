@@ -2429,7 +2429,7 @@ const gerarPix = async () => {
           }
         : null,
 
-      paymentId: String(data.payment_id),
+      paymentId: String(data.id),
       qrCode: data.qr_code || "",
       qrBase64: data.qr_code_base64 || "",
       data: Date.now()
