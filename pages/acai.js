@@ -173,9 +173,6 @@ plusIcon["::after"] = {
 };
 
 
-
-
-
 const badgeOferta = {
   background: "#ea1d2c",
   color: "#fff",
@@ -211,9 +208,6 @@ const precoNormal = {
   color: "#111",
   fontWeight: 900
 };
-
-
-
 
 const tab = (active) => ({
   flex: 1,
@@ -265,8 +259,6 @@ const feedbacks = [
   "Demorou",
   "Pouco recheio"
 ];
-
-
 
 const label = {
   fontSize: 12,
@@ -363,8 +355,6 @@ const backBtn = {
   justifyContent: "center",
   boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
 };
-
-
 
 
 const ORDEM_CATEGORIAS = [
