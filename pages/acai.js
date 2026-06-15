@@ -1,12 +1,7 @@
-
-
 // 🔥 REACT
 import { useState, useEffect, useRef } from "react";
-
-
 // 🔥 NEXT
 import { useRouter } from "next/router";
-
 // 🔥 LAYOUT
 import Layout from "../components/layout";
 
@@ -20,10 +15,7 @@ import Sidebar from "../components/Sidebar";
 
 
 import CardProduto from "../components/CardProduto";
-
 import { updatePassword } from "firebase/auth";
-
-
 
 // 🔥 FIRESTORE
 import {
@@ -100,18 +92,9 @@ import {
   
 } from "lucide-react";
 
-
-
-
-
-
-
 import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
-
-
-
 
 const LOJA = {
   
