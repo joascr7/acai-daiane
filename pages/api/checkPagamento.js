@@ -58,7 +58,7 @@ export default async function handler(req, res) {
     let pedidoRef = null;
     let pedidoId = externalReference || null;
 
-    // 🔥 ÚNICA FONTE DE VERDADE: external_reference
+    // 🔥 1. PRIORIDADE: external_reference (PIX correto)
     if (externalReference) {
       const ref = db.collection("pedidos").doc(externalReference);
       const snap = await ref.get();
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // 🔥 FALLBACK ÚNICO (caso legacy)
+    // 🔥 2. FALLBACK: paymentId salvo no pedido
     if (!pedidoRef) {
       const busca = await db
         .collection("pedidos")
@@ -84,29 +84,32 @@ export default async function handler(req, res) {
 
     let atualizado = false;
 
-    // 🔥 UPDATE CENTRALIZADO
+    // 🔥 3. UPDATE SE PAGAMENTO APROVADO
     if (aprovado && pedidoRef) {
       const pedidoSnap = await pedidoRef.get();
-      const pedido = pedidoSnap.data();
 
-      const statusAtual = pedido?.status;
+      if (pedidoSnap.exists) {
+        const pedido = pedidoSnap.data();
+        const statusAtual = pedido?.status;
 
-      const jaFinalizado =
-        statusAtual === "preparando" ||
-        statusAtual === "entregue";
+        const jaFinalizado =
+          statusAtual === "preparando" ||
+          statusAtual === "entregue";
 
-      if (!jaFinalizado) {
-        await pedidoRef.update({
-          status: "preparando",
-          statusPagamento: "pago",
-          paymentStatus: "approved",
-          paymentId: String(data.id),
-          pagoEm: Date.now(),
-        });
+        if (!jaFinalizado) {
+          await pedidoRef.update({
+            status: "preparando",
+            statusPagamento: "pago",
+            paymentStatus: "approved",
+            paymentId: String(data.id),
+            external_reference: externalReference,
+            pagoEm: Date.now(),
+          });
 
-        atualizado = true;
+          atualizado = true;
 
-        console.log("PEDIDO ATUALIZADO:", pedidoRef.id);
+          console.log("PEDIDO ATUALIZADO:", pedidoRef.id);
+        }
       }
     }
 
@@ -116,7 +119,7 @@ export default async function handler(req, res) {
       detail: data.status_detail,
       approved: aprovado,
       atualizado,
-      externalReference: externalReference || null,
+      externalReference,
       pedidoId,
     });
   } catch (e) {
