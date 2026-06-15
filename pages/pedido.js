@@ -10,19 +10,45 @@ export default function Pedido() {
   const [pedido, setPedido] =
     useState(null);
 
+  const [erro, setErro] =
+    useState("");
+
+  const [pedidoId, setPedidoId] =
+    useState("");
+
   useEffect(() => {
 
-    const id =
-      localStorage.getItem(
-        "pedidoAtual"
-      );
+    const queryId =
+      typeof window !== "undefined"
+        ? new URLSearchParams(
+            window.location.search
+          ).get("id")
+        : null;
 
-    console.log(
-      "ID LOCAL:",
+    const localId =
+      typeof window !== "undefined"
+        ? localStorage.getItem(
+            "pedidoAtual"
+          )
+        : null;
+
+    const id =
+      queryId ||
+      localId;
+
+    setPedidoId(id || "");
+
+    if (!id) {
+      setErro(
+        "Pedido não encontrado"
+      );
+      return;
+    }
+
+    localStorage.setItem(
+      "pedidoAtual",
       id
     );
-
-    if (!id) return;
 
     const ref =
       doc(
@@ -37,24 +63,26 @@ export default function Pedido() {
         (snap) => {
 
           if (!snap.exists()) {
-            console.log(
-              "PEDIDO NÃO EXISTE"
+
+            setErro(
+              "Pedido não existe"
             );
+
             return;
           }
 
-          const dados = {
+          setPedido({
             id: snap.id,
             ...snap.data()
-          };
+          });
 
-          console.log(
-            "PEDIDO FIRE:",
-            dados
-          );
+          setErro("");
 
-          setPedido(
-            dados
+        },
+        (e) => {
+
+          setErro(
+            e.message
           );
 
         }
@@ -65,11 +93,38 @@ export default function Pedido() {
 
   }, []);
 
+  if (erro) {
+    return (
+      <div
+        style={{
+          padding: 20,
+          color: "#fff"
+        }}
+      >
+
+        <h2>
+          Erro
+        </h2>
+
+        <p>
+          {erro}
+        </p>
+
+        <p>
+          ID:
+          <br />
+          {pedidoId}
+        </p>
+
+      </div>
+    );
+  }
+
   if (!pedido) {
     return (
       <div
         style={{
-          padding: 30,
+          padding: 20,
           color: "#fff"
         }}
       >
@@ -83,6 +138,8 @@ export default function Pedido() {
 <div
 style={{
 padding:20,
+background:"#000",
+minHeight:"100vh",
 color:"#fff"
 }}
 >
@@ -91,64 +148,67 @@ color:"#fff"
 style={{
 background:"#111",
 padding:20,
-borderRadius:16,
-marginBottom:20
+borderRadius:20
 }}
 >
 
-<h2>
-Pedido
-</h2>
+<h1>
+📦 Pedido
+</h1>
 
 <p>
-ID:
+ID
 <br/>
+<strong>
 {pedido.id}
+</strong>
 </p>
 
 <p>
-Status:
+Status
 <br/>
+<strong>
 {pedido.status}
+</strong>
 </p>
 
 <p>
-Pagamento:
+Pagamento
 <br/>
+<strong>
 {
 pedido.statusPagamento ||
 pedido.paymentStatus ||
-"sem"
+"aguardando"
 }
+</strong>
 </p>
 
 <p>
-Total:
+Total
 <br/>
-R$ {
+<strong>
+R$
+{
 Number(
-pedido.total||0
+pedido.total || 0
 ).toFixed(2)
 }
+</strong>
 </p>
 
 </div>
 
-{
-pedido.status==="preparando" &&
 <div
 style={{
-background:"#00a83a",
-padding:16,
-borderRadius:12
+marginTop:20
 }}
 >
-Pagamento confirmado
-</div>
-}
 
 {
-pedido.status==="aguardando_pagamento" &&
+pedido.status ===
+"aguardando_pagamento" && (
+
 <div
 style={{
 background:"#ff9800",
@@ -156,9 +216,64 @@ padding:16,
 borderRadius:12
 }}
 >
-Aguardando pagamento
+⏳ Aguardando pagamento
 </div>
+
+)
 }
+
+{
+pedido.status ===
+"preparando" && (
+
+<div
+style={{
+background:"#00a83a",
+padding:16,
+borderRadius:12
+}}
+>
+✅ Pagamento confirmado
+</div>
+
+)
+}
+
+{
+pedido.status ===
+"saiu" && (
+
+<div
+style={{
+background:"#2196f3",
+padding:16,
+borderRadius:12
+}}
+>
+🚚 Pedido saiu
+</div>
+
+)
+}
+
+{
+pedido.status ===
+"entregue" && (
+
+<div
+style={{
+background:"#00c853",
+padding:16,
+borderRadius:12
+}}
+>
+🎉 Entregue
+</div>
+
+)
+}
+
+</div>
 
 </div>
 
