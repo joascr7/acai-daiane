@@ -32,173 +32,73 @@ export default async function handler(req, res) {
       }
     );
 
-    if (!response.ok) {
-      console.log(
-        "❌ ERRO MP:",
-        response.status
-      );
-
-      return res.status(200).json({
-        status: "pending",
-        approved: false
-      });
-    }
-
     const data = await response.json();
 
-    console.log(
-      "STATUS:",
-      data.status
-    );
+    console.log("STATUS:", data.status);
+    console.log("EXTERNAL:", data.external_reference);
 
-    console.log(
-      "PAYMENT:",
-      data.id
-    );
-
-    if (
-      !data?.id ||
-      String(data.id) !==
-        String(paymentId)
-    ) {
+    if (!data.id) {
       return res.status(200).json({
-        status: "pending",
-        approved: false
+        status: "pending"
       });
     }
 
-    const pedidoId =
-      data.external_reference;
-
-    // 🔥 ATUALIZA FIRESTORE
+    // 🔥 ATUALIZA FIREBASE AUTOMÁTICO
     if (
       data.status === "approved" &&
-      pedidoId
+      data.external_reference
     ) {
-      try {
+      const ref = db
+        .collection("pedidos")
+        .doc(String(data.external_reference));
 
-        const pedidoRef =
-          db
-            .collection("pedidos")
-            .doc(
-              String(
-                pedidoId
-              )
-            );
+      const snap = await ref.get();
 
-        const pedido =
-          await pedidoRef.get();
+      if (snap.exists) {
+        const pedido = snap.data();
 
         if (
-          pedido.exists
+          pedido.status !== "preparando" &&
+          pedido.status !== "entregue"
         ) {
+          await ref.update({
+            status: "preparando",
+            statusPagamento: "pago",
+            paymentStatus: "approved",
+            paymentId: String(data.id),
+            pagoEm: Date.now()
+          });
 
-          const atual =
-            pedido.data();
-
-          if (
-            atual.status !==
-            "preparando"
-          ) {
-
-            await pedidoRef.update({
-
-              status:
-                "preparando",
-
-              statusPagamento:
-                "pago",
-
-              paymentStatus:
-                "approved",
-
-              paymentId:
-                String(
-                  data.id
-                ),
-
-              formaPagamento:
-                atual
-                  ?.formaPagamento ||
-                data
-                  ?.payment_method_id,
-
-              pago: true,
-
-              pagoEm:
-                Date.now(),
-
-              atualizadoEm:
-                Date.now()
-            });
-
-            console.log(
-              "✅ PEDIDO LIBERADO"
-            );
-          }
+          console.log(
+            "PEDIDO ATUALIZADO:",
+            data.external_reference
+          );
         }
-
-      } catch (err) {
-
+      } else {
         console.log(
-          "ERRO FIRESTORE:",
-          err
+          "PEDIDO NÃO EXISTE:",
+          data.external_reference
         );
       }
     }
 
-    return res
-      .status(200)
-      .json({
-
-        id:
-          data.id,
-
-        status:
-          data.status,
-
-        paymentStatus:
-          data.status,
-
-        paymentMethod:
-          data.payment_method_id,
-
-        externalReference:
-          pedidoId,
-
-        approved:
-          data.status ===
-          "approved",
-
-        paid:
-          data.status ===
-          "approved",
-
-        detail:
-          data.status_detail ||
-
-          null
-      });
+    return res.status(200).json({
+      id: data.id,
+      status: data.status,
+      paymentStatus: data.status,
+      externalReference:
+        data.external_reference,
+      approved:
+        data.status === "approved",
+      paid:
+        data.status === "approved"
+    });
 
   } catch (e) {
+    console.log(e);
 
-    console.log(
-      "ERRO CHECK:",
-      e
-    );
-
-    return res
-      .status(200)
-      .json({
-
-        status:
-          "pending",
-
-        approved:
-          false,
-
-        erro:
-          true
-      });
+    return res.status(200).json({
+      status: "pending"
+    });
   }
 }
