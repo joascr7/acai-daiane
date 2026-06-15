@@ -1199,9 +1199,6 @@ useEffect(() => {
   }, 800);
 }, []);
 
-
-
-
 function BannerSlideImage({ src, isMobile }) {
   return (
     <img
@@ -1372,7 +1369,6 @@ useEffect(() => {
     setCarrinho([]);
   }
 }, [user]);
-
 
 
 useEffect(() => {
@@ -1704,8 +1700,6 @@ useEffect(() => {
 }, [pedidoAtual]);
  
 
-
-
 if (loadingInicial) {
   return (
     <div
@@ -1847,9 +1841,6 @@ if (!authReady) {
   }
 }
 
-
-
-
 function adicionarAcaiGratis() {
   const acaiBase = produtos.find(
     (p) => p.resgate === true
@@ -1924,8 +1915,6 @@ const notificacoesOrdenadas = [...notificacoes].sort(
 );
 
 const grupos = agruparNotificacoes(notificacoesOrdenadas);
-
-
 
 
 // notificar marca lida
@@ -2006,8 +1995,6 @@ const gerarNovoPixDoPedido = async (pedido) => {
     mostrarMensagemPagamento("Erro ao gerar novo Pix. Tente novamente.", "erro");
   }
 };
-
-
 
 // PROMOCAO 
 const produtoEmPromocao = (p) => {
