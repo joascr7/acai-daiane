@@ -2304,7 +2304,7 @@ const gerarPix = async () => {
     if (!cupomValidoAgora) return;
 
     const valorPix = Number(totalFinalComFrete) / 100;
-    const pedidoId = Date.now().toString();
+    const pedidoId = String(Date.now());
 
     setQrBase64(null);
     setQrCode(null);
