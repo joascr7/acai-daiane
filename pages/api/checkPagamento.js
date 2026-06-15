@@ -1,9 +1,10 @@
 export default async function handler(req, res) {
-
   const { paymentId } = req.query;
 
   if (!paymentId) {
-    return res.status(400).json({ erro: "Sem paymentId" });
+    return res.status(400).json({
+      erro: "Sem paymentId"
+    });
   }
 
   try {
@@ -11,18 +12,41 @@ export default async function handler(req, res) {
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-        },
+          Authorization:
+            `Bearer ${process.env.MP_ACCESS_TOKEN_CHECKOUT}`
+        }
       }
     );
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.log(
+        "ERRO MP:",
+        response.status
+      );
 
-    console.log("MP STATUS:", data.status);
-    console.log("MP ID:", data.id);
+      return res.status(200).json({
+        status: "pending"
+      });
+    }
 
-    // 🔥 segurança total
-    if (!data.id || String(data.id) !== String(paymentId)) {
+    const data =
+      await response.json();
+
+    console.log(
+      "MP STATUS:",
+      data.status
+    );
+
+    console.log(
+      "MP PAYMENT:",
+      data.id
+    );
+
+    if (
+      !data?.id ||
+      String(data.id) !==
+        String(paymentId)
+    ) {
       return res.status(200).json({
         status: "pending",
         id: null
@@ -30,12 +54,50 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({
-      status: data.status || "pending",
-      id: data.id
+
+      id:
+        data.id,
+
+      status:
+        data.status ||
+        "pending",
+
+      paymentStatus:
+        data.status,
+
+      paymentMethod:
+        data.payment_method_id,
+
+      externalReference:
+        data.external_reference,
+
+      approved:
+        data.status ===
+        "approved",
+
+      paid:
+        data.status ===
+        "approved",
+
+      detail:
+        data.status_detail ||
+        null
     });
 
   } catch (e) {
-    console.log("ERRO CHECK:", e);
-    return res.status(500).json({ erro: "Erro ao verificar pagamento" });
+
+    console.log(
+      "ERRO CHECK:",
+      e
+    );
+
+    return res.status(200).json({
+
+      status:
+        "pending",
+
+      erro:
+        true
+    });
   }
 }

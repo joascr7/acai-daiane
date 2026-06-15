@@ -1,7 +1,8 @@
 // pages/api/webhook.js
 
-// 🔥 Garante runtime Node (importante pro process.env)
-export const config = { runtime: "nodejs" };
+export const config = {
+  runtime: "nodejs"
+};
 
 import { dbAdmin } from "../../services/firebaseAdmin";
 
@@ -9,14 +10,12 @@ export default async function handler(req, res) {
   try {
     console.log("🔥 WEBHOOK RECEBIDO");
 
-    // aceita GET (teste) e POST (real)
     if (req.method !== "POST") {
       return res.status(200).json({ ok: true });
     }
 
-    // 🔎 Segurança: se Firebase não subiu, não tenta usar
     if (!dbAdmin) {
-      console.log("❌ dbAdmin NÃO inicializado (ENV não chegou)");
+      console.log("❌ Firebase Admin indisponível");
       return res.status(200).json({ ok: false });
     }
 
@@ -30,13 +29,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // 🔥 consulta Mercado Pago
     const response = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
-        },
+          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
+        }
       }
     );
 
@@ -46,54 +44,99 @@ export default async function handler(req, res) {
     console.log("DETAIL:", pagamento.status_detail);
     console.log("METHOD:", pagamento.payment_method_id);
 
-    // 🔥 só continua se for PIX pago de verdade
-    if (
-      pagamento.status !== "approved" ||
-      pagamento.status_detail !== "accredited" ||
-      pagamento.payment_method_id !== "pix"
-    ) {
-      console.log("⏳ IGNORADO (não pago ainda)");
-      return res.status(200).json({ ok: true });
+    // 🔥 APENAS PAGAMENTO APROVADO
+    if (pagamento.status !== "approved") {
+      console.log("⏳ Ainda não aprovado");
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
-    const pedidoId = pagamento.external_reference;
+    const pedidoId =
+      pagamento.external_reference;
 
     if (!pedidoId) {
       console.log("❌ Sem external_reference");
-      return res.status(200).json({ ok: true });
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
-    const ref = dbAdmin.collection("pedidos").doc(String(pedidoId));
+    const ref =
+      dbAdmin
+        .collection("pedidos")
+        .doc(String(pedidoId));
 
-    const snap = await ref.get();
+    const snap =
+      await ref.get();
 
     if (!snap.exists) {
       console.log("❌ Pedido não encontrado");
-      return res.status(200).json({ ok: true });
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
-    const pedido = snap.data();
+    const pedido =
+      snap.data();
 
-    // 🔁 evita duplicar
-    if (pedido.statusPagamento === "pago") {
-      console.log("⚠️ Já estava pago");
-      return res.status(200).json({ ok: true });
+    // evita duplicação
+    if (
+      pedido?.statusPagamento === "pago" ||
+      pedido?.status === "preparando" ||
+      pedido?.status === "entregue"
+    ) {
+      console.log("⚠️ Pedido já processado");
+
+      return res.status(200).json({
+        ok: true
+      });
     }
+
+    const novoStatus =
+      pedido?.tipoEntrega === "retirada"
+        ? "preparando"
+        : "preparando";
 
     await ref.update({
       statusPagamento: "pago",
-      status: "preparando",
+
+      status: novoStatus,
+
       paymentId: String(paymentId),
-      dataPagamento: new Date().toISOString(),
+
+      formaPagamento:
+        pagamento.payment_method_id ||
+        pedido?.formaPagamento,
+
+      dataPagamento:
+        new Date().toISOString(),
+
+      atualizadoEm:
+        Date.now()
     });
 
-    console.log("✅ PAGAMENTO CONFIRMADO:", pedidoId);
+    console.log(
+      "✅ Pedido liberado:",
+      pedidoId
+    );
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true
+    });
 
   } catch (e) {
-    console.log("🔥 ERRO WEBHOOK:", e);
-    // Mercado Pago exige 200
-    return res.status(200).json({ ok: false });
+
+    console.log(
+      "🔥 ERRO WEBHOOK:",
+      e
+    );
+
+    return res.status(200).json({
+      ok: false
+    });
   }
 }

@@ -19,9 +19,7 @@ const adminDb = admin.firestore();
 
 export default async function handler(req, res) {
   try {
-    console.log("WEBHOOK METHOD:", req.method);
-    console.log("WEBHOOK QUERY:", req.query);
-    console.log("WEBHOOK BODY:", req.body);
+    console.log("🔥 WEBHOOK CHECKOUT");
 
     const type =
       req.query?.type ||
@@ -35,18 +33,26 @@ export default async function handler(req, res) {
       req.query?.id ||
       req.body?.data?.id ||
       req.body?.id ||
-      (typeof req.body?.resource === "string"
-        ? req.body.resource.split("/").pop()
-        : null);
+      (
+        typeof req.body?.resource === "string"
+          ? req.body.resource.split("/").pop()
+          : null
+      );
+
+    console.log("TYPE:", type);
+    console.log("PAYMENT:", paymentId);
 
     if (!paymentId) {
-      console.log("SEM PAYMENT ID");
+      console.log("❌ Sem paymentId");
       return res.status(200).json({ ok: true });
     }
 
     if (type && type !== "payment") {
-      console.log("TIPO IGNORADO:", type);
-      return res.status(200).json({ ok: true });
+      console.log("⏭ Evento ignorado:", type);
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
     const payment = new Payment(client);
@@ -58,71 +64,222 @@ export default async function handler(req, res) {
         id: String(paymentId)
       });
     } catch (err) {
-      console.log("ERRO AO BUSCAR PAYMENT NO MP:", err);
-      return res.status(200).json({ ok: true });
+      console.log("❌ Erro MP:", err);
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
-    console.log("PAYMENT RESULT:", result);
+    console.log("RESULT:", result);
 
-    const pedidoId = result?.external_reference;
-    const status = result?.status;
+    const pedidoId =
+      result?.external_reference;
+
+    const status =
+      String(
+        result?.status || ""
+      ).toLowerCase();
+
+    const metodo =
+      result?.payment_method_id ||
+      null;
 
     if (!pedidoId) {
-      console.log("SEM PEDIDO ID NO PAYMENT");
-      return res.status(200).json({ ok: true });
+      console.log(
+        "❌ external_reference vazio"
+      );
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
-    const pedidoRef = adminDb.collection("pedidos").doc(String(pedidoId));
-    const pedidoSnap = await pedidoRef.get();
+    const pedidoRef =
+      adminDb
+        .collection("pedidos")
+        .doc(String(pedidoId));
+
+    const pedidoSnap =
+      await pedidoRef.get();
 
     if (!pedidoSnap.exists) {
-      console.log("PEDIDO NÃO EXISTE:", pedidoId);
-      return res.status(200).json({ ok: true });
+
+      console.log(
+        "❌ Pedido inexistente"
+      );
+
+      return res.status(200).json({
+        ok: true
+      });
     }
 
-    if (status === "approved") {
-      await pedidoRef.update({
-        status: "preparando",
-        paymentStatus: "approved",
-        paymentId: String(paymentId),
-        formaPagamento: "cartao_online",
-        pagoEm: Date.now()
-      });
+    const pedido =
+      pedidoSnap.data();
 
-      console.log("PEDIDO APROVADO:", pedidoId);
-    } else if (status === "pending" || status === "in_process") {
-      await pedidoRef.update({
-        status: "aguardando_pagamento_online",
-        paymentStatus: status,
-        paymentId: String(paymentId)
-      });
+    const statusAtual =
+      String(
+        pedido?.status || ""
+      ).toLowerCase();
 
-      console.log("PEDIDO PENDENTE:", pedidoId);
-    } else if (
-      status === "rejected" ||
-      status === "cancelled" ||
-      status === "refunded" ||
-      status === "charged_back"
+    // evita sobrescrever pedido pronto
+    if (
+      statusAtual === "entregue"
     ) {
-      await pedidoRef.update({
-        status: "pagamento_recusado",
-        paymentStatus: status,
-        paymentId: String(paymentId)
-      });
+      console.log(
+        "⏭ Pedido entregue"
+      );
 
-      console.log("PEDIDO RECUSADO:", pedidoId);
-    } else {
-      await pedidoRef.update({
-        paymentStatus: status,
-        paymentId: String(paymentId)
+      return res.status(200).json({
+        ok: true
       });
-
-      console.log("STATUS NÃO TRATADO, MAS SALVO:", status);
     }
 
-    return res.status(200).json({ ok: true });
+    // APROVADO
+    if (status === "approved") {
+
+      if (
+        pedido?.statusPagamento === "pago" ||
+        statusAtual === "preparando"
+      ) {
+        console.log(
+          "⚠️ Pedido já pago"
+        );
+
+        return res.status(200).json({
+          ok: true
+        });
+      }
+
+      await pedidoRef.update({
+
+        status: "preparando",
+
+        paymentStatus: "approved",
+
+        statusPagamento: "pago",
+
+        paymentId:
+          String(paymentId),
+
+        formaPagamento:
+          pedido?.formaPagamento ||
+          metodo,
+
+        pago: true,
+
+        pagoEm:
+          Date.now(),
+
+        atualizadoEm:
+          Date.now()
+      });
+
+      console.log(
+        "✅ PEDIDO LIBERADO:",
+        pedidoId
+      );
+    }
+
+    // PENDENTE
+    else if (
+      status === "pending" ||
+      status === "in_process"
+    ) {
+
+      await pedidoRef.update({
+
+        status:
+          pedido?.formaPagamento ===
+          "cartao_online"
+            ? "aguardando_pagamento_online"
+            : "aguardando_pagamento_pix",
+
+        paymentStatus:
+          status,
+
+        paymentId:
+          String(paymentId),
+
+        atualizadoEm:
+          Date.now()
+      });
+
+      console.log(
+        "⏳ AGUARDANDO:",
+        pedidoId
+      );
+    }
+
+    // RECUSADO
+    else if (
+      [
+        "rejected",
+        "cancelled",
+        "refunded",
+        "charged_back"
+      ].includes(status)
+    ) {
+
+      await pedidoRef.update({
+
+        status:
+          "pagamento_recusado",
+
+        paymentStatus:
+          status,
+
+        paymentId:
+          String(paymentId),
+
+        atualizadoEm:
+          Date.now()
+      });
+
+      console.log(
+        "❌ RECUSADO:",
+        pedidoId
+      );
+    }
+
+    // OUTROS
+    else {
+
+      await pedidoRef.update({
+
+        paymentStatus:
+          status,
+
+        paymentId:
+          String(paymentId),
+
+        atualizadoEm:
+          Date.now()
+      });
+
+      console.log(
+        "ℹ️ STATUS:",
+        status
+      );
+    }
+
+    return res
+      .status(200)
+      .json({
+        ok: true
+      });
+
   } catch (e) {
-    console.log("ERRO WEBHOOK CHECKOUT:", e);
-    return res.status(200).json({ ok: true });
+
+    console.log(
+      "🔥 ERRO:",
+      e
+    );
+
+    return res
+      .status(200)
+      .json({
+        ok: false
+      });
   }
 }
