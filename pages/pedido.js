@@ -1,98 +1,167 @@
-import { useEffect, useState } from 'react';
-import { dbCliente as db } from '../services/firebaseDual';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from "react";
+import { dbCliente as db } from "../services/firebaseDual";
+import {
+  doc,
+  onSnapshot
+} from "firebase/firestore";
 
 export default function Pedido() {
 
-  const [pedido, setPedido] = useState(null);
+  const [pedido, setPedido] =
+    useState(null);
 
   useEffect(() => {
 
-    const id = localStorage.getItem("pedidoAtual");
+    const id =
+      localStorage.getItem(
+        "pedidoAtual"
+      );
+
+    console.log(
+      "ID LOCAL:",
+      id
+    );
 
     if (!id) return;
 
-    const ref = doc(db, "pedidos", id);
+    const ref =
+      doc(
+        db,
+        "pedidos",
+        String(id)
+      );
 
-    const unsub = onSnapshot(ref, (snap) => {
-      if (!snap.exists()) return;
+    const unsub =
+      onSnapshot(
+        ref,
+        (snap) => {
 
-      setPedido({
-        id: snap.id,
-        ...snap.data()
-      });
-    });
+          if (!snap.exists()) {
+            console.log(
+              "PEDIDO NÃO EXISTE"
+            );
+            return;
+          }
 
-    return () => unsub();
+          const dados = {
+            id: snap.id,
+            ...snap.data()
+          };
+
+          console.log(
+            "PEDIDO FIRE:",
+            dados
+          );
+
+          setPedido(
+            dados
+          );
+
+        }
+      );
+
+    return () =>
+      unsub();
 
   }, []);
 
   if (!pedido) {
-    return <p style={{ padding: 20 }}>⏳ Carregando pedido...</p>;
+    return (
+      <div
+        style={{
+          padding: 30,
+          color: "#fff"
+        }}
+      >
+        Carregando pedido...
+      </div>
+    );
   }
 
-  const etapas = ["novo", "preparando", "saiu", "entregue"];
-
-  const cores = {
-    novo: "#888",
-    preparando: "orange",
-    saiu: "#00b0ff",
-    entregue: "#00c853"
-  };
-
-  const indexAtual = etapas.indexOf(pedido.status);
-
   return (
-    <div style={{
-      padding: 20,
-      color: "#fff"
-    }}>
 
-      <h1>📦 Acompanhar Pedido</h1>
+<div
+style={{
+padding:20,
+color:"#fff"
+}}
+>
 
-      <p>
-        Código do pedido: <strong>{pedido.codigo}</strong>
-      </p>
+<div
+style={{
+background:"#111",
+padding:20,
+borderRadius:16,
+marginBottom:20
+}}
+>
 
-      {/* 🔥 PROGRESSO */}
-      <div style={{
-        height: 6,
-        background: "#222",
-        borderRadius: 10,
-        margin: "15px 0"
-      }}>
-        <div style={{
-          height: "100%",
-          width: `${(indexAtual + 1) * 25}%`,
-          background: "#6a00ff",
-          borderRadius: 10,
-          transition: "0.3s"
-        }} />
-      </div>
+<h2>
+Pedido
+</h2>
 
-      {/* 🔥 ETAPAS */}
-      {etapas.map((e, i) => {
+<p>
+ID:
+<br/>
+{pedido.id}
+</p>
 
-        const ativo = i <= indexAtual;
+<p>
+Status:
+<br/>
+{pedido.status}
+</p>
 
-        return (
-          <div key={e} style={{
-            marginTop: 10,
-            padding: 12,
-            borderRadius: 12,
-            background: ativo ? cores[e] : "#111",
-            opacity: ativo ? 1 : 0.4
-          }}>
-            {ativo ? "✔️ " : "⏳ "}
-            {e}
-          </div>
-        );
-      })}
+<p>
+Pagamento:
+<br/>
+{
+pedido.statusPagamento ||
+pedido.paymentStatus ||
+"sem"
+}
+</p>
 
-      <h2 style={{ marginTop: 20 }}>
-        Total: R$ {Number(pedido.total || 0).toFixed(2)}
-      </h2>
+<p>
+Total:
+<br/>
+R$ {
+Number(
+pedido.total||0
+).toFixed(2)
+}
+</p>
 
-    </div>
-  );
+</div>
+
+{
+pedido.status==="preparando" &&
+<div
+style={{
+background:"#00a83a",
+padding:16,
+borderRadius:12
+}}
+>
+Pagamento confirmado
+</div>
+}
+
+{
+pedido.status==="aguardando_pagamento" &&
+<div
+style={{
+background:"#ff9800",
+padding:16,
+borderRadius:12
+}}
+>
+Aguardando pagamento
+</div>
+}
+
+</div>
+
+);
+
 }
