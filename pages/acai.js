@@ -1,12 +1,7 @@
-
-
 // 🔥 REACT
 import { useState, useEffect, useRef } from "react";
-
-
 // 🔥 NEXT
 import { useRouter } from "next/router";
-
 // 🔥 LAYOUT
 import Layout from "../components/layout";
 
@@ -20,18 +15,7 @@ import Sidebar from "../components/Sidebar";
 
 
 import CardProduto from "../components/CardProduto";
-
 import { updatePassword } from "firebase/auth";
-
-
-
-
-
-
-
-
-
-
 
 // 🔥 FIRESTORE
 import {
@@ -108,18 +92,9 @@ import {
   
 } from "lucide-react";
 
-
-
-
-
-
-
 import { lightTheme, darkTheme } from "../styles/theme";
 
 export default function Acai() {
-
-
-
 
 const LOJA = {
   
@@ -198,9 +173,6 @@ plusIcon["::after"] = {
 };
 
 
-
-
-
 const badgeOferta = {
   background: "#ea1d2c",
   color: "#fff",
@@ -236,9 +208,6 @@ const precoNormal = {
   color: "#111",
   fontWeight: 900
 };
-
-
-
 
 const tab = (active) => ({
   flex: 1,
@@ -290,8 +259,6 @@ const feedbacks = [
   "Demorou",
   "Pouco recheio"
 ];
-
-
 
 const label = {
   fontSize: 12,
@@ -388,8 +355,6 @@ const backBtn = {
   justifyContent: "center",
   boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
 };
-
-
 
 
 const ORDEM_CATEGORIAS = [
@@ -1234,9 +1199,6 @@ useEffect(() => {
   }, 800);
 }, []);
 
-
-
-
 function BannerSlideImage({ src, isMobile }) {
   return (
     <img
@@ -1407,7 +1369,6 @@ useEffect(() => {
     setCarrinho([]);
   }
 }, [user]);
-
 
 
 useEffect(() => {
@@ -1739,8 +1700,6 @@ useEffect(() => {
 }, [pedidoAtual]);
  
 
-
-
 if (loadingInicial) {
   return (
     <div
@@ -1882,9 +1841,6 @@ if (!authReady) {
   }
 }
 
-
-
-
 function adicionarAcaiGratis() {
   const acaiBase = produtos.find(
     (p) => p.resgate === true
@@ -1959,8 +1915,6 @@ const notificacoesOrdenadas = [...notificacoes].sort(
 );
 
 const grupos = agruparNotificacoes(notificacoesOrdenadas);
-
-
 
 
 // notificar marca lida
@@ -2041,8 +1995,6 @@ const gerarNovoPixDoPedido = async (pedido) => {
     mostrarMensagemPagamento("Erro ao gerar novo Pix. Tente novamente.", "erro");
   }
 };
-
-
 
 // PROMOCAO 
 const produtoEmPromocao = (p) => {
@@ -2302,7 +2254,6 @@ const gerarPix = async () => {
       return;
     }
 
-    // 🔥 🔥 🔥 BLOQUEIO POR BAIRRO (ESSENCIAL)
     if (!freteEncontrado) {
       mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
       return;
@@ -2312,7 +2263,12 @@ const gerarPix = async () => {
     if (!cupomValidoAgora) return;
 
     const valorPix = Number(totalFinalComFrete) / 100;
-    const pedidoId = Date.now().toString();
+
+    // 🔥 ID INTERNO (NÃO MOSTRAR PRA USUÁRIO)
+    const pedidoId = String(Date.now());
+
+    // 🔥 CÓDIGO VISÍVEL DO PEDIDO (USUÁRIO VÊ ISSO)
+    const codigoPedido = String(Date.now()).slice(-6);
 
     setQrBase64(null);
     setQrCode(null);
@@ -2346,11 +2302,15 @@ const gerarPix = async () => {
     setMostrarPagamento(true);
 
     localStorage.setItem("paymentId", String(data.payment_id));
+    localStorage.setItem("pedidoId", pedidoId);
 
     const carrinhoAtual = JSON.parse(JSON.stringify(carrinho));
 
     await setDoc(doc(db, "pedidos", pedidoId), {
       __origem: "PIX_FINAL_BAIRRO",
+
+      // 🔥 CÓDIGO VISÍVEL (AGORA NÃO VAI MAIS "#---")
+      codigo: codigoPedido,
 
       tipoEntrega,
       tipo: tipoEntrega,
@@ -2411,22 +2371,22 @@ const gerarPix = async () => {
       status: "aguardando_pagamento",
 
       entrega:
-      tipoEntrega === "retirada"
-       ? {
-        tipo: "retirada",
-        status: "retirada",
-        aceito: false
-      }
-    : {
-        tipo: "entrega",
-        aceito: false,
-        status: "aguardando",
-        entregadorId: null,
-        localizacao: null,
-        horaSaiu: null,
-        horaChegou: null,
-        horaEntregue: null
-      },
+        tipoEntrega === "retirada"
+          ? {
+              tipo: "retirada",
+              status: "retirada",
+              aceito: false
+            }
+          : {
+              tipo: "entrega",
+              aceito: false,
+              status: "aguardando",
+              entregadorId: null,
+              localizacao: null,
+              horaSaiu: null,
+              horaChegou: null,
+              horaEntregue: null
+            },
 
       cupom: cupomAplicado
         ? {
@@ -2443,10 +2403,9 @@ const gerarPix = async () => {
       data: Date.now()
     });
 
-    localStorage.setItem("pedidoId", pedidoId);
-
     setPedidoAtual({
       id: pedidoId,
+      codigo: codigoPedido,
       ativo: true
     });
 
@@ -2460,7 +2419,6 @@ const gerarPix = async () => {
     mostrarMensagemPagamento("Ocorreu um erro ao gerar o Pix. Tente novamente.", "erro");
   }
 };
-
 
 
 
@@ -3700,42 +3658,14 @@ async function finalizarPedido() {
     return;
   }
 
-  // 🔥 VALIDAÇÃO DE ENTREGA CORRIGIDA
   if (tipoEntrega === "entrega") {
-
-    const enderecoInvalido =
-      !clienteEndereco ||
-      !clienteNumeroCasa ||
-      !clienteBairro;
-
-    if (enderecoInvalido) {
-      mostrarMensagemPagamento(
-        "Preencha seu endereço completo.",
-        "erro"
-      );
-
-      setAba("perfil");
-      setStep(4);
-      setAbaPerfil("endereco");
-
+    if (!clienteEndereco || !clienteNumeroCasa || !clienteBairro) {
+      mostrarMensagemPagamento("Preencha seu endereço completo.", "erro");
       return;
     }
 
-    // 🔥 NOVO BLOQUEIO POR BAIRRO (ESSENCIAL)
-    if (!freteEncontrado) {
-      mostrarMensagemPagamento(
-        "Não entregamos no seu bairro.",
-        "erro"
-      );
-      return;
-    }
-
-    // 🔥 BLOQUEIO REAL (sem KM agora)
-    if (foraDaArea === true) {
-      mostrarMensagemPagamento(
-        "Endereço fora da área de entrega.",
-        "erro"
-      );
+    if (!freteEncontrado || foraDaArea === true) {
+      mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
       return;
     }
   }
@@ -3748,7 +3678,9 @@ async function finalizarPedido() {
   try {
     setLoadingPedido(true);
 
-    const pedidoId = Date.now().toString();
+    // 🔥 IMPORTANTE: usar ID único estável (não só Date.now)
+    const pedidoId = `${Date.now()}-${user.uid?.slice(0, 6) || "user"}`;
+
     const codigo = Math.floor(100000 + Math.random() * 900000);
 
     const taxaEntregaFinal =
@@ -3757,22 +3689,24 @@ async function finalizarPedido() {
     const totalFinalCalc = Number(totalFinal || 0) + taxaEntregaFinal;
 
     const pedidoBase = {
+      pedidoId,
       codigo,
+
       tipoEntrega: tipoEntrega || "entrega",
 
       cliente: {
-        nome: clienteNome || "Cliente",
-        telefone: clienteTelefone || "",
+        nome: clienteNome,
+        telefone: clienteTelefone,
         endereco: clienteEndereco || "",
         numero: clienteNumeroCasa || "",
         bairro: clienteBairro || "",
-        uid: user?.uid || null
+        uid: user.uid
       },
 
       itens: itensValidos.map(item => ({
         produtoId: item.produto.id,
         nome: item.produto.nome,
-        imagem: item?.produto?.imagem || item?.imagem || "/acai.png",
+        imagem: item?.produto?.imagem || "/acai.png",
         quantidade: Number(item.quantidade),
         total: item.gratis ? 0 : Number(item.total || 0),
         gratis: item.gratis === true,
@@ -3788,15 +3722,17 @@ async function finalizarPedido() {
       subtotal: subtotalCalc,
       taxaEntrega: taxaEntregaFinal,
       total: totalFinalCalc,
+
       formaPagamento: formaPagamento.toLowerCase(),
       data: Date.now(),
+
       observacao: String(observacaoPedido || "").trim(),
 
       cupom: cupomAplicado
         ? {
             id: cupomAplicado.id,
-            codigo: cupomAplicado.codigo || "",
-            tipo: cupomAplicado.tipo || "",
+            codigo: cupomAplicado.codigo,
+            tipo: cupomAplicado.tipo,
             desconto: Number(descontoCalculado || 0)
           }
         : null
@@ -3817,7 +3753,7 @@ async function finalizarPedido() {
 
       const data = await res.json();
 
-      if (!data.url) {
+      if (!data?.url) {
         mostrarMensagemPagamento("Erro no pagamento.", "erro");
         setLoadingPedido(false);
         return;
@@ -3834,17 +3770,24 @@ async function finalizarPedido() {
       return;
     }
 
-    // 🟢 PIX
+    // 🟢 PIX (CORREÇÃO IMPORTANTE)
     if (formaPagamento.toLowerCase() === "pix") {
       await setDoc(doc(db, "pedidos", pedidoId), {
         ...pedidoBase,
-        status: "aguardando_pagamento_pix"
-      });
 
-      mostrarMensagemPagamento("Pedido criado. Gere o Pix.", "sucesso");
+        status: "aguardando_pagamento_pix",
+
+        // 🔥 ESSENCIAL pro MercadoPago achar depois
+        paymentId: null
+      });
 
       setPedidoPixAberto({ ...pedidoBase, id: pedidoId });
       setMostrarPagamento(true);
+
+      mostrarMensagemPagamento(
+        "Pedido criado. Gere o Pix para concluir o pagamento.",
+        "sucesso"
+      );
 
       return;
     }
@@ -3854,8 +3797,6 @@ async function finalizarPedido() {
       ...pedidoBase,
       status: "preparando"
     });
-
-    mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
 
     await enviarWhatsApp({
       ...pedidoBase,
@@ -3867,6 +3808,8 @@ async function finalizarPedido() {
     setFormaPagamento(null);
     setMostrarPagamento(false);
     setPedidoPixAberto(null);
+
+    mostrarMensagemPagamento("Pedido confirmado.", "sucesso");
 
   } catch (e) {
     console.log(e);
