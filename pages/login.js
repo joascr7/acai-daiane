@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-
 import { authCliente as auth, dbCliente as db } from "../services/firebaseDual";
 import { sendPasswordResetEmail } from "firebase/auth";
-
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -114,7 +112,7 @@ useEffect(() => {
   return () => clearTimeout(timer);
 }, [erro]);
 
-// 🔥 FORMATAR TELEFONE (SUBSTITUI CPF)
+// 🔥 FORMATAR TELEFONE (----SUBSTITUI CPF)
 function formatarTelefone(valor) {
   let v = valor.replace(/\D/g, "").slice(0, 11);
 

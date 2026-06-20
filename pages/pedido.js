@@ -1,98 +1,345 @@
-import { useEffect, useState } from 'react';
-import { dbCliente as db } from '../services/firebaseDual';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from "react";
+import { dbCliente as db } from "../services/firebaseDual";
+import {
+  doc,
+  onSnapshot
+} from "firebase/firestore";
 
 export default function Pedido() {
 
-  const [pedido, setPedido] = useState(null);
+  const [pedido, setPedido] =
+    useState(null);
+
+  const [erro, setErro] =
+    useState("");
+
+  const [pedidoId, setPedidoId] =
+    useState("");
 
   useEffect(() => {
 
-    const id = localStorage.getItem("pedidoAtual");
+    if (
+      typeof window ===
+      "undefined"
+    ) return;
 
-    if (!id) return;
+    let id =
+      new URLSearchParams(
+        window.location.search
+      ).get("id");
 
-    const ref = doc(db, "pedidos", id);
+    if (!id) {
+      id =
+        localStorage.getItem(
+          "pedidoAtual"
+        );
+    }
 
-    const unsub = onSnapshot(ref, (snap) => {
-      if (!snap.exists()) return;
+    setPedidoId(id || "");
 
-      setPedido({
-        id: snap.id,
-        ...snap.data()
-      });
-    });
+    if (!id) {
 
-    return () => unsub();
+      setErro(
+        "Pedido não encontrado"
+      );
+
+      return;
+
+    }
+
+    localStorage.setItem(
+      "pedidoAtual",
+      String(id)
+    );
+
+    const ref =
+      doc(
+        db,
+        "pedidos",
+        String(id)
+      );
+
+    const unsub =
+      onSnapshot(
+
+        ref,
+
+        (snap) => {
+
+          if (!snap.exists()) {
+
+            setPedido(null);
+
+            setErro(
+              "Pedido não existe"
+            );
+
+            return;
+
+          }
+
+          setErro("");
+
+          setPedido({
+            id: snap.id,
+            ...snap.data()
+          });
+
+        },
+
+        (e) => {
+
+          console.log(
+            e
+          );
+
+          setErro(
+            "Erro ao carregar pedido"
+          );
+
+        }
+
+      );
+
+    return () =>
+      unsub();
 
   }, []);
 
-  if (!pedido) {
-    return <p style={{ padding: 20 }}>⏳ Carregando pedido...</p>;
-  }
+  if (erro) {
 
-  const etapas = ["novo", "preparando", "saiu", "entregue"];
+    return (
 
-  const cores = {
-    novo: "#888",
-    preparando: "orange",
-    saiu: "#00b0ff",
-    entregue: "#00c853"
-  };
+      <div
+        style={{
+          minHeight:
+            "100vh",
+          background:
+            "#000",
+          color:
+            "#fff",
+          padding:
+            24
+        }}
+      >
 
-  const indexAtual = etapas.indexOf(pedido.status);
+        <h2>
+          Pedido
+        </h2>
 
-  return (
-    <div style={{
-      padding: 20,
-      color: "#fff"
-    }}>
+        <p>
+          {erro}
+        </p>
 
-      <h1>📦 Acompanhar Pedido</h1>
+        <p>
+          ID:
+        </p>
 
-      <p>
-        Código do pedido: <strong>{pedido.codigo}</strong>
-      </p>
+        <strong>
+          {pedidoId || "-"}
+        </strong>
 
-      {/* 🔥 PROGRESSO */}
-      <div style={{
-        height: 6,
-        background: "#222",
-        borderRadius: 10,
-        margin: "15px 0"
-      }}>
-        <div style={{
-          height: "100%",
-          width: `${(indexAtual + 1) * 25}%`,
-          background: "#6a00ff",
-          borderRadius: 10,
-          transition: "0.3s"
-        }} />
       </div>
 
-      {/* 🔥 ETAPAS */}
-      {etapas.map((e, i) => {
+    );
 
-        const ativo = i <= indexAtual;
+  }
 
-        return (
-          <div key={e} style={{
-            marginTop: 10,
-            padding: 12,
-            borderRadius: 12,
-            background: ativo ? cores[e] : "#111",
-            opacity: ativo ? 1 : 0.4
-          }}>
-            {ativo ? "✔️ " : "⏳ "}
-            {e}
-          </div>
-        );
-      })}
+  if (!pedido) {
 
-      <h2 style={{ marginTop: 20 }}>
-        Total: R$ {Number(pedido.total || 0).toFixed(2)}
-      </h2>
+    return (
 
-    </div>
-  );
+      <div
+        style={{
+          minHeight:
+            "100vh",
+          background:
+            "#000",
+          color:
+            "#fff",
+          padding:
+            24
+        }}
+      >
+
+        Carregando pedido...
+
+      </div>
+
+    );
+
+  }
+
+  return (
+
+<div
+style={{
+minHeight:"100vh",
+background:"#000",
+padding:20,
+color:"#fff"
+}}
+>
+
+<div
+style={{
+background:"#111",
+padding:24,
+borderRadius:20
+}}
+>
+
+<h1>
+📦 Pedido
+</h1>
+
+<p>
+ID
+<br/>
+
+<strong>
+{pedido.id}
+</strong>
+
+</p>
+
+<p>
+Status
+<br/>
+
+<strong>
+{pedido.status}
+</strong>
+
+</p>
+
+<p>
+Pagamento
+<br/>
+
+<strong>
+
+{
+pedido.statusPagamento ||
+pedido.paymentStatus ||
+"aguardando"
+
+}
+
+</strong>
+
+</p>
+
+<p>
+Total
+<br/>
+
+<strong>
+
+R$
+
+{
+Number(
+pedido.total || 0
+).toFixed(2)
+}
+
+</strong>
+
+</p>
+
+</div>
+
+<div
+style={{
+marginTop:20
+}}
+>
+
+{
+pedido.status ===
+"aguardando_pagamento" && (
+
+<div
+style={{
+background:"#ff9800",
+padding:16,
+borderRadius:16
+}}
+>
+
+⏳
+Aguardando pagamento
+
+</div>
+
+)
+}
+
+{
+pedido.status ===
+"preparando" && (
+
+<div
+style={{
+background:"#00a83a",
+padding:16,
+borderRadius:16
+}}
+>
+
+✅
+Pagamento confirmado
+
+</div>
+
+)
+}
+
+{
+pedido.status ===
+"saiu" && (
+
+<div
+style={{
+background:"#2196f3",
+padding:16,
+borderRadius:16
+}}
+>
+
+🚚
+Pedido saiu
+
+</div>
+
+)
+}
+
+{
+pedido.status ===
+"entregue" && (
+
+<div
+style={{
+background:"#00c853",
+padding:16,
+borderRadius:16
+}}
+>
+
+🎉
+Pedido entregue
+
+</div>
+
+)
+}
+
+</div>
+
+</div>
+
+);
+
 }
