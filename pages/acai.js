@@ -6217,7 +6217,9 @@ return (
         background: "#fff",
         borderTop: "1px solid #eee",
         borderRadius: isMobile ? 0 : 16,
-        boxShadow: isMobile ? "none" : "0 8px 30px rgba(0,0,0,0.08)",
+        boxShadow: isMobile
+          ? "none"
+          : "0 8px 30px rgba(0,0,0,0.08)",
         padding: isMobile ? "10px 12px" : "12px 18px",
         boxSizing: "border-box"
       }}
@@ -6252,45 +6254,48 @@ return (
           />
 
           <div style={{ minWidth: 0 }}>
-          {(() => {
-  const subtotalBarra = carrinho.reduce(
-    (acc, item) => acc + Number(item.total || 0),
-    0
-  );
 
-  const limiteFrete = Number(config?.limiteFreteGratis || 0);
+            {(() => {
+              const subtotal =
+                typeof subtotalProdutos !== "undefined"
+                  ? subtotalProdutos
+                  : carrinho.reduce(
+                      (acc, item) => acc + Number(item.total || 0),
+                      0
+                    );
 
-  const faltaFrete =
-    limiteFrete > 0 && subtotalBarra < limiteFrete
-      ? limiteFrete - subtotalBarra
-      : 0;
+              const limite =
+                Number(config?.limiteFreteGratis ?? 0);
 
-  const freteAtivo = limiteFrete > 0 && subtotalBarra >= limiteFrete;
+              const falta =
+                limite > 0 ? Math.max(limite - subtotal, 0) : 0;
 
-  return (
-    <div
-      style={{
-        fontSize: 11,
-        fontWeight: 700,
-        color: foraDaArea
-          ? "#dc2626"
-          : freteAtivo
-          ? "#16a34a"
-          : "#666"
-      }}
-    >
-      {foraDaArea
-        ? "Fora da área de entrega"
-        : precisaLocalizacao
-        ? "Informe seu endereço"
-        : freteAtivo
-        ? "Entrega grátis aplicada"
-        : limiteFrete > 0
-        ? `Faltam ${formatarReal(faltaFrete)} para entrega grátis`
-        : ""}
-    </div>
-  );
-})()}
+              const liberou = limite > 0 && subtotal >= limite;
+
+              return (
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: foraDaArea
+                      ? "#dc2626"
+                      : liberou
+                      ? "#16a34a"
+                      : "#666"
+                  }}
+                >
+                  {foraDaArea
+                    ? "Fora da área de entrega"
+                    : precisaLocalizacao
+                    ? "Informe seu endereço"
+                    : liberou
+                    ? "Entrega grátis aplicada"
+                    : limite > 0
+                    ? `Faltam ${formatarReal(falta)} para entrega grátis`
+                    : ""}
+                </div>
+              );
+            })()}
 
             {/* VALOR */}
             <div
@@ -6318,12 +6323,14 @@ return (
                 item
               </span>
             </div>
+
           </div>
         </div>
 
         {/* BOTÃO */}
         <button
           onClick={() => {
+            console.log("🛒 abrir carrinho");
             setAba("carrinho");
             setStep(3);
           }}
@@ -6338,14 +6345,12 @@ return (
             fontWeight: 800,
             cursor: "pointer",
             flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
             boxShadow: "0 6px 18px rgba(234,29,44,0.25)"
           }}
         >
           Ver sacola
         </button>
+
       </div>
     </div>
   </div>
@@ -6498,126 +6503,182 @@ return (
   </div>
 </div>
 
-      {/* BARRA FLUTUANTE DO CARRINHO */}
-      {carrinho.length > 0 && (
-  <div
-    style={{
-      position: "fixed",
-      bottom: `calc(${NAVBAR}px)`,
-      left: 0,
-      right: 0,
-      display: "flex",
-      justifyContent: "center", // 🔥 CENTRALIZA NA WEB
-      zIndex: 30
-    }}
-  >
+{/* BARRA FLUTUANTE DO CARRINHO */}
+{carrinho.length > 0 && (() => {
+
+  // 🔥 SEM DEPENDER DE VARIÁVEL EXTERNA
+  const subtotal = carrinho.reduce(
+    (acc, item) => acc + Number(item.total || 0),
+    0
+  );
+
+  const totalItens = carrinho.reduce(
+    (acc, item) => acc + Number(item.quantidade || 0),
+    0
+  );
+
+  const falta = Math.max((limiteFrete || 0) - subtotal, 0);
+
+  console.log("🔥 DEBUG BARRA:", {
+    carrinhoLength: carrinho.length,
+    subtotal,
+    limiteFrete,
+    faltaFreteGratis: falta
+  });
+
+  return (
     <div
       style={{
-        width: "100%",
-        maxWidth: isMobile ? larguraApp : 720, // 🔥 AQUI MUDA TUDO
-        background: "#fff",
-        borderTop: "1px solid #eee",
-        borderRadius: isMobile ? 0 : 16, // 🔥 borda só na web
-        boxShadow: isMobile
-          ? "none"
-          : "0 8px 30px rgba(0,0,0,0.08)", // 🔥 sombra desktop
-        padding: isMobile ? "10px 12px" : "12px 18px",
-        boxSizing: "border-box"
+        position: "fixed",
+        bottom: `calc(${NAVBAR}px)`,
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
+        zIndex: 99999
       }}
     >
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 14
+          width: "100%",
+          maxWidth: isMobile ? larguraApp : 720,
+          background: "#fff",
+          borderTop: "1px solid #eee",
+          borderRadius: isMobile ? 0 : 16,
+          boxShadow: isMobile
+            ? "none"
+            : "0 8px 30px rgba(0,0,0,0.08)",
+          padding: isMobile ? "10px 12px" : "12px 18px",
+          boxSizing: "border-box"
         }}
       >
-        {/* ESQUERDA */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 12,
-            flex: 1,
-            minWidth: 0
+            justifyContent: "space-between",
+            gap: 14
           }}
         >
-          <img
-            src={logo || "/bg.png"}
+          {/* ESQUERDA */}
+          <div
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: "50%",
-              objectFit: "cover",
-              flexShrink: 0
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              flex: 1,
+              minWidth: 0
             }}
-          />
-
-          <div style={{ minWidth: 0 }}>
-            <div
+          >
+            <img
+              src={logo || "/bg.png"}
               style={{
-                fontSize: 10,
-                color: faltaFreteGratis > 0 ? "#666" : "#16a34a",
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis"
+                width: 42,
+                height: 42,
+                borderRadius: "50%",
+                objectFit: "cover",
+                flexShrink: 0
               }}
-            >
-              {faltaFreteGratis > 0
-                ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-                : "Entrega grátis aplicada"}
+            />
 
-            </div>
+            <div style={{ minWidth: 0 }}>
 
-            <div
-              style={{
-                fontSize: 16,
-                fontWeight: 800,
-                color: "#111",
-                marginTop: 2
-              }}
-            >
-              {formatarReal(
-                typeof subtotalProdutos !== "undefined"
-                  ? subtotalProdutos
-                  : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
-              )}{" "}
-              <span style={{ fontWeight: 500, color: "#666" }}>
-                / {carrinho.reduce((acc, item) => acc + Number(item.quantidade || 0), 0)} item
-              </span>
+              {/* STATUS FRETE */}
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color:
+                    limiteFrete > 0 && subtotal >= limiteFrete
+                      ? "#16a34a"
+                      : "#666"
+                }}
+              >
+                {limiteFrete > 0 ? (
+                  subtotal >= limiteFrete ? (
+                    "Entrega grátis aplicada"
+                  ) : (
+                    `Faltam ${formatarReal(falta)} para entrega grátis`
+                  )
+                ) : (
+                  ""
+                )}
+              </div>
+
+              {/* BARRA PROGRESSO */}
+              {limiteFrete > 0 && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    width: "100%",
+                    height: 5,
+                    background: "#eee",
+                    borderRadius: 999,
+                    overflow: "hidden"
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.min(
+                        (subtotal / limiteFrete) * 100,
+                        100
+                      )}%`,
+                      background:
+                        subtotal >= limiteFrete
+                          ? "#16a34a"
+                          : "#ea1d2c",
+                      transition: "width .3s ease"
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* VALOR */}
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "#111",
+                  marginTop: 2
+                }}
+              >
+                {formatarReal(subtotal)}{" "}
+                <span style={{ fontWeight: 500, color: "#666" }}>
+                  / {totalItens} item
+                </span>
+              </div>
+
             </div>
           </div>
-        </div>
 
-        {/* BOTÃO */}
-        <button
-          onClick={() => {
-            setAba("carrinho");
-            setStep(3);
-          }}
-          style={{
-            height: 46,
-            padding: "0 22px",
-            borderRadius: 14,
-            border: "none",
-            background: "#ea1d2c",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 800,
-            cursor: "pointer",
-            flexShrink: 0
-          }}
-        >
-          Ver sacola
-        </button>
+          {/* BOTÃO */}
+          <button
+            onClick={() => {
+              setAba("carrinho");
+              setStep(3);
+            }}
+            style={{
+              height: 46,
+              padding: "0 22px",
+              borderRadius: 14,
+              border: "none",
+              background: "#ea1d2c",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              flexShrink: 0
+            }}
+          >
+            Ver sacola
+          </button>
 
         </div>
       </div>
     </div>
-
-)}
+  );
+})()}
     </div>
 
     <style>
@@ -13515,31 +13576,31 @@ const corStatus =
 )}
 
 
-{/* 🔥 BARRA SACOLA GLOBAL */}
+{/* 🔥 BARRA SACOLA GLOBAL 
 {(() => {
-  const mostrarBarraSacola =
-    carrinho.length > 0 &&
-    !(aba === "carrinho" && step === 3) &&
-    !(aba === "home" && step === 2) &&
-    !(aba === "perfil" && step === 4) &&
-    !(aba === "pagamentos" && step === 6);
+  const subtotal =
+    Number(subtotalProdutos || 0) ||
+    carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0);
 
-  if (!mostrarBarraSacola) return null;
+  const limite =
+    Number(freteEncontrado?.minimoFreteGratis) ||
+    Number(config?.limiteFreteGratis) ||
+    0;
 
-  const totalSacola =
-    typeof subtotalProdutos !== "undefined"
-      ? subtotalProdutos
-      : carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0);
+  const falta = limite > 0 ? Math.max(limite - subtotal, 0) : 0;
 
-  const totalItens = carrinho.reduce(
-    (acc, item) => acc + Number(item.quantidade || 0),
-    0
-  );
+  const liberou = limite > 0 && subtotal >= limite;
 
-  const progresso =
-    LIMITE_FRETE_GRATIS > 0
-      ? Math.min((totalSacola / LIMITE_FRETE_GRATIS) * 100, 100)
-      : 0;
+  const progresso = limite > 0 ? Math.min((subtotal / limite) * 100, 100) : 0;
+
+  // 🔥 LOGS IMPORTANTES
+  console.log("🟡 BARRA DEBUG");
+  console.log("subtotal:", subtotal);
+  console.log("limite:", limite);
+  console.log("falta:", falta);
+  console.log("progresso:", progresso);
+
+  if (carrinho.length === 0) return null;
 
   return (
     <div
@@ -13560,159 +13621,103 @@ const corStatus =
           background: "#fff",
           borderTop: "1px solid #eee",
           borderRadius: isMobile ? 0 : 16,
-          boxShadow: isMobile ? "none" : "0 8px 30px rgba(0,0,0,0.08)",
+          boxShadow: isMobile
+            ? "none"
+            : "0 8px 30px rgba(0,0,0,0.08)",
           padding: isMobile ? "10px 12px" : "12px 18px",
           boxSizing: "border-box"
         }}
       >
-       {/* PROGRESSO FRETE */}
-<div style={{ marginBottom: 8 }}>
-  <div
-    style={{
-      width: "100%",
-      height: 6,
-      background: "#eee",
-      borderRadius: 999,
-      overflow: "hidden",
-      position: "relative"
-    }}
-  >
-    <div
-      style={{
-        width: `${progresso}%`,
-        height: "100%",
-        borderRadius: 999,
-        background: foraDaArea
-          ? "#dc2626"
-          : progresso >= 100 && freteGratis
-          ? "#16a34a"
-          : "linear-gradient(90deg,#ea1d2c,#ff4d4d)",
-        transition: "width 0.4s ease"
-      }}
-    />
+        {/* 🔥 BARRA PROGRESSO *
+        {limite > 0 && (
+          <div
+            style={{
+              width: "100%",
+              height: 6,
+              background: "#eee",
+              borderRadius: 999,
+              overflow: "hidden",
+              marginBottom: 8
+            }}
+          >
+            <div
+              style={{
+                width: `${progresso}%`,
+                height: "100%",
+                background: liberou ? "#16a34a" : "#ea1d2c",
+                transition: "width .3s ease"
+              }}
+            />
+          </div>
+        )}
 
-    {/* CAMINHÃO */}
-   {!foraDaArea && progresso > 0 && progresso < 100 && (
+        {/* INFO + BOTÃO 
         <div
           style={{
-            position: "absolute",
-            top: "50%",
-            left: `calc(${progresso}% - 18px)`,
-
-            transform: "translateY(-50%)",
-
-            transition:
-              "left .45s cubic-bezier(.22,1,.36,1)",
-
-            zIndex: 5
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between"
           }}
         >
-          
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: liberou ? "#16a34a" : "#666"
+              }}
+            >
+              {limite === 0
+                ? "Entrega normal"
+                : liberou
+                ? "Entrega grátis aplicada"
+                : `Faltam ${formatarReal(falta)} para entrega grátis`}
+            </div>
+
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#111"
+              }}
+            >
+              {formatarReal(subtotal)}{" "}
+              <span style={{ fontWeight: 500, color: "#666" }}>
+                /{" "}
+                {carrinho.reduce(
+                  (acc, item) => acc + Number(item.quantidade || 0),
+                  0
+                )}{" "}
+                itens
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              console.log("🛒 indo para carrinho");
+              setAba("carrinho");
+              setStep(3);
+            }}
+            style={{
+              height: 46,
+              padding: "0 22px",
+              borderRadius: 14,
+              border: "none",
+              background: "#ea1d2c",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer"
+            }}
+          >
+            Ver sacola
+          </button>
         </div>
-      )}
-    </div>
-  
-  
-</div>
-
-<div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 14
-  }}
->
-  {/* ESQUERDA */}
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 12,
-      flex: 1,
-      minWidth: 0
-    }}
-  >
-    <img
-      src={logo || "/bg.png"}
-      style={{
-        width: 42,
-        height: 42,
-        borderRadius: "50%",
-        objectFit: "cover",
-        flexShrink: 0
-      }}
-    />
-
-    <div style={{ minWidth: 0, flex: 1 }}>
-      {/* STATUS CORRIGIDO */}
-       <div
-          style={{
-            fontSize: 12,
-            fontWeight: 700,
-            marginBottom: 2,
-            color: foraDaArea
-              ? "#dc2626"
-              : entregaFinal === 0
-              ? "#16a34a"
-              : "#666"
-          }}
-        >
-          {foraDaArea
-            ? "Fora da área de entrega"
-            : precisaLocalizacao
-            ? "Informe seu endereço"
-            : entregaFinal === 0
-            ? "Entrega grátis aplicada"
-            : faltaFreteGratis > 0
-            ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-            : ""}
-        </div>
-
-      {/* VALOR */}
-      <div
-        style={{
-          fontSize: 16,
-          fontWeight: 800,
-          color: "#111",
-          marginTop: 2
-        }}
-      >
-        {formatarReal(totalSacola)}{" "}
-        <span style={{ fontWeight: 500, color: "#666" }}>
-          / {totalItens} {totalItens === 1 ? "item" : "itens"}
-        </span>
-      </div>
-    </div>
-  </div>
-
-  {/* BOTÃO */}
-  <button
-    onClick={() => {
-      setAba("carrinho");
-      setStep(3);
-    }}
-    style={{
-      height: 46,
-      padding: "0 22px",
-      borderRadius: 14,
-      border: "none",
-      background: "#ea1d2c",
-      color: "#fff",
-      fontSize: 14,
-      fontWeight: 800,
-      cursor: "pointer",
-      flexShrink: 0,
-      boxShadow: "0 6px 16px rgba(234,29,44,0.18)"
-    }}
-  >
-    Ver sacola
-  </button>
-</div>
       </div>
     </div>
   );
-})()}
+})()}*/}
 
 
 {bloqueioMsg && (
