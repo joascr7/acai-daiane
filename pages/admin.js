@@ -31,6 +31,7 @@ import ProdutoImagem from "../components/Produto/ProdutoImagem";
 import Sidebar from "../components/Sidebar";
 
 
+
 import { getApp } from "firebase/app";
 import { authAdmin } from "../services/firebaseDual";
 import { dbAdmin as db, authAdmin as auth } from "../services/firebaseDual";
@@ -487,6 +488,7 @@ const [toast, setToast] = useState(null);
   const [desconto, setDesconto] = useState("");
   const [logoInput, setLogoInput] = useState("");
   const [tocando, setTocando] = useState(false);
+  
 
 const [tamanho, setTamanho] = useState("")
 const [descricaoTamanho, setDescricaoTamanho] = useState("")
@@ -638,6 +640,16 @@ const [max, setMax] = useState(1);
 const [novoItem, setNovoItem] = useState({});
 const [extraNome, setExtraNome] = useState("");
 const [extraPreco, setExtraPreco] = useState("");
+
+const [
+  freteGratisAtivo,
+  setFreteGratisAtivo
+] = useState(false);
+
+const [
+  minimoFreteGratis,
+  setMinimoFreteGratis
+] = useState("");
 
 function formatarReal(valor) {
   return (Number(valor || 0) / 100).toLocaleString("pt-BR", {
@@ -900,6 +912,12 @@ async function apagarPedidoCancelado(id) {
 
     setTimeout(() => setToast(null), 2200);
   }
+}
+
+async function toggleFreteGratis(item) {
+  await updateDoc(doc(db, "fretes", item.id), {
+    freteGratisAtivo: !item.freteGratisAtivo
+  });
 }
 
 async function apagarTodosCancelados() {
@@ -1575,18 +1593,50 @@ useEffect(() => {
 
 function limparFormularioFrete() {
   setFreteEditandoId(null);
+
   setBairroFrete("");
+
   setValorFrete("");
+
+  setFreteGratisAtivo(false);
+
+  setMinimoFreteGratis("");
 }
 
 function abrirEdicaoFrete(item) {
+
   setFreteEditandoId(item.id);
-  setBairroFrete(item?.bairro || "");
+
+  setBairroFrete(
+    item?.bairro || ""
+  );
+
   setValorFrete(
     Number(item?.valor || 0) > 0
-      ? (Number(item.valor) / 100).toFixed(2).replace(".", ",")
+      ? (
+          Number(item.valor) / 100
+        )
+          .toFixed(2)
+          .replace(".", ",")
       : ""
   );
+
+  setFreteGratisAtivo(
+    item?.freteGratisAtivo === true
+  );
+
+  setMinimoFreteGratis(
+    item?.minimoFreteGratis
+      ? (
+          Number(
+            item.minimoFreteGratis
+          ) / 100
+        )
+          .toFixed(2)
+          .replace(".", ",")
+      : ""
+  );
+
 }
 
 async function salvarFrete() {
@@ -1615,22 +1665,49 @@ async function salvarFrete() {
     setLoadingFrete(true);
 
     if (freteEditandoId) {
-      await updateDoc(doc(db, "fretes", freteEditandoId), {
-        bairro,
-        valor: valorCentavos
-      });
+      await updateDoc(
+  doc(
+    db,
+    "fretes",
+    freteEditandoId
+  ),
+  {
+    bairro,
+    valor: valorCentavos,
+
+    freteGratisAtivo,
+
+    minimoFreteGratis:
+      converterParaCentavos(
+        minimoFreteGratis || "0"
+      )
+  }
+);
 
       setToast({
         tipo: "sucesso",
         texto: "Frete atualizado com sucesso."
       });
     } else {
-      await addDoc(collection(db, "fretes"), {
-        bairro,
-        valor: valorCentavos,
-        ativo: true,
-        criadoEm: Date.now()
-      });
+      await addDoc(
+  collection(db,"fretes"),
+{
+bairro,
+
+valor: valorCentavos,
+
+ativo:true,
+
+freteGratisAtivo,
+
+minimoFreteGratis:
+converterParaCentavos(
+minimoFreteGratis || "0"
+),
+
+criadoEm:
+Date.now()
+});
 
       setToast({
         tipo: "sucesso",
@@ -2576,6 +2653,11 @@ if (loadingAuth) {
     alternarStatusFrete={alternarStatusFrete}
     excluirFrete={excluirFrete}
     formatarReal={formatarReal}
+     freteGratisAtivo={freteGratisAtivo}
+  setFreteGratisAtivo={setFreteGratisAtivo}
+  minimoFreteGratis={minimoFreteGratis}
+  setMinimoFreteGratis={setMinimoFreteGratis}
+  toggleFreteGratis={toggleFreteGratis}
     isMobile={isMobile}
   />
 )}

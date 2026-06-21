@@ -412,7 +412,8 @@ const [avisoTela, setAvisoTela] = useState("");
 
   const [clienteBairro, setClienteBairro] = useState("");
   const [fretes, setFretes] = useState([]);
-
+  const [freteSelecionadoId, setFreteSelecionadoId] = useState(null);
+  
   const [agoraPedidos, setAgoraPedidos] = useState(Date.now());
   const [mostrarCodigoPix, setMostrarCodigoPix] = useState(false);
   const [mostrarHorario, setMostrarHorario] = useState(false);
@@ -568,6 +569,7 @@ const [comentario, setComentario] = useState("");
   const [lojaAberta, setLojaAberta] = useState(true);
   const { pedidos } = usePedidosUsuario(user);
   const [selectedId, setSelectedId] = useState(null);
+  const [config, setConfig] = useState(null);
 
 const [enderecoSelecionado, setEnderecoSelecionado] = useState(null);
   const [enderecos, setEnderecos] = useState([]);
@@ -662,6 +664,8 @@ const [filtroBusca, setFiltroBusca] = useState("todos");
   const [loadingCupons, setLoadingCupons] = useState(false);
 
   const [bloqueioMsg, setBloqueioMsg] = useState(null);
+
+
 
   const getProdutoFidelidade = () => {
   return produtos.find(p => p.resgate === true);
@@ -1215,7 +1219,7 @@ function BannerSlideImage({ src, isMobile }) {
   );
 }
 
- 
+
 
 function mostrarToast(texto, tipo = "erro") {
   setToast({ texto, tipo });
@@ -1639,13 +1643,29 @@ useEffect(() => {
 }, []);
 
 
+useEffect(() => {
+  const unsub = onSnapshot(doc(db, "config", "frete"), (snap) => {
+    setConfig(snap.data() || {});
+  });
+
+  return () => unsub();
+}, []);
+
 
 useEffect(() => {
   const unsubscribe = onSnapshot(collection(db, "fretes"), (snapshot) => {
-    const lista = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const lista = snapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        bairro: data.bairro || "",
+        valor: data.valor || 0,
+        ativo: data.ativo ?? true, // 🔥 IMPORTANTE
+        freteGratisAtivo: data.freteGratisAtivo ?? false,
+        minimoFreteGratis: data.minimoFreteGratis || 0
+      };
+    });
 
     setFretes(lista);
   });
@@ -2476,12 +2496,14 @@ const totalFinal = Math.max(0, total - descontoCalculado);
 // 🚀 FRETE
 // =============================
 
-const LIMITE_FRETE_GRATIS = 3000;
+const LIMITE_FRETE_GRATIS = Number(config?.limiteFreteGratis || 0);
 
 // 🔥 SUBTOTAL
 const subtotalProdutos = Array.isArray(carrinho)
   ? carrinho.reduce((acc, item) => acc + Number(item.total || 0), 0)
   : 0;
+
+  
 
 // 🔥 BAIRRO
 const bairroClienteNormalizado = (clienteBairro || "")
@@ -2490,12 +2512,18 @@ const bairroClienteNormalizado = (clienteBairro || "")
 
 // 🔥 FRETE
 const freteEncontrado = Array.isArray(fretes)
-  ? fretes.find(
-      (f) =>
-        String(f?.bairro || "").trim().toLowerCase() ===
-          bairroClienteNormalizado &&
-        f?.ativo !== false
-    )
+  ? fretes.find((f) => {
+      const bairroMatch =
+        String(f?.bairro || "")
+          .trim()
+          .toLowerCase() === bairroClienteNormalizado;
+
+      const ativo = f?.ativo !== false;
+
+      const valido = bairroMatch && ativo;
+
+      return valido;
+    })
   : null;
 
 // 🔥 CONTROLE
@@ -2516,7 +2544,11 @@ else {
   } else {
     taxaEntrega = Number(freteEncontrado?.valor || 0);
 
-    if (subtotalProdutos >= LIMITE_FRETE_GRATIS) {
+    // 🔥 REGRA NOVA: FRETE GRÁTIS POR BAIRRO
+    if (
+      freteEncontrado?.freteGratisAtivo &&
+      subtotalProdutos >= Number(freteEncontrado?.minimoFreteGratis || 0)
+    ) {
       taxaEntrega = 0;
       freteGratis = true;
     }
@@ -2548,10 +2580,16 @@ console.log({
 // 🔥 TOTAL FINAL COM FRETE
 const totalFinalComFrete = totalFinal + taxaEntrega;
 
-const faltaFreteGratis = Math.max(
-  0,
-  LIMITE_FRETE_GRATIS - subtotalProdutos
+const limiteFrete = Number(
+  freteEncontrado?.minimoFreteGratis ??
+  config?.limiteFreteGratis ??
+  0
 );
+
+const faltaFreteGratis =
+  limiteFrete > 0
+    ? Math.max(limiteFrete - subtotalProdutos, 0)
+    : 0;
 
 // 🔥 FINALIZAR
 const podeFinalizar =
@@ -4014,12 +4052,53 @@ const subtotalCalc = itensValidos.reduce(
 
 
 
+const valorBaseFrete = Number(
+  fretes.find(
+    (f) =>
+      String(f?.bairro || "")
+        .trim()
+        .toLowerCase() === bairroClienteNormalizado &&
+      f?.ativo !== false
+  )?.valor || 0
+);
 
-const podeFreteGratis =
-  tipoEntrega === "entrega" &&
-  !foraDaArea &&
-  !precisaLocalizacao &&
+const freteGratisAtivo =
+  freteEncontrado?.freteGratisAtivo !== false;
+
+const minimoBairro = Number(
+  freteEncontrado?.minimoFreteGratis || 0
+);
+
+const freteGratisBairro =
+  freteEncontrado?.freteGratisAtivo === true &&
+  subtotalProdutos >= minimoBairro;
+
+const freteGratisGlobal =
+  freteGratisAtivo &&
+  LIMITE_FRETE_GRATIS > 0 &&
   subtotalProdutos >= LIMITE_FRETE_GRATIS;
+
+const entregaFinal =
+  freteGratisBairro || freteGratisGlobal
+    ? 0
+    : valorBaseFrete;
+
+
+
+const podeFreteGratis = (() => {
+  if (tipoEntrega !== "entrega") return false;
+  if (foraDaArea || precisaLocalizacao) return false;
+
+  const bairroGratis =
+    freteEncontrado?.freteGratisAtivo &&
+    subtotalProdutos >= Number(freteEncontrado?.minimoFreteGratis || 0);
+
+  const globalGratis =
+    LIMITE_FRETE_GRATIS > 0 &&
+    subtotalProdutos >= LIMITE_FRETE_GRATIS;
+
+  return bairroGratis || globalGratis;
+})();
 
 
   // 🔥 PRODUTOS EM PROMOÇÃO
@@ -6173,31 +6252,45 @@ return (
           />
 
           <div style={{ minWidth: 0 }}>
-            {/* STATUS FRETE */}
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: foraDaArea
-                  ? "#dc2626"
-                  : podeFreteGratis
-                  ? "#16a34a"
-                  : "#666",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis"
-              }}
-            >
-              {foraDaArea
-                ? "Fora da área de entrega"
-                : precisaLocalizacao
-                ? "Informe seu endereço"
-                : podeFreteGratis
-                ? "Entrega grátis aplicada"
-                : faltaFreteGratis > 0
-                ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-                : ""}
-            </div>
+          {(() => {
+  const subtotalBarra = carrinho.reduce(
+    (acc, item) => acc + Number(item.total || 0),
+    0
+  );
+
+  const limiteFrete = Number(config?.limiteFreteGratis || 0);
+
+  const faltaFrete =
+    limiteFrete > 0 && subtotalBarra < limiteFrete
+      ? limiteFrete - subtotalBarra
+      : 0;
+
+  const freteAtivo = limiteFrete > 0 && subtotalBarra >= limiteFrete;
+
+  return (
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        color: foraDaArea
+          ? "#dc2626"
+          : freteAtivo
+          ? "#16a34a"
+          : "#666"
+      }}
+    >
+      {foraDaArea
+        ? "Fora da área de entrega"
+        : precisaLocalizacao
+        ? "Informe seu endereço"
+        : freteAtivo
+        ? "Entrega grátis aplicada"
+        : limiteFrete > 0
+        ? `Faltam ${formatarReal(faltaFrete)} para entrega grátis`
+        : ""}
+    </div>
+  );
+})()}
 
             {/* VALOR */}
             <div
@@ -6475,6 +6568,7 @@ return (
               {faltaFreteGratis > 0
                 ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
                 : "Entrega grátis aplicada"}
+
             </div>
 
             <div
@@ -8327,80 +8421,77 @@ return (
   </div>
 )}
 
-        {/* RESUMO DE VALORES */}
-        <div
-          style={{
-            marginTop: 24
-          }}
-        >
-          <div
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              color: "#111",
-              marginBottom: 14
-            }}
-          >
-            Resumo de valores
-          </div>
+     {/* RESUMO DE VALORES */}
+<div style={{ marginTop: 24 }}>
+  <div
+    style={{
+      fontSize: 18,
+      fontWeight: 800,
+      color: "#111",
+      marginBottom: 14
+    }}
+  >
+    Resumo de valores
+  </div>
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 15,
-              color: "#666",
-              marginBottom: 10
-            }}
-          >
-            <span>Subtotal</span>
-            <span>{formatarReal(subtotalProdutos)}</span>
-          </div>
+  {/* SUBTOTAL */}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: 15,
+      color: "#666",
+      marginBottom: 10
+    }}
+  >
+    <span>Subtotal</span>
+    <span>{formatarReal(subtotalProdutos)}</span>
+  </div>
 
-          {carrinho.length > 0 && (
-          <div
-          style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 15,
-          color: "#666",
-          marginBottom: 10
-         }}
-         >
-        <span>Entrega</span>
-       <span
+  {/* 🔥 ENTREGA (CORRIGIDO E CENTRALIZADO) */}
+  {carrinho.length > 0 && (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: 15,
+        color: "#666",
+        marginBottom: 10
+      }}
+    >
+      <span>Entrega</span>
+
+      <span
         style={{
-        color: taxaEntrega === 0 ? "#16a34a" : "#111",
-        fontWeight: 700
+          color: entregaFinal === 0 ? "#16a34a" : "#111",
+          fontWeight: 700
         }}
-        >
-       {subtotalProdutos >= LIMITE_FRETE_GRATIS
-        ? "Grátis"
-        : formatarReal(taxaEntrega)}
-        </span>
-        </div>
-        )}
-
-          {descontoCalculado > 0 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                color: "#16a34a",
-                fontSize: 15,
-                marginBottom: 10
-              }}
-            >
-              <span>Desconto</span>
-              <span>-{formatarReal(descontoCalculado)}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      >
+        {entregaFinal === 0
+          ? "Grátis"
+          : formatarReal(entregaFinal)}
+      </span>
     </div>
+  )}
 
-    
-    {/* BARRA FIXA FINAL */}
+  {/* DESCONTO */}
+  {descontoCalculado > 0 && (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        color: "#16a34a",
+        fontSize: 15,
+        marginBottom: 10
+      }}
+    >
+      <span>Desconto</span>
+      <span>-{formatarReal(descontoCalculado)}</span>
+    </div>
+  )}
+</div>
+
+{/* 🔥 BARRA FIXA FINAL */}
 <div
   style={{
     position: "fixed",
@@ -8411,7 +8502,7 @@ return (
     maxWidth: isMobile ? larguraApp : 720,
     background: "#fff",
     borderTop: "1px solid #eee",
-    zIndex: 30,
+    zIndex: 999,
     boxSizing: "border-box",
     padding: isMobile ? "8px 12px" : "8px 16px"
   }}
@@ -8425,137 +8516,127 @@ return (
     }}
   >
     {/* INFO */}
-<div style={{ minWidth: 0, flex: 1 }}>
-  {carrinho.length > 0 && (
-    <>
+    <div style={{ minWidth: 0, flex: 1 }}>
+      {carrinho.length > 0 && (
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            marginBottom: 2,
+            color: foraDaArea
+              ? "#dc2626"
+              : entregaFinal === 0
+              ? "#16a34a"
+              : "#666"
+          }}
+        >
+          {foraDaArea
+            ? "Fora da área de entrega"
+            : precisaLocalizacao
+            ? "Informe seu endereço"
+            : entregaFinal === 0
+            ? "Entrega grátis aplicada"
+            : faltaFreteGratis > 0
+            ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+            : ""}
+        </div>
+      )}
+
       <div
         style={{
-          fontSize: 12,
-          fontWeight: 700,
-          marginBottom: 2,
-          color: foraDaArea
-            ? "#dc2626"
-            : freteGratis
-            ? "#16a34a"
-            : "#666"
+          fontSize: isMobile ? 16 : 15,
+          fontWeight: 900,
+          color: "#111"
         }}
       >
-        {foraDaArea
-          ? "Fora da área de entrega"
-          : freteGratis
-          ? "Entrega grátis aplicada"
-          : faltaFreteGratis > 0
-          ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-          : ""}
+        {formatarReal(
+          carrinho.length > 0 ? totalFinalComFrete : 0
+        )}
       </div>
-    </>
-  )}
+    </div>
 
-  <div
-    style={{
-      fontSize: isMobile ? 16 : 15,
-      fontWeight: 900,
-      color: "#111"
-    }}
-  >
-    {formatarReal(carrinho.length > 0 ? totalFinalComFrete : 0)}
+    {/* 🔥 BOTÃO CONTINUAR (AGORA CORRETO) */}
+    <button
+      disabled={!podeContinuarFinal}
+      onClick={() => {
+        if (!user) {
+          localStorage.setItem("redirectAfterLogin", "carrinho");
+          router.push("/login");
+          return;
+        }
+
+        if (!clienteNome || !clienteTelefone) {
+          mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
+          setAba("perfil");
+          setStep(4);
+          setAbaPerfil("dados");
+          return;
+        }
+
+        if (
+          !clienteEndereco?.trim() ||
+          !clienteNumeroCasa?.trim() ||
+          !clienteBairro?.trim()
+        ) {
+          setAvisoTela("Confirme seu endereço, número e bairro.");
+
+          setAba("carrinho");
+          setStep(3);
+
+          document
+            .getElementById("secao-endereco")
+            ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          return;
+        }
+
+        if (tipoEntrega === "entrega") {
+          if (!freteEncontrado) {
+            mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
+            return;
+          }
+
+          if (foraDaArea) {
+            mostrarMensagemPagamento("Fora da área de entrega.", "erro");
+            return;
+          }
+        }
+
+        setAba("pagamentos");
+        setStep(6);
+      }}
+      style={{
+        minWidth: isMobile ? 130 : 110,
+        height: isMobile ? 46 : 42,
+        borderRadius: 14,
+        background: podeContinuarFinal ? "#ea1d2c" : "#e5e5e5",
+        color: podeContinuarFinal ? "#fff" : "#999",
+        border: "none",
+        fontWeight: 800,
+        fontSize: isMobile ? 14 : 13,
+        cursor: podeContinuarFinal ? "pointer" : "not-allowed",
+        boxShadow: podeContinuarFinal
+          ? "0 6px 14px rgba(234,29,44,0.18)"
+          : "none",
+        opacity: podeContinuarFinal ? 1 : 0.7,
+        flexShrink: 0
+      }}
+    >
+      {podeContinuarFinal
+        ? "Continuar"
+        : !clienteNome || !clienteTelefone
+        ? "Preencha seus dados"
+        : !tipoEntrega
+        ? "Escolha entrega ou retirada"
+        : !freteEncontrado
+        ? "Bairro não atendido"
+        : foraDaArea
+        ? "Fora da área"
+        : "Erro"}
+    </button>
   </div>
 </div>
-
-    {/* BOTÃO */}
-<button
-  disabled={!podeContinuarFinal}
-
-  onClick={() => {
-
-    if (!user) {
-      localStorage.setItem("redirectAfterLogin", "carrinho");
-      router.push("/login");
-      return;
-    }
-
-    if (!clienteNome || !clienteTelefone) {
-      mostrarMensagemPagamento("Preencha seus dados para continuar.", "erro");
-      setAba("perfil");
-      setStep(4);
-      setAbaPerfil("dados");
-      return;
-    }
-
-   if (
-  !clienteEndereco?.trim() ||
-  !clienteNumeroCasa?.trim() ||
-  !clienteBairro?.trim()
-) {
-
-  setAvisoTela("Confirme seu endereço, número e bairro.");
-
-
-  setAba("carrinho");
-  setStep(3);
-
-  document
-    .getElementById("secao-endereco")
-    ?.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-
-  return;
-}
-
-    if (tipoEntrega === "entrega") {
-      if (!freteEncontrado) {
-        mostrarMensagemPagamento("Não entregamos no seu bairro.", "erro");
-        return;
-      }
-
-      if (foraDaArea) {
-        mostrarMensagemPagamento("Fora da área de entrega.", "erro");
-        return;
-      }
-    }
-
-    setAba("pagamentos");
-    setStep(6);
-  }}
-
-  style={{
-    minWidth: isMobile ? 130 : 110,
-    height: isMobile ? 46 : 40,
-    borderRadius: 14,
-
-    background: podeContinuarFinal ? "#ea1d2c" : "#e5e5e5",
-    color: podeContinuarFinal ? "#fff" : "#999",
-
-    border: "none",
-    fontWeight: 800,
-    fontSize: isMobile ? 14 : 13,
-
-    cursor: podeContinuarFinal ? "pointer" : "not-allowed",
-    boxShadow: podeContinuarFinal
-      ? "0 6px 14px rgba(234,29,44,0.18)"
-      : "none",
-
-    padding: "0 14px",
-    flexShrink: 0,
-    transition: "all .2s ease",
-    opacity: podeContinuarFinal ? 1 : 0.7
-  }}
->
-  {podeContinuarFinal
-    ? "Continuar"
-    : !clienteNome || !clienteTelefone
-    ? "Preencha seus dados"
-    : !tipoEntrega
-    ? "Escolha entrega ou retirada"
-    : !freteEncontrado
-    ? "Bairro não atendido"
-    : foraDaArea
-    ? "Fora da área"
-    : "Erro"}
-</button>
-  </div>
+</div>
 </div>
 
     
@@ -13565,28 +13646,28 @@ const corStatus =
 
     <div style={{ minWidth: 0, flex: 1 }}>
       {/* STATUS CORRIGIDO */}
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 700,
-          color: foraDaArea
-            ? "#dc2626"
-            : freteGratis
-            ? "#16a34a"
-            : "#666",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis"
-        }}
-      >
-        {foraDaArea
-          ? "Fora da área de entrega grátis"
-          : freteGratis
-          ? "Entrega grátis aplicada"
-          : faltaFreteGratis > 0
-          ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
-          : ""}
-      </div>
+       <div
+          style={{
+            fontSize: 12,
+            fontWeight: 700,
+            marginBottom: 2,
+            color: foraDaArea
+              ? "#dc2626"
+              : entregaFinal === 0
+              ? "#16a34a"
+              : "#666"
+          }}
+        >
+          {foraDaArea
+            ? "Fora da área de entrega"
+            : precisaLocalizacao
+            ? "Informe seu endereço"
+            : entregaFinal === 0
+            ? "Entrega grátis aplicada"
+            : faltaFreteGratis > 0
+            ? `Faltam ${formatarReal(faltaFreteGratis)} para entrega grátis`
+            : ""}
+        </div>
 
       {/* VALOR */}
       <div

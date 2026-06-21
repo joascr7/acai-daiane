@@ -2,8 +2,10 @@ export default function FretesOverview({
   fretes = [],
   bairroFrete,
   valorFrete,
+  minimoFreteGratis, // 🔥 NOVO
   setBairroFrete,
   setValorFrete,
+  setMinimoFreteGratis, // 🔥 NOVO
   salvarFrete,
   loadingFrete,
   freteEditandoId,
@@ -12,7 +14,9 @@ export default function FretesOverview({
   alternarStatusFrete,
   excluirFrete,
   formatarReal,
-  isMobile
+  isMobile,
+
+  toggleFreteGratis
 }) {
   return (
     <div
@@ -30,7 +34,9 @@ export default function FretesOverview({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: isMobile ? "1fr" : "1.4fr 1fr auto auto",
+          gridTemplateColumns: isMobile
+            ? "1fr"
+            : "1.2fr 0.8fr 1fr auto auto",
           gap: 10,
           marginBottom: 16
         }}
@@ -45,7 +51,15 @@ export default function FretesOverview({
         <input
           value={valorFrete}
           onChange={(e) => setValorFrete(e.target.value)}
-          placeholder="Valor"
+          placeholder="Valor do frete"
+          style={input}
+        />
+
+        {/* 🔥 NOVO: mínimo para frete grátis */}
+        <input
+          value={minimoFreteGratis}
+          onChange={(e) => setMinimoFreteGratis(e.target.value)}
+          placeholder="Mínimo frete grátis (R$)"
           style={input}
         />
 
@@ -92,6 +106,7 @@ export default function FretesOverview({
             flexWrap: isMobile ? "wrap" : "nowrap"
           }}
         >
+          {/* INFO */}
           <div>
             <strong>{item?.bairro}</strong>
 
@@ -108,8 +123,45 @@ export default function FretesOverview({
             >
               {item?.ativo ? "Ativo" : "Desativado"}
             </div>
+
+            {/* 🔥 FRETE GRÁTIS */}
+            {item?.freteGratisAtivo && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#2563eb",
+                  fontWeight: 600,
+                  marginTop: 4
+                }}
+              >
+                Frete grátis acima de{" "}
+                {formatarReal(item.minimoFreteGratis || 0)}
+              </div>
+            )}
+
+            {/* BOTÃO TOGGLE */}
+            <button
+              onClick={() => toggleFreteGratis(item)}
+              style={{
+                marginTop: 8,
+                background: item?.freteGratisAtivo
+                  ? "#dbeafe"
+                  : "#f3f4f6",
+                color: "#1d4ed8",
+                border: "none",
+                borderRadius: 8,
+                padding: "4px 8px",
+                fontWeight: 600,
+                cursor: "pointer"
+              }}
+            >
+              {item?.freteGratisAtivo
+                ? "Frete grátis ativo"
+                : "Ativar frete grátis"}
+            </button>
           </div>
 
+          {/* AÇÕES */}
           <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={() => abrirEdicaoFrete(item)}
@@ -162,7 +214,7 @@ export default function FretesOverview({
   );
 }
 
-/* 🔥 INPUT PADRÃO */
+/* 🔥 STYLES */
 const input = {
   height: 44,
   borderRadius: 10,
